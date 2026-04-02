@@ -6,6 +6,7 @@ import heavyDuty from "@/assets/heavy-duty.jpg";
 import rideshareFleet from "@/assets/rideshare-fleet.jpg";
 import micromobility from "@/assets/micromobility.jpg";
 import maritime from "@/assets/maritime.jpg";
+import electricTransitBus from "@/assets/electric-transit-bus.jpg";
 
 const modes = [
   {
@@ -41,6 +42,7 @@ const modes = [
     title: "Electric Public Transit",
     desc: "$2B+ in annual federal funding for low/no-emission vehicles. Transit authorities in all 50 states replacing diesel fleets.",
     link: "https://itdp.org/2026/01/06/better-bus-service-electric-buses-stmagazine-37/",
+    image: electricTransitBus,
   },
   {
     icon: Car,
