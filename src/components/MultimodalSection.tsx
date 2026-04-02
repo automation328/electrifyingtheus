@@ -1,6 +1,11 @@
 import { Plane, Cpu, Bus, Ship, Bike, Car, GraduationCap, Truck } from "lucide-react";
 import evtol from "@/assets/evtol.jpg";
 import schoolBus from "@/assets/school-bus.jpg";
+import sustainableAviation from "@/assets/sustainable-aviation.jpg";
+import heavyDuty from "@/assets/heavy-duty.jpg";
+import rideshareFleet from "@/assets/rideshare-fleet.jpg";
+import micromobility from "@/assets/micromobility.jpg";
+import maritime from "@/assets/maritime.jpg";
 
 const modes = [
   {
@@ -8,6 +13,7 @@ const modes = [
     title: "Sustainable Aviation",
     desc: "SAF reduces lifecycle CO₂ by up to 80%. Electric commuter planes now connect regional airports for trips under 250 miles.",
     link: "https://www.safii.org/the-future-of-worldwide-sustainable-aviation-fuel-saf-demand-different-transatlantic-government-policies-make-pathways-to-net-zero-aviation-difficult/",
+    image: sustainableAviation,
   },
   {
     icon: Cpu,
@@ -28,6 +34,7 @@ const modes = [
     title: "Heavy-Duty Electrification",
     desc: "Zero-emission freight corridor strategy prioritizing charging hubs along major interstates handling 10,000+ trucks daily.",
     link: "https://www.transportation.gov/freight/NFSP",
+    image: heavyDuty,
   },
   {
     icon: Bus,
@@ -40,18 +47,21 @@ const modes = [
     title: "Rideshare & Fleets",
     desc: "Uber and Lyft committing to 100% EV fleets. Rental companies offering EVs nationwide at competitive rates.",
     link: "https://www.cnbc.com/2022/06/18/how-the-massive-ev-transition-is-starting-in-the-car-rental-industry.html",
+    image: rideshareFleet,
   },
   {
     icon: Bike,
     title: "Micro-mobility",
     desc: "150M+ shared trips annually in 400+ cities. E-bike rebate programs offering up to $1,500 in savings.",
     link: "https://www.peopleforbikes.org/news/solutions-to-the-e-moto-problem",
+    image: micromobility,
   },
   {
     icon: Ship,
     title: "Sustainable Maritime",
     desc: "70%+ of major U.S. ports equipped with Shore Power by end of 2026. Electric ferries and tugboats cut costs 30-40%.",
     link: "https://www.epa.gov/ports-initiative",
+    image: maritime,
   },
 ];
 
