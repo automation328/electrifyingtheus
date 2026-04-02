@@ -1,5 +1,6 @@
 import { Zap, Battery, TrendingUp, MapPin } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import statsBg from "@/assets/stats-bg.jpg";
 
 const stats = [
   { icon: Zap, value: "8M+", label: "Electric Vehicles Sold in the U.S.", color: "text-primary" },
@@ -22,8 +23,12 @@ const StatsSection = () => {
   }, []);
 
   return (
-    <section id="dashboard" className="py-20 md:py-28 bg-muted/50" ref={ref}>
-      <div className="container">
+    <section id="dashboard" className="py-20 md:py-28 relative overflow-hidden" ref={ref}>
+      <div className="absolute inset-0">
+        <img src={statsBg} alt="EV highway infrastructure" className="w-full h-full object-cover" loading="lazy" />
+        <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" />
+      </div>
+      <div className="container relative z-10">
         <div className="text-center mb-16">
           <span className="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-semibold mb-4">
             US EV Dashboard

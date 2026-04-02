@@ -3,6 +3,11 @@ import evCharging from "@/assets/ev-charging.jpg";
 import evWinter from "@/assets/ev-winter.jpg";
 import workforce from "@/assets/workforce.jpg";
 import evSavings from "@/assets/ev-savings.jpg";
+import evSafety from "@/assets/ev-safety.jpg";
+import steamEducation from "@/assets/steam-education.jpg";
+import financialSavings from "@/assets/financial-savings.jpg";
+import evPolicy from "@/assets/ev-policy.jpg";
+import reducedEmissions from "@/assets/reduced-emissions.jpg";
 
 const cards = [
   {
@@ -26,6 +31,7 @@ const cards = [
     title: "EVs & Road Safety",
     desc: "Lower center of gravity reduces rollover risk. EVs are 60x less likely to catch fire than gasoline vehicles thanks to sealed, armored battery shells.",
     link: "https://evcurvefuturist.com/2025/10/25-reasons-evs-are-better-than-ice-cars/",
+    image: evSafety,
     color: "from-primary to-secondary",
   },
   {
@@ -33,6 +39,7 @@ const cards = [
     title: "STEAM Education",
     desc: "From the 'Battery Belt' to innovation hubs, community colleges launch national upskilling for high-voltage systems, battery chemistry, and smart-grid integration.",
     link: "https://www.epa.gov/cleanschoolbus/workforce-development-and-training-resources",
+    image: steamEducation,
     color: "from-secondary to-primary",
   },
   {
@@ -56,6 +63,7 @@ const cards = [
     title: "Financial Savings",
     desc: "Save $6,000–$10,000 in maintenance over your vehicle's lifetime. Only 20 moving parts vs 2,000+ in gas engines. Brake pads last 3x longer with regenerative braking.",
     link: "https://coltura.org/ev-vs-gas-calculator/",
+    image: financialSavings,
     color: "from-secondary to-secondary/80",
   },
   {
@@ -63,6 +71,7 @@ const cards = [
     title: "U.S. EV Policies",
     desc: "National goal: 50% zero-emission new vehicle sales by 2030. The $5B NEVI program is building coast-to-coast charging infrastructure across all 50 states.",
     link: "https://www.act-news.com/news/the-united-states-of-nevi/",
+    image: evPolicy,
     color: "from-primary to-secondary",
   },
   {
@@ -70,6 +79,7 @@ const cards = [
     title: "Reduced Emissions",
     desc: "EVs produce zero tailpipe emissions. Switching to an EV reduces lifetime greenhouse gas emissions by up to 64% — equivalent to planting 77 trees over 10 years.",
     link: "https://afdc.energy.gov/vehicles/electric_emissions.html",
+    image: reducedEmissions,
     color: "from-secondary to-primary",
   },
 ];
