@@ -6,6 +6,7 @@ import heavyDuty from "@/assets/heavy-duty.jpg";
 import rideshareFleet from "@/assets/rideshare-fleet.jpg";
 import micromobility from "@/assets/micromobility.jpg";
 import maritime from "@/assets/maritime.jpg";
+import electricTransitBus from "@/assets/electric-transit-bus.jpg";
 
 const modes = [
   {
