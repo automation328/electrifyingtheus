@@ -9,6 +9,7 @@ const navItems = [
   { label: "EV 101", href: "#ev101" },
   { label: "Benefits", href: "#benefits" },
   { label: "Multimodal", href: "#multimodal" },
+  { label: "TCO Calculator", href: "#tco-calculator" },
   { label: "Contact", href: "#contact" },
 ];
 
