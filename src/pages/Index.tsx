@@ -5,6 +5,7 @@ import AboutSection from "@/components/AboutSection";
 import EV101Section from "@/components/EV101Section";
 import BenefitsSection from "@/components/BenefitsSection";
 import MultimodalSection from "@/components/MultimodalSection";
+import TCOCalculatorSection from "@/components/TCOCalculatorSection";
 import ContactSection from "@/components/ContactSection";
 import Footer from "@/components/Footer";
 import ChatBot from "@/components/ChatBot";
@@ -19,6 +20,7 @@ const Index = () => {
       <EV101Section />
       <BenefitsSection />
       <MultimodalSection />
+      <TCOCalculatorSection />
       <ContactSection />
       <Footer />
       <ChatBot />
