@@ -133,40 +133,6 @@ const Calculator = () => {
           {step === 1 && (
             <div className="animate-fade-up">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* EV Selection */}
-                <div className="p-6 rounded-2xl border border-primary/20 bg-card">
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center">
-                      <Zap className="w-5 h-5 text-primary-foreground" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-foreground">Electric Vehicle</h3>
-                      <p className="text-sm text-muted-foreground">Choose your EV</p>
-                    </div>
-                  </div>
-                  <div className="space-y-3">
-                    {evVehicles.map((v) => (
-                      <button
-                        key={v.id}
-                        onClick={() => { setSelectedEV(v.id); handleAutoMatch(); }}
-                        className={`w-full text-left p-4 rounded-xl border transition-all ${
-                          selectedEV === v.id
-                            ? "border-primary bg-primary/5 shadow-md"
-                            : "border-border hover:border-primary/30"
-                        }`}
-                      >
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <p className="font-medium text-foreground">{v.name}</p>
-                            <p className="text-sm text-muted-foreground">{v.category} • {v.kwhPer100mi} kWh/100mi</p>
-                          </div>
-                          <p className="text-sm font-semibold text-foreground">{formatCurrency(v.msrp)}</p>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
                 {/* Gas Selection */}
                 <div className="p-6 rounded-2xl border border-border bg-card">
                   <div className="flex items-center gap-3 mb-6">
@@ -200,6 +166,41 @@ const Calculator = () => {
                     ))}
                   </div>
                 </div>
+
+                {/* EV Selection */}
+                <div className="p-6 rounded-2xl border border-primary/20 bg-card">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center">
+                      <Zap className="w-5 h-5 text-primary-foreground" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-foreground">Electric Vehicle</h3>
+                      <p className="text-sm text-muted-foreground">Choose your EV</p>
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    {evVehicles.map((v) => (
+                      <button
+                        key={v.id}
+                        onClick={() => { setSelectedEV(v.id); handleAutoMatch(); }}
+                        className={`w-full text-left p-4 rounded-xl border transition-all ${
+                          selectedEV === v.id
+                            ? "border-primary bg-primary/5 shadow-md"
+                            : "border-border hover:border-primary/30"
+                        }`}
+                      >
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <p className="font-medium text-foreground">{v.name}</p>
+                            <p className="text-sm text-muted-foreground">{v.category} • {v.kwhPer100mi} kWh/100mi</p>
+                          </div>
+                          <p className="text-sm font-semibold text-foreground">{formatCurrency(v.msrp)}</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
               </div>
 
               <div className="flex justify-end mt-8">
