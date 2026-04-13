@@ -201,7 +201,6 @@ const Calculator = () => {
                   </div>
                 </div>
               </div>
-              </div>
 
               <div className="flex justify-end mt-8">
                 <Button variant="hero" size="lg" className="rounded-2xl px-8" onClick={() => setStep(2)}>
