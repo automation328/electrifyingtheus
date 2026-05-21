@@ -22,3 +22,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Local QA / screenshot artifacts (not part of the app)
+.playwright-mcp/
+/*.png
+/*.jpeg
+/*.jpg

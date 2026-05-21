@@ -1,10 +1,11 @@
+import { Link } from "react-router-dom";
 import logo from "@/assets/logo.png";
 
 const Footer = () => {
   return (
     <footer className="gradient-primary py-12 md:py-16">
       <div className="container">
-        <div className="grid md:grid-cols-3 gap-8 items-start">
+        <div className="grid md:grid-cols-4 gap-8 items-start">
           <div>
             <img src={logo} alt="Electrifying the US" className="h-16 w-auto mb-4 brightness-0 invert" />
             <p className="text-primary-foreground/70 text-sm max-w-xs">
@@ -23,6 +24,27 @@ const Footer = () => {
                 >
                   {l}
                 </a>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <h4 className="font-display font-bold text-primary-foreground mb-4">Resources</h4>
+            <div className="space-y-2">
+              {[
+                { label: "Blog", to: "/blog" },
+                { label: "Events", to: "/events" },
+                { label: "Careers", to: "/careers" },
+                { label: "EV vs Gas", to: "/electricity-vs-gasoline" },
+                { label: "AI Assistant", to: "/assistant" },
+              ].map((l) => (
+                <Link
+                  key={l.to}
+                  to={l.to}
+                  className="block text-primary-foreground/70 hover:text-primary-foreground text-sm transition-colors"
+                >
+                  {l.label}
+                </Link>
               ))}
             </div>
           </div>

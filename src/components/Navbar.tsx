@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import ThemeToggle from "@/components/ThemeToggle";
 import logo from "@/assets/logo.png";
 
 const navItems = [
@@ -16,6 +18,15 @@ const navItems = [
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const location = useLocation();
+  const isHome = location.pathname === "/";
+
+  // Use the solid (dark-text) header style whenever scrolled, or on any
+  // non-home page (which has a light background behind the navbar).
+  const solid = scrolled || !isHome;
+
+  // Anchor links live on the home page; from other pages, route home first.
+  const linkHref = (href: string) => (isHome ? href : `/${href}`);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -26,11 +37,11 @@ const Navbar = () => {
   return (
     <nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-        scrolled ? "glass shadow-lg py-2" : "bg-transparent py-4"
+        solid ? "glass shadow-lg py-2" : "bg-transparent py-4"
       }`}
     >
       <div className="container flex items-center justify-between">
-        <a href="#" className="flex items-center gap-2">
+        <a href="/" className="flex items-center gap-2">
           <img
             src={logo}
             alt="Electrifying the US"
@@ -43,9 +54,9 @@ const Navbar = () => {
           {navItems.map((item) => (
             <a
               key={item.href}
-              href={item.href}
+              href={linkHref(item.href)}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                scrolled
+                solid
                   ? "text-foreground hover:text-primary hover:bg-muted"
                   : "text-primary-foreground/90 hover:text-primary-foreground hover:bg-primary-foreground/10"
               }`}
@@ -54,10 +65,11 @@ const Navbar = () => {
             </a>
           ))}
           <a href="https://afdc.energy.gov/fuels/electricity_locations.html#/find/nearest?fuel=ELEC" target="_blank" rel="noopener noreferrer">
-            <Button variant={scrolled ? "default" : "hero"} size="sm" className="ml-2">
+            <Button variant={solid ? "default" : "hero"} size="sm" className="ml-2">
               Find a Charger
             </Button>
           </a>
+          <div className="ml-2"><ThemeToggle /></div>
         </div>
 
         {/* Mobile toggle */}
@@ -67,9 +79,9 @@ const Navbar = () => {
           aria-label="Toggle menu"
         >
           {isOpen ? (
-            <X className={scrolled ? "text-foreground" : "text-primary-foreground"} size={24} />
+            <X className={solid ? "text-foreground" : "text-primary-foreground"} size={24} />
           ) : (
-            <Menu className={scrolled ? "text-foreground" : "text-primary-foreground"} size={24} />
+            <Menu className={solid ? "text-foreground" : "text-primary-foreground"} size={24} />
           )}
         </button>
       </div>
@@ -80,7 +92,7 @@ const Navbar = () => {
           {navItems.map((item) => (
             <a
               key={item.href}
-              href={item.href}
+              href={linkHref(item.href)}
               className="block px-4 py-3 rounded-lg text-foreground font-medium hover:bg-muted transition-colors"
               onClick={() => setIsOpen(false)}
             >
@@ -90,6 +102,7 @@ const Navbar = () => {
           <a href="https://afdc.energy.gov/fuels/electricity_locations.html#/find/nearest?fuel=ELEC" target="_blank" rel="noopener noreferrer" className="block mt-2">
             <Button variant="default" className="w-full">Find a Charger</Button>
           </a>
+          <div className="mt-3"><ThemeToggle compact /></div>
         </div>
       )}
     </nav>

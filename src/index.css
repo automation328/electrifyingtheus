@@ -154,3 +154,61 @@
 html {
   scroll-behavior: smooth;
 }
+
+/* =========================================================================
+   VERSION 2 — modern frosted-glass theme (toggled via [data-theme="glass"])
+   Frosted, translucent surfaces layered over a vivid brand gradient mesh.
+   ========================================================================= */
+html[data-theme="glass"] body {
+  background:
+    radial-gradient(820px 620px at 10% 4%, hsl(214 100% 50% / 0.22), transparent 60%),
+    radial-gradient(760px 600px at 92% 14%, hsl(145 55% 48% / 0.20), transparent 60%),
+    radial-gradient(900px 700px at 50% 108%, hsl(214 100% 60% / 0.18), transparent 62%),
+    linear-gradient(180deg, hsl(210 40% 99%), hsl(210 30% 95%));
+  background-attachment: fixed;
+}
+
+/* Let the body mesh show through full-page wrappers */
+html[data-theme="glass"] .bg-background { background-color: transparent !important; }
+
+/* Frosted cards */
+html[data-theme="glass"] .bg-card {
+  background-color: rgba(255, 255, 255, 0.55) !important;
+  backdrop-filter: blur(16px) saturate(165%);
+  -webkit-backdrop-filter: blur(16px) saturate(165%);
+  border-color: rgba(255, 255, 255, 0.6) !important;
+  box-shadow: 0 14px 44px -16px hsl(214 60% 28% / 0.22);
+}
+
+/* Enhance the existing glass utilities */
+html[data-theme="glass"] .glass,
+html[data-theme="glass"] .glass-card {
+  background-color: rgba(255, 255, 255, 0.5) !important;
+  backdrop-filter: blur(20px) saturate(165%);
+  -webkit-backdrop-filter: blur(20px) saturate(165%);
+  border: 1px solid rgba(255, 255, 255, 0.6) !important;
+}
+
+/* Translucent muted surfaces (inputs, chips, bands) */
+html[data-theme="glass"] .bg-muted {
+  background-color: rgba(255, 255, 255, 0.42) !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* Always-frosted navbar in glass mode */
+html[data-theme="glass"] nav {
+  backdrop-filter: blur(22px) saturate(165%);
+  -webkit-backdrop-filter: blur(22px) saturate(165%);
+}
+
+/* Softer borders + airier radii for the glassy feel */
+html[data-theme="glass"] .border { border-color: rgba(255, 255, 255, 0.55); }
+html[data-theme="glass"] .rounded-2xl { border-radius: 1.25rem; }
+html[data-theme="glass"] .rounded-3xl { border-radius: 1.75rem; }
+
+/* Frost the gradient panels just slightly so they read as glass, not paint */
+html[data-theme="glass"] .gradient-primary,
+html[data-theme="glass"] .gradient-hero {
+  box-shadow: 0 18px 50px -18px hsl(214 80% 30% / 0.35);
+}
