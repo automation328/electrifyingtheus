@@ -1,89 +1,17 @@
 import { Link } from "react-router-dom";
-import { ArrowRight, Calendar, User } from "lucide-react";
+import { ArrowRight, Calendar, User, Clock } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import heroBg from "@/assets/reduced-emissions.jpg";
-import evCharging from "@/assets/ev-charging.jpg";
-import evSavings from "@/assets/ev-savings.jpg";
-import workforce from "@/assets/workforce.jpg";
-import micromobility from "@/assets/micromobility.jpg";
-import evWinter from "@/assets/ev-winter.jpg";
-import evFamily from "@/assets/ev-family.jpg";
+import { BLOG_POSTS } from "@/data/blog-posts";
 
-interface Post {
-  title: string;
-  excerpt: string;
-  category: string;
-  date: string;
-  author: string;
-  image: string;
-}
+const featured = BLOG_POSTS.find((p) => p.featured) ?? BLOG_POSTS[0];
+const posts = BLOG_POSTS.filter((p) => p.slug !== featured.slug);
 
-const featured: Post = {
-  title: "Why 2026 Is the Tipping Point for EV Adoption in America",
-  excerpt:
-    "With more than 8 million EVs on U.S. roads, falling battery costs, and a fast-growing charging network, the shift to electric is moving from early adopters to the mainstream. Here's what's driving the momentum.",
-  category: "Policy & Trends",
-  date: "May 18, 2026",
-  author: "Electrifying the US Team",
-  image: heroBg,
-};
-
-const posts: Post[] = [
-  {
-    title: "Charging 101: Level 1 vs. Level 2 vs. DC Fast",
-    excerpt: "Which charger fits your life? A plain-English guide to speeds, connectors, and costs.",
-    category: "EV 101",
-    date: "May 12, 2026",
-    author: "Maya Chen",
-    image: evCharging,
-  },
-  {
-    title: "The Real Cost of Going Electric: A Savings Breakdown",
-    excerpt: "Fuel, maintenance, and incentives add up. See where EV owners actually save money.",
-    category: "Savings",
-    date: "May 5, 2026",
-    author: "Darnell Price",
-    image: evSavings,
-  },
-  {
-    title: "Electrifying Communities: Clean-Energy Workforce Opportunities",
-    excerpt: "The EV transition is creating hundreds of thousands of jobs — and pathways into them.",
-    category: "Workforce",
-    date: "Apr 28, 2026",
-    author: "Jordan Ellis",
-    image: workforce,
-  },
-  {
-    title: "Beyond Cars: E-Bikes, Buses & the Multimodal Future",
-    excerpt: "Zero-emission mobility is bigger than cars. Explore the full electric ecosystem.",
-    category: "Multimodal",
-    date: "Apr 20, 2026",
-    author: "Sofia Reyes",
-    image: micromobility,
-  },
-  {
-    title: "EVs in Winter: Myths vs. Reality",
-    excerpt: "Cold weather affects range — but preconditioning and planning keep you moving.",
-    category: "EV 101",
-    date: "Apr 9, 2026",
-    author: "Maya Chen",
-    image: evWinter,
-  },
-  {
-    title: "Cleaner Air, Healthier Neighborhoods",
-    excerpt: "How replacing tailpipes with plugs improves public health where we live.",
-    category: "Health",
-    date: "Mar 30, 2026",
-    author: "Dr. Aisha Bello",
-    image: evFamily,
-  },
-];
-
-const PostMeta = ({ date, author }: { date: string; author: string }) => (
-  <div className="flex items-center gap-4 text-xs text-muted-foreground">
+const PostMeta = ({ date, author, readTime }: { date: string; author: string; readTime?: string }) => (
+  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
     <span className="flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5" /> {date}</span>
     <span className="flex items-center gap-1.5"><User className="w-3.5 h-3.5" /> {author}</span>
+    {readTime && <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" /> {readTime}</span>}
   </div>
 );
 
@@ -107,41 +35,48 @@ const Blog = () => {
           </div>
 
           {/* Featured */}
-          <article className="grid lg:grid-cols-2 gap-8 items-center rounded-3xl border border-border bg-card overflow-hidden shadow-xl mb-14">
-            <div className="h-64 lg:h-full min-h-[280px]">
-              <img src={featured.image} alt={featured.title} className="w-full h-full object-cover" />
+          <Link
+            to={`/blog/${featured.slug}`}
+            className="group grid lg:grid-cols-2 gap-8 items-center rounded-3xl border border-border bg-card overflow-hidden shadow-xl mb-14 hover:shadow-2xl transition-shadow"
+          >
+            <div className="h-64 lg:h-full min-h-[280px] overflow-hidden">
+              <img src={featured.image} alt={featured.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
             </div>
             <div className="p-8">
               <span className="inline-block px-3 py-1 rounded-full bg-secondary/10 text-secondary text-xs font-semibold mb-4">
                 {featured.category}
               </span>
-              <h2 className="text-2xl md:text-3xl font-bold font-display text-foreground mb-3 leading-snug">
+              <h2 className="text-2xl md:text-3xl font-bold font-display text-foreground mb-3 leading-snug group-hover:text-primary transition-colors">
                 {featured.title}
               </h2>
               <p className="text-muted-foreground mb-5">{featured.excerpt}</p>
-              <PostMeta date={featured.date} author={featured.author} />
-              <button className="mt-6 inline-flex items-center gap-2 text-primary font-semibold hover:gap-3 transition-all">
+              <PostMeta date={featured.date} author={featured.author} readTime={featured.readTime} />
+              <span className="mt-6 inline-flex items-center gap-2 text-primary font-semibold group-hover:gap-3 transition-all">
                 Read article <ArrowRight className="w-4 h-4" />
-              </button>
+              </span>
             </div>
-          </article>
+          </Link>
 
           {/* Grid */}
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {posts.map((p) => (
-              <article key={p.title} className="rounded-3xl border border-border bg-card overflow-hidden shadow-card hover:shadow-xl hover:-translate-y-1 transition-all">
+              <Link
+                key={p.slug}
+                to={`/blog/${p.slug}`}
+                className="group rounded-3xl border border-border bg-card overflow-hidden shadow-card hover:shadow-xl hover:-translate-y-1 transition-all"
+              >
                 <div className="h-48 overflow-hidden">
-                  <img src={p.image} alt={p.title} className="w-full h-full object-cover" loading="lazy" />
+                  <img src={p.image} alt={p.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
                 </div>
                 <div className="p-6">
                   <span className="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold mb-3">
                     {p.category}
                   </span>
-                  <h3 className="text-lg font-bold font-display text-foreground mb-2 leading-snug">{p.title}</h3>
+                  <h3 className="text-lg font-bold font-display text-foreground mb-2 leading-snug group-hover:text-primary transition-colors">{p.title}</h3>
                   <p className="text-sm text-muted-foreground mb-4">{p.excerpt}</p>
-                  <PostMeta date={p.date} author={p.author} />
+                  <PostMeta date={p.date} author={p.author} readTime={p.readTime} />
                 </div>
-              </article>
+              </Link>
             ))}
           </div>
 

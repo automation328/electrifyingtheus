@@ -1,8 +1,8 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
-  LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid,
-  Tooltip, Legend, ResponsiveContainer, Cell,
+  ComposedChart, Line, Area, ReferenceLine, BarChart, Bar, XAxis, YAxis, CartesianGrid,
+  Tooltip, ResponsiveContainer, Cell,
 } from "recharts";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -12,57 +12,93 @@ import {
   Accordion, AccordionContent, AccordionItem, AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
-import { Zap, Fuel, TrendingDown, Gauge, MapPin, BarChart3, ArrowRight } from "lucide-react";
+import { TrendingDown, Gauge, MapPin, BarChart3, ArrowRight, Zap, Fuel, PiggyBank, Clock, CheckCircle2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import UsElectricityMap from "@/components/UsElectricityMap";
 import { vehicles, getVehiclesByType } from "@/data/vehicles";
-import { STATE_ENERGY_RATES, STATE_CODES, NATIONAL_AVG } from "@/data/state-energy-rates";
+import { STATE_ENERGY_RATES, NATIONAL_AVG } from "@/data/state-energy-rates";
+import type { VehicleData } from "@/lib/tco-calculator";
 
-const EV_BLUE = "hsl(214, 100%, 36%)";
-const GAS_GRAY = "hsl(215, 16%, 47%)";
+const EV_COLOR = "hsl(145, 55%, 42%)"; // green
+const GAS_COLOR = "#f97316"; // orange
+const FEDERAL_INCENTIVE = 7500;
 
 const currency = (n: number, frac = 0) =>
   new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: frac, minimumFractionDigits: frac }).format(n);
 
+const priceK = (msrp: number) => `$${Math.round(msrp / 1000)}k`;
+
 const evVehicles = getVehiclesByType("ev");
 const gasVehicles = getVehiclesByType("gas");
 
-/** Fuel/energy cost per mile for a vehicle at the given energy prices. */
-const evCostPerMile = (kwhPer100mi: number, centsPerKwh: number) =>
-  (kwhPer100mi / 100) * (centsPerKwh / 100);
-const gasCostPerMile = (mpg: number, pricePerGallon: number) =>
-  (1 / mpg) * pricePerGallon;
+const evCostPerMile = (kwhPer100mi: number, dollarsPerKwh: number) => (kwhPer100mi / 100) * dollarsPerKwh;
+const gasCostPerMile = (mpg: number, pricePerGallon: number) => (1 / mpg) * pricePerGallon;
+
+// A small labelled slider used in the controls card.
+const SliderField = ({ label, display, value, onChange, min, max, step }: {
+  label: string; display: string; value: number; onChange: (v: number) => void; min: number; max: number; step: number;
+}) => (
+  <div>
+    <div className="flex items-center justify-between mb-2">
+      <label className="text-sm font-medium text-muted-foreground">{label}</label>
+      <span className="text-sm font-semibold text-foreground">{display}</span>
+    </div>
+    <Slider value={[value]} onValueChange={([v]) => onChange(v)} min={min} max={max} step={step} />
+  </div>
+);
 
 const ElectricityVsGasoline = () => {
   const [stateCode, setStateCode] = useState("CA");
-  const [evId, setEvId] = useState("chevy-equinox-ev");
-  const [gasId, setGasId] = useState("chevy-equinox");
+  const [evId, setEvId] = useState("tesla-model-3");
+  const [gasId, setGasId] = useState("toyota-camry");
   const [annualMiles, setAnnualMiles] = useState(12000);
+  const [ownershipYears, setOwnershipYears] = useState(5);
+  const [gasPrice, setGasPrice] = useState(STATE_ENERGY_RATES.CA.gasPricePerGallon);
+  const [electricityRate, setElectricityRate] = useState(STATE_ENERGY_RATES.CA.electricityCentsPerKwh / 100);
   const [compareClass, setCompareClass] = useState<"Sedan" | "SUV">("SUV");
 
   const rates = STATE_ENERGY_RATES[stateCode];
   const ev = vehicles.find((v) => v.id === evId)!;
   const gas = vehicles.find((v) => v.id === gasId)!;
 
-  const result = useMemo(() => {
-    const evPerMile = evCostPerMile(ev.kwhPer100mi ?? 30, rates.electricityCentsPerKwh);
-    const gasPerMile = gasCostPerMile(gas.mpg ?? 28, rates.gasPricePerGallon);
-    const perMileSavings = gasPerMile - evPerMile;
-    const annualSavings = perMileSavings * annualMiles;
-    const evCheaper = perMileSavings >= 0;
+  // Picking a state on the map presets the price sliders (still manually adjustable).
+  useEffect(() => {
+    const r = STATE_ENERGY_RATES[stateCode];
+    setGasPrice(r.gasPricePerGallon);
+    setElectricityRate(r.electricityCentsPerKwh / 100);
+  }, [stateCode]);
 
-    // Cumulative fueling vs charging cost by year (operating cost only).
-    const chart = Array.from({ length: 11 }, (_, year) => ({
-      year,
-      [`${ev.name}`]: Math.round(evPerMile * annualMiles * year),
-      [`${gas.name}`]: Math.round(gasPerMile * annualMiles * year),
+  const tco = useMemo(() => {
+    const calc = (v: VehicleData) => {
+      const purchase = v.msrp;
+      const incentive = v.type === "ev" ? FEDERAL_INCENTIVE : 0;
+      const energyAnnual = v.type === "ev"
+        ? evCostPerMile(v.kwhPer100mi ?? 30, electricityRate) * annualMiles
+        : gasCostPerMile(v.mpg ?? 28, gasPrice) * annualMiles;
+      const maintAnnual = v.maintenanceCostPerMile * annualMiles;
+      const insAnnual = v.insuranceAnnual;
+      const energy = energyAnnual * ownershipYears;
+      const maintenance = maintAnnual * ownershipYears;
+      const insurance = insAnnual * ownershipYears;
+      const total = purchase - incentive + energy + maintenance + insurance;
+      return { purchase, incentive, energy, maintenance, insurance, total, upfront: purchase - incentive, annualRunning: energyAnnual + maintAnnual + insAnnual };
+    };
+    const e = calc(ev);
+    const g = calc(gas);
+    const savings = g.total - e.total; // +ve => EV cheaper over the period
+    const runDiff = g.annualRunning - e.annualRunning;
+    const upfrontDiff = e.upfront - g.upfront;
+    const breakEven = runDiff > 0 && upfrontDiff > 0 ? upfrontDiff / runDiff : null;
+    const chart = Array.from({ length: 11 }, (_, t) => ({
+      year: t,
+      EV: Math.round(e.upfront + e.annualRunning * t),
+      Gas: Math.round(g.upfront + g.annualRunning * t),
     }));
+    return { e, g, savings, evCheaper: savings >= 0, breakEven, chart };
+  }, [ev, gas, annualMiles, ownershipYears, gasPrice, electricityRate]);
 
-    return { evPerMile, gasPerMile, perMileSavings, annualSavings, evCheaper, chart };
-  }, [ev, gas, rates, annualMiles]);
-
-  // Class comparison (national-average prices) — cost per mile.
+  // Class comparison (national-average prices) — fuel cost per mile.
   const classComparison = useMemo(() => {
     const pair = {
       Sedan: { ev: "tesla-model-3", gas: "toyota-camry" },
@@ -70,17 +106,24 @@ const ElectricityVsGasoline = () => {
     }[compareClass];
     const cEv = vehicles.find((v) => v.id === pair.ev)!;
     const cGas = vehicles.find((v) => v.id === pair.gas)!;
-    const evPm = evCostPerMile(cEv.kwhPer100mi!, NATIONAL_AVG.electricityCentsPerKwh);
+    const evPm = evCostPerMile(cEv.kwhPer100mi!, NATIONAL_AVG.electricityCentsPerKwh / 100);
     const gasPm = gasCostPerMile(cGas.mpg!, NATIONAL_AVG.gasPricePerGallon);
     const annualSavings = (gasPm - evPm) * 12000;
     return {
       cEv, cGas, evPm, gasPm, annualSavings,
       data: [
-        { name: cGas.name, cost: +gasPm.toFixed(2), fill: GAS_GRAY },
-        { name: cEv.name, cost: +evPm.toFixed(2), fill: EV_BLUE },
+        { name: cGas.name, cost: +gasPm.toFixed(2), fill: GAS_COLOR },
+        { name: cEv.name, cost: +evPm.toFixed(2), fill: EV_COLOR },
       ],
     };
   }, [compareClass]);
+
+  const Row = ({ label, value, accent }: { label: string; value: string; accent?: "green" | "orange" }) => (
+    <div className="flex justify-between items-center py-1.5 text-sm">
+      <span className="text-muted-foreground">{label}</span>
+      <span className={`font-medium ${accent === "green" ? "text-secondary" : "text-foreground"}`}>{value}</span>
+    </div>
+  );
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -107,113 +150,178 @@ const ElectricityVsGasoline = () => {
       <main className="flex-1">
         {/* Calculator */}
         <section className="py-16 md:py-20">
-          <div className="container px-4 max-w-6xl">
+          <div className="container px-4 max-w-5xl">
+            <span className="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-semibold mb-4">
+              Calculator
+            </span>
             <h2 className="text-2xl md:text-3xl font-bold font-display text-foreground mb-2">
               Electricity vs Gasoline Calculator
             </h2>
-            <p className="text-muted-foreground mb-10 max-w-2xl">
-              Compare the per-mile cost of driving an electric vehicle to a gas-powered equivalent.
-              Pick a state, two vehicles, and your annual mileage to see your savings.
+            <p className="text-muted-foreground mb-8 max-w-2xl">
+              Compare the full cost of owning an EV versus a gas car — purchase, incentives, energy,
+              maintenance, and insurance. Pick a state on the map above to preset prices, then fine-tune below.
             </p>
 
-            <div className="grid lg:grid-cols-2 gap-8">
-              {/* Inputs */}
-              <div className="space-y-6 p-6 rounded-3xl border border-border bg-card">
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground flex items-center gap-2 mb-2">
-                    <MapPin className="w-4 h-4 text-primary" /> Select a state
-                  </label>
-                  <Select value={stateCode} onValueChange={setStateCode}>
-                    <SelectTrigger className="rounded-xl h-12"><SelectValue /></SelectTrigger>
-                    <SelectContent className="max-h-72">
-                      {STATE_CODES.map((c) => (
-                        <SelectItem key={c} value={c}>{STATE_ENERGY_RATES[c].name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    {rates.electricityCentsPerKwh}¢/kWh electricity · {currency(rates.gasPricePerGallon, 2)}/gal gas
+            {/* Summary stat cards */}
+            <div className="grid sm:grid-cols-2 gap-5 mb-6">
+              <div className={`relative overflow-hidden rounded-3xl p-6 text-primary-foreground shadow-lg ${tco.evCheaper ? "gradient-green" : "gradient-primary"}`}>
+                <PiggyBank className="absolute -right-4 -top-4 w-28 h-28 opacity-15" />
+                <div className="relative">
+                  <div className="text-xs uppercase tracking-wider opacity-90 mb-1">{ownershipYears}-year savings with EV</div>
+                  <div className="text-5xl font-bold font-display leading-none">
+                    {tco.evCheaper ? currency(tco.savings) : `−${currency(Math.abs(tco.savings))}`}
+                  </div>
+                  <p className="text-sm opacity-90 mt-3">
+                    {tco.evCheaper
+                      ? `${ev.name} beats ${gas.name} over ${ownershipYears} years`
+                      : `${gas.name} costs less over ${ownershipYears} years`}
                   </p>
                 </div>
-
+              </div>
+              <div className="rounded-3xl border border-border bg-card p-6 flex items-start gap-4 shadow-card">
+                <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0">
+                  <Clock className="w-6 h-6 text-primary" />
+                </div>
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground flex items-center gap-2 mb-2">
-                    <Zap className="w-4 h-4 text-primary" /> Select an electric vehicle
-                  </label>
+                  <div className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Break-even</div>
+                  <div className="text-4xl font-bold font-display text-foreground leading-none">
+                    {tco.breakEven ? `Year ${tco.breakEven.toFixed(1)}` : "—"}
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-3">When EV total cost drops below gas</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Controls */}
+            <div className="rounded-3xl border border-border bg-card p-6 mb-6">
+              <div className="grid sm:grid-cols-2 gap-x-8 gap-y-6">
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground mb-2 block">Electric vehicle</label>
                   <Select value={evId} onValueChange={setEvId}>
                     <SelectTrigger className="rounded-xl h-12"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       {evVehicles.map((v) => (
-                        <SelectItem key={v.id} value={v.id}>{v.name} · {v.kwhPer100mi} kWh/100mi</SelectItem>
+                        <SelectItem key={v.id} value={v.id}>{v.name} ({priceK(v.msrp)})</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
-
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground flex items-center gap-2 mb-2">
-                    <Fuel className="w-4 h-4 text-secondary" /> Select a gas vehicle
-                  </label>
+                  <label className="text-sm font-medium text-muted-foreground mb-2 block">Gas vehicle</label>
                   <Select value={gasId} onValueChange={setGasId}>
                     <SelectTrigger className="rounded-xl h-12"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       {gasVehicles.map((v) => (
-                        <SelectItem key={v.id} value={v.id}>{v.name} · {v.mpg} MPG</SelectItem>
+                        <SelectItem key={v.id} value={v.id}>{v.name} ({priceK(v.msrp)})</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
+                <SliderField label="Annual miles" display={annualMiles.toLocaleString()} value={annualMiles} onChange={setAnnualMiles} min={5000} max={30000} step={1000} />
+                <SliderField label="Years of ownership" display={`${ownershipYears} yrs`} value={ownershipYears} onChange={setOwnershipYears} min={1} max={10} step={1} />
+                <SliderField label="Gas price ($/gal)" display={currency(gasPrice, 2)} value={gasPrice} onChange={setGasPrice} min={2} max={6} step={0.05} />
+                <SliderField label="Electricity ($/kWh)" display={currency(electricityRate, 2)} value={electricityRate} onChange={setElectricityRate} min={0.08} max={0.45} step={0.01} />
+              </div>
+              <p className="text-xs text-muted-foreground mt-5 flex items-center gap-1.5">
+                <MapPin className="w-3.5 h-3.5 text-primary" /> Prices preset for {rates.name} — pick a state on the map above, or adjust the sliders.
+              </p>
+            </div>
 
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground mb-2 block">
-                    Annual miles: <span className="text-foreground font-semibold">{annualMiles.toLocaleString()} mi</span>
-                  </label>
-                  <Slider
-                    value={[annualMiles]}
-                    onValueChange={([v]) => setAnnualMiles(v)}
-                    min={5000} max={30000} step={1000}
-                    className="mt-3"
-                  />
+            {/* Cost breakdown cards */}
+            <div className="grid md:grid-cols-2 gap-6 mb-6">
+              {/* EV */}
+              <div className={`rounded-3xl border bg-card p-6 border-l-4 transition-shadow ${tco.evCheaper ? "ring-2 ring-secondary/30 shadow-lg" : "border-border"}`} style={{ borderLeftColor: EV_COLOR }}>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2.5">
+                    <span className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: EV_COLOR }}>
+                      <Zap className="w-5 h-5 text-white" />
+                    </span>
+                    <h3 className="font-bold font-display text-foreground">{ev.name}</h3>
+                  </div>
+                  {tco.evCheaper && (
+                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-secondary bg-secondary/10 px-2.5 py-1 rounded-full">
+                      <CheckCircle2 className="w-3.5 h-3.5" /> Lower total
+                    </span>
+                  )}
+                </div>
+                <Row label="Purchase" value={currency(tco.e.purchase)} />
+                <Row label="Federal incentive" value={`−${currency(tco.e.incentive)}`} accent="green" />
+                <Row label={`Charging (${ownershipYears}yr)`} value={currency(tco.e.energy)} />
+                <Row label={`Maintenance (${ownershipYears}yr)`} value={currency(tco.e.maintenance)} />
+                <Row label={`Insurance (${ownershipYears}yr)`} value={currency(tco.e.insurance)} />
+                <div className="flex justify-between items-center mt-3 pt-3 border-t border-border">
+                  <span className="font-bold text-foreground">Total</span>
+                  <span className="text-xl font-bold font-display text-foreground">{currency(tco.e.total)}</span>
                 </div>
               </div>
-
-              {/* Results */}
-              <div className="rounded-3xl gradient-primary p-6 md:p-8 text-primary-foreground flex flex-col">
-                <div className="text-xs uppercase tracking-wider text-primary-foreground/70 mb-3">Results</div>
-                <p className="text-xl md:text-2xl font-display font-semibold leading-snug mb-6">
-                  {result.evCheaper ? (
-                    <>On average, you would save{" "}
-                      <span className="text-3xl md:text-4xl font-bold">{currency(result.perMileSavings, 2)}</span> per mile
-                      {" "}or <span className="text-3xl md:text-4xl font-bold">{currency(result.annualSavings)}</span> per year
-                      {" "}with the {ev.name}.</>
-                  ) : (
-                    <>In {rates.name}, the {gas.name} is currently about{" "}
-                      <span className="font-bold">{currency(Math.abs(result.annualSavings))}</span>/yr cheaper to fuel —
-                      try a more efficient EV or a higher-mileage scenario.</>
+              {/* Gas */}
+              <div className={`rounded-3xl border bg-card p-6 border-l-4 transition-shadow ${!tco.evCheaper ? "ring-2 ring-[#f97316]/30 shadow-lg" : "border-border"}`} style={{ borderLeftColor: GAS_COLOR }}>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2.5">
+                    <span className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: GAS_COLOR }}>
+                      <Fuel className="w-5 h-5 text-white" />
+                    </span>
+                    <h3 className="font-bold font-display text-foreground">{gas.name}</h3>
+                  </div>
+                  {!tco.evCheaper && (
+                    <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full" style={{ color: GAS_COLOR, background: "rgba(249,115,22,0.1)" }}>
+                      <CheckCircle2 className="w-3.5 h-3.5" /> Lower total
+                    </span>
                   )}
-                </p>
+                </div>
+                <Row label="Purchase" value={currency(tco.g.purchase)} />
+                <Row label="Incentive" value={currency(0)} />
+                <Row label={`Fuel (${ownershipYears}yr)`} value={currency(tco.g.energy)} />
+                <Row label={`Maintenance (${ownershipYears}yr)`} value={currency(tco.g.maintenance)} />
+                <Row label={`Insurance (${ownershipYears}yr)`} value={currency(tco.g.insurance)} />
+                <div className="flex justify-between items-center mt-3 pt-3 border-t border-border">
+                  <span className="font-bold text-foreground">Total</span>
+                  <span className="text-xl font-bold font-display text-foreground">{currency(tco.g.total)}</span>
+                </div>
+              </div>
+            </div>
 
-                <div className="text-sm font-medium text-primary-foreground/80 mb-2">
-                  Charging vs. fueling costs by year
+            {/* Cumulative cost chart */}
+            <div className="rounded-3xl border border-border bg-card p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold text-foreground">Cumulative cost over time</h3>
+                <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                  <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm" style={{ background: EV_COLOR }} /> EV</span>
+                  <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm" style={{ background: GAS_COLOR }} /> Gas</span>
                 </div>
-                <div className="bg-primary-foreground/10 rounded-2xl p-3 h-[280px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={result.chart} margin={{ top: 8, right: 8, left: -8, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.15)" />
-                      <XAxis dataKey="year" stroke="rgba(255,255,255,0.7)" fontSize={11} tickLine={false}
-                        label={{ value: "Years", position: "insideBottom", offset: -2, fill: "rgba(255,255,255,0.7)", fontSize: 11 }} />
-                      <YAxis stroke="rgba(255,255,255,0.7)" fontSize={11} tickLine={false}
-                        tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
-                      <Tooltip
-                        formatter={(v: number) => currency(v)}
-                        contentStyle={{ background: "#0b2a5b", border: "none", borderRadius: 12, color: "#fff", fontSize: 12 }}
-                      />
-                      <Legend wrapperStyle={{ fontSize: 11 }} />
-                      <Line type="monotone" dataKey={gas.name} stroke="#ffd166" strokeWidth={2.5} dot={false} />
-                      <Line type="monotone" dataKey={ev.name} stroke="#7ee0c0" strokeWidth={2.5} dot={false} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
+              </div>
+              <div className="h-[340px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <ComposedChart data={tco.chart} margin={{ top: 16, right: 12, left: -4, bottom: 4 }}>
+                    <defs>
+                      <linearGradient id="evFill" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor={EV_COLOR} stopOpacity={0.28} />
+                        <stop offset="100%" stopColor={EV_COLOR} stopOpacity={0} />
+                      </linearGradient>
+                      <linearGradient id="gasFill" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor={GAS_COLOR} stopOpacity={0.18} />
+                        <stop offset="100%" stopColor={GAS_COLOR} stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(214 20% 90%)" vertical={false} />
+                    <XAxis dataKey="year" type="number" domain={[0, 10]} ticks={[0, 2, 4, 6, 8, 10]} fontSize={11} tickLine={false} axisLine={false}
+                      label={{ value: "Years", position: "insideBottom", offset: -2, fontSize: 11 }} />
+                    <YAxis fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
+                    <Tooltip
+                      formatter={(v: number, n) => [currency(v), n as string]}
+                      labelFormatter={(l) => `Year ${l}`}
+                      contentStyle={{ borderRadius: 12, fontSize: 12, border: "1px solid hsl(214 20% 90%)" }}
+                    />
+                    {tco.breakEven && (
+                      <ReferenceLine x={+tco.breakEven.toFixed(2)} stroke="hsl(215 16% 47%)" strokeDasharray="4 4"
+                        label={{ value: `Break-even · yr ${tco.breakEven.toFixed(1)}`, position: "top", fontSize: 10, fill: "hsl(215 16% 47%)" }} />
+                    )}
+                    <Area type="monotone" dataKey="Gas" stroke="none" fill="url(#gasFill)" />
+                    <Area type="monotone" dataKey="EV" stroke="none" fill="url(#evFill)" />
+                    <Line type="monotone" dataKey="Gas" stroke={GAS_COLOR} strokeWidth={2.5} strokeDasharray="6 6" dot={false} />
+                    <Line type="monotone" dataKey="EV" stroke={EV_COLOR} strokeWidth={3} dot={false} />
+                  </ComposedChart>
+                </ResponsiveContainer>
               </div>
             </div>
           </div>
@@ -265,12 +373,11 @@ const ElectricityVsGasoline = () => {
                 </p>
                 <p className="text-muted-foreground">
                   with the <strong>{classComparison.cEv.name}</strong> instead of the{" "}
-                  <strong>{classComparison.cGas.name}</strong> (at national-average energy prices,
-                  12,000 mi/yr).
+                  <strong>{classComparison.cGas.name}</strong> (at national-average energy prices, 12,000 mi/yr).
                 </p>
                 <div className="mt-4 text-sm text-muted-foreground">
-                  <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-sm" style={{ background: GAS_GRAY }} /> {classComparison.cGas.name}: {currency(classComparison.gasPm, 2)}/mi</div>
-                  <div className="flex items-center gap-2 mt-1"><span className="w-3 h-3 rounded-sm" style={{ background: EV_BLUE }} /> {classComparison.cEv.name}: {currency(classComparison.evPm, 2)}/mi</div>
+                  <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-sm" style={{ background: GAS_COLOR }} /> {classComparison.cGas.name}: {currency(classComparison.gasPm, 2)}/mi</div>
+                  <div className="flex items-center gap-2 mt-1"><span className="w-3 h-3 rounded-sm" style={{ background: EV_COLOR }} /> {classComparison.cEv.name}: {currency(classComparison.evPm, 2)}/mi</div>
                 </div>
               </div>
               <div className="h-[260px]">
@@ -301,20 +408,19 @@ const ElectricityVsGasoline = () => {
               <AccordionItem value="methodology" className="border-none">
                 <AccordionTrigger className="text-foreground font-semibold">Methodology &amp; assumptions</AccordionTrigger>
                 <AccordionContent className="text-muted-foreground space-y-3 text-sm">
-                  <p>
-                    This tool compares <strong>operating energy cost only</strong> — the cost to charge an EV versus
-                    fuel a gas car. It does not include purchase price, financing, insurance, or maintenance (use the{" "}
-                    <Link to="/calculator" className="text-primary underline">full TCO Calculator</Link> for that).
-                  </p>
+                  <p>Each vehicle's total reflects ownership cost over the years you choose:</p>
                   <ul className="list-disc pl-5 space-y-1">
-                    <li><strong>EV cost/mile</strong> = (kWh per 100 mi ÷ 100) × electricity price ($/kWh)</li>
-                    <li><strong>Gas cost/mile</strong> = (1 ÷ MPG) × gasoline price ($/gal)</li>
-                    <li>Annual savings = (gas cost/mile − EV cost/mile) × annual miles</li>
+                    <li><strong>Total</strong> = purchase price − incentives + energy + maintenance + insurance</li>
+                    <li><strong>EV charging</strong> = (kWh/100mi ÷ 100) × electricity price × annual miles × years</li>
+                    <li><strong>Gas fuel</strong> = (annual miles ÷ MPG) × gas price × years</li>
+                    <li><strong>Break-even</strong> = the year EV's cumulative cost drops below gas</li>
+                    <li>EVs assume a <strong>{currency(FEDERAL_INCENTIVE)}</strong> federal incentive (eligibility varies)</li>
                   </ul>
                   <p>
-                    State electricity and gasoline prices are representative statewide averages for illustration,
-                    not live market prices. Vehicle efficiency figures come from EPA-style ratings. Actual results
-                    vary with your utility rate, local fuel prices, charging mix, and driving habits.
+                    State electricity and gasoline prices are representative statewide averages used to preset the
+                    sliders, not live market prices. Figures exclude financing interest and resale value — see the{" "}
+                    <Link to="/calculator" className="text-primary underline">full TCO Calculator</Link> for those.
+                    Actual results vary with your utility rate, local fuel prices, and driving habits.
                   </p>
                 </AccordionContent>
               </AccordionItem>

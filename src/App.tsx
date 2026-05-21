@@ -8,6 +8,7 @@ import Calculator from "./pages/Calculator.tsx";
 import Assistant from "./pages/Assistant.tsx";
 import ElectricityVsGasoline from "./pages/ElectricityVsGasoline.tsx";
 import Blog from "./pages/Blog.tsx";
+import BlogPost from "./pages/BlogPost.tsx";
 import Events from "./pages/Events.tsx";
 import Careers from "./pages/Careers.tsx";
 import NotFound from "./pages/NotFound.tsx";
@@ -26,6 +27,7 @@ const App = () => (
           <Route path="/assistant" element={<Assistant />} />
           <Route path="/electricity-vs-gasoline" element={<ElectricityVsGasoline />} />
           <Route path="/blog" element={<Blog />} />
+          <Route path="/blog/:slug" element={<BlogPost />} />
           <Route path="/events" element={<Events />} />
           <Route path="/careers" element={<Careers />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
