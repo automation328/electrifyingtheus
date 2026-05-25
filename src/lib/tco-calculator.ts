@@ -1,5 +1,13 @@
 // TCO Calculator Core Logic
 
+/** Coarse body styles used for class matching (spec §6). */
+export type BodyStyle =
+  | "sedan" | "hatchback" | "coupe"
+  | "suv-compact" | "suv-mid" | "suv-large"
+  | "minivan" | "truck";
+
+export type Drivetrain = "FWD" | "RWD" | "AWD" | "4WD";
+
 export interface VehicleData {
   id: string;
   name: string;
@@ -13,6 +21,18 @@ export interface VehicleData {
   depreciationRate: number; // annual depreciation %
   category: string;
   image?: string;
+
+  // ── Class-matching attributes (spec §6 "Vehicle Matching Logic") ──
+  bodyStyle?: BodyStyle;
+  /** EPA-style size rank, 1 (subcompact) … 4 (full-size / 3-row / full truck). */
+  sizeClass?: number;
+  seats?: number;
+  drivetrain?: Drivetrain;
+  /** EPA range in miles (EVs). Used for the value score. */
+  rangeMi?: number;
+  /** Positioning flags that steer matching for enthusiast / premium shoppers. */
+  performance?: boolean;
+  luxury?: boolean;
 }
 
 export interface UserInputs {

@@ -28,3 +28,8 @@ dist-ssr
 /*.png
 /*.jpeg
 /*.jpg
+
+# Local environment / secrets — never commit
+.env
+.env.local
+.env.*.local

@@ -1,12 +1,22 @@
 import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Send, Zap } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ReactMarkdown from "react-markdown";
+import OpenAI from "openai";
 
 type Message = { role: "user" | "assistant"; content: string };
+
+// ── Temporary in-browser OpenAI ──────────────────────────────────────────────
+// Reads the key from VITE_OPENAI_API_KEY (.env.local). `dangerouslyAllowBrowser`
+// is required to call the API from a SPA — DEV/LOCAL ONLY, since the key ships in
+// the bundle. For production, route through a server proxy and drop this branch.
+const OPENAI_API_KEY = (import.meta as { env?: Record<string, string> }).env?.VITE_OPENAI_API_KEY;
+const OPENAI_MODEL = "gpt-5.4-mini";
+const openai = OPENAI_API_KEY
+  ? new OpenAI({ apiKey: OPENAI_API_KEY, dangerouslyAllowBrowser: true })
+  : null;
 
 const SYSTEM_PROMPT = `You are the Electrifying the US AI assistant — a friendly, knowledgeable expert on electric vehicles and e-mobility in the United States.
 
@@ -72,11 +82,11 @@ const markdownComponents = {
   p: ({ children }: { children?: React.ReactNode }) => <p className="mb-2 last:mb-0">{children}</p>,
   a: ({ href, children }: { href?: string; children?: React.ReactNode }) =>
     href?.startsWith("/") ? (
-      <Link to={href} className="underline font-medium text-primary">{children}</Link>
+      <Link to={href} className="underline font-medium text-[hsl(188_92%_30%)]">{children}</Link>
     ) : (
-      <a href={href} target="_blank" rel="noopener noreferrer" className="underline font-medium text-primary">{children}</a>
+      <a href={href} target="_blank" rel="noopener noreferrer" className="underline font-medium text-[hsl(188_92%_30%)]">{children}</a>
     ),
-  ul: ({ children }: { children?: React.ReactNode }) => <ul className="list-disc pl-5 mb-2 space-y-1">{children}</ul>,
+  ul: ({ children }: { children?: React.ReactNode }) => <ul className="list-disc pl-5 mb-2 space-y-1 marker:text-[hsl(184_76%_38%)]">{children}</ul>,
   li: ({ children }: { children?: React.ReactNode }) => <li>{children}</li>,
 };
 
@@ -114,6 +124,38 @@ const Assistant = () => {
     setLoading(true);
 
     try {
+      // Preferred path: answer any question with OpenAI directly (temporary, in-browser).
+      if (openai) {
+        const convo: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
+          { role: "system", content: SYSTEM_PROMPT },
+          ...allMessages.map((m) => ({ role: m.role, content: m.content })),
+        ];
+
+        let assistantSoFar = "";
+        let appended = false;
+        const stream = await openai.chat.completions.create({
+          model: OPENAI_MODEL,
+          messages: convo,
+          stream: true,
+        });
+
+        for await (const chunk of stream) {
+          const delta = chunk.choices[0]?.delta?.content ?? "";
+          if (!delta) continue;
+          assistantSoFar += delta;
+          setMessages((prev) => {
+            if (!appended) {
+              appended = true;
+              return [...prev, { role: "assistant", content: assistantSoFar }];
+            }
+            return prev.map((m, i) => (i === prev.length - 1 ? { ...m, content: assistantSoFar } : m));
+          });
+        }
+
+        setLoading(false);
+        return;
+      }
+
       const supabaseUrl = (import.meta as { env?: Record<string, string> }).env?.VITE_SUPABASE_URL;
       if (!supabaseUrl) {
         // Try to answer from the curated set; otherwise show demo-mode help.
@@ -184,123 +226,152 @@ const Assistant = () => {
           } catch { /* ignore malformed SSE line */ }
         }
       }
-    } catch {
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", content: "Sorry, I had trouble connecting. Please try again in a moment!" },
-      ]);
+    } catch (err) {
+      const detail =
+        err instanceof OpenAI.AuthenticationError
+          ? "the API key looks invalid — check `VITE_OPENAI_API_KEY` in `.env.local` and restart the dev server."
+          : err instanceof OpenAI.RateLimitError
+            ? "we're being rate-limited right now. Please try again in a moment."
+            : "I had trouble connecting. Please try again in a moment!";
+      setMessages((prev) => [...prev, { role: "assistant", content: `Sorry, ${detail}` }]);
     }
     setLoading(false);
   };
 
   const showSuggestions = messages.length === 1 && !loading;
+  const TXT = "text-[hsl(var(--term-text))]";
+  const MUTED = "text-[hsl(var(--term-muted))]";
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-primary/5 via-background to-secondary/5">
+    <div className="term min-h-screen flex flex-col bg-gradient-to-b from-primary/5 via-background to-secondary/5">
+      <div className="term-glow" aria-hidden />
       <Navbar />
-      <div className="pt-28 pb-16 flex-1">
-        <div className="container px-4 max-w-4xl">
+      <div className="relative z-10 pt-28 pb-16 flex-1">
+        <div className="container px-4 max-w-3xl">
           {/* Back link */}
-          <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors">
+          <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-8 transition-colors text-sm">
             <ArrowLeft className="w-4 h-4" />
             Back to Home
           </Link>
 
-          {/* Title pill */}
-          <div className="flex justify-center mb-5">
-            <div className="inline-flex items-center gap-3 glass-card rounded-full pl-3 pr-6 py-2.5 animate-fade-up">
-              <span className="w-10 h-10 rounded-full gradient-hero flex items-center justify-center shrink-0">
-                <Zap className="text-white" size={20} />
+          {/* HMI header — energy core + identity + status */}
+          <div className="text-center mb-9">
+            <div className="term-rise inline-flex flex-col items-center">
+              <span
+                className="term-core relative inline-flex items-center justify-center w-16 h-16 rounded-full mb-4"
+                style={{
+                  background: "radial-gradient(circle at 32% 28%, hsl(var(--term-cyan)), hsl(var(--term-blue)))",
+                  boxShadow: "0 0 44px hsl(var(--term-cyan) / 0.5)",
+                }}
+              >
+                <Zap className="w-7 h-7 text-white" fill="currentColor" />
               </span>
-              <span className="font-display font-bold tracking-wide text-foreground text-lg md:text-2xl uppercase">
-                Electric Vehicle Assistant
-              </span>
+              <span className="font-term text-[11px] tracking-[0.42em] text-muted-foreground uppercase">Charge Terminal</span>
+              <h1 className="font-hmi font-bold text-4xl md:text-5xl text-foreground tracking-tight mt-1.5">
+                EV&nbsp;Assistant
+              </h1>
+              <div className="mt-3 inline-flex items-center gap-2 font-term text-xs text-muted-foreground">
+                <span className="term-live w-2 h-2 rounded-full" style={{ background: "hsl(var(--term-green))" }} />
+                ONLINE · grid-aware · ask anything e-mobility
+              </div>
             </div>
           </div>
 
-          {/* Two-line intro */}
-          <div className="text-center max-w-2xl mx-auto mb-8">
-            <p className="text-primary font-semibold text-lg md:text-xl">
-              Got questions about EVs? Need personalized recommendations?
-            </p>
-            <p className="text-secondary font-semibold text-lg md:text-xl mt-1">
-              Our AI assistant can give you answers to anything you want to know!
-            </p>
-          </div>
+          {/* The console */}
+          <div className="term-rise term-console term-grain relative rounded-[28px] overflow-hidden flex flex-col h-[640px] max-h-[76vh]" style={{ animationDelay: "0.12s" }}>
+            {/* Frame bar */}
+            <div className="shrink-0 flex items-center justify-between px-5 py-3 border-b border-black/[0.06]">
+              <div className="flex items-center gap-2.5">
+                <span className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ background: "linear-gradient(135deg, hsl(var(--term-cyan)), hsl(var(--term-green)))" }}>
+                  <Zap className="w-4 h-4" style={{ color: "hsl(var(--term-bg))" }} fill="currentColor" />
+                </span>
+                <span className={`font-hmi font-semibold tracking-wide ${TXT}`}>E-Mobility Assistant</span>
+              </div>
+              <span className={`font-term text-[10px] tracking-[0.2em] uppercase hidden sm:block ${MUTED}`}>US Grid · v1</span>
+            </div>
+            <div className="term-current shrink-0" aria-hidden />
 
-          {/* Chat box with brand gradient border (blue → green) */}
-          <div className="rounded-[28px] p-[2px] gradient-hero shadow-2xl">
-            <div className="rounded-[26px] bg-card overflow-hidden flex flex-col h-[600px] max-h-[72vh]">
             {/* Messages */}
-            <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4">
-              {messages.map((msg, i) => (
-                <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                  <div
-                    className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm md:text-base ${
-                      msg.role === "user"
-                        ? "gradient-primary text-primary-foreground rounded-br-md"
-                        : "bg-muted text-foreground rounded-bl-md"
-                    }`}
-                  >
-                    <ReactMarkdown components={markdownComponents}>{msg.content}</ReactMarkdown>
+            <div ref={scrollRef} className="term-scroll relative flex-1 overflow-y-auto p-4 md:p-6">
+              <div className="term-grid absolute inset-0 pointer-events-none" aria-hidden />
+              <div className="relative space-y-4">
+                {messages.map((msg, i) => (
+                  <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                    <div
+                      className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm md:text-base ${
+                        msg.role === "user"
+                          ? "rounded-br-md text-white shadow-md"
+                          : `rounded-bl-md bg-[hsl(var(--term-panel))] border border-black/[0.06] shadow-sm ${TXT}`
+                      }`}
+                      style={msg.role === "user" ? { background: "linear-gradient(135deg, hsl(var(--term-blue)), hsl(var(--term-cyan)) 58%, hsl(var(--term-green)))" } : undefined}
+                    >
+                      <ReactMarkdown components={markdownComponents}>{msg.content}</ReactMarkdown>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
 
-              {/* Suggested starter questions (shown before first interaction) */}
-              {showSuggestions && (
-                <div className="space-y-3 pt-2">
-                  <p className="text-sm font-medium text-muted-foreground px-1">⚡ Top 10 questions — tap to ask</p>
-                  <div className="grid sm:grid-cols-2 gap-3">
-                    {PRESET_QA.map((item, i) => (
-                      <button
-                        key={i}
-                        onClick={() => handlePreset(item.q, item.a)}
-                        className="text-left text-sm px-4 py-3 rounded-2xl border border-primary/20 bg-primary/5 text-foreground hover:bg-primary/10 hover:border-primary/40 hover:shadow-md transition-all"
-                      >
-                        {item.q}
-                      </button>
-                    ))}
+                {/* Suggested starter questions */}
+                {showSuggestions && (
+                  <div className="space-y-3 pt-2">
+                    <p className={`font-term text-[11px] tracking-[0.25em] uppercase px-1 ${MUTED}`}>▸ Suggested queries</p>
+                    <div className="grid sm:grid-cols-2 gap-2.5">
+                      {PRESET_QA.map((item, i) => (
+                        <button
+                          key={i}
+                          onClick={() => handlePreset(item.q, item.a)}
+                          className={`group text-left text-sm px-4 py-3 rounded-xl border border-black/[0.07] bg-[hsl(var(--term-panel))] hover:bg-[hsl(var(--term-cyan)/0.1)] hover:border-[hsl(var(--term-cyan)/0.55)] transition-all ${TXT}`}
+                        >
+                          <span className="font-term text-[hsl(var(--term-cyan))] mr-2">{String(i + 1).padStart(2, "0")}</span>
+                          {item.q}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {loading && (
-                <div className="flex justify-start">
-                  <div className="bg-muted rounded-2xl rounded-bl-md px-4 py-3 flex gap-1">
-                    <span className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                    <span className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                    <span className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                {loading && (
+                  <div className="flex justify-start">
+                    <div className="bg-[hsl(var(--term-panel))] border border-black/[0.06] rounded-2xl rounded-bl-md px-4 py-3 flex gap-1.5 items-center">
+                      {[0, 150, 300].map((d) => (
+                        <span key={d} className="w-2 h-2 rounded-full animate-bounce" style={{ background: "hsl(var(--term-cyan))", animationDelay: `${d}ms` }} />
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
 
-            {/* Input */}
-            <div className="p-4 border-t border-border">
+            {/* Command bar */}
+            <div className="shrink-0 p-3 border-t border-black/[0.06]" style={{ background: "hsl(var(--term-bg))" }}>
               <form
                 onSubmit={(e) => { e.preventDefault(); sendMessage(); }}
-                className="flex gap-2"
+                className="flex items-center gap-2 rounded-2xl border border-black/[0.08] bg-[hsl(var(--term-panel))] px-2.5 py-1.5 transition-colors focus-within:border-[hsl(var(--term-cyan)/0.55)]"
               >
+                <span className="font-term text-[hsl(var(--term-cyan))] text-base pl-1 select-none">›</span>
                 <input
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  placeholder="Ask about EVs, charging, incentives…"
-                  className="flex-1 px-4 py-3 rounded-xl bg-muted text-foreground text-sm md:text-base outline-none focus:ring-2 focus:ring-primary/30"
+                  placeholder="ask about EVs, charging, incentives…"
+                  className={`flex-1 bg-transparent text-sm md:text-base outline-none py-2 placeholder:text-[hsl(var(--term-muted))] ${TXT}`}
                   disabled={loading}
                 />
-                <Button type="submit" size="icon" variant="default" className="rounded-xl shrink-0 h-12 w-12" disabled={loading || !input.trim()}>
-                  <Send size={18} />
-                </Button>
+                <button
+                  type="submit"
+                  disabled={loading || !input.trim()}
+                  aria-label="Send"
+                  className="shrink-0 h-10 w-10 rounded-xl flex items-center justify-center transition-all disabled:opacity-35 hover:brightness-110"
+                  style={{ background: "linear-gradient(135deg, hsl(var(--term-cyan)), hsl(var(--term-green)))" }}
+                >
+                  <Send className="w-4 h-4" style={{ color: "hsl(var(--term-bg))" }} />
+                </button>
               </form>
-            </div>
             </div>
           </div>
 
           {/* Powered by credit */}
-          <p className="text-center text-sm text-muted-foreground mt-4 flex items-center justify-center gap-1.5">
+          <p className="font-term text-center text-xs text-muted-foreground mt-5 flex items-center justify-center gap-1.5">
             <Zap className="w-3.5 h-3.5 text-primary" />
-            Powered by{" "}
+            powered by{" "}
             <a
               href="https://www.evhybridnoire.com"
               target="_blank"

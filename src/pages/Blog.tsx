@@ -22,7 +22,7 @@ const Blog = () => {
       <main className="flex-1 pt-28 pb-16">
         <div className="container px-4 max-w-6xl">
           {/* Header */}
-          <div className="text-center max-w-2xl mx-auto mb-12">
+          <div className="text-center max-w-2xl mx-auto mb-12 animate-fade-up">
             <span className="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-semibold mb-4">
               Blog
             </span>
@@ -37,7 +37,8 @@ const Blog = () => {
           {/* Featured */}
           <Link
             to={`/blog/${featured.slug}`}
-            className="group grid lg:grid-cols-2 gap-8 items-center rounded-3xl border border-border bg-card overflow-hidden shadow-xl mb-14 hover:shadow-2xl transition-shadow"
+            className="group grid lg:grid-cols-2 gap-8 items-center rounded-3xl border border-border bg-card overflow-hidden shadow-xl mb-14 hover:shadow-2xl transition-shadow animate-fade-up"
+            style={{ animationDelay: "0.1s" }}
           >
             <div className="h-64 lg:h-full min-h-[280px] overflow-hidden">
               <img src={featured.image} alt={featured.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
@@ -59,11 +60,12 @@ const Blog = () => {
 
           {/* Grid */}
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {posts.map((p) => (
+            {posts.map((p, i) => (
               <Link
                 key={p.slug}
                 to={`/blog/${p.slug}`}
-                className="group rounded-3xl border border-border bg-card overflow-hidden shadow-card hover:shadow-xl hover:-translate-y-1 transition-all"
+                className="group rounded-3xl border border-border bg-card overflow-hidden shadow-card hover:shadow-xl hover:-translate-y-1 transition-all animate-fade-up"
+                style={{ animationDelay: `${0.15 + i * 0.07}s` }}
               >
                 <div className="h-48 overflow-hidden">
                   <img src={p.image} alt={p.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />

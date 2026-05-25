@@ -1,8 +1,8 @@
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Chakra+Petch:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap');
 
 @layer base {
   :root {
@@ -211,4 +211,214 @@ html[data-theme="glass"] .rounded-3xl { border-radius: 1.75rem; }
 html[data-theme="glass"] .gradient-primary,
 html[data-theme="glass"] .gradient-hero {
   box-shadow: 0 18px 50px -18px hsl(214 80% 30% / 0.35);
+}
+
+/* =========================================================================
+   ELECTRICITY VS GASOLINE — "The Charge-Off" editorial duel
+   All rules scoped under .evg so the rest of the site is untouched.
+   ========================================================================= */
+.evg {
+  --ev: 145 60% 40%;     /* clean green */
+  --ev-2: 214 100% 44%;  /* electric blue */
+  --gas: 24 95% 53%;     /* gasoline amber */
+  --gas-2: 8 88% 52%;    /* ember */
+  --ink: 215 30% 12%;
+}
+
+.font-charge {
+  font-family: 'Bricolage Grotesque', 'Space Grotesk', sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 0.92;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Gradient wordmarks for the two contenders */
+.evg-ink-ev {
+  background: linear-gradient(100deg, hsl(var(--ev-2)), hsl(var(--ev)));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.evg-ink-gas {
+  background: linear-gradient(100deg, hsl(var(--gas)), hsl(var(--gas-2)));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+
+/* Atmospheric backdrop: faint engineering grid + dual energy glows.
+   Subtle enough to read over white (light theme) or the frosted mesh (glass). */
+.evg-atmos {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(720px 540px at 6% -6%, hsl(var(--ev-2) / 0.10), transparent 60%),
+    radial-gradient(720px 540px at 100% 0%, hsl(var(--gas) / 0.09), transparent 60%);
+}
+.evg-atmos::before {
+  content: ""; position: absolute; inset: 0;
+  background-image:
+    linear-gradient(hsl(var(--ink) / 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, hsl(var(--ink) / 0.04) 1px, transparent 1px);
+  background-size: 48px 48px;
+  -webkit-mask-image: radial-gradient(circle at 50% 16%, #000, transparent 76%);
+          mask-image: radial-gradient(circle at 50% 16%, #000, transparent 76%);
+}
+
+/* Filmic grain — sits above the backdrop, beneath the content */
+.evg-grain::after {
+  content: ""; position: fixed; inset: 0; z-index: 1; pointer-events: none;
+  opacity: 0.35; mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+}
+
+/* The charged seam — a flowing current between the two contenders */
+.evg-seam {
+  position: relative; height: 2px; border-radius: 999px;
+  background: linear-gradient(90deg, transparent, hsl(var(--ev-2) / 0.9), hsl(var(--gas) / 0.9), transparent);
+  background-size: 220% 100%;
+  animation: evgFlow 3.4s linear infinite;
+}
+.evg-seam::after {
+  content: ""; position: absolute; inset: -3px 0; border-radius: 999px;
+  background: inherit; background-size: 220% 100%;
+  filter: blur(7px); opacity: 0.7; animation: evgFlow 3.4s linear infinite;
+}
+
+/* Live "winner" ribbon on the leading contender card */
+.evg-ribbon {
+  background-size: 220% 100%;
+  animation: evgFlow 2.6s linear infinite;
+}
+
+@keyframes evgFlow { to { background-position: -220% 0; } }
+
+/* Staggered entrance for editorial blocks */
+@keyframes evgRise {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: none; }
+}
+.evg-rise { opacity: 0; animation: evgRise 0.85s cubic-bezier(0.16, 0.84, 0.44, 1) forwards; }
+
+@keyframes evgPulse { 0%, 100% { opacity: 0.45; } 50% { opacity: 1; } }
+.evg-pulse { animation: evgPulse 2.2s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .evg-seam, .evg-seam::after, .evg-ribbon, .evg-pulse { animation: none; }
+  .evg-rise { opacity: 1; animation: none; }
+}
+
+/* =========================================================================
+   AI ASSISTANT — "Charge Terminal" charging-station HMI console
+   Scoped under .term so the rest of the site is untouched.
+   ========================================================================= */
+.term {
+  --term-bg: 210 40% 98%;       /* near-white base (input bar / console floor) */
+  --term-surface: 0 0% 100%;    /* console white */
+  --term-panel: 210 40% 97%;    /* light raised surface (bubbles, chips, input) */
+  --term-cyan: 184 76% 38%;     /* deeper electric teal — readable on white */
+  --term-green: 145 58% 40%;    /* brand green */
+  --term-blue: 214 100% 44%;    /* brand blue */
+  --term-text: 215 28% 16%;     /* dark slate ink */
+  --term-muted: 215 16% 46%;    /* muted ink */
+  --term-link: 188 92% 30%;     /* accessible teal link */
+  --term-hairline: 215 30% 20%; /* for low-opacity borders/dots */
+}
+
+/* Clearly-bordered input boxes on the calculator — stays legible even under
+   the glass theme, which otherwise renders borders as translucent white. */
+.evg-field {
+  border: 1px solid hsl(214 20% 80%) !important;
+  background-color: #fff !important;
+  box-shadow: 0 1px 2px hsl(214 30% 20% / 0.06);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.evg-field:hover { border-color: hsl(214 70% 55%) !important; }
+.evg-field:focus-within,
+.evg-field[data-state="open"] {
+  border-color: hsl(214 100% 44%) !important;
+  box-shadow: 0 0 0 3px hsl(214 100% 44% / 0.14);
+}
+
+.font-hmi  { font-family: 'Chakra Petch', 'Space Grotesk', sans-serif; }
+.font-term { font-family: 'IBM Plex Mono', ui-monospace, monospace; }
+
+/* Page atmosphere behind the console — soft electric tint on the light page */
+.term-glow {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(640px 480px at 14% -2%, hsl(var(--term-cyan) / 0.12), transparent 60%),
+    radial-gradient(680px 520px at 100% 102%, hsl(var(--term-green) / 0.12), transparent 60%);
+}
+
+/* The console shell — a bright, frosted instrument panel */
+.term-console {
+  background:
+    radial-gradient(900px 460px at 50% -14%, hsl(190 80% 95% / 0.9), transparent 60%),
+    linear-gradient(180deg, hsl(var(--term-surface)), hsl(var(--term-bg)));
+  border: 1px solid hsl(var(--term-cyan) / 0.28);
+  box-shadow:
+    0 30px 70px -34px hsl(214 60% 32% / 0.28),
+    inset 0 1px 0 hsl(0 0% 100% / 0.9);
+}
+
+/* Faint PCB/dot grid inside the message well */
+.term-grid {
+  background-image: radial-gradient(hsl(var(--term-hairline) / 0.07) 1px, transparent 1.4px);
+  background-size: 22px 22px;
+  -webkit-mask-image: radial-gradient(circle at 50% 26%, #000, transparent 86%);
+          mask-image: radial-gradient(circle at 50% 26%, #000, transparent 86%);
+}
+
+/* Filmic grain over the console */
+.term-grain::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  opacity: 0.04; mix-blend-mode: multiply; border-radius: inherit;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Flowing current along the console header */
+.term-current {
+  height: 2px;
+  background: linear-gradient(90deg, transparent, hsl(var(--term-cyan)), hsl(var(--term-green)), hsl(var(--term-blue)), transparent);
+  background-size: 240% 100%;
+  animation: termFlow 3s linear infinite;
+}
+@keyframes termFlow { to { background-position: -240% 0; } }
+
+/* Pulsing energy core (assistant avatar) */
+.term-core::before, .term-core::after {
+  content: ""; position: absolute; inset: 0; border-radius: 999px;
+  border: 1px solid hsl(var(--term-cyan) / 0.55);
+  animation: termPulse 2.6s ease-out infinite;
+}
+.term-core::after { animation-delay: 1.3s; }
+@keyframes termPulse {
+  0% { transform: scale(1); opacity: 0.7; }
+  100% { transform: scale(2.15); opacity: 0; }
+}
+
+/* Online status dot */
+.term-live { animation: termLive 2s ease-out infinite; }
+@keyframes termLive {
+  0% { box-shadow: 0 0 0 0 hsl(var(--term-green) / 0.7); }
+  70%, 100% { box-shadow: 0 0 0 7px hsl(var(--term-green) / 0); }
+}
+
+/* Entrance */
+@keyframes termRise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+.term-rise { opacity: 0; animation: termRise 0.7s cubic-bezier(0.16, 0.84, 0.44, 1) forwards; }
+
+/* Custom scrollbar inside the console */
+.term-scroll::-webkit-scrollbar { width: 8px; }
+.term-scroll::-webkit-scrollbar-track { background: transparent; }
+.term-scroll::-webkit-scrollbar-thumb { background: hsl(var(--term-cyan) / 0.25); border-radius: 999px; }
+.term-scroll::-webkit-scrollbar-thumb:hover { background: hsl(var(--term-cyan) / 0.42); }
+
+@media (prefers-reduced-motion: reduce) {
+  .term-current, .term-core::before, .term-core::after, .term-live, .term-rise { animation: none; }
+  .term-rise { opacity: 1; }
+}
+
+/* Reading-progress bar for blog articles — brand gradient, pinned to the top. */
+.read-progress {
+  position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 60;
+  transform-origin: left center;
+  background-image: var(--gradient-hero);
 }
