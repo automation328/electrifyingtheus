@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Send, Zap, Sparkles } from "lucide-react";
 import ReactMarkdown from "react-markdown";
-import electricAgents from "@/assets/electric-agents.png";
+import electricAgents from "@/assets/electric-agents.jpg";
 
 type Message = { role: "user" | "assistant"; content: string };
 
