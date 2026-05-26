@@ -3,7 +3,8 @@ import { useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ThemeToggle from "@/components/ThemeToggle";
-import logo from "@/assets/logo.png";
+import logoColored from "@/assets/logo-colored.png";
+import logoWhite from "@/assets/logo-white.png";
 
 const navItems = [
   { label: "About", href: "#about" },
@@ -43,7 +44,7 @@ const Navbar = () => {
       <div className="container flex items-center justify-between">
         <a href="/" className="flex items-center gap-2">
           <img
-            src={logo}
+            src={solid ? logoColored : logoWhite}
             alt="Electrifying the US"
             className="h-10 md:h-12 w-auto"
           />
