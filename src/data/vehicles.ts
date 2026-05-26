@@ -151,6 +151,134 @@ export const vehicles: VehicleData[] = [
     bodyStyle: "truck", sizeClass: 4, seats: 5, drivetrain: "AWD", rangeMi: 328,
   },
 
+  // ───────── Added from ZETA catalog (EVs) ─────────
+  {
+    id: "acura-zdx", name: "Acura ZDX", type: "ev", msrp: 64500,
+    mpge: 89, kwhPer100mi: 38, maintenanceCostPerMile: 0.068, insuranceAnnual: 2250,
+    depreciationRate: 0.2, category: "SUV",
+    bodyStyle: "suv-compact", sizeClass: 3, seats: 5, drivetrain: "RWD", rangeMi: 313, luxury: true,
+  },
+  {
+    id: "audi-q4-etron", name: "Audi Q4 e-tron", type: "ev", msrp: 50500,
+    mpge: 104, kwhPer100mi: 32, maintenanceCostPerMile: 0.066, insuranceAnnual: 2050,
+    depreciationRate: 0.19, category: "SUV",
+    bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "AWD", rangeMi: 258, luxury: true,
+  },
+  {
+    id: "audi-q6-etron", name: "Audi Q6 e-tron", type: "ev", msrp: 63800,
+    mpge: 84, kwhPer100mi: 40, maintenanceCostPerMile: 0.072, insuranceAnnual: 2300,
+    depreciationRate: 0.2, category: "SUV",
+    bodyStyle: "suv-compact", sizeClass: 3, seats: 5, drivetrain: "AWD", rangeMi: 307, luxury: true,
+  },
+  {
+    id: "audi-q8-etron", name: "Audi Q8 e-tron", type: "ev", msrp: 74400,
+    mpge: 81, kwhPer100mi: 42, maintenanceCostPerMile: 0.075, insuranceAnnual: 2450,
+    depreciationRate: 0.22, category: "SUV",
+    bodyStyle: "suv-large", sizeClass: 4, seats: 5, drivetrain: "AWD", rangeMi: 285, luxury: true,
+  },
+  {
+    id: "bmw-ix-xdrive40", name: "BMW iX xDrive40", type: "ev", msrp: 67100,
+    mpge: 86, kwhPer100mi: 39, maintenanceCostPerMile: 0.075, insuranceAnnual: 2450,
+    depreciationRate: 0.2, category: "SUV",
+    bodyStyle: "suv-large", sizeClass: 4, seats: 5, drivetrain: "AWD", rangeMi: 309, luxury: true,
+  },
+  {
+    id: "cadillac-lyriq", name: "Cadillac LYRIQ", type: "ev", msrp: 58000,
+    mpge: 89, kwhPer100mi: 38, maintenanceCostPerMile: 0.068, insuranceAnnual: 2200,
+    depreciationRate: 0.2, category: "SUV",
+    bodyStyle: "suv-compact", sizeClass: 3, seats: 5, drivetrain: "RWD", rangeMi: 314, luxury: true,
+  },
+  {
+    id: "cadillac-optiq", name: "Cadillac OPTIQ", type: "ev", msrp: 54000,
+    mpge: 92, kwhPer100mi: 37, maintenanceCostPerMile: 0.066, insuranceAnnual: 2100,
+    depreciationRate: 0.2, category: "SUV",
+    bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "AWD", rangeMi: 302, luxury: true,
+  },
+  {
+    id: "chevy-bolt-ev", name: "Chevrolet Bolt EV", type: "ev", msrp: 27000,
+    mpge: 120, kwhPer100mi: 28, maintenanceCostPerMile: 0.057, insuranceAnnual: 1700,
+    depreciationRate: 0.18, category: "Sedan",
+    bodyStyle: "hatchback", sizeClass: 1, seats: 5, drivetrain: "FWD", rangeMi: 259,
+  },
+  {
+    id: "genesis-g80-electrified", name: "Genesis G80 Electrified", type: "ev", msrp: 74000,
+    mpge: 97, kwhPer100mi: 35, maintenanceCostPerMile: 0.072, insuranceAnnual: 2400,
+    depreciationRate: 0.21, category: "Sedan",
+    bodyStyle: "sedan", sizeClass: 3, seats: 5, drivetrain: "AWD", rangeMi: 282, luxury: true,
+  },
+  {
+    id: "genesis-gv60", name: "Genesis GV60", type: "ev", msrp: 52000,
+    mpge: 99, kwhPer100mi: 34, maintenanceCostPerMile: 0.066, insuranceAnnual: 2100,
+    depreciationRate: 0.2, category: "SUV",
+    bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "AWD", rangeMi: 264, luxury: true,
+  },
+  {
+    id: "genesis-gv70-electrified", name: "Genesis GV70 Electrified", type: "ev", msrp: 66000,
+    mpge: 90, kwhPer100mi: 37, maintenanceCostPerMile: 0.07, insuranceAnnual: 2300,
+    depreciationRate: 0.21, category: "SUV",
+    bodyStyle: "suv-compact", sizeClass: 3, seats: 5, drivetrain: "AWD", rangeMi: 236, luxury: true,
+  },
+  {
+    id: "gmc-sierra-ev", name: "GMC Sierra EV", type: "ev", msrp: 75000,
+    mpge: 64, kwhPer100mi: 53, maintenanceCostPerMile: 0.073, insuranceAnnual: 2450,
+    depreciationRate: 0.21, category: "Truck",
+    bodyStyle: "truck", sizeClass: 4, seats: 5, drivetrain: "4WD", rangeMi: 390,
+  },
+  {
+    id: "honda-prologue", name: "Honda Prologue", type: "ev", msrp: 48000,
+    mpge: 92, kwhPer100mi: 37, maintenanceCostPerMile: 0.062, insuranceAnnual: 1950,
+    depreciationRate: 0.19, category: "SUV",
+    bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "AWD", rangeMi: 296,
+  },
+  {
+    id: "hyundai-kona-electric", name: "Hyundai Kona Electric", type: "ev", msrp: 33000,
+    mpge: 120, kwhPer100mi: 28, maintenanceCostPerMile: 0.057, insuranceAnnual: 1720,
+    depreciationRate: 0.18, category: "SUV",
+    bodyStyle: "suv-compact", sizeClass: 1, seats: 5, drivetrain: "FWD", rangeMi: 261,
+  },
+  {
+    id: "kia-niro-ev", name: "Kia Niro EV", type: "ev", msrp: 40000,
+    mpge: 113, kwhPer100mi: 30, maintenanceCostPerMile: 0.058, insuranceAnnual: 1780,
+    depreciationRate: 0.18, category: "SUV",
+    bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "FWD", rangeMi: 253,
+  },
+  {
+    id: "mercedes-eqe-suv", name: "Mercedes-Benz EQE SUV", type: "ev", msrp: 77000,
+    mpge: 82, kwhPer100mi: 41, maintenanceCostPerMile: 0.078, insuranceAnnual: 2500,
+    depreciationRate: 0.22, category: "SUV",
+    bodyStyle: "suv-compact", sizeClass: 3, seats: 5, drivetrain: "AWD", rangeMi: 253, luxury: true,
+  },
+  {
+    id: "mercedes-eqs-580", name: "Mercedes-Benz EQS 580 4MATIC", type: "ev", msrp: 105000,
+    mpge: 94, kwhPer100mi: 36, maintenanceCostPerMile: 0.082, insuranceAnnual: 2800,
+    depreciationRate: 0.24, category: "Sedan",
+    bodyStyle: "sedan", sizeClass: 3, seats: 5, drivetrain: "AWD", rangeMi: 340, luxury: true,
+  },
+  {
+    id: "polestar-3", name: "Polestar 3", type: "ev", msrp: 73400,
+    mpge: 80, kwhPer100mi: 42, maintenanceCostPerMile: 0.074, insuranceAnnual: 2450,
+    depreciationRate: 0.2, category: "SUV",
+    bodyStyle: "suv-large", sizeClass: 4, seats: 5, drivetrain: "AWD", rangeMi: 315, luxury: true,
+  },
+  {
+    id: "tesla-model-s", name: "Tesla Model S", type: "ev", msrp: 74990,
+    mpge: 120, kwhPer100mi: 28, maintenanceCostPerMile: 0.072, insuranceAnnual: 2650,
+    depreciationRate: 0.21, category: "Sedan",
+    bodyStyle: "sedan", sizeClass: 3, seats: 5, drivetrain: "AWD", rangeMi: 402, luxury: true,
+  },
+  {
+    id: "toyota-bz4x", name: "Toyota bZ4X", type: "ev", msrp: 37000,
+    mpge: 114, kwhPer100mi: 30, maintenanceCostPerMile: 0.058, insuranceAnnual: 1820,
+    depreciationRate: 0.19, category: "SUV",
+    bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "FWD", rangeMi: 252,
+  },
+  {
+    id: "vw-id-buzz", name: "Volkswagen ID. Buzz", type: "ev", msrp: 61545,
+    mpge: 76, kwhPer100mi: 44, maintenanceCostPerMile: 0.066, insuranceAnnual: 2150,
+    depreciationRate: 0.2, category: "Minivan",
+    bodyStyle: "minivan", sizeClass: 4, seats: 7, drivetrain: "RWD", rangeMi: 234,
+  },
+
   // ───────────────────────── Gas ─────────────────────────
   // Compact sedans
   {
@@ -254,6 +382,74 @@ export const vehicles: VehicleData[] = [
     mpg: 21, maintenanceCostPerMile: 0.095, insuranceAnnual: 1820,
     depreciationRate: 0.12, category: "Truck",
     bodyStyle: "truck", sizeClass: 3, seats: 5, drivetrain: "4WD",
+  },
+
+  // ───────── Added from ZETA catalog (gas) ─────────
+  {
+    id: "nissan-sentra", name: "Nissan Sentra", type: "gas", msrp: 22000,
+    mpg: 33, maintenanceCostPerMile: 0.08, insuranceAnnual: 1480,
+    depreciationRate: 0.12, category: "Sedan",
+    bodyStyle: "sedan", sizeClass: 2, seats: 5, drivetrain: "FWD",
+  },
+  {
+    id: "nissan-altima", name: "Nissan Altima", type: "gas", msrp: 26500,
+    mpg: 32, maintenanceCostPerMile: 0.086, insuranceAnnual: 1600,
+    depreciationRate: 0.13, category: "Sedan",
+    bodyStyle: "sedan", sizeClass: 3, seats: 5, drivetrain: "FWD",
+  },
+  {
+    id: "toyota-camry-hybrid", name: "Toyota Camry Hybrid", type: "gas", msrp: 29500,
+    mpg: 51, maintenanceCostPerMile: 0.085, insuranceAnnual: 1650,
+    depreciationRate: 0.12, category: "Sedan",
+    bodyStyle: "sedan", sizeClass: 3, seats: 5, drivetrain: "FWD",
+  },
+  {
+    id: "honda-accord-hybrid", name: "Honda Accord Hybrid", type: "gas", msrp: 33990,
+    mpg: 48, maintenanceCostPerMile: 0.086, insuranceAnnual: 1660,
+    depreciationRate: 0.12, category: "Sedan",
+    bodyStyle: "sedan", sizeClass: 3, seats: 5, drivetrain: "FWD",
+  },
+  {
+    id: "chevy-corvette", name: "Chevrolet Corvette", type: "gas", msrp: 68300,
+    mpg: 19, maintenanceCostPerMile: 0.12, insuranceAnnual: 2400,
+    depreciationRate: 0.15, category: "Coupe",
+    bodyStyle: "coupe", sizeClass: 3, seats: 2, drivetrain: "RWD", performance: true,
+  },
+  {
+    id: "mazda-cx5", name: "Mazda CX-5", type: "gas", msrp: 30000,
+    mpg: 28, maintenanceCostPerMile: 0.088, insuranceAnnual: 1700,
+    depreciationRate: 0.14, category: "SUV",
+    bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "AWD",
+  },
+  {
+    id: "toyota-rav4-hybrid", name: "Toyota RAV4 Hybrid", type: "gas", msrp: 33000,
+    mpg: 40, maintenanceCostPerMile: 0.09, insuranceAnnual: 1720,
+    depreciationRate: 0.12, category: "SUV",
+    bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "AWD",
+  },
+  {
+    id: "ford-explorer", name: "Ford Explorer", type: "gas", msrp: 39000,
+    mpg: 23, maintenanceCostPerMile: 0.098, insuranceAnnual: 1850,
+    depreciationRate: 0.14, category: "SUV",
+    bodyStyle: "suv-large", sizeClass: 4, seats: 7, drivetrain: "RWD",
+  },
+  {
+    id: "bmw-x5", name: "BMW X5 xDrive40i", type: "gas", msrp: 66200,
+    mpg: 25, maintenanceCostPerMile: 0.12, insuranceAnnual: 2250,
+    depreciationRate: 0.17, category: "SUV",
+    bodyStyle: "suv-mid", sizeClass: 3, seats: 5, drivetrain: "AWD", luxury: true,
+  },
+  {
+    id: "bmw-x7", name: "BMW X7 xDrive40i", type: "gas", msrp: 83000,
+    mpg: 22, maintenanceCostPerMile: 0.13, insuranceAnnual: 2500,
+    depreciationRate: 0.18, category: "SUV",
+    bodyStyle: "suv-large", sizeClass: 4, seats: 7, drivetrain: "AWD", luxury: true,
+  },
+  {
+    id: "ford-f150-hybrid", name: "Ford F-150 Hybrid", type: "gas", msrp: 45000,
+    mpg: 23, maintenanceCostPerMile: 0.098, insuranceAnnual: 1900,
+    depreciationRate: 0.14, category: "Truck",
+    bodyStyle: "truck", sizeClass: 4, seats: 5, drivetrain: "4WD",
   },
 ];
 

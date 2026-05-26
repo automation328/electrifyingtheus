@@ -24,6 +24,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import UsElectricityMap from "@/components/UsElectricityMap";
 import { vehicles, getVehiclesByType, getVehicleById } from "@/data/vehicles";
+import { useGasPrices } from "@/hooks/use-gas-prices";
 import { STATE_ENERGY_RATES, NATIONAL_AVG, STATE_CODES } from "@/data/state-energy-rates";
 import { calculate, homeShareFor, DEFAULTS } from "@/lib/ev-cost";
 import { recommendEvs, type MatchLabel } from "@/lib/ev-match";
@@ -34,7 +35,7 @@ import {
 
 const EV_COLOR = "hsl(145, 55%, 42%)"; // green
 const GAS_COLOR = "#f97316"; // orange
-const FEDERAL_INCENTIVE = 7500;
+// The $7,500 federal EV tax credit has ended — no purchase incentive is applied here.
 
 const currency = (n: number, frac = 0) =>
   new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: frac, minimumFractionDigits: frac }).format(n);
@@ -179,15 +180,23 @@ const ElectricityVsGasoline = () => {
     }
   }, [gasId, matches]);
 
+  // Live per-state gas prices (AAA via n8n proxy, localStorage-cached). Falls
+  // back to static state values when unavailable.
+  const { data: gasData } = useGasPrices();
+
+  // The state the IP lookup auto-selected (for the "detected" confirmation chip).
+  const [detectedState, setDetectedState] = useState<string | null>(null);
+
   // Picking a *new* state presets the price sliders. Skipped on first render so
-  // prices hydrated from the URL aren't clobbered.
+  // prices hydrated from the URL aren't clobbered. Prefers the live gas price
+  // for the chosen state, falling back to the static representative value.
   const didMountState = useRef(false);
   useEffect(() => {
     if (!didMountState.current) { didMountState.current = true; return; }
     const r = STATE_ENERGY_RATES[stateCode];
-    setGasPrice(r.gasPricePerGallon);
+    setGasPrice(gasData?.prices?.[stateCode] ?? r.gasPricePerGallon);
     setElectricityRate(r.electricityCentsPerKwh / 100);
-  }, [stateCode]);
+  }, [stateCode, gasData]);
 
   // Auto-select the visitor's U.S. state from their IP on first load. Skipped
   // when the URL already names a state (a shared/deep link) so we don't override
@@ -204,6 +213,7 @@ const ElectricityVsGasoline = () => {
         const code = String(data?.region_code ?? "").toUpperCase();
         if (!cancelled && data?.country_code === "US" && code in STATE_ENERGY_RATES) {
           setStateCode(code);
+          setDetectedState(code);
         }
       } catch {
         /* offline / blocked / rate-limited — keep the default state */
@@ -249,7 +259,7 @@ const ElectricityVsGasoline = () => {
       chargingLoss,
       gas: { mpgCombined: gas.mpg },
       ev: { mpgeCombined: ev.mpge, kwhPer100mi: ev.kwhPer100mi },
-      federalCredit: FEDERAL_INCENTIVE,
+      federalCredit: 0,
       stateRebate: 0,
       utilityRebate: 0,
       evPricePremium: ev.msrp - gas.msrp,
@@ -293,10 +303,10 @@ const ElectricityVsGasoline = () => {
   const animatedAnnual = useCountUp(Math.abs(calc.res.annualSavings));
   const evWinsFuel = calc.res.annualSavings >= 0;
 
-  // Confidence — statewide averages give Medium; curated EPA vehicle data is High;
-  // federal incentive eligibility is unverified (Medium). Lowest tier wins (§5).
+  // Confidence — statewide averages give Medium; curated EPA vehicle data is High.
+  // Lowest tier wins (§5).
   const confidence: Confidence = useMemo(
-    () => overallConfidence(["medium", "medium", "high", "medium"]),
+    () => overallConfidence(["medium", "medium", "high"]),
     [],
   );
 
@@ -394,7 +404,7 @@ const ElectricityVsGasoline = () => {
             <div className="flex items-center justify-between gap-4 px-5 md:px-6 py-3.5 border-b border-border">
               <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
                 <MapPin className="w-4 h-4 text-primary" />
-                Residential electricity price by state
+                Electricity &amp; gas prices by state
               </div>
               <div className="hidden sm:flex items-baseline gap-2">
                 <span className="text-xs uppercase tracking-wider text-muted-foreground">In the ring</span>
@@ -403,7 +413,18 @@ const ElectricityVsGasoline = () => {
               </div>
             </div>
             <div className="p-4 md:p-6">
-              <UsElectricityMap selected={stateCode} onSelect={setStateCode} />
+              <UsElectricityMap
+                selected={stateCode}
+                onSelect={setStateCode}
+                gasPrices={gasData?.prices}
+                gasUpdatedAt={gasData?.updatedAt}
+              />
+              {detectedState && (
+                <p className="mt-3 text-center text-xs text-muted-foreground">
+                  📍 Auto-selected from your location:{" "}
+                  <span className="font-semibold text-foreground">{STATE_ENERGY_RATES[detectedState]?.name}</span>
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -604,7 +625,7 @@ const ElectricityVsGasoline = () => {
                     </div>
                     <div>
                       <div className="font-charge text-2xl leading-none">{currency(calc.res.horizonTotalSaved)}</div>
-                      <div className="text-xs opacity-80 mt-1">over {ownershipYears} yrs, incl. incentives</div>
+                      <div className="text-xs opacity-80 mt-1">over {ownershipYears} yrs</div>
                     </div>
                   </div>
                 </div>
@@ -697,7 +718,6 @@ const ElectricityVsGasoline = () => {
                   <span className="text-sm text-muted-foreground">/ mile to fuel</span>
                 </div>
                 <Row label="Purchase" value={currency(calc.e.purchase)} />
-                <Row label="Federal incentive" value={`−${currency(calc.e.incentive)}`} accent="green" />
                 <Row label={`Charging (${ownershipYears}yr)`} value={currency(calc.e.fuel)} />
                 <Row label={`Maintenance (${ownershipYears}yr)`} value={currency(calc.e.maintenance)} />
                 <Row label={`Insurance (${ownershipYears}yr)`} value={currency(calc.e.insurance)} />
@@ -734,7 +754,6 @@ const ElectricityVsGasoline = () => {
                   <span className="text-sm text-muted-foreground">/ mile to fuel</span>
                 </div>
                 <Row label="Purchase" value={currency(calc.g.purchase)} />
-                <Row label="Incentive" value={currency(0)} />
                 <Row label={`Fuel (${ownershipYears}yr)`} value={currency(calc.g.fuel)} />
                 <Row label={`Maintenance (${ownershipYears}yr)`} value={currency(calc.g.maintenance)} />
                 <Row label={`Insurance (${ownershipYears}yr)`} value={currency(calc.g.insurance)} />
@@ -796,7 +815,6 @@ const ElectricityVsGasoline = () => {
               <span className="inline-flex items-center gap-1">Electricity <SourceChip src={SOURCES.electricity} /></span>
               <span className="inline-flex items-center gap-1">Public charging <SourceChip src={SOURCES.publicCharging} /></span>
               <span className="inline-flex items-center gap-1">Vehicle data <SourceChip src={SOURCES.vehicle} /></span>
-              <span className="inline-flex items-center gap-1">Federal credit <SourceChip src={SOURCES.incentiveFederal} /></span>
               <span className="ml-auto">Updated {SOURCES.gas.asOf} · not financial advice</span>
             </div>
           </div>
@@ -895,15 +913,13 @@ const ElectricityVsGasoline = () => {
                       ({Math.round(homeShareFor(homeCharging) * 100)}/{Math.round((1 - homeShareFor(homeCharging)) * 100)} with your current home-charging answer)</li>
                     <li><strong>Charging loss</strong> of {Math.round(chargingLoss * 100)}% accounts for wall-to-wheel energy lost while charging</li>
                     <li><strong>Dollar-driving</strong> = ${dollarAmount} ÷ cost per mile, for each car</li>
-                    <li><strong>Incentives</strong> ({currency(FEDERAL_INCENTIVE)} federal) are a one-time reduction of the multi-year total — never amortized into the monthly figure</li>
                   </ul>
                   <p>
                     State electricity and gasoline prices are representative statewide averages used to preset the
                     inputs, not live market prices, which is why this estimate carries <strong>medium confidence</strong>.
-                    Figures exclude financing interest and resale value — see the{" "}
+                    Figures exclude purchase incentives, financing interest, and resale value — see the{" "}
                     <Link to="/calculator" className="text-primary underline">full TCO Calculator</Link> for those.
-                    Federal credit eligibility depends on income, vehicle configuration, and program funding — always verify
-                    before purchasing. Not financial advice.
+                    The federal $7,500 EV tax credit has ended and is not applied here. Not financial advice.
                   </p>
                 </AccordionContent>
               </AccordionItem>
