@@ -14,9 +14,9 @@ import {
 } from "@/components/ui/accordion";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
-  TrendingDown, Gauge, MapPin, BarChart3, ArrowRight, Zap, Fuel, Clock, Trophy,
+  TrendingDown, Gauge, MapPin, BarChart3, Zap, Fuel, Clock, Trophy,
   Info, SlidersHorizontal, ChevronDown, ShieldCheck, House, Sparkles, Award, CircleDollarSign,
   Share2, type LucideIcon,
 } from "lucide-react";
@@ -25,10 +25,11 @@ import Footer from "@/components/Footer";
 import UsElectricityMap from "@/components/UsElectricityMap";
 import { vehicles, getVehiclesByType, getVehicleById } from "@/data/vehicles";
 import { useGasPrices } from "@/hooks/use-gas-prices";
-import { STATE_ENERGY_RATES, NATIONAL_AVG, STATE_CODES } from "@/data/state-energy-rates";
+import { STATE_ENERGY_RATES, NATIONAL_AVG } from "@/data/state-energy-rates";
 import { calculate, homeShareFor, DEFAULTS } from "@/lib/ev-cost";
 import { recommendEvs, type MatchLabel } from "@/lib/ev-match";
 import { parseCalcState, serializeCalcState, type CalcState } from "@/lib/evg-url";
+import { zipToState } from "@/lib/zip-to-state";
 import {
   SOURCES, CONFIDENCE_COPY, overallConfidence, type SourceMeta, type Confidence,
 } from "@/data/sources";
@@ -153,6 +154,18 @@ const ElectricityVsGasoline = () => {
   );
   const [homeCharging, setHomeCharging] = useState(initial.homeCharging);
 
+  // ZIP code drives the state preset (autodetected from IP, or typed). State
+  // remains the source of truth for rates/URL; ZIP is the UI affordance.
+  const [zip, setZip] = useState("");
+  const handleZip = (raw: string) => {
+    const z = raw.replace(/\D/g, "").slice(0, 5);
+    setZip(z);
+    if (z.length === 5) {
+      const st = zipToState(z);
+      if (st && st in STATE_ENERGY_RATES) setStateCode(st);
+    }
+  };
+
   // Advanced assumptions (progressive disclosure)
   const [showAssumptions, setShowAssumptions] = useState(false);
   const [annualMiles, setAnnualMiles] = useState(initial.annualMiles);
@@ -210,10 +223,14 @@ const ElectricityVsGasoline = () => {
         const res = await fetch("https://ipapi.co/json/");
         if (!res.ok) return;
         const data = await res.json();
+        if (cancelled || data?.country_code !== "US") return;
         const code = String(data?.region_code ?? "").toUpperCase();
-        if (!cancelled && data?.country_code === "US" && code in STATE_ENERGY_RATES) {
-          setStateCode(code);
-          setDetectedState(code);
+        const postal = String(data?.postal ?? "").replace(/\D/g, "").slice(0, 5);
+        if (postal.length === 5) setZip(postal);
+        const resolved = code in STATE_ENERGY_RATES ? code : zipToState(postal);
+        if (resolved && resolved in STATE_ENERGY_RATES) {
+          setStateCode(resolved);
+          setDetectedState(resolved);
         }
       } catch {
         /* offline / blocked / rate-limited — keep the default state */
@@ -392,39 +409,10 @@ const ElectricityVsGasoline = () => {
               <div className="flex items-center gap-3 px-5 py-3">
                 <Fuel className="w-5 h-5" style={{ color: GAS_COLOR }} />
                 <div className="text-left">
-                  <div className="font-charge text-xl text-foreground">{currency(NATIONAL_AVG.gasPricePerGallon, 2)}</div>
+                  <div className="font-charge text-xl text-foreground">{currency(gasData?.national ?? NATIONAL_AVG.gasPricePerGallon, 2)}</div>
                   <div className="text-[10px] uppercase tracking-wider text-muted-foreground">per gallon · U.S. avg</div>
                 </div>
               </div>
-            </div>
-          </div>
-
-          {/* Interactive map — framed as an instrument panel */}
-          <div className="evg-rise mt-10 rounded-3xl border border-border bg-card shadow-xl overflow-hidden" style={{ animationDelay: "0.36s" }}>
-            <div className="flex items-center justify-between gap-4 px-5 md:px-6 py-3.5 border-b border-border">
-              <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                <MapPin className="w-4 h-4 text-primary" />
-                Electricity &amp; gas prices by state
-              </div>
-              <div className="hidden sm:flex items-baseline gap-2">
-                <span className="text-xs uppercase tracking-wider text-muted-foreground">In the ring</span>
-                <span className="font-charge text-base text-foreground">{rates.name}</span>
-                <span className="text-sm text-primary font-semibold tabular-nums">{rates.electricityCentsPerKwh.toFixed(1)}¢</span>
-              </div>
-            </div>
-            <div className="p-4 md:p-6">
-              <UsElectricityMap
-                selected={stateCode}
-                onSelect={setStateCode}
-                gasPrices={gasData?.prices}
-                gasUpdatedAt={gasData?.updatedAt}
-              />
-              {detectedState && (
-                <p className="mt-3 text-center text-xs text-muted-foreground">
-                  📍 Auto-selected from your location:{" "}
-                  <span className="font-semibold text-foreground">{STATE_ENERGY_RATES[detectedState]?.name}</span>
-                </p>
-              )}
             </div>
           </div>
         </div>
@@ -473,15 +461,16 @@ const ElectricityVsGasoline = () => {
                   </Select>
                 </div>
                 <div>
-                  <label className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground mb-2 block">State</label>
-                  <Select value={stateCode} onValueChange={setStateCode}>
-                    <SelectTrigger className="evg-field rounded-xl h-12"><SelectValue /></SelectTrigger>
-                    <SelectContent className="max-h-72">
-                      {STATE_CODES.map((code) => (
-                        <SelectItem key={code} value={code}>{STATE_ENERGY_RATES[code].name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <label className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground mb-2 block">ZIP code</label>
+                  <Input
+                    value={zip}
+                    onChange={(e) => handleZip(e.target.value)}
+                    inputMode="numeric"
+                    maxLength={5}
+                    placeholder="Auto-detected"
+                    aria-label="ZIP code"
+                    className="evg-field rounded-xl h-12"
+                  />
                 </div>
                 <div>
                   <label className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground mb-2 flex items-center gap-1.5">
@@ -659,6 +648,35 @@ const ElectricityVsGasoline = () => {
               </div>
             </div>
 
+            {/* Interactive map — framed as an instrument panel */}
+            <div className="rounded-3xl border border-border bg-card shadow-xl overflow-hidden mb-6">
+              <div className="flex items-center justify-between gap-4 px-5 md:px-6 py-3.5 border-b border-border">
+                <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                  <MapPin className="w-4 h-4 text-primary" />
+                  Electricity &amp; gas prices by state
+                </div>
+                <div className="hidden sm:flex items-baseline gap-2">
+                  <span className="text-xs uppercase tracking-wider text-muted-foreground">In the ring</span>
+                  <span className="font-charge text-base text-foreground">{rates.name}</span>
+                  <span className="text-sm text-primary font-semibold tabular-nums">{rates.electricityCentsPerKwh.toFixed(1)}¢</span>
+                </div>
+              </div>
+              <div className="p-4 md:p-6">
+                <UsElectricityMap
+                  selected={stateCode}
+                  onSelect={setStateCode}
+                  gasPrices={gasData?.prices}
+                  gasUpdatedAt={gasData?.updatedAt}
+                />
+                {detectedState && (
+                  <p className="mt-3 text-center text-xs text-muted-foreground">
+                    📍 Auto-selected from your location:{" "}
+                    <span className="font-semibold text-foreground">{STATE_ENERGY_RATES[detectedState]?.name}</span>
+                  </p>
+                )}
+              </div>
+            </div>
+
             {/* Adjust assumptions — progressive disclosure (§2) */}
             <div className="rounded-3xl border border-border bg-card mb-6 overflow-hidden">
               <button
@@ -689,8 +707,8 @@ const ElectricityVsGasoline = () => {
               <span className="h-px flex-1 bg-border" />
             </div>
 
-            {/* Contender cards */}
-            <div className="grid md:grid-cols-2 gap-6 mb-6">
+            {/* Contender card */}
+            <div className="mb-6">
               {/* EV */}
               <div
                 className={`relative overflow-hidden rounded-3xl border bg-card p-6 transition-all ${calc.evCheaper ? "ring-2 shadow-elevated" : "border-border"}`}
@@ -724,42 +742,6 @@ const ElectricityVsGasoline = () => {
                 <div className="flex justify-between items-center mt-3 pt-3 border-t border-border">
                   <span className="font-bold text-foreground">Total</span>
                   <span className="font-charge text-2xl text-foreground tabular-nums">{currency(calc.e.total)}</span>
-                </div>
-              </div>
-
-              {/* Gas */}
-              <div
-                className={`relative overflow-hidden rounded-3xl border bg-card p-6 transition-all ${!calc.evCheaper ? "ring-2 shadow-elevated" : "border-border"}`}
-                style={!calc.evCheaper ? ({ ["--tw-ring-color" as never]: "rgba(249,115,22,0.4)" }) : undefined}
-              >
-                {!calc.evCheaper && <div className="evg-ribbon absolute top-0 left-0 right-0 h-1" style={{ background: `linear-gradient(90deg, transparent, ${GAS_COLOR}, hsl(8 88% 52%), transparent)`, backgroundSize: "220% 100%" }} />}
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2.5">
-                    <span className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: GAS_COLOR }}>
-                      <Fuel className="w-5 h-5 text-white" />
-                    </span>
-                    <div>
-                      <h3 className="font-charge text-lg text-foreground leading-tight">{gas.name}</h3>
-                      <span className="text-xs text-muted-foreground">Gasoline</span>
-                    </div>
-                  </div>
-                  {!calc.evCheaper && (
-                    <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full" style={{ color: GAS_COLOR, background: "rgba(249,115,22,0.1)" }}>
-                      <Trophy className="w-3.5 h-3.5" /> Winner
-                    </span>
-                  )}
-                </div>
-                <div className="flex items-baseline gap-1.5 mb-4 pb-4 border-b border-border">
-                  <span className="font-charge text-3xl text-foreground">{currency(calc.g.perMile, 2)}</span>
-                  <span className="text-sm text-muted-foreground">/ mile to fuel</span>
-                </div>
-                <Row label="Purchase" value={currency(calc.g.purchase)} />
-                <Row label={`Fuel (${ownershipYears}yr)`} value={currency(calc.g.fuel)} />
-                <Row label={`Maintenance (${ownershipYears}yr)`} value={currency(calc.g.maintenance)} />
-                <Row label={`Insurance (${ownershipYears}yr)`} value={currency(calc.g.insurance)} />
-                <div className="flex justify-between items-center mt-3 pt-3 border-t border-border">
-                  <span className="font-bold text-foreground">Total</span>
-                  <span className="font-charge text-2xl text-foreground tabular-nums">{currency(calc.g.total)}</span>
                 </div>
               </div>
             </div>
@@ -926,27 +908,6 @@ const ElectricityVsGasoline = () => {
             </Accordion>
           </div>
         </section>
-
-        {/* ───────────────── CTA ───────────────── */}
-        {!embed && (
-          <section className="pb-20">
-            <div className="container px-4 max-w-4xl">
-              <div className="relative overflow-hidden rounded-3xl gradient-hero p-8 md:p-12 text-center text-primary-foreground">
-                <Zap className="absolute -left-8 -bottom-8 w-44 h-44 opacity-10" />
-                <h2 className="font-charge text-3xl md:text-4xl mb-3">Want the full picture?</h2>
-                <p className="text-primary-foreground/90 mb-6 max-w-xl mx-auto">
-                  See total cost of ownership — purchase, financing, incentives, maintenance, and resale —
-                  with our detailed calculator.
-                </p>
-                <Link to="/calculator">
-                  <Button variant="secondary" size="lg" className="rounded-2xl">
-                    Open the TCO Calculator <ArrowRight className="w-5 h-5" />
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          </section>
-        )}
 
         {/* Embed attribution — required on embeds, cannot be removed (§9). */}
         {embed && (

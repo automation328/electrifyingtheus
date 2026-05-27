@@ -167,14 +167,13 @@ const AgentChatSection = () => {
           {/* RIGHT — Live chat */}
           <div className="flex flex-col">
             <span className="inline-block w-fit px-4 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-semibold mb-4">
-              Ask Our AI Agent
+              Ask Our E-Mobility Expert
             </span>
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold font-display text-foreground mb-4 leading-tight">
-              Chat With <span className="text-gradient-primary">Electrifying the US</span>
+              Learn with Adam our <span className="text-gradient-primary whitespace-nowrap">E-Mobility Expert!</span>
             </h2>
             <p className="text-muted-foreground text-lg mb-6 leading-relaxed">
-              Get instant answers about our programs, electric vehicles, charging, and incentives —
-              powered by our AI assistant.
+              Get instant answers about our programs, electric vehicles, charging, and incentives
             </p>
 
             {/* Chat console — "Charge Terminal" HMI style (matches /assistant).

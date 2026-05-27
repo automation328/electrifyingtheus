@@ -29,6 +29,12 @@ dist-ssr
 /*.jpeg
 /*.jpg
 
+# Local API/curl response dumps (not part of the app)
+/body.json
+/g.json
+/post.json
+/hdr.txt
+
 # Local environment / secrets — never commit
 .env
 .env.local

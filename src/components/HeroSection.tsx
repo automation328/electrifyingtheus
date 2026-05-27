@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { ChevronDown } from "lucide-react";
 import heroBg from "@/assets/hero-bg.jpg";
-import logo from "@/assets/logo-white.png";
+import logo from "@/assets/hero-logo.png";
 
 const HeroSection = () => {
   return (
@@ -22,12 +22,12 @@ const HeroSection = () => {
           <img
             src={logo}
             alt="Electrifying the US logo"
-            className="mx-auto h-32 md:h-48 lg:h-56 w-auto mb-8 animate-fade-up drop-shadow-2xl"
+            className="mx-auto w-full max-w-2xl h-auto mb-[50px] animate-fade-up drop-shadow-2xl"
           />
 
           <p className="text-lg md:text-xl text-primary-foreground/90 max-w-2xl mx-auto mb-10 animate-fade-up font-light leading-relaxed"
             style={{ animationDelay: "0.2s" }}>
-            Transforming how America moves — from EVs and e-bikes to electric buses and eVTOLs. 
+            Transforming how America moves — from EVs and e-bikes to electric buses and eVTOLs.
             Your gateway to the zero-emission future.
           </p>
 

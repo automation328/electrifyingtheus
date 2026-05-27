@@ -32,7 +32,7 @@ const Footer = () => {
             <h4 className="font-display font-bold text-primary-foreground mb-4">Resources</h4>
             <div className="space-y-2">
               {[
-                { label: "Blog", to: "/blog" },
+                { label: "News", to: "/news" },
                 { label: "Events", to: "/events" },
                 { label: "Careers", to: "/careers" },
                 { label: "EV vs Gas", to: "/electricity-vs-gasoline" },

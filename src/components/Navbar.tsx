@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import ThemeToggle from "@/components/ThemeToggle";
 import logoColored from "@/assets/logo-colored.png";
 import logoWhite from "@/assets/logo-white.png";
 
@@ -12,7 +11,10 @@ const navItems = [
   { label: "EV 101", href: "#ev101" },
   { label: "Benefits", href: "#benefits" },
   { label: "Multimodal", href: "#multimodal" },
-  { label: "TCO Calculator", href: "#tco-calculator" },
+  { label: "TCO Calculator", href: "/electricity-vs-gasoline" },
+  { label: "News", href: "/news" },
+  { label: "Events", href: "/events" },
+  { label: "Career", href: "/careers" },
   { label: "Contact", href: "#contact" },
 ];
 
@@ -26,8 +28,10 @@ const Navbar = () => {
   // non-home page (which has a light background behind the navbar).
   const solid = scrolled || !isHome;
 
-  // Anchor links live on the home page; from other pages, route home first.
-  const linkHref = (href: string) => (isHome ? href : `/${href}`);
+  // Absolute routes ("/path") link directly. Anchor links ("#id") live on the
+  // home page; from other pages, route home first.
+  const linkHref = (href: string) =>
+    href.startsWith("/") ? href : isHome ? href : `/${href}`;
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -70,7 +74,6 @@ const Navbar = () => {
               Find a Charger
             </Button>
           </a>
-          <div className="ml-2"><ThemeToggle /></div>
         </div>
 
         {/* Mobile toggle */}
@@ -103,7 +106,6 @@ const Navbar = () => {
           <a href="https://afdc.energy.gov/fuels/electricity_locations.html#/find/nearest?fuel=ELEC" target="_blank" rel="noopener noreferrer" className="block mt-2">
             <Button variant="default" className="w-full">Find a Charger</Button>
           </a>
-          <div className="mt-3"><ThemeToggle compact /></div>
         </div>
       )}
     </nav>

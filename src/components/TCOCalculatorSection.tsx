@@ -68,7 +68,7 @@ const TCOCalculatorSection = () => {
 
         {/* CTA */}
         <div className="text-center">
-          <Link to="/calculator">
+          <Link to="/electricity-vs-gasoline">
             <Button variant="hero" size="lg" className="text-base px-10 py-6 rounded-2xl gap-3">
               Launch Calculator
               <ArrowRight className="w-5 h-5" />

@@ -46,7 +46,7 @@ const modes = [
   },
   {
     icon: Car,
-    title: "Rideshare & Fleets",
+    title: "Rideshare, Rental Cars, and Fleets",
     desc: "Uber and Lyft committing to 100% EV fleets. Rental companies offering EVs nationwide at competitive rates.",
     link: "https://www.cnbc.com/2022/06/18/how-the-massive-ev-transition-is-starting-in-the-car-rental-industry.html",
     image: rideshareFleet,
