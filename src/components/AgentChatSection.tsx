@@ -1,9 +1,16 @@
 import { useState, useRef, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { Send, Zap, Sparkles } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import { Button } from "@/components/ui/button";
 import electricAgents from "@/assets/electric-agents.jpg";
 
 type Message = { role: "user" | "assistant"; content: string };
+type Lead = { firstName: string; email: string };
+
+// Name + email are collected before the first query is answered. Held in memory
+// only (not persisted) so every visit asks again before the first answer.
+const isValidEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
 
 // ── n8n AI agent connection ──────────────────────────────────────────────────
 // The chat POSTs each customer message to your n8n Chat Trigger / AI Agent
@@ -39,16 +46,16 @@ const extractReply = (data: unknown): string => {
 };
 
 const GREETING =
-  "Hi! 👋 I'm EVA, the Electrifying the US assistant. Ask me anything about EV charging, batteries, home setup, costs, or incentives — or tap a question below to get started.";
+  "Hi! 👋 I'm EVan, your E-Mobility Concierge at Electrifying the US. Tap one of the 10 questions below or type your own — I've got answers on EVs, charging, costs, and incentives.";
 
-// Clickable starter questions — drawn from the EVNoire EV Charging 101 knowledge base.
+// 10 clickable EV questions — drawn from the EVNoire EV Charging 101 knowledge base.
 const SUGGESTED_QUESTIONS = [
+  "What are the top 5 most affordable EVs?",
   "What's the difference between a hybrid and a fully electric vehicle?",
   "How long do EV batteries last?",
   "Can I charge an EV at home — and what do I need?",
   "How much does it cost to charge an EV at home?",
   "Where can I find public charging stations?",
-  "How much does public charging cost?",
   "I live in an apartment — can I still charge?",
   "Which charging connector does my EV use (NACS vs CCS)?",
   "Will charging an EV raise my electric bill?",
@@ -76,6 +83,12 @@ const AgentChatSection = () => {
   const [messages, setMessages] = useState<Message[]>([{ role: "assistant", content: GREETING }]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [lead, setLead] = useState<Lead | null>(null);
+  const [leadForm, setLeadForm] = useState({ firstName: "", email: "" });
+  const [leadError, setLeadError] = useState("");
+  // The question a visitor asked before giving their details — answered the
+  // moment the lead is captured.
+  const [pending, setPending] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Keep the conversation pinned to the newest message without moving the page.
@@ -84,10 +97,9 @@ const AgentChatSection = () => {
     if (el) el.scrollTop = el.scrollHeight;
   }, [messages, loading]);
 
-  const sendMessage = async (override?: string) => {
-    const text = (override ?? input).trim();
-    if (!text || loading) return;
-
+  // Actually deliver a question to the n8n agent and render the reply. The
+  // lead is passed in explicitly so it works on the same tick it's captured.
+  const doSend = async (text: string, leadInfo: Lead) => {
     setMessages((prev) => [...prev, { role: "user", content: text }]);
     setInput("");
     setLoading(true);
@@ -114,6 +126,8 @@ const AgentChatSection = () => {
           sessionId,
           chatInput: text,
           message: text,
+          firstName: leadInfo.firstName,
+          email: leadInfo.email,
         }),
       });
 
@@ -139,6 +153,46 @@ const AgentChatSection = () => {
       ]);
     }
     setLoading(false);
+  };
+
+  // Questions are shown first. The first time a visitor sends/clicks one without
+  // a saved lead, hold it and surface the name + email gate.
+  const sendMessage = (override?: string) => {
+    const text = (override ?? input).trim();
+    if (!text || loading) return;
+    if (!lead) {
+      setPending(text);
+      setInput("");
+      return;
+    }
+    doSend(text, lead);
+  };
+
+  // Lead capture gate — first name + email collected before the held question
+  // is answered.
+  const captureLead = (e: React.FormEvent) => {
+    e.preventDefault();
+    const firstName = leadForm.firstName.trim();
+    const email = leadForm.email.trim();
+    if (!firstName) { setLeadError("Please enter your first name."); return; }
+    if (!isValidEmail(email)) { setLeadError("Please enter a valid email address."); return; }
+
+    const captured: Lead = { firstName, email };
+    setLead(captured);
+    setLeadError("");
+
+    // Best-effort: notify the n8n flow that a new lead was captured.
+    if (N8N_WEBHOOK_URL) {
+      fetch(N8N_WEBHOOK_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "captureLead", sessionId, firstName, email }),
+      }).catch(() => { /* non-blocking */ });
+    }
+
+    const q = pending;
+    setPending(null);
+    if (q) doSend(q, captured);
   };
 
   return (
@@ -167,10 +221,10 @@ const AgentChatSection = () => {
           {/* RIGHT — Live chat */}
           <div className="flex flex-col">
             <span className="inline-block w-fit px-4 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-semibold mb-4">
-              Ask Our E-Mobility Expert
+              Ask our team of E-Mobility Experts
             </span>
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold font-display text-foreground mb-4 leading-tight">
-              Learn with Adam our <span className="text-gradient-primary whitespace-nowrap">E-Mobility Expert!</span>
+              Engage with <span className="text-gradient-primary whitespace-nowrap">EVan!</span> Your E-Mobility Concierge
             </h2>
             <p className="text-muted-foreground text-lg mb-6 leading-relaxed">
               Get instant answers about our programs, electric vehicles, charging, and incentives
@@ -191,13 +245,12 @@ const AgentChatSection = () => {
                       <Zap className="w-4 h-4 text-white" fill="currentColor" />
                     </span>
                     <div>
-                      <div className="font-hmi font-semibold tracking-wide text-[hsl(var(--term-text))] leading-tight">E-Mobility Assistant</div>
+                      <div className="font-hmi font-semibold tracking-wide text-[hsl(var(--term-text))] leading-tight">E-Mobility Concierge</div>
                       <div className="flex items-center gap-1.5 font-term text-[11px] text-[hsl(var(--term-muted))]">
                         <span className="term-live w-2 h-2 rounded-full" style={{ background: "hsl(var(--term-green))" }} /> ONLINE · ask anything e-mobility
                       </div>
                     </div>
                   </div>
-                  <span className="font-term text-[10px] tracking-[0.2em] uppercase hidden sm:block text-[hsl(var(--term-muted))]">US Grid · v1</span>
                 </div>
                 <div className="term-current shrink-0" aria-hidden />
 
@@ -220,23 +273,64 @@ const AgentChatSection = () => {
                       </div>
                     ))}
 
-                    {messages.length === 1 && !loading && (
+                    {/* Top 10 EV questions — shown first, before the lead gate. */}
+                    {!pending && messages.every((m) => m.role === "assistant") && !loading && (
                       <div className="space-y-3 pt-2">
-                        <p className="font-term text-[11px] tracking-[0.25em] uppercase px-1 text-[hsl(var(--term-muted))]">▸ Suggested queries</p>
+                        <p className="font-term text-[11px] tracking-[0.25em] uppercase px-1 text-[hsl(var(--term-muted))]">▸ 10 EV Questions</p>
                         <div className="grid sm:grid-cols-2 gap-2.5">
                           {SUGGESTED_QUESTIONS.map((q, i) => (
                             <button
                               key={q}
                               type="button"
                               onClick={() => sendMessage(q)}
-                              className="group text-left text-sm px-4 py-3 rounded-xl border border-black/[0.07] bg-[hsl(var(--term-panel))] hover:bg-[hsl(var(--term-cyan)/0.1)] hover:border-[hsl(var(--term-cyan)/0.55)] transition-all text-[hsl(var(--term-text))]"
+                              className="group text-left text-sm px-4 py-3 rounded-xl text-[hsl(var(--term-text))] shadow-sm hover:brightness-95 transition-all"
+                              style={{ background: "#e3eeea" }}
                             >
-                              <span className="font-term text-[hsl(var(--term-cyan))] mr-2">{String(i + 1).padStart(2, "0")}</span>
+                              <span className="font-term text-secondary mr-2">{String(i + 1).padStart(2, "0")}</span>
                               {q}
                             </button>
                           ))}
                         </div>
                       </div>
+                    )}
+
+                    {/* Lead capture gate — first name + email collected before the held question is answered. */}
+                    {!lead && pending && !loading && (
+                      <form onSubmit={captureLead} className="space-y-3 pt-2">
+                        <p className="font-term text-[11px] tracking-[0.25em] uppercase px-1 text-[hsl(var(--term-muted))]">▸ One quick step · name + email</p>
+                        <p className="text-sm text-[hsl(var(--term-text))]">
+                          Tell me where to send the answer and I'll reply right away.
+                        </p>
+                        <div className="grid gap-2.5">
+                          <input
+                            type="text"
+                            value={leadForm.firstName}
+                            onChange={(e) => setLeadForm((f) => ({ ...f, firstName: e.target.value }))}
+                            placeholder="First name"
+                            autoComplete="given-name"
+                            className="w-full rounded-xl border border-black/[0.08] bg-[hsl(var(--term-panel))] px-4 py-3 text-sm outline-none transition-colors focus:border-[hsl(var(--term-cyan)/0.55)] text-[hsl(var(--term-text))] placeholder:text-[hsl(var(--term-muted))]"
+                          />
+                          <input
+                            type="email"
+                            value={leadForm.email}
+                            onChange={(e) => setLeadForm((f) => ({ ...f, email: e.target.value }))}
+                            placeholder="Email address"
+                            autoComplete="email"
+                            className="w-full rounded-xl border border-black/[0.08] bg-[hsl(var(--term-panel))] px-4 py-3 text-sm outline-none transition-colors focus:border-[hsl(var(--term-cyan)/0.55)] text-[hsl(var(--term-text))] placeholder:text-[hsl(var(--term-muted))]"
+                          />
+                        </div>
+                        {leadError && <p className="text-xs text-red-500 px-1">{leadError}</p>}
+                        <button
+                          type="submit"
+                          className="w-full rounded-xl px-4 py-3 text-sm font-semibold text-white transition-all hover:brightness-110"
+                          style={{ background: "linear-gradient(135deg, hsl(var(--term-blue)), hsl(var(--term-cyan)) 58%, hsl(var(--term-green)))" }}
+                        >
+                          Get my answer →
+                        </button>
+                        <p className="text-[11px] text-[hsl(var(--term-muted))] px-1 leading-relaxed">
+                          We use this only to personalize your answers and follow up. No spam.
+                        </p>
+                      </form>
                     )}
 
                     {loading && (
@@ -280,6 +374,34 @@ const AgentChatSection = () => {
                   </form>
                 </div>
               </div>
+            </div>
+
+            {/* Powered-by credit */}
+            <p className="text-xs text-muted-foreground mt-4 text-center lg:text-left">
+              Powered by{" "}
+              <a
+                href="https://emobilityresearch.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-foreground hover:text-primary transition-colors"
+              >
+                emobilityresearch.com
+              </a>
+            </p>
+
+            {/* "Put EVan on your own site" CTA */}
+            <div className="mt-5 rounded-2xl border border-border bg-card p-5 flex flex-col sm:flex-row sm:items-center gap-4">
+              <div className="flex-1">
+                <p className="font-semibold text-foreground">Want EVan answering questions on your website?</p>
+                <p className="text-sm text-muted-foreground">
+                  Add the E-Mobility Concierge to your own site and turn visitors into leads automatically.
+                </p>
+              </div>
+              <Link to="/contact-us" className="shrink-0">
+                <Button variant="green" className="rounded-xl">
+                  <Sparkles className="w-4 h-4" /> Add EVan to my site
+                </Button>
+              </Link>
             </div>
           </div>
         </div>

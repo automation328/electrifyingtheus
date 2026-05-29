@@ -8,7 +8,7 @@ export const vehicles: VehicleData[] = [
   // ───────────────────────── EVs ─────────────────────────
   // Compact sedans
   {
-    id: "tesla-model-3", name: "Tesla Model 3", type: "ev", msrp: 38990,
+    id: "tesla-model-3", name: "Tesla Model 3", type: "ev", msrp: 38630,
     mpge: 132, kwhPer100mi: 25, maintenanceCostPerMile: 0.06, insuranceAnnual: 1920,
     depreciationRate: 0.15, category: "Sedan",
     bodyStyle: "sedan", sizeClass: 2, seats: 5, drivetrain: "RWD", rangeMi: 272,
@@ -20,7 +20,7 @@ export const vehicles: VehicleData[] = [
     bodyStyle: "sedan", sizeClass: 2, seats: 5, drivetrain: "AWD", rangeMi: 296, performance: true,
   },
   {
-    id: "hyundai-ioniq-6", name: "Hyundai IONIQ 6", type: "ev", msrp: 38650,
+    id: "hyundai-ioniq-6", name: "Hyundai IONIQ 6", type: "ev", msrp: 37850,
     mpge: 140, kwhPer100mi: 24, maintenanceCostPerMile: 0.057, insuranceAnnual: 1820,
     depreciationRate: 0.17, category: "Sedan",
     bodyStyle: "sedan", sizeClass: 2, seats: 5, drivetrain: "RWD", rangeMi: 305,
@@ -64,25 +64,25 @@ export const vehicles: VehicleData[] = [
     bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "AWD", rangeMi: 310,
   },
   {
-    id: "chevy-equinox-ev", name: "Chevrolet Equinox EV", type: "ev", msrp: 33900,
+    id: "chevy-equinox-ev", name: "Chevrolet Equinox EV", type: "ev", msrp: 34995,
     mpge: 126, kwhPer100mi: 27, maintenanceCostPerMile: 0.061, insuranceAnnual: 1800,
     depreciationRate: 0.18, category: "SUV",
     bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "FWD", rangeMi: 319,
   },
   {
-    id: "hyundai-ioniq-5", name: "Hyundai IONIQ 5", type: "ev", msrp: 41800,
+    id: "hyundai-ioniq-5", name: "Hyundai IONIQ 5", type: "ev", msrp: 35000,
     mpge: 114, kwhPer100mi: 29, maintenanceCostPerMile: 0.058, insuranceAnnual: 1850,
     depreciationRate: 0.17, category: "SUV",
     bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "AWD", rangeMi: 303,
   },
   {
-    id: "kia-ev6", name: "Kia EV6", type: "ev", msrp: 43000,
+    id: "kia-ev6", name: "Kia EV6", type: "ev", msrp: 37900,
     mpge: 117, kwhPer100mi: 29, maintenanceCostPerMile: 0.059, insuranceAnnual: 1880,
     depreciationRate: 0.17, category: "SUV",
     bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "AWD", rangeMi: 310,
   },
   {
-    id: "ford-mustang-mach-e", name: "Ford Mustang Mach-E", type: "ev", msrp: 42995,
+    id: "ford-mustang-mach-e", name: "Ford Mustang Mach-E", type: "ev", msrp: 37995,
     mpge: 100, kwhPer100mi: 33, maintenanceCostPerMile: 0.065, insuranceAnnual: 2100,
     depreciationRate: 0.17, category: "SUV",
     bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "RWD", rangeMi: 290,
@@ -195,10 +195,16 @@ export const vehicles: VehicleData[] = [
     bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "AWD", rangeMi: 302, luxury: true,
   },
   {
-    id: "chevy-bolt-ev", name: "Chevrolet Bolt EV", type: "ev", msrp: 27000,
+    id: "chevy-bolt-ev", name: "Chevrolet Bolt EV", type: "ev", msrp: 27600,
     mpge: 120, kwhPer100mi: 28, maintenanceCostPerMile: 0.057, insuranceAnnual: 1700,
     depreciationRate: 0.18, category: "Sedan",
-    bodyStyle: "hatchback", sizeClass: 1, seats: 5, drivetrain: "FWD", rangeMi: 259,
+    bodyStyle: "hatchback", sizeClass: 1, seats: 5, drivetrain: "FWD", rangeMi: 262,
+  },
+  {
+    id: "nissan-leaf", name: "Nissan LEAF", type: "ev", msrp: 29990,
+    mpge: 121, kwhPer100mi: 28, maintenanceCostPerMile: 0.057, insuranceAnnual: 1650,
+    depreciationRate: 0.19, category: "Sedan",
+    bodyStyle: "hatchback", sizeClass: 1, seats: 5, drivetrain: "FWD", rangeMi: 303,
   },
   {
     id: "genesis-g80-electrified", name: "Genesis G80 Electrified", type: "ev", msrp: 74000,
@@ -237,7 +243,7 @@ export const vehicles: VehicleData[] = [
     bodyStyle: "suv-compact", sizeClass: 1, seats: 5, drivetrain: "FWD", rangeMi: 261,
   },
   {
-    id: "kia-niro-ev", name: "Kia Niro EV", type: "ev", msrp: 40000,
+    id: "kia-niro-ev", name: "Kia Niro EV", type: "ev", msrp: 39700,
     mpge: 113, kwhPer100mi: 30, maintenanceCostPerMile: 0.058, insuranceAnnual: 1780,
     depreciationRate: 0.18, category: "SUV",
     bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "FWD", rangeMi: 253,
@@ -267,7 +273,7 @@ export const vehicles: VehicleData[] = [
     bodyStyle: "sedan", sizeClass: 3, seats: 5, drivetrain: "AWD", rangeMi: 402, luxury: true,
   },
   {
-    id: "toyota-bz4x", name: "Toyota bZ4X", type: "ev", msrp: 37000,
+    id: "toyota-bz4x", name: "Toyota bZ4X", type: "ev", msrp: 34900,
     mpge: 114, kwhPer100mi: 30, maintenanceCostPerMile: 0.058, insuranceAnnual: 1820,
     depreciationRate: 0.19, category: "SUV",
     bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "FWD", rangeMi: 252,
@@ -452,6 +458,60 @@ export const vehicles: VehicleData[] = [
     bodyStyle: "truck", sizeClass: 4, seats: 5, drivetrain: "4WD",
   },
 ];
+
+// Vehicle photos (Wikimedia Commons, hot-link safe). Keyed by id and attached
+// to each EV below so any consumer can read `vehicle.image`.
+const VEHICLE_IMAGES: Record<string, string> = {
+  "tesla-model-3": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Tesla_Model_3_%282023%29_Autofr%C3%BChling_Ulm_IMG_9282.jpg/330px-Tesla_Model_3_%282023%29_Autofr%C3%BChling_Ulm_IMG_9282.jpg",
+  "tesla-model-3-performance": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Tesla_Model_3_%282023%29_Autofr%C3%BChling_Ulm_IMG_9282.jpg/330px-Tesla_Model_3_%282023%29_Autofr%C3%BChling_Ulm_IMG_9282.jpg",
+  "hyundai-ioniq-6": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/96/2023_Hyundai_Ioniq_6_Limited%2C_front_4.27.23.jpg/330px-2023_Hyundai_Ioniq_6_Limited%2C_front_4.27.23.jpg",
+  "polestar-2": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Polestar_2_%E2%80%93_f_02042021.jpg/330px-Polestar_2_%E2%80%93_f_02042021.jpg",
+  "bmw-i4": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/BMW_i4_IMG_6695.jpg/330px-BMW_i4_IMG_6695.jpg",
+  "bmw-i5": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/96/BMW_i5_M60_xDrive_%28G60%2C_2024%29_%2853767149083%29.jpg/330px-BMW_i5_M60_xDrive_%28G60%2C_2024%29_%2853767149083%29.jpg",
+  "mercedes-eqe": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cb/Mercedes-Benz_V295_350%2B_Classic-Days_2022_DSC_0018.jpg/330px-Mercedes-Benz_V295_350%2B_Classic-Days_2022_DSC_0018.jpg",
+  "lucid-air": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/2022_Lucid_Air_Grand_Touring_in_Zenith_Red%2C_front_left.jpg/330px-2022_Lucid_Air_Grand_Touring_in_Zenith_Red%2C_front_left.jpg",
+  "tesla-model-y": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/2022_Tesla_Model_Y_Long_Range_AWD_Front.jpg/330px-2022_Tesla_Model_Y_Long_Range_AWD_Front.jpg",
+  "chevy-equinox-ev": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/2025_Chevrolet_Equinox_EV%2C_front_left_4.26.25.jpg/330px-2025_Chevrolet_Equinox_EV%2C_front_left_4.26.25.jpg",
+  "hyundai-ioniq-5": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Hyundai_Ioniq_5_AWD_Techniq-Paket_%E2%80%93_f_31122024.jpg/330px-Hyundai_Ioniq_5_AWD_Techniq-Paket_%E2%80%93_f_31122024.jpg",
+  "hyundai-ioniq-5-n": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Hyundai_Ioniq_5_AWD_Techniq-Paket_%E2%80%93_f_31122024.jpg/330px-Hyundai_Ioniq_5_AWD_Techniq-Paket_%E2%80%93_f_31122024.jpg",
+  "kia-ev6": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d9/2021_Kia_EV6_GT-Line_S.jpg/330px-2021_Kia_EV6_GT-Line_S.jpg",
+  "ford-mustang-mach-e": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/2021_Ford_Mustang_Mach-E_Standard_Range_Front.jpg/330px-2021_Ford_Mustang_Mach-E_Standard_Range_Front.jpg",
+  "ford-mustang-mach-e-gt": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/2021_Ford_Mustang_Mach-E_Standard_Range_Front.jpg/330px-2021_Ford_Mustang_Mach-E_Standard_Range_Front.jpg",
+  "vw-id4": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/2025_Volkswagen_ID4_Pro_Redspot_front.jpg/330px-2025_Volkswagen_ID4_Pro_Redspot_front.jpg",
+  "nissan-ariya": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/64/2023_Nissan_Ariya_Advance_Front.jpg/330px-2023_Nissan_Ariya_Advance_Front.jpg",
+  "kia-ev9": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Kia_EV9_1X7A2472.jpg/330px-Kia_EV9_1X7A2472.jpg",
+  "rivian-r1s": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/89/2023_Rivian_R1S_Adventure%2C_front_1.29.23.jpg/330px-2023_Rivian_R1S_Adventure%2C_front_1.29.23.jpg",
+  "tesla-model-x": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/2017_Tesla_Model_X_100D_Front.jpg/330px-2017_Tesla_Model_X_100D_Front.jpg",
+  "ford-f150-lightning": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/76/2022_Ford_F-150_Lightning_Lariat_in_Atlas_Blue_Metallic%2C_Front_Right%2C_08-06-2022.jpg/330px-2022_Ford_F-150_Lightning_Lariat_in_Atlas_Blue_Metallic%2C_Front_Right%2C_08-06-2022.jpg",
+  "chevy-silverado-ev": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/2024_Chevrolet_Silverado_EV_4WT_AWD_in_Summit_White%2C_front_left%2C_2024-06-30.jpg/330px-2024_Chevrolet_Silverado_EV_4WT_AWD_in_Summit_White%2C_front_left%2C_2024-06-30.jpg",
+  "rivian-r1t": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/2022_Rivian_R1T_%28in_Glacier_White%29%2C_front_6.21.22.jpg/330px-2022_Rivian_R1T_%28in_Glacier_White%29%2C_front_6.21.22.jpg",
+  "acura-zdx": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c9/2024_Acura_ZDX_Type_S%2C_front_2.6.25.jpg/330px-2024_Acura_ZDX_Type_S%2C_front_2.6.25.jpg",
+  "audi-q4-etron": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/2021_Audi_Q4_e-tron_Sport_35.jpg/330px-2021_Audi_Q4_e-tron_Sport_35.jpg",
+  "audi-q6-etron": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/Audi_Q6_e-tron_DSC_7829.jpg/330px-Audi_Q6_e-tron_DSC_7829.jpg",
+  "audi-q8-etron": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/2020_Audi_e-Tron_Sport_50_Quattro.jpg/330px-2020_Audi_e-Tron_Sport_50_Quattro.jpg",
+  "bmw-ix-xdrive40": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/2022_BMW_iX_xDrive_40_CRI_12_2021_2727.jpg/330px-2022_BMW_iX_xDrive_40_CRI_12_2021_2727.jpg",
+  "cadillac-lyriq": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/2023_Cadillac_Lyriq_in_Satin_Steel_Metallic%2C_front_left.jpg/330px-2023_Cadillac_Lyriq_in_Satin_Steel_Metallic%2C_front_left.jpg",
+  "cadillac-optiq": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/Cadillac_Optiq_%28IQ_Aoge%29_01_China_2024-04-23.jpg/330px-Cadillac_Optiq_%28IQ_Aoge%29_01_China_2024-04-23.jpg",
+  "chevy-bolt-ev": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/2022_Chevrolet_Bolt_EV_2LT%2C_NYC_official_fleet_1.2.23.jpg/330px-2022_Chevrolet_Bolt_EV_2LT%2C_NYC_official_fleet_1.2.23.jpg",
+  "nissan-leaf": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/38/0_Nissan_Leaf_%28ZE1%29_2.jpg/330px-0_Nissan_Leaf_%28ZE1%29_2.jpg",
+  "genesis-g80-electrified": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Genesis_G80_IAA_2021_1X7A0229.jpg/330px-Genesis_G80_IAA_2021_1X7A0229.jpg",
+  "genesis-gv60": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/98/Genesis_GV60_1X7A5760.jpg/330px-Genesis_GV60_1X7A5760.jpg",
+  "genesis-gv70-electrified": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Genesis_GV70_IAA_2021_1X7A0228.jpg/330px-Genesis_GV70_IAA_2021_1X7A0228.jpg",
+  "gmc-sierra-ev": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/db/2024_GMC_Sierra_EV_Denali_front_view.jpg/330px-2024_GMC_Sierra_EV_Denali_front_view.jpg",
+  "honda-prologue": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d8/2024_Honda_Prologue_Touring%2C_front_7.11.25.jpg/330px-2024_Honda_Prologue_Touring%2C_front_7.11.25.jpg",
+  "hyundai-kona-electric": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ed/Hyundai_Kona_Electric_%28SX2%29_1X7A1554.jpg/330px-Hyundai_Kona_Electric_%28SX2%29_1X7A1554.jpg",
+  "kia-niro-ev": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cb/Kia_Niro_EV_%28SG2%29_1X7A7188.jpg/330px-Kia_Niro_EV_%28SG2%29_1X7A7188.jpg",
+  "mercedes-eqe-suv": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/Mercedes-Benz_X294_IMG_8682.jpg/330px-Mercedes-Benz_X294_IMG_8682.jpg",
+  "mercedes-eqs-580": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/Mercedes-Benz_V297_Classic-Days_2022_DSC_0016.jpg/330px-Mercedes-Benz_V297_Classic-Days_2022_DSC_0016.jpg",
+  "polestar-3": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/Polestar_3_Auto_Zuerich_2023_1X7A1307.jpg/330px-Polestar_3_Auto_Zuerich_2023_1X7A1307.jpg",
+  "tesla-model-s": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Tesla_Model_S_%28Facelift_ab_04-2016%29_%28cropped%29.jpg/330px-Tesla_Model_S_%28Facelift_ab_04-2016%29_%28cropped%29.jpg",
+  "toyota-bz4x": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Toyota_bZ4X_Automesse_Ludwigsburg_2022_1X7A5895.jpg/330px-Toyota_bZ4X_Automesse_Ludwigsburg_2022_1X7A5895.jpg",
+  "vw-id-buzz": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Volkswagen_ID._Buzz_1X7A6263.jpg/330px-Volkswagen_ID._Buzz_1X7A6263.jpg",
+};
+
+for (const v of vehicles) {
+  if (VEHICLE_IMAGES[v.id]) v.image = VEHICLE_IMAGES[v.id];
+}
 
 export const vehicleCategories = ["Sedan", "Coupe", "SUV", "Minivan", "Truck"];
 

@@ -226,10 +226,11 @@ html[data-theme="glass"] .gradient-hero {
 }
 
 .font-charge {
-  font-family: 'Bricolage Grotesque', 'Space Grotesk', sans-serif;
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  line-height: 0.92;
+  /* Match the homepage heading typeface (Space Grotesk). */
+  font-family: 'Space Grotesk', system-ui, sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1;
   font-variant-numeric: tabular-nums;
 }
 
@@ -421,4 +422,139 @@ html[data-theme="glass"] .gradient-hero {
   position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 60;
   transform-origin: left center;
   background-image: var(--gradient-hero);
+}
+
+/* =========================================================================
+   EV 101 — "Field Brief" editorial dossier for the knowledge sub-pages
+   Cinematic media, oversized Bricolage display, mono index labels, a charged
+   current motif, and scroll-revealed long-form. Scoped under .brief so the
+   rest of the site is untouched.
+   ========================================================================= */
+.brief {
+  --b-blue: 214 100% 44%;
+  --b-blue-deep: 214 100% 30%;
+  --b-green: 145 55% 42%;
+  --b-ink: 215 32% 11%;
+}
+
+/* Editorial display + mono index faces — Space Grotesk to match the home page */
+.font-brief {
+  font-family: 'Space Grotesk', system-ui, sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 0.95;
+}
+.brief-mono {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+/* Fixed atmosphere: engineering grid + dual brand glows behind everything */
+.brief-atmos {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(760px 560px at 4% -4%, hsl(var(--b-blue) / 0.12), transparent 60%),
+    radial-gradient(760px 560px at 100% 6%, hsl(var(--b-green) / 0.11), transparent 60%),
+    radial-gradient(900px 700px at 50% 112%, hsl(var(--b-blue) / 0.10), transparent 62%);
+}
+.brief-atmos::before {
+  content: ""; position: absolute; inset: 0;
+  background-image:
+    linear-gradient(hsl(var(--b-ink) / 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, hsl(var(--b-ink) / 0.035) 1px, transparent 1px);
+  background-size: 52px 52px;
+  -webkit-mask-image: radial-gradient(circle at 50% 12%, #000, transparent 78%);
+          mask-image: radial-gradient(circle at 50% 12%, #000, transparent 78%);
+}
+
+/* Filmic grain above the atmosphere, beneath content */
+.brief-grain::before {
+  content: ""; position: fixed; inset: 0; z-index: 1; pointer-events: none;
+  opacity: 0.30; mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+}
+
+/* Cinematic grade laid over the hero photograph */
+.brief-hero-grade {
+  background:
+    linear-gradient(180deg, hsl(var(--b-ink) / 0.30) 0%, hsl(var(--b-ink) / 0.10) 30%, hsl(0 0% 100% / 0.55) 78%, hsl(var(--background)) 100%),
+    linear-gradient(105deg, hsl(var(--b-blue-deep) / 0.55), transparent 55%, hsl(var(--b-green) / 0.30));
+  mix-blend-mode: normal;
+}
+.brief-hero-img { filter: saturate(1.05) contrast(1.04); }
+
+/* Flowing current rule — the charged seam motif, reused from the brand */
+.brief-current {
+  height: 2px; border-radius: 999px;
+  background: linear-gradient(90deg, transparent, hsl(var(--b-blue) / 0.95), hsl(var(--b-green) / 0.95), transparent);
+  background-size: 220% 100%;
+  animation: briefFlow 3.4s linear infinite;
+}
+.brief-current::after {
+  content: ""; position: absolute; inset: -3px 0; border-radius: 999px;
+  background: inherit; background-size: 220% 100%;
+  filter: blur(7px); opacity: 0.7; animation: briefFlow 3.4s linear infinite;
+}
+@keyframes briefFlow { to { background-position: -220% 0; } }
+
+/* Mono section index chip with a gradient hairline */
+.brief-index {
+  background-image: var(--gradient-hero);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+
+/* Instrument-readout stat tiles */
+.brief-stat {
+  position: relative; overflow: hidden;
+  background: hsl(0 0% 100% / 0.72);
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  border: 1px solid hsl(var(--b-blue) / 0.16);
+  box-shadow: 0 18px 44px -22px hsl(var(--b-blue-deep) / 0.4);
+}
+.brief-stat::before {
+  content: ""; position: absolute; left: 0; right: 0; top: 0; height: 2px;
+  background-image: var(--gradient-hero);
+}
+
+/* Featured-video frame — letterboxed console with a pulsing play core */
+.brief-video {
+  position: relative; border-radius: 1.5rem; overflow: hidden;
+  border: 1px solid hsl(var(--b-blue) / 0.22);
+  box-shadow: 0 40px 90px -40px hsl(var(--b-blue-deep) / 0.55);
+}
+.brief-play {
+  width: 84px; height: 84px; border-radius: 999px;
+  background: hsl(0 0% 100% / 0.92);
+  box-shadow: 0 10px 30px -6px hsl(var(--b-blue-deep) / 0.5);
+}
+.brief-play::after {
+  content: ""; position: absolute; inset: 0; border-radius: 999px;
+  border: 2px solid hsl(0 0% 100% / 0.8);
+  animation: briefPing 2.4s ease-out infinite;
+}
+@keyframes briefPing {
+  0% { transform: scale(1); opacity: 0.8; }
+  100% { transform: scale(1.9); opacity: 0; }
+}
+
+/* Pull-quote band */
+.brief-quote::before {
+  content: "\201C"; font-family: 'Space Grotesk', sans-serif;
+  font-size: 5rem; line-height: 0.6; color: hsl(var(--b-blue) / 0.35);
+  display: block; margin-bottom: 0.25rem;
+}
+
+/* Scroll-reveal: hidden until observed, then rises in */
+.brief-reveal { opacity: 0; transform: translateY(26px); transition: opacity 0.8s cubic-bezier(0.16,0.84,0.44,1), transform 0.8s cubic-bezier(0.16,0.84,0.44,1); }
+.brief-reveal.is-in { opacity: 1; transform: none; }
+
+/* Gallery hover */
+.brief-shot img { transition: transform 0.7s cubic-bezier(0.16,0.84,0.44,1), filter 0.5s; }
+.brief-shot:hover img { transform: scale(1.06); filter: saturate(1.12); }
+
+@media (prefers-reduced-motion: reduce) {
+  .brief-current, .brief-current::after, .brief-play::after { animation: none; }
+  .brief-reveal { opacity: 1; transform: none; transition: none; }
 }

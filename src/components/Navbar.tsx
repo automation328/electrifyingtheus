@@ -11,11 +11,11 @@ const navItems = [
   { label: "EV 101", href: "#ev101" },
   { label: "Benefits", href: "#benefits" },
   { label: "Multimodal", href: "#multimodal" },
-  { label: "TCO Calculator", href: "/electricity-vs-gasoline" },
+  { label: "EV vs Gas Calculator", href: "/electricity-vs-gasoline" },
   { label: "News", href: "/news" },
   { label: "Events", href: "/events" },
   { label: "Career", href: "/careers" },
-  { label: "Contact", href: "#contact" },
+  { label: "Contact", href: "/contact-us" },
 ];
 
 const Navbar = () => {

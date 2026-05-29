@@ -15,10 +15,11 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import {
   TrendingDown, Gauge, MapPin, BarChart3, Zap, Fuel, Clock, Trophy,
   Info, SlidersHorizontal, ChevronDown, ShieldCheck, House, Sparkles, Award, CircleDollarSign,
-  Share2, type LucideIcon,
+  Share2, Code2, Car, Tag, type LucideIcon,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -183,6 +184,7 @@ const ElectricityVsGasoline = () => {
 
   // Class-matched EV recommendations for the chosen gas car (§6).
   const matches = useMemo(() => recommendEvs(gas, vehicles), [gas]);
+  const [showResults, setShowResults] = useState(false);
 
   // When the gas car changes, jump the comparison to its closest EV match.
   const lastGasId = useRef(gasId);
@@ -318,6 +320,7 @@ const ElectricityVsGasoline = () => {
   }, [ev, gas, annualMiles, ownershipYears, gasPrice, electricityRate, publicRate, homeCharging, chargingLoss, dollarAmount]);
 
   const animatedAnnual = useCountUp(Math.abs(calc.res.annualSavings));
+  const animatedTotal = useCountUp(Math.abs(calc.res.horizonTotalSaved));
   const evWinsFuel = calc.res.annualSavings >= 0;
 
   // Confidence — statewide averages give Medium; curated EPA vehicle data is High.
@@ -397,23 +400,49 @@ const ElectricityVsGasoline = () => {
             </p>
 
             {/* Tale of the tape — national averages */}
-            <div className="evg-rise mt-8 inline-flex items-stretch rounded-2xl border border-border bg-card overflow-hidden shadow-card" style={{ animationDelay: "0.3s" }}>
-              <div className="flex items-center gap-3 px-5 py-3">
-                <Zap className="w-5 h-5" style={{ color: EV_COLOR }} />
+            <div className="evg-rise mt-8 inline-flex items-stretch rounded-3xl border border-border bg-card overflow-hidden shadow-elevated" style={{ animationDelay: "0.3s" }}>
+              <div className="flex items-center gap-4 px-8 py-6">
+                <Fuel className="w-8 h-8 md:w-9 md:h-9" style={{ color: GAS_COLOR }} />
                 <div className="text-left">
-                  <div className="font-charge text-xl text-foreground">{NATIONAL_AVG.electricityCentsPerKwh.toFixed(1)}¢</div>
-                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground">per kWh · U.S. avg</div>
+                  <div className="font-charge text-4xl md:text-5xl text-foreground leading-none">{currency(gasData?.national ?? NATIONAL_AVG.gasPricePerGallon, 2)}</div>
+                  <div className="text-xs uppercase tracking-wider text-muted-foreground mt-1.5">per gallon · U.S. avg</div>
                 </div>
               </div>
               <div className="w-px bg-border" />
-              <div className="flex items-center gap-3 px-5 py-3">
-                <Fuel className="w-5 h-5" style={{ color: GAS_COLOR }} />
+              <div className="flex items-center gap-4 px-8 py-6">
+                <Zap className="w-8 h-8 md:w-9 md:h-9" style={{ color: EV_COLOR }} />
                 <div className="text-left">
-                  <div className="font-charge text-xl text-foreground">{currency(gasData?.national ?? NATIONAL_AVG.gasPricePerGallon, 2)}</div>
-                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground">per gallon · U.S. avg</div>
+                  <div className="font-charge text-4xl md:text-5xl text-foreground leading-none">{NATIONAL_AVG.electricityCentsPerKwh.toFixed(1)}¢</div>
+                  <div className="text-xs uppercase tracking-wider text-muted-foreground mt-1.5">per kWh · U.S. avg</div>
                 </div>
               </div>
             </div>
+
+            {/* Reference points — median gas price first, then sticker prices */}
+            <div className="evg-rise mt-5 flex flex-wrap items-center justify-center gap-3" style={{ animationDelay: "0.36s" }}>
+              <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-sm shadow-sm">
+                <Fuel className="w-4 h-4" style={{ color: GAS_COLOR }} />
+                <span className="text-muted-foreground">Median U.S. gas</span>
+                <span className="font-charge text-foreground">{currency(gasData?.national ?? NATIONAL_AVG.gasPricePerGallon, 2)}/gal</span>
+              </span>
+              <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-sm shadow-sm">
+                <Car className="w-4 h-4 text-foreground" />
+                <span className="text-muted-foreground">Avg new vehicle</span>
+                <span className="font-charge text-foreground">$50,000</span>
+              </span>
+              <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-sm shadow-sm">
+                <Tag className="w-4 h-4 text-foreground" />
+                <span className="text-muted-foreground">Avg used vehicle</span>
+                <span className="font-charge text-foreground">$26,390</span>
+              </span>
+            </div>
+
+            {/* Spread context — a high-price state vs a low-price state */}
+            <p className="evg-rise mt-3 text-sm text-muted-foreground" style={{ animationDelay: "0.42s" }}>
+              Highest: <span className="font-semibold text-foreground">California {currency(gasData?.prices?.CA ?? STATE_ENERGY_RATES.CA.gasPricePerGallon, 2)}/gal</span>
+              {"  ·  "}
+              Lowest: <span className="font-semibold text-foreground">Texas {currency(gasData?.prices?.TX ?? STATE_ENERGY_RATES.TX.gasPricePerGallon, 2)}/gal</span>
+            </p>
           </div>
         </div>
       </section>
@@ -492,8 +521,54 @@ const ElectricityVsGasoline = () => {
                 Prices preset for {rates.name} — {currency(gasPrice, 2)}/gal gas, {currency(electricityRate, 2)}/kWh at home.
                 Charging mix: {Math.round(homeShareFor(homeCharging) * 100)}% home / {Math.round((1 - homeShareFor(homeCharging)) * 100)}% public.
               </p>
+              <p className="text-[11px] leading-relaxed text-muted-foreground mt-4 pt-4 border-t border-border flex items-start gap-2">
+                <Info className="w-3.5 h-3.5 shrink-0 mt-0.5 text-muted-foreground" />
+                <span>
+                  All figures shown are estimates based on average fuel prices, vehicle efficiency ratings, and
+                  driving assumptions for the selected state. Actual savings, costs, and fuel prices will vary based
+                  on individual driving habits, local energy rates, vehicle condition, insurance, and other factors.
+                  This tool is for informational purposes only and should not be relied upon as a guarantee of
+                  savings or financial advice.
+                </span>
+              </p>
             </div>
 
+            {!showResults && (
+              <div className="mb-6 flex justify-center">
+                <Button
+                  onClick={() => setShowResults(true)}
+                  variant="hero"
+                  size="lg"
+                  className="rounded-xl px-8"
+                >
+                  <Sparkles className="w-5 h-5" /> Calculate my savings
+                </Button>
+              </div>
+            )}
+
+            {/* ── EMBED CTA — put this calculator on your own site ── */}
+            {!embed && (
+              <div className="mb-8 rounded-3xl border border-border bg-card p-6 md:p-7 shadow-card text-center">
+                <span className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-primary mb-3">
+                  <Code2 className="w-4 h-4" /> Embed
+                </span>
+                <h2 className="font-charge text-2xl md:text-3xl text-foreground mb-2">
+                  Would you like to include this on your website?
+                </h2>
+                <p className="text-muted-foreground max-w-xl mx-auto mb-6">
+                  Add the live EV&nbsp;vs&nbsp;Gas Calculator and EVan, your E-Mobility Concierge, to
+                  your own site — kept in sync with our latest U.S. energy &amp; vehicle data automatically.
+                </p>
+                <Link to="/contact-us">
+                  <Button variant="hero" className="rounded-xl">
+                    <Sparkles className="w-4 h-4" /> Add EVan to my site
+                  </Button>
+                </Link>
+              </div>
+            )}
+
+            {showResults && (
+            <>
             {/* Recommended EV matches (§6 — class-matched substitutes) */}
             <div className="mb-6">
               <div className="flex items-center justify-between gap-3 mb-3">
@@ -515,6 +590,20 @@ const ElectricityVsGasoline = () => {
                       className={`text-left rounded-2xl border bg-card p-4 transition-all ${active ? "ring-2 shadow-elevated border-transparent" : "border-border hover:border-primary/40"}`}
                       style={active ? ({ ["--tw-ring-color" as never]: "hsl(214 100% 36% / 0.5)" }) : undefined}
                     >
+                      {m.ev.image && (
+                        <div className="aspect-[16/10] mb-3 rounded-xl overflow-hidden bg-muted">
+                          <img
+                            src={m.ev.image}
+                            alt={m.ev.name}
+                            loading="lazy"
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              const wrap = e.currentTarget.parentElement;
+                              if (wrap) wrap.style.display = "none";
+                            }}
+                          />
+                        </div>
+                      )}
                       <span className={`inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider px-2 py-1 rounded-full mb-3 ${meta.chip}`}>
                         <meta.icon className="w-3 h-3" /> {m.label}
                       </span>
@@ -603,18 +692,18 @@ const ElectricityVsGasoline = () => {
                 <div className="flex flex-wrap items-end gap-x-6 gap-y-3">
                   <div>
                     <div className="font-charge text-6xl md:text-7xl leading-none">
-                      {evWinsFuel ? "" : "−"}{currency(animatedAnnual)}
+                      {evWinsFuel ? "" : "−"}{currency(animatedTotal)}
                     </div>
-                    <div className="text-sm opacity-90 mt-1.5">saved per year on fuel</div>
+                    <div className="text-sm opacity-90 mt-1.5">saved over {ownershipYears} years on fuel</div>
                   </div>
                   <div className="flex gap-6 mb-1">
                     <div>
-                      <div className="font-charge text-2xl leading-none">{currency(Math.abs(calc.res.monthlySavings))}</div>
-                      <div className="text-xs opacity-80 mt-1">per month</div>
+                      <div className="font-charge text-2xl leading-none">{currency(Math.abs(calc.res.annualSavings))}</div>
+                      <div className="text-xs opacity-80 mt-1">per year</div>
                     </div>
                     <div>
-                      <div className="font-charge text-2xl leading-none">{currency(calc.res.horizonTotalSaved)}</div>
-                      <div className="text-xs opacity-80 mt-1">over {ownershipYears} yrs</div>
+                      <div className="font-charge text-2xl leading-none">{currency(Math.abs(calc.res.monthlySavings))}</div>
+                      <div className="text-xs opacity-80 mt-1">per month</div>
                     </div>
                   </div>
                 </div>
@@ -799,6 +888,8 @@ const ElectricityVsGasoline = () => {
               <span className="inline-flex items-center gap-1">Vehicle data <SourceChip src={SOURCES.vehicle} /></span>
               <span className="ml-auto">Updated {SOURCES.gas.asOf} · not financial advice</span>
             </div>
+            </>
+            )}
           </div>
         </section>
 
@@ -918,6 +1009,17 @@ const ElectricityVsGasoline = () => {
             </a>
           </div>
         )}
+
+        {/* Powered-by credit */}
+        <div className="container px-4 max-w-5xl pb-10 text-center">
+          <p className="text-xs text-muted-foreground">
+            Powered by{" "}
+            <a href="https://emobilityresearch.com" target="_blank" rel="noopener noreferrer"
+              className="font-semibold text-foreground hover:text-primary transition-colors">
+              emobilityresearch.com
+            </a>
+          </p>
+        </div>
       </main>
 
       {!embed && <Footer />}

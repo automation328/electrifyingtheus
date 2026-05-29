@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ChevronDown } from "lucide-react";
 import heroBg from "@/assets/hero-bg.jpg";
@@ -37,8 +38,13 @@ const HeroSection = () => {
                 Explore EV 101
               </Button>
             </a>
-            <a href="https://afdc.energy.gov/fuels/electricity_locations.html#/find/nearest?fuel=ELEC" target="_blank" rel="noopener noreferrer">
+            <Link to="/electricity-vs-gasoline">
               <Button variant="heroOutline" size="lg" className="text-base px-8 py-6 rounded-2xl">
+                EV vs Gas Calculator
+              </Button>
+            </Link>
+            <a href="https://afdc.energy.gov/fuels/electricity_locations.html#/find/nearest?fuel=ELEC" target="_blank" rel="noopener noreferrer">
+              <Button variant="green" size="lg" className="text-base px-8 py-6 rounded-2xl">
                 Find Charging Near Me
               </Button>
             </a>

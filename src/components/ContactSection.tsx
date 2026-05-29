@@ -1,20 +1,16 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Mail, MapPin, Send } from "lucide-react";
-import { toast } from "sonner";
+import { useEffect } from "react";
+
+const GHL_FORM_ID = "gSIFOhJAicpdZkkAfZjO";
+const GHL_EMBED_SCRIPT = "https://link.msgsndr.com/js/form_embed.js";
 
 const ContactSection = () => {
-  const [form, setForm] = useState({
-    firstName: "", lastName: "", email: "", zip: "", company: "", message: "",
-  });
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    toast.success("Thank you! We'll be in touch soon.");
-    setForm({ firstName: "", lastName: "", email: "", zip: "", company: "", message: "" });
-  };
+  useEffect(() => {
+    if (document.querySelector(`script[src="${GHL_EMBED_SCRIPT}"]`)) return;
+    const script = document.createElement("script");
+    script.src = GHL_EMBED_SCRIPT;
+    script.async = true;
+    document.body.appendChild(script);
+  }, []);
 
   return (
     <section id="contact" className="py-20 md:py-28">
@@ -32,81 +28,27 @@ const ContactSection = () => {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-5 gap-8">
-            {/* Info */}
-            <div className="md:col-span-2 space-y-6">
-              <div className="gradient-primary rounded-3xl p-6 md:p-8">
-                <h3 className="text-xl font-bold font-display text-primary-foreground mb-6">
-                  Let's Connect
-                </h3>
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3 text-primary-foreground/90">
-                    <Mail size={18} />
-                    <span className="text-sm">info@electrifyingtheus.com</span>
-                  </div>
-                  <div className="flex items-center gap-3 text-primary-foreground/90">
-                    <MapPin size={18} />
-                    <span className="text-sm">Nationwide Initiative</span>
-                  </div>
-                </div>
-              </div>
+          <div className="max-w-2xl mx-auto">
+            {/* GHL embedded form */}
+            <div className="rounded-xl overflow-hidden bg-card">
+              <iframe
+                src={`https://api.leadconnectorhq.com/widget/form/${GHL_FORM_ID}`}
+                style={{ width: "100%", height: "970px", border: "none", borderRadius: "3px" }}
+                id={`inline-${GHL_FORM_ID}`}
+                data-layout="{'id':'INLINE'}"
+                data-trigger-type="alwaysShow"
+                data-trigger-value=""
+                data-activation-type="alwaysActivated"
+                data-activation-value=""
+                data-deactivation-type="neverDeactivate"
+                data-deactivation-value=""
+                data-form-name="Contact Us - Lovable"
+                data-height="970"
+                data-layout-iframe-id={`inline-${GHL_FORM_ID}`}
+                data-form-id={GHL_FORM_ID}
+                title="Contact Us - Lovable"
+              />
             </div>
-
-            {/* Form */}
-            <form onSubmit={handleSubmit} className="md:col-span-3 space-y-4">
-              <div className="grid sm:grid-cols-2 gap-4">
-                <Input
-                  placeholder="First Name *"
-                  value={form.firstName}
-                  onChange={(e) => setForm({ ...form, firstName: e.target.value })}
-                  required
-                  className="rounded-xl h-12"
-                />
-                <Input
-                  placeholder="Last Name *"
-                  value={form.lastName}
-                  onChange={(e) => setForm({ ...form, lastName: e.target.value })}
-                  required
-                  className="rounded-xl h-12"
-                />
-              </div>
-              <div className="grid sm:grid-cols-2 gap-4">
-                <Input
-                  type="email"
-                  placeholder="Email *"
-                  value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  required
-                  className="rounded-xl h-12"
-                />
-                <Input
-                  placeholder="Zip Code *"
-                  value={form.zip}
-                  onChange={(e) => setForm({ ...form, zip: e.target.value })}
-                  required
-                  className="rounded-xl h-12"
-                />
-              </div>
-              <Input
-                placeholder="Company or Organization *"
-                value={form.company}
-                onChange={(e) => setForm({ ...form, company: e.target.value })}
-                required
-                className="rounded-xl h-12"
-              />
-              <Textarea
-                placeholder="Write a message *"
-                value={form.message}
-                onChange={(e) => setForm({ ...form, message: e.target.value })}
-                required
-                rows={4}
-                className="rounded-xl resize-none"
-              />
-              <Button type="submit" variant="hero" size="lg" className="w-full rounded-xl">
-                <Send size={18} />
-                Send Message
-              </Button>
-            </form>
           </div>
         </div>
       </div>

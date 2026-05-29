@@ -7,6 +7,11 @@ import ReactMarkdown from "react-markdown";
 import OpenAI from "openai";
 
 type Message = { role: "user" | "assistant"; content: string };
+type Lead = { firstName: string; email: string };
+
+// Name + email are collected before the first query is answered. Held in memory
+// only (not persisted) so every visit asks again before the first answer.
+const isValidEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
 
 // ── Temporary in-browser OpenAI ──────────────────────────────────────────────
 // Reads the key from VITE_OPENAI_API_KEY (.env.local). `dangerouslyAllowBrowser`
@@ -37,6 +42,10 @@ Keep answers concise, friendly, and informative. Use bullet points for lists. If
 // Free-typed questions still route to the AI backend when configured.
 const PRESET_QA: { q: string; a: string }[] = [
   {
+    q: "What are the top 5 most affordable EVs?",
+    a: "Five of the most affordable EVs in the U.S. (starting MSRP, before incentives):\n- **Nissan LEAF** — around **$29,000**\n- **Chevrolet Equinox EV** — around **$34,000**\n- **Hyundai Kona Electric** — around **$33,000**\n- **Kia Niro EV** — around **$40,000** (often discounted)\n- **Chevrolet Bolt EV/EUV** (returning for 2026) — around **$30,000**\n\nPrices change often, and the **federal Clean Vehicle Credit** plus state and utility rebates can lower these further. Try the **[TCO Calculator](/calculator)** to compare real ownership cost.",
+  },
+  {
     q: "What is Electrifying the US?",
     a: "**Electrifying the US** is a brand-agnostic initiative accelerating America's shift to zero-emission, multimodal mobility. We unite utilities, automakers, community organizations, and labor unions to educate and engage the public.\n\nWhat we do:\n- Hands-on **EV Ride & Drive** experiences\n- E-mobility **workforce upskilling** & economic inclusion\n- **Public-health education** on zero-emission transportation\n- Mobility **research, data & analysis**\n\nWe work nationwide, with state programs like [Electrifying Virginia](https://www.electrifyingva.com/) and [Electrifying Michigan](https://www.electrifyingmi.com/).",
   },
@@ -59,10 +68,6 @@ const PRESET_QA: { q: string; a: string }[] = [
   {
     q: "How far can an EV go on a full charge?",
     a: "Plenty for everyday driving:\n- Most new EVs deliver **250–330 miles** of range; the U.S. average is around **283 miles**\n- The typical American drives under **40 miles a day** — well within a single charge\n- Range varies with speed, climate, terrain, and cargo\n\nFor road trips, DC fast chargers add **150–200+ miles in ~20–30 minutes**. \"Range anxiety\" fades fast once charging becomes routine.",
-  },
-  {
-    q: "How long does it take to charge an EV?",
-    a: "It depends on the charger:\n- **Level 1 (120V):** ~3–5 mi of range per hour — overnight trickle\n- **Level 2 (240V):** full charge in **~4–8 hours** — most home & workplace charging\n- **DC Fast Charging:** **10–80% in ~20–40 minutes**\n\nMost EV owners simply plug in at home and wake up to a \"full tank\" — no gas-station trips needed.",
   },
   {
     q: "Are EVs really better for the environment?",
@@ -92,10 +97,13 @@ const markdownComponents = {
 
 const Assistant = () => {
   const [messages, setMessages] = useState<Message[]>([
-    { role: "assistant", content: "Hi! ⚡ I'm your e-mobility assistant. Ask me anything about electric vehicles, charging, incentives, or the future of clean transportation in the U.S. — or tap a question below to get started." },
+    { role: "assistant", content: "Hi! ⚡ I'm EVan, your E-Mobility Concierge. Share your first name and email below to get started — then ask me anything about EVs, charging, incentives, or the future of clean transportation in the U.S." },
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [lead, setLead] = useState<Lead | null>(null);
+  const [leadForm, setLeadForm] = useState({ firstName: "", email: "" });
+  const [leadError, setLeadError] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Keep the chat scrolled to the latest message — without scrolling the whole page.
@@ -104,9 +112,27 @@ const Assistant = () => {
     if (el) el.scrollTop = el.scrollHeight;
   }, [messages, loading]);
 
+  // Lead capture gate — name + email required before any query is answered.
+  const captureLead = (e: React.FormEvent) => {
+    e.preventDefault();
+    const firstName = leadForm.firstName.trim();
+    const email = leadForm.email.trim();
+    if (!firstName) { setLeadError("Please enter your first name."); return; }
+    if (!isValidEmail(email)) { setLeadError("Please enter a valid email address."); return; }
+
+    const captured: Lead = { firstName, email };
+    setLead(captured);
+    setLeadError("");
+
+    setMessages((prev) => [
+      ...prev,
+      { role: "assistant", content: `Thanks, ${firstName}! ⚡ Tap one of the questions below or type your own to get started.` },
+    ]);
+  };
+
   // Instant answer for a clicked preset question (no backend needed).
   const handlePreset = (q: string, a: string) => {
-    if (loading) return;
+    if (loading || !lead) return;
     setMessages((prev) => [...prev, { role: "user", content: q }]);
     setLoading(true);
     setTimeout(() => {
@@ -116,7 +142,7 @@ const Assistant = () => {
   };
 
   const sendMessage = async () => {
-    if (!input.trim() || loading) return;
+    if (!input.trim() || loading || !lead) return;
     const userMsg: Message = { role: "user", content: input.trim() };
     const allMessages = [...messages, userMsg];
     setMessages(allMessages);
@@ -238,7 +264,8 @@ const Assistant = () => {
     setLoading(false);
   };
 
-  const showSuggestions = messages.length === 1 && !loading;
+  const showLeadForm = !lead && !loading;
+  const showSuggestions = !!lead && messages.every((m) => m.role === "assistant") && !loading;
   const TXT = "text-[hsl(var(--term-text))]";
   const MUTED = "text-[hsl(var(--term-muted))]";
 
@@ -285,9 +312,8 @@ const Assistant = () => {
                 <span className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ background: "linear-gradient(135deg, hsl(var(--term-cyan)), hsl(var(--term-green)))" }}>
                   <Zap className="w-4 h-4" style={{ color: "hsl(var(--term-bg))" }} fill="currentColor" />
                 </span>
-                <span className={`font-hmi font-semibold tracking-wide ${TXT}`}>E-Mobility Assistant</span>
+                <span className={`font-hmi font-semibold tracking-wide ${TXT}`}>E-Mobility Concierge</span>
               </div>
-              <span className={`font-term text-[10px] tracking-[0.2em] uppercase hidden sm:block ${MUTED}`}>US Grid · v1</span>
             </div>
             <div className="term-current shrink-0" aria-hidden />
 
@@ -310,10 +336,46 @@ const Assistant = () => {
                   </div>
                 ))}
 
-                {/* Suggested starter questions */}
+                {/* Lead capture gate — first name + email required before any answer. */}
+                {showLeadForm && (
+                  <form onSubmit={captureLead} className="space-y-3 pt-2">
+                    <p className={`font-term text-[11px] tracking-[0.25em] uppercase px-1 ${MUTED}`}>▸ Start here · name + email</p>
+                    <div className="grid gap-2.5">
+                      <input
+                        type="text"
+                        value={leadForm.firstName}
+                        onChange={(e) => setLeadForm((f) => ({ ...f, firstName: e.target.value }))}
+                        placeholder="First name"
+                        autoComplete="given-name"
+                        className={`w-full rounded-xl border border-black/[0.08] bg-[hsl(var(--term-panel))] px-4 py-3 text-sm outline-none transition-colors focus:border-[hsl(var(--term-cyan)/0.55)] placeholder:text-[hsl(var(--term-muted))] ${TXT}`}
+                      />
+                      <input
+                        type="email"
+                        value={leadForm.email}
+                        onChange={(e) => setLeadForm((f) => ({ ...f, email: e.target.value }))}
+                        placeholder="Email address"
+                        autoComplete="email"
+                        className={`w-full rounded-xl border border-black/[0.08] bg-[hsl(var(--term-panel))] px-4 py-3 text-sm outline-none transition-colors focus:border-[hsl(var(--term-cyan)/0.55)] placeholder:text-[hsl(var(--term-muted))] ${TXT}`}
+                      />
+                    </div>
+                    {leadError && <p className="text-xs text-red-500 px-1">{leadError}</p>}
+                    <button
+                      type="submit"
+                      className="w-full rounded-xl px-4 py-3 text-sm font-semibold text-white transition-all hover:brightness-110"
+                      style={{ background: "linear-gradient(135deg, hsl(var(--term-blue)), hsl(var(--term-cyan)) 58%, hsl(var(--term-green)))" }}
+                    >
+                      Start chatting →
+                    </button>
+                    <p className={`text-[11px] px-1 leading-relaxed ${MUTED}`}>
+                      We use this only to personalize your answers and follow up. No spam.
+                    </p>
+                  </form>
+                )}
+
+                {/* 10 EV questions */}
                 {showSuggestions && (
                   <div className="space-y-3 pt-2">
-                    <p className={`font-term text-[11px] tracking-[0.25em] uppercase px-1 ${MUTED}`}>▸ Suggested queries</p>
+                    <p className={`font-term text-[11px] tracking-[0.25em] uppercase px-1 ${MUTED}`}>▸ 10 EV Questions</p>
                     <div className="grid sm:grid-cols-2 gap-2.5">
                       {PRESET_QA.map((item, i) => (
                         <button
@@ -351,13 +413,13 @@ const Assistant = () => {
                 <input
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  placeholder="ask about EVs, charging, incentives…"
+                  placeholder={lead ? "ask about EVs, charging, incentives…" : "enter your name + email above to start…"}
                   className={`flex-1 bg-transparent text-sm md:text-base outline-none py-2 placeholder:text-[hsl(var(--term-muted))] ${TXT}`}
-                  disabled={loading}
+                  disabled={loading || !lead}
                 />
                 <button
                   type="submit"
-                  disabled={loading || !input.trim()}
+                  disabled={loading || !lead || !input.trim()}
                   aria-label="Send"
                   className="shrink-0 h-10 w-10 rounded-xl flex items-center justify-center transition-all disabled:opacity-35 hover:brightness-110"
                   style={{ background: "linear-gradient(135deg, hsl(var(--term-cyan)), hsl(var(--term-green)))" }}

@@ -1,0 +1,152 @@
+{
+  "name": "EVan Chat → Slack Leads",
+  "settings": { "executionOrder": "v1" },
+  "nodes": [
+    {
+      "id": "92278ace-4b8c-4523-9edd-2ad2c5c919e7",
+      "name": "EVan Chat Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [0, 256],
+      "webhookId": "62673772-7b2d-43d6-814f-6572f448c612",
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "evan-chat",
+        "responseMode": "responseNode",
+        "options": { "allowedOrigins": "*" }
+      }
+    },
+    {
+      "id": "116ae497-e1ce-4869-954b-a180acf7ddc5",
+      "name": "Route by Action",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [224, 256],
+      "parameters": {
+        "mode": "rules",
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "loose" },
+                "conditions": [
+                  { "leftValue": "={{ $json.body.action }}", "rightValue": "sendMessage", "operator": { "type": "string", "operation": "equals" } }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "sendMessage"
+            },
+            {
+              "conditions": {
+                "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "loose" },
+                "conditions": [
+                  { "leftValue": "={{ $json.body.action }}", "rightValue": "captureLead", "operator": { "type": "string", "operation": "equals" } }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "captureLead"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "1cb52fce-5909-4cfb-8eab-4da2e7d5f499",
+      "name": "EVan Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [448, 0],
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.body.chatInput }}",
+        "options": {
+          "systemMessage": "You are EVan, the E-Mobility Concierge for Electrifying the US — a friendly, knowledgeable expert on electric vehicles and e-mobility in the United States. You help with: EV types (BEV, PHEV, HEV), charging (Level 1, Level 2, DC fast charging, NACS vs CCS connectors), home and apartment charging, costs and savings, federal/state/utility incentives, range, battery life, cold-weather performance, and multimodal e-mobility (e-bikes, electric buses, eVTOLs). Keep answers concise and friendly, and use short bullet lists where helpful. If you are unsure of a specific local detail, point the user to AFDC, EPA, or DOE resources. Always be encouraging about the EV transition. Never present guarantees of savings or financial/legal advice."
+        }
+      }
+    },
+    {
+      "id": "4fb9d86a-d175-4eb8-935a-3691ba1e6e34",
+      "name": "OpenRouter Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [528, 224],
+      "parameters": {
+        "model": "google/gemini-2.5-flash",
+        "options": { "temperature": 0.3 }
+      }
+    },
+    {
+      "id": "8bc3efdb-225d-4542-b76d-bdde4bb079c2",
+      "name": "Reply to Chat",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [800, 112],
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.output }}"
+      }
+    },
+    {
+      "id": "eaad4e35-38ff-4efe-a622-8eeb299e2e22",
+      "name": "Log Chat to Slack",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.4,
+      "position": [1024, 112],
+      "webhookId": "d3a0c6a0-2a33-42a6-8ed5-126e7c2c511d",
+      "parameters": {
+        "resource": "message",
+        "operation": "post",
+        "authentication": "accessToken",
+        "select": "channel",
+        "channelId": { "__rl": true, "mode": "name", "value": "lem-test", "cachedResultName": "lem-test" },
+        "messageType": "text",
+        "text": "=:speech_balloon: *New EVan chat inquiry*\n*Name:* {{ $(\"EVan Chat Webhook\").item.json.body.firstName }}\n*Email:* {{ $(\"EVan Chat Webhook\").item.json.body.email }}\n*Question:* {{ $(\"EVan Chat Webhook\").item.json.body.chatInput }}\n*EVan answered:* {{ $(\"EVan Agent\").item.json.output }}\n*Session:* {{ $(\"EVan Chat Webhook\").item.json.body.sessionId }}",
+        "otherOptions": { "includeLinkToWorkflow": false }
+      }
+    },
+    {
+      "id": "4b14820c-db3d-4b66-9d24-c4b7daa646d9",
+      "name": "Log Lead to Slack",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.4,
+      "position": [512, 400],
+      "webhookId": "4c97325b-0ddd-4ea1-aded-6b6c7b1ac4bc",
+      "parameters": {
+        "resource": "message",
+        "operation": "post",
+        "authentication": "accessToken",
+        "select": "channel",
+        "channelId": { "__rl": true, "mode": "name", "value": "lem-test", "cachedResultName": "lem-test" },
+        "messageType": "text",
+        "text": "=:wave: *New EVan lead captured*\n*Name:* {{ $(\"EVan Chat Webhook\").item.json.body.firstName }}\n*Email:* {{ $(\"EVan Chat Webhook\").item.json.body.email }}\n*Session:* {{ $(\"EVan Chat Webhook\").item.json.body.sessionId }}",
+        "otherOptions": { "includeLinkToWorkflow": false }
+      }
+    },
+    {
+      "id": "f446c6f6-3c0e-4f73-a653-c15c286ee2d5",
+      "name": "Reply OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [800, 400],
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "ok"
+      }
+    }
+  ],
+  "connections": {
+    "EVan Chat Webhook": { "main": [[{ "node": "Route by Action", "type": "main", "index": 0 }]] },
+    "Route by Action": {
+      "main": [
+        [{ "node": "EVan Agent", "type": "main", "index": 0 }],
+        [{ "node": "Log Lead to Slack", "type": "main", "index": 0 }]
+      ]
+    },
+    "EVan Agent": { "main": [[{ "node": "Reply to Chat", "type": "main", "index": 0 }]] },
+    "OpenRouter Chat Model": { "ai_languageModel": [[{ "node": "EVan Agent", "type": "ai_languageModel", "index": 0 }]] },
+    "Reply to Chat": { "main": [[{ "node": "Log Chat to Slack", "type": "main", "index": 0 }]] },
+    "Log Lead to Slack": { "main": [[{ "node": "Reply OK", "type": "main", "index": 0 }]] }
+  }
+}

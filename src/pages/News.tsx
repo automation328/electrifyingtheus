@@ -1,7 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, Calendar, Newspaper, Rss, AlertCircle, Loader2 } from "lucide-react";
+import { ArrowRight, Calendar, Newspaper, Rss, AlertCircle, Loader2, BookOpen } from "lucide-react";
+import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { BLOG_POSTS } from "@/data/blog-posts";
 
 // E-mobility RSS sources, aggregated client-side through the rss2json proxy
 // (CORS-enabled, no key required for low volume). Add/remove feeds here.
@@ -104,6 +106,52 @@ const News = () => {
       <Navbar />
       <main className="flex-1 pt-28 pb-16">
         <div className="container px-4 max-w-6xl">
+          {/* Blogs */}
+          <section className="mb-16">
+            <div className="mb-8">
+              <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-secondary/10 text-secondary text-sm font-semibold mb-3">
+                <BookOpen className="w-3.5 h-3.5" /> Blogs
+              </span>
+              <h2 className="text-3xl md:text-4xl font-bold font-display text-foreground">
+                From the <span className="text-gradient-primary">Electrifying the US</span> team
+              </h2>
+              <p className="text-muted-foreground mt-1">Guides, explainers, and insights on going electric.</p>
+            </div>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {BLOG_POSTS.map((post, i) => (
+                <Link
+                  key={post.slug}
+                  to={`/blog/${post.slug}`}
+                  className="group rounded-3xl border border-border bg-card overflow-hidden shadow-card hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col animate-fade-up"
+                  style={{ animationDelay: `${(i % 6) * 0.07}s` }}
+                >
+                  <div className="h-48 overflow-hidden bg-muted shrink-0">
+                    <img src={post.image} alt={post.title} loading="lazy"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  </div>
+                  <div className="p-6 flex flex-col flex-1">
+                    <div className="flex items-center gap-3 mb-3">
+                      <span className="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold">
+                        {post.category}
+                      </span>
+                      <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <Calendar className="w-3.5 h-3.5" /> {post.date}
+                      </span>
+                    </div>
+                    <h3 className="text-lg font-bold font-display text-foreground mb-2 leading-snug group-hover:text-primary transition-colors">
+                      {post.title}
+                    </h3>
+                    <p className="text-sm text-muted-foreground line-clamp-3 flex-1">{post.excerpt}</p>
+                    <span className="inline-flex items-center gap-1.5 mt-4 text-sm font-semibold text-primary group-hover:gap-2.5 transition-all">
+                      Read article <ArrowRight className="w-4 h-4" />
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
+
           {/* Header */}
           <div className="text-center max-w-2xl mx-auto mb-12 animate-fade-up">
             <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-semibold mb-4">
