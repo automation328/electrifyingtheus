@@ -40,12 +40,14 @@ const AboutSection = () => {
               About Us
             </span>
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold font-display text-foreground mb-6 leading-tight">
-              Driving America's <span className="text-gradient-primary">Zero-Emission</span> Future
+              Driving America's <span className="text-gradient-primary">Zero-Emission and Clean Energy</span> Future
             </h2>
             <p className="text-muted-foreground text-lg mb-8 leading-relaxed">
-              ElectrifyingTheUS.com is a groundbreaking, brand-agnostic initiative transforming how Americans
-              understand and embrace multimodal zero-emission mobility. We unite utilities, automakers,
-              community organizations, and labor unions in a shared mission.
+              ElectrifyingTheUS is a groundbreaking, national brand-agnostic partnership/initiative
+              transforming how Americans understand and embrace multimodal Zero-Emission Mobility and
+              Clean Energy. We unite utilities, automakers, community organizations, labor unions, and
+              more in a shared mission. Our members and partners are dedicated to advancing
+              transportation electrification and clean energy across the country.
             </p>
 
             <div className="grid sm:grid-cols-2 gap-3">

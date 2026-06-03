@@ -3,14 +3,14 @@ import { Link } from "react-router-dom";
 import { Send, Zap, Sparkles } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { Button } from "@/components/ui/button";
-import electricAgents from "@/assets/electric-agents.jpg";
+import evanPortrait from "@/assets/evan.jpg";
+
+import { type Lead, EMPTY_LEAD, isValidEmail } from "@/lib/lead";
 
 type Message = { role: "user" | "assistant"; content: string };
-type Lead = { firstName: string; email: string };
 
-// Name + email are collected before the first query is answered. Held in memory
+// Lead details are collected before the first query is answered. Held in memory
 // only (not persisted) so every visit asks again before the first answer.
-const isValidEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
 
 // ── n8n AI agent connection ──────────────────────────────────────────────────
 // The chat POSTs each customer message to your n8n Chat Trigger / AI Agent
@@ -46,7 +46,7 @@ const extractReply = (data: unknown): string => {
 };
 
 const GREETING =
-  "Hi! 👋 I'm EVan, your E-Mobility Concierge at Electrifying the US. Tap one of the 10 questions below or type your own — I've got answers on EVs, charging, costs, and incentives.";
+  "Hi, I'm EVan, your EV Concierge. My team and I, are currently online, ready to answer your questions about Electric Vehicles, EV Cost Savings, EV Charging and Infrastructure, Rebates & Incentives programs, and more. I've added the top 10 questions below. Enter your first name and email, and let's get started.";
 
 // 10 clickable EV questions — drawn from the EVNoire EV Charging 101 knowledge base.
 const SUGGESTED_QUESTIONS = [
@@ -84,7 +84,7 @@ const AgentChatSection = () => {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [lead, setLead] = useState<Lead | null>(null);
-  const [leadForm, setLeadForm] = useState({ firstName: "", email: "" });
+  const [leadForm, setLeadForm] = useState<Lead>(EMPTY_LEAD);
   const [leadError, setLeadError] = useState("");
   // The question a visitor asked before giving their details — answered the
   // moment the lead is captured.
@@ -126,8 +126,8 @@ const AgentChatSection = () => {
           sessionId,
           chatInput: text,
           message: text,
-          firstName: leadInfo.firstName,
-          email: leadInfo.email,
+          firstName: leadInfo.fullName.split(/\s+/)[0],
+          ...leadInfo,
         }),
       });
 
@@ -172,21 +172,25 @@ const AgentChatSection = () => {
   // is answered.
   const captureLead = (e: React.FormEvent) => {
     e.preventDefault();
-    const firstName = leadForm.firstName.trim();
+    const fullName = leadForm.fullName.trim();
     const email = leadForm.email.trim();
-    if (!firstName) { setLeadError("Please enter your first name."); return; }
+    if (!fullName) { setLeadError("Please enter your first name."); return; }
     if (!isValidEmail(email)) { setLeadError("Please enter a valid email address."); return; }
 
-    const captured: Lead = { firstName, email };
+    const captured: Lead = { fullName, email };
     setLead(captured);
     setLeadError("");
+
+    // Greet the visitor by first name before answering their held question.
+    const firstName = fullName.split(/\s+/)[0];
+    setMessages((prev) => [...prev, { role: "assistant", content: `Thank you, ${firstName}! Let me pull that up for you.` }]);
 
     // Best-effort: notify the n8n flow that a new lead was captured.
     if (N8N_WEBHOOK_URL) {
       fetch(N8N_WEBHOOK_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "captureLead", sessionId, firstName, email }),
+        body: JSON.stringify({ action: "captureLead", sessionId, firstName, ...captured }),
       }).catch(() => { /* non-blocking */ });
     }
 
@@ -203,8 +207,8 @@ const AgentChatSection = () => {
           <div className="relative flex">
             <div className="relative rounded-3xl overflow-hidden shadow-xl w-full">
               <img
-                src={electricAgents}
-                alt="Electrifying the US AI support agents"
+                src={evanPortrait}
+                alt="EVan, your Electrifying the US E-Mobility Concierge"
                 className="w-full h-full object-cover"
                 loading="lazy"
               />
@@ -224,10 +228,10 @@ const AgentChatSection = () => {
               Ask our team of E-Mobility Experts
             </span>
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold font-display text-foreground mb-4 leading-tight">
-              Engage with <span className="text-gradient-primary whitespace-nowrap">EVan!</span> Your E-Mobility Concierge
+              <span className="bg-gradient-to-r from-secondary to-primary bg-clip-text text-transparent whitespace-nowrap">EVan</span> - Your Electric Vehicle Concierge
             </h2>
             <p className="text-muted-foreground text-lg mb-6 leading-relaxed">
-              Get instant answers about our programs, electric vehicles, charging, and incentives
+              Here to answer all your EV Questions
             </p>
 
             {/* Chat console — "Charge Terminal" HMI style (matches /assistant).
@@ -247,7 +251,7 @@ const AgentChatSection = () => {
                     <div>
                       <div className="font-hmi font-semibold tracking-wide text-[hsl(var(--term-text))] leading-tight">E-Mobility Concierge</div>
                       <div className="flex items-center gap-1.5 font-term text-[11px] text-[hsl(var(--term-muted))]">
-                        <span className="term-live w-2 h-2 rounded-full" style={{ background: "hsl(var(--term-green))" }} /> ONLINE · ask anything e-mobility
+                        <span className="term-live w-2 h-2 rounded-full" style={{ background: "hsl(var(--term-green))" }} /> ONLINE
                       </div>
                     </div>
                   </div>
@@ -297,16 +301,16 @@ const AgentChatSection = () => {
                     {/* Lead capture gate — first name + email collected before the held question is answered. */}
                     {!lead && pending && !loading && (
                       <form onSubmit={captureLead} className="space-y-3 pt-2">
-                        <p className="font-term text-[11px] tracking-[0.25em] uppercase px-1 text-[hsl(var(--term-muted))]">▸ One quick step · name + email</p>
+                        <p className="font-term text-[11px] tracking-[0.25em] uppercase px-1 text-[hsl(var(--term-muted))]">▸ A few quick details</p>
                         <p className="text-sm text-[hsl(var(--term-text))]">
-                          Tell me where to send the answer and I'll reply right away.
+                          Tell me a bit about you and I'll tailor the answer.
                         </p>
-                        <div className="grid gap-2.5">
+                        <div className="grid sm:grid-cols-2 gap-2.5">
                           <input
                             type="text"
-                            value={leadForm.firstName}
-                            onChange={(e) => setLeadForm((f) => ({ ...f, firstName: e.target.value }))}
-                            placeholder="First name"
+                            value={leadForm.fullName}
+                            onChange={(e) => setLeadForm((f) => ({ ...f, fullName: e.target.value }))}
+                            placeholder="First name *"
                             autoComplete="given-name"
                             className="w-full rounded-xl border border-black/[0.08] bg-[hsl(var(--term-panel))] px-4 py-3 text-sm outline-none transition-colors focus:border-[hsl(var(--term-cyan)/0.55)] text-[hsl(var(--term-text))] placeholder:text-[hsl(var(--term-muted))]"
                           />
@@ -314,7 +318,7 @@ const AgentChatSection = () => {
                             type="email"
                             value={leadForm.email}
                             onChange={(e) => setLeadForm((f) => ({ ...f, email: e.target.value }))}
-                            placeholder="Email address"
+                            placeholder="Email address *"
                             autoComplete="email"
                             className="w-full rounded-xl border border-black/[0.08] bg-[hsl(var(--term-panel))] px-4 py-3 text-sm outline-none transition-colors focus:border-[hsl(var(--term-cyan)/0.55)] text-[hsl(var(--term-text))] placeholder:text-[hsl(var(--term-muted))]"
                           />
@@ -358,7 +362,7 @@ const AgentChatSection = () => {
                     <input
                       value={input}
                       onChange={(e) => setInput(e.target.value)}
-                      placeholder="ask about EVs, charging, incentives…"
+                      placeholder="Ask me about EVs, Charging, Range, and more"
                       className="flex-1 bg-transparent text-sm md:text-base outline-none py-2 text-[hsl(var(--term-text))] placeholder:text-[hsl(var(--term-muted))]"
                       disabled={loading}
                     />
@@ -385,16 +389,17 @@ const AgentChatSection = () => {
                 rel="noopener noreferrer"
                 className="font-semibold text-foreground hover:text-primary transition-colors"
               >
-                emobilityresearch.com
+                EmobilityResearch.com
               </a>
             </p>
 
             {/* "Put EVan on your own site" CTA */}
             <div className="mt-5 rounded-2xl border border-border bg-card p-5 flex flex-col sm:flex-row sm:items-center gap-4">
               <div className="flex-1">
-                <p className="font-semibold text-foreground">Want EVan answering questions on your website?</p>
+                <p className="font-semibold text-foreground">Would you like to have EVan or other EV tools on your website?</p>
                 <p className="text-sm text-muted-foreground">
-                  Add the E-Mobility Concierge to your own site and turn visitors into leads automatically.
+                  Answering EV questions and providing real-time data. Click here to add the
+                  E-Mobility Concierge to your website and engage your visitors.
                 </p>
               </div>
               <Link to="/contact-us" className="shrink-0">

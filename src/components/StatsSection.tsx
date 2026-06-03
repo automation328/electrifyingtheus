@@ -1,12 +1,11 @@
-import { Zap, Battery, TrendingUp, MapPin } from "lucide-react";
+import { DollarSign, Fuel, Globe } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import statsBg from "@/assets/stats-bg.jpg";
 
 const stats = [
-  { icon: Zap, value: "8M+", label: "Electric Vehicles Sold in the U.S.", color: "text-primary" },
-  { icon: Battery, value: "60%", label: "Cheaper to Charge vs Gas", color: "text-secondary" },
-  { icon: TrendingUp, value: "40%", label: "Of Consumers Plan to Go Electric", color: "text-primary" },
-  { icon: MapPin, value: "240K+", label: "EV Charging Ports Nationwide", color: "text-secondary" },
+  { icon: DollarSign, value: "$50,000+", label: "Avg. Price of New Gas Vehicle", color: "text-primary" },
+  { icon: Fuel, value: "$4.44 / $6.04", label: "Avg. Price of Gallon of Gas and Highest Price", color: "text-secondary" },
+  { icon: Globe, value: "30+%", label: "Nearly 30% of Global Vehicles are Electric and growing", color: "text-primary" },
 ];
 
 const StatsSection = () => {
@@ -38,7 +37,7 @@ const StatsSection = () => {
           </h2>
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-5xl mx-auto">
           {stats.map((stat, i) => (
             <div
               key={i}

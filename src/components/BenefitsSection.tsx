@@ -1,25 +1,25 @@
-import { Briefcase, HeartPulse, Wind, Fuel, Wrench, Plug } from "lucide-react";
+import { Briefcase, HeartPulse, ShieldCheck, Fuel, Wrench, Plug } from "lucide-react";
 
 const benefits = [
+  {
+    icon: ShieldCheck,
+    title: "Energy Independence",
+    desc: "Powering transportation with domestically produced electricity — solar, wind, and hydro — strengthens energy security by reducing exposure to global oil price volatility, geopolitical disruptions, and foreign energy dependence, while keeping more energy dollars in local communities and the U.S. economy.",
+    link: "https://afdc.energy.gov/fuels/electricity-benefits",
+    gradient: "gradient-primary",
+  },
   {
     icon: Briefcase,
     title: "Jobs & Economic Growth",
     desc: "The American automotive industry supports 10M+ total jobs nationwide. Clean energy is the fastest-growing jobs sector.",
     link: "https://itif.org/publications/2026/03/23/assessing-evolving-global-competitiveness-of-us-auto-industry/",
-    gradient: "gradient-primary",
-  },
-  {
-    icon: HeartPulse,
-    title: "Improved Public Health",
-    desc: "$51.4B in avoided health costs, 4,700 avoided premature deaths, 97,400 avoided asthma attacks, and 466,000 avoided lost work days.",
-    link: "https://www.lung.org/getmedia/ca3da495-2229-4535-9c36-69b63f037cea/Zeroing-In-On-Healthy-Air-Report-Michigan.pdf",
     gradient: "gradient-green",
   },
   {
-    icon: Wind,
-    title: "Reduced Emissions",
-    desc: "Zero tailpipe emissions improve air quality. EVs reduce lifetime greenhouse gas emissions by up to 64% vs gas vehicles.",
-    link: "https://www.epa.gov/clean-air-act-overview/progress-cleaning-air-and-improving-peoples-health",
+    icon: HeartPulse,
+    title: "Reduced Emissions & Public Health Benefits",
+    desc: "EVs improve air quality, cut emissions by up to 64%, and deliver major health benefits, including fewer asthma attacks, premature deaths, and lost workdays.",
+    link: "https://www.lung.org/getmedia/ca3da495-2229-4535-9c36-69b63f037cea/Zeroing-In-On-Healthy-Air-Report-Michigan.pdf",
     gradient: "gradient-primary",
   },
   {

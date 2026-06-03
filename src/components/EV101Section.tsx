@@ -24,7 +24,7 @@ const cards: Card[] = [
   {
     icon: DollarSign,
     title: "Rebates & Incentives",
-    desc: "Under new OBBBA guidelines, drivers of U.S.-assembled EVs can claim an annual tax deduction of up to $10,000. States offer Point-of-Sale vouchers for used EVs.",
+    desc: "Under current Federal guidelines, drivers of U.S.-assembled EVs can claim an annual tax deduction of up to $10,000. Some States offer additional Point-of-Sale vouchers for used EVs — Click the link below to access our rebate and incentives tool, to see the rebates that are applicable for you.",
     link: "/rebates-incentives",
     internal: true,
     image: evSavings,

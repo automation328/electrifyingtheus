@@ -6,6 +6,7 @@ import AgentChatSection from "@/components/AgentChatSection";
 import EV101Section from "@/components/EV101Section";
 import BenefitsSection from "@/components/BenefitsSection";
 import MultimodalSection from "@/components/MultimodalSection";
+import FeaturedEventsSection from "@/components/FeaturedEventsSection";
 import TCOCalculatorSection from "@/components/TCOCalculatorSection";
 import ContactSection from "@/components/ContactSection";
 import Footer from "@/components/Footer";
@@ -16,13 +17,14 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
       <HeroSection />
-      <StatsSection />
+      <TCOCalculatorSection />
       <AboutSection />
+      <StatsSection />
       <AgentChatSection />
       <EV101Section />
       <BenefitsSection />
       <MultimodalSection />
-      <TCOCalculatorSection />
+      <FeaturedEventsSection />
       <ContactSection />
       <Footer />
       <ChatBot />

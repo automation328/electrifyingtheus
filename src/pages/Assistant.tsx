@@ -5,13 +5,12 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ReactMarkdown from "react-markdown";
 import OpenAI from "openai";
+import { type Lead, EMPTY_LEAD, isValidEmail } from "@/lib/lead";
 
 type Message = { role: "user" | "assistant"; content: string };
-type Lead = { firstName: string; email: string };
 
-// Name + email are collected before the first query is answered. Held in memory
+// Lead details are collected before the first query is answered. Held in memory
 // only (not persisted) so every visit asks again before the first answer.
-const isValidEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
 
 // ── Temporary in-browser OpenAI ──────────────────────────────────────────────
 // Reads the key from VITE_OPENAI_API_KEY (.env.local). `dangerouslyAllowBrowser`
@@ -97,13 +96,16 @@ const markdownComponents = {
 
 const Assistant = () => {
   const [messages, setMessages] = useState<Message[]>([
-    { role: "assistant", content: "Hi! ⚡ I'm EVan, your E-Mobility Concierge. Share your first name and email below to get started — then ask me anything about EVs, charging, incentives, or the future of clean transportation in the U.S." },
+    { role: "assistant", content: "Hi, I'm EVan, your EV Concierge. My team and I, are currently online, ready to answer your questions about Electric Vehicles, EV Cost Savings, EV Charging and Infrastructure, Rebates & Incentives programs, and more. I've added the top 10 questions below. Enter your first name and email, and let's get started." },
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [lead, setLead] = useState<Lead | null>(null);
-  const [leadForm, setLeadForm] = useState({ firstName: "", email: "" });
+  const [leadForm, setLeadForm] = useState<Lead>(EMPTY_LEAD);
   const [leadError, setLeadError] = useState("");
+  // A question the visitor asked/clicked before giving details — answered the
+  // moment the lead is captured. `a` is a preset answer, or null for AI.
+  const [pending, setPending] = useState<{ q: string; a: string | null } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Keep the chat scrolled to the latest message — without scrolling the whole page.
@@ -112,48 +114,77 @@ const Assistant = () => {
     if (el) el.scrollTop = el.scrollHeight;
   }, [messages, loading]);
 
-  // Lead capture gate — name + email required before any query is answered.
+  // Lead capture gate — collected only after the visitor picks/asks a question.
   const captureLead = (e: React.FormEvent) => {
     e.preventDefault();
-    const firstName = leadForm.firstName.trim();
+    const fullName = leadForm.fullName.trim();
     const email = leadForm.email.trim();
-    if (!firstName) { setLeadError("Please enter your first name."); return; }
+    if (!fullName) { setLeadError("Please enter your first name."); return; }
     if (!isValidEmail(email)) { setLeadError("Please enter a valid email address."); return; }
 
-    const captured: Lead = { firstName, email };
+    const captured: Lead = { fullName, email };
     setLead(captured);
     setLeadError("");
 
-    setMessages((prev) => [
-      ...prev,
-      { role: "assistant", content: `Thanks, ${firstName}! ⚡ Tap one of the questions below or type your own to get started.` },
-    ]);
+    // Greet the visitor by first name before answering their held question.
+    const firstName = fullName.split(/\s+/)[0];
+    setMessages((prev) => [...prev, { role: "assistant", content: `Thank you, ${firstName}! Let me pull that up for you.` }]);
+
+    const held = pending;
+    setPending(null);
+    if (held) deliver(held);
   };
 
-  // Instant answer for a clicked preset question (no backend needed).
+  // Deliver a held question once we have a lead: instant preset, or AI.
+  const deliver = (item: { q: string; a: string | null }) => {
+    if (item.a !== null) {
+      setMessages((prev) => [...prev, { role: "user", content: item.q }]);
+      setLoading(true);
+      const answer = item.a;
+      setTimeout(() => {
+        setMessages((prev) => [...prev, { role: "assistant", content: answer }]);
+        setLoading(false);
+      }, 450);
+    } else {
+      runAI(item.q);
+    }
+  };
+
+  // Clicking a preset question — gate on lead first, then answer instantly.
   const handlePreset = (q: string, a: string) => {
-    if (loading || !lead) return;
-    setMessages((prev) => [...prev, { role: "user", content: q }]);
-    setLoading(true);
-    setTimeout(() => {
-      setMessages((prev) => [...prev, { role: "assistant", content: a }]);
-      setLoading(false);
-    }, 450);
+    if (loading) return;
+    if (!lead) { setPending({ q, a }); return; }
+    deliver({ q, a });
   };
 
-  const sendMessage = async () => {
-    if (!input.trim() || loading || !lead) return;
-    const userMsg: Message = { role: "user", content: input.trim() };
+  // Free-typed send — gate on lead first.
+  const sendMessage = () => {
+    const text = input.trim();
+    if (!text || loading) return;
+    if (!lead) { setPending({ q: text, a: null }); setInput(""); return; }
+    runAI(text);
+  };
+
+  // Core AI path — appends the user message and streams a reply.
+  const runAI = async (text: string) => {
+    const userMsg: Message = { role: "user", content: text };
     const allMessages = [...messages, userMsg];
-    setMessages(allMessages);
+    // Functional append so an immediately-preceding greeting isn't clobbered.
+    setMessages((prev) => [...prev, userMsg]);
     setInput("");
     setLoading(true);
+
+    // Personalize: let the assistant address the visitor by first name.
+    const firstName = lead?.fullName.trim().split(/\s+/)[0];
+    const systemPrompt = firstName
+      ? `${SYSTEM_PROMPT}\n\nThe visitor's first name is ${firstName}. Address them by their first name naturally and warmly in your responses.`
+      : SYSTEM_PROMPT;
 
     try {
       // Preferred path: answer any question with OpenAI directly (temporary, in-browser).
       if (openai) {
         const convo: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
-          { role: "system", content: SYSTEM_PROMPT },
+          { role: "system", content: systemPrompt },
           ...allMessages.map((m) => ({ role: m.role, content: m.content })),
         ];
 
@@ -207,7 +238,7 @@ const Assistant = () => {
         },
         body: JSON.stringify({
           messages: [
-            { role: "system", content: SYSTEM_PROMPT },
+            { role: "system", content: systemPrompt },
             ...allMessages.map((m) => ({ role: m.role, content: m.content })),
           ],
         }),
@@ -264,8 +295,10 @@ const Assistant = () => {
     setLoading(false);
   };
 
-  const showLeadForm = !lead && !loading;
-  const showSuggestions = !!lead && messages.every((m) => m.role === "assistant") && !loading;
+  // 10 questions show FIRST (before any lead). The lead form only appears once a
+  // visitor picks/asks a question, which we hold in `pending`.
+  const showSuggestions = !pending && !loading && messages.every((m) => m.role === "assistant");
+  const showLeadForm = !lead && !!pending && !loading;
   const TXT = "text-[hsl(var(--term-text))]";
   const MUTED = "text-[hsl(var(--term-muted))]";
 
@@ -293,13 +326,13 @@ const Assistant = () => {
               >
                 <Zap className="w-7 h-7 text-white" fill="currentColor" />
               </span>
-              <span className="font-term text-[11px] tracking-[0.42em] text-muted-foreground uppercase">Charge Terminal</span>
-              <h1 className="font-hmi font-bold text-4xl md:text-5xl text-foreground tracking-tight mt-1.5">
-                EV&nbsp;Assistant
+              <span className="text-[11px] tracking-[0.2em] font-semibold text-muted-foreground uppercase">E-Mobility Concierge</span>
+              <h1 className="font-display font-bold text-4xl md:text-5xl text-foreground tracking-tight mt-1.5">
+                Talk to EVan
               </h1>
-              <div className="mt-3 inline-flex items-center gap-2 font-term text-xs text-muted-foreground">
+              <div className="mt-3 inline-flex items-center gap-2 text-xs text-muted-foreground">
                 <span className="term-live w-2 h-2 rounded-full" style={{ background: "hsl(var(--term-green))" }} />
-                ONLINE · grid-aware · ask anything e-mobility
+                ONLINE · grid-aware
               </div>
             </div>
           </div>
@@ -336,35 +369,27 @@ const Assistant = () => {
                   </div>
                 ))}
 
-                {/* Lead capture gate — first name + email required before any answer. */}
+                {/* Lead capture gate — shown after a question is picked. */}
                 {showLeadForm && (
                   <form onSubmit={captureLead} className="space-y-3 pt-2">
-                    <p className={`font-term text-[11px] tracking-[0.25em] uppercase px-1 ${MUTED}`}>▸ Start here · name + email</p>
-                    <div className="grid gap-2.5">
-                      <input
-                        type="text"
-                        value={leadForm.firstName}
-                        onChange={(e) => setLeadForm((f) => ({ ...f, firstName: e.target.value }))}
-                        placeholder="First name"
-                        autoComplete="given-name"
-                        className={`w-full rounded-xl border border-black/[0.08] bg-[hsl(var(--term-panel))] px-4 py-3 text-sm outline-none transition-colors focus:border-[hsl(var(--term-cyan)/0.55)] placeholder:text-[hsl(var(--term-muted))] ${TXT}`}
-                      />
-                      <input
-                        type="email"
-                        value={leadForm.email}
-                        onChange={(e) => setLeadForm((f) => ({ ...f, email: e.target.value }))}
-                        placeholder="Email address"
-                        autoComplete="email"
-                        className={`w-full rounded-xl border border-black/[0.08] bg-[hsl(var(--term-panel))] px-4 py-3 text-sm outline-none transition-colors focus:border-[hsl(var(--term-cyan)/0.55)] placeholder:text-[hsl(var(--term-muted))] ${TXT}`}
-                      />
-                    </div>
+                    <p className={`text-[11px] tracking-[0.2em] font-semibold uppercase px-1 ${MUTED}`}>▸ A few quick details</p>
+                    <p className={`text-sm ${TXT}`}>Tell me a bit about you and I'll tailor the answer.</p>
+                    {(() => {
+                      const fc = `w-full rounded-xl border border-black/[0.08] bg-[hsl(var(--term-panel))] px-4 py-3 text-sm outline-none transition-colors focus:border-[hsl(var(--term-cyan)/0.55)] placeholder:text-[hsl(var(--term-muted))] ${TXT}`;
+                      return (
+                        <div className="grid sm:grid-cols-2 gap-2.5">
+                          <input type="text" value={leadForm.fullName} onChange={(e) => setLeadForm((f) => ({ ...f, fullName: e.target.value }))} placeholder="First name *" autoComplete="given-name" className={fc} />
+                          <input type="email" value={leadForm.email} onChange={(e) => setLeadForm((f) => ({ ...f, email: e.target.value }))} placeholder="Email address *" autoComplete="email" className={fc} />
+                        </div>
+                      );
+                    })()}
                     {leadError && <p className="text-xs text-red-500 px-1">{leadError}</p>}
                     <button
                       type="submit"
                       className="w-full rounded-xl px-4 py-3 text-sm font-semibold text-white transition-all hover:brightness-110"
                       style={{ background: "linear-gradient(135deg, hsl(var(--term-blue)), hsl(var(--term-cyan)) 58%, hsl(var(--term-green)))" }}
                     >
-                      Start chatting →
+                      Get my answer →
                     </button>
                     <p className={`text-[11px] px-1 leading-relaxed ${MUTED}`}>
                       We use this only to personalize your answers and follow up. No spam.
@@ -413,7 +438,7 @@ const Assistant = () => {
                 <input
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  placeholder={lead ? "ask about EVs, charging, incentives…" : "enter your name + email above to start…"}
+                  placeholder={lead ? "Ask me about EVs, Charging, Range, and more" : "enter your name + email above to start…"}
                   className={`flex-1 bg-transparent text-sm md:text-base outline-none py-2 placeholder:text-[hsl(var(--term-muted))] ${TXT}`}
                   disabled={loading || !lead}
                 />
@@ -433,14 +458,14 @@ const Assistant = () => {
           {/* Powered by credit */}
           <p className="font-term text-center text-xs text-muted-foreground mt-5 flex items-center justify-center gap-1.5">
             <Zap className="w-3.5 h-3.5 text-primary" />
-            powered by{" "}
+            Powered by{" "}
             <a
-              href="https://www.evhybridnoire.com"
+              href="https://emobilityresearch.com"
               target="_blank"
               rel="noopener noreferrer"
               className="font-semibold text-foreground hover:text-primary transition-colors"
             >
-              EV Hybrid Noire
+              EmobilityResearch.com
             </a>
           </p>
         </div>

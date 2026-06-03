@@ -11,7 +11,10 @@ import ElectricityVsGasoline from "./pages/ElectricityVsGasoline.tsx";
 import News from "./pages/News.tsx";
 import BlogPost from "./pages/BlogPost.tsx";
 import Events from "./pages/Events.tsx";
+import ListYourEvent from "./pages/ListYourEvent.tsx";
 import Careers from "./pages/Careers.tsx";
+import PostAJob from "./pages/PostAJob.tsx";
+import FindACharger from "./pages/FindACharger.tsx";
 import RebatesIncentives from "./pages/RebatesIncentives.tsx";
 import WorkforceEconomicDevelopment from "./pages/WorkforceEconomicDevelopment.tsx";
 import EvRoadSafety from "./pages/EvRoadSafety.tsx";
@@ -45,7 +48,10 @@ const App = () => (
           <Route path="/blog" element={<Navigate to="/news" replace />} />
           <Route path="/blog/:slug" element={<BlogPost />} />
           <Route path="/events" element={<Events />} />
+          <Route path="/list-your-event" element={<ListYourEvent />} />
           <Route path="/careers" element={<Careers />} />
+          <Route path="/post-a-job" element={<PostAJob />} />
+          <Route path="/find-a-charger" element={<FindACharger />} />
           <Route path="/rebates-incentives" element={<RebatesIncentives />} />
           <Route path="/workforce-economic-development" element={<WorkforceEconomicDevelopment />} />
           <Route path="/ev-road-safety" element={<EvRoadSafety />} />

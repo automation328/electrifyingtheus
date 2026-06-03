@@ -17,14 +17,17 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
+  Dialog, DialogContent, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog";
+import {
   TrendingDown, Gauge, MapPin, BarChart3, Zap, Fuel, Clock, Trophy,
   Info, SlidersHorizontal, ChevronDown, ShieldCheck, House, Sparkles, Award, CircleDollarSign,
-  Share2, Code2, Car, Tag, type LucideIcon,
+  Share2, Code2, Car, Tag, Facebook, Linkedin, MessageCircle, Mail, Copy, type LucideIcon,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import UsElectricityMap from "@/components/UsElectricityMap";
-import { vehicles, getVehiclesByType, getVehicleById } from "@/data/vehicles";
+import { vehicles, getVehiclesByType } from "@/data/vehicles";
 import { useGasPrices } from "@/hooks/use-gas-prices";
 import { STATE_ENERGY_RATES, NATIONAL_AVG } from "@/data/state-energy-rates";
 import { calculate, homeShareFor, DEFAULTS } from "@/lib/ev-cost";
@@ -34,6 +37,11 @@ import { zipToState } from "@/lib/zip-to-state";
 import {
   SOURCES, CONFIDENCE_COPY, overallConfidence, type SourceMeta, type Confidence,
 } from "@/data/sources";
+import { type Lead, EMPTY_LEAD, isValidEmail } from "@/lib/lead";
+
+// Best-effort lead notification — same n8n flow EVan uses. Set in .env.local:
+//   VITE_N8N_WEBHOOK_URL="https://<your-n8n-host>/webhook/<id>/chat"
+const N8N_WEBHOOK_URL = (import.meta as { env?: Record<string, string> }).env?.VITE_N8N_WEBHOOK_URL;
 
 const EV_COLOR = "hsl(145, 55%, 42%)"; // green
 const GAS_COLOR = "#f97316"; // orange
@@ -44,6 +52,13 @@ const currency = (n: number, frac = 0) =>
 
 const miles = (n: number) => `${Math.round(n).toLocaleString()} mi`;
 const priceK = (msrp: number) => `$${Math.round(msrp / 1000)}k`;
+
+// X (formerly Twitter) wordmark — lucide ships only the legacy bird.
+const XLogo = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden>
+    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+  </svg>
+);
 
 const gasVehicles = getVehiclesByType("gas");
 const evVehicles = getVehiclesByType("ev");
@@ -146,13 +161,10 @@ const ElectricityVsGasoline = () => {
   }, []);
 
   const [stateCode, setStateCode] = useState(initial.stateCode);
-  const [gasId, setGasId] = useState(initial.gasId);
-  // EV is auto-recommended from the gas car (§6) unless the URL/user picks one.
-  const [evId, setEvId] = useState(
-    () => initial.evId
-      ?? recommendEvs(getVehicleById(initial.gasId) ?? getVehicleById("toyota-camry")!, vehicles)[0]?.ev.id
-      ?? "tesla-model-3",
-  );
+  // No car is preselected — the visitor chooses both. URL deep-links
+  // (?car=…&ev=…) still hydrate the selection when present.
+  const [gasId, setGasId] = useState(searchParams.get("car") ?? "");
+  const [evId, setEvId] = useState(searchParams.get("ev") ?? "");
   const [homeCharging, setHomeCharging] = useState(initial.homeCharging);
 
   // ZIP code drives the state preset (autodetected from IP, or typed). State
@@ -179,21 +191,58 @@ const ElectricityVsGasoline = () => {
   const [compareClass, setCompareClass] = useState<"Sedan" | "SUV">("SUV");
 
   const rates = STATE_ENERGY_RATES[stateCode];
-  const ev = vehicles.find((v) => v.id === evId)!;
-  const gas = vehicles.find((v) => v.id === gasId)!;
+  const gasSel = vehicles.find((v) => v.id === gasId);
+  const evSel = vehicles.find((v) => v.id === evId);
+  // Fallbacks keep the math from crashing before a selection; the results stay
+  // hidden until both cars are actually chosen (`bothSelected`).
+  const FALLBACK_GAS = vehicles.find((v) => v.id === "toyota-camry") ?? vehicles.find((v) => v.type === "gas")!;
+  const FALLBACK_EV = vehicles.find((v) => v.id === "tesla-model-3") ?? vehicles.find((v) => v.type === "ev")!;
+  const gas = gasSel ?? FALLBACK_GAS;
+  const ev = evSel ?? FALLBACK_EV;
+  const bothSelected = !!gasSel && !!evSel;
 
-  // Class-matched EV recommendations for the chosen gas car (§6).
-  const matches = useMemo(() => recommendEvs(gas, vehicles), [gas]);
+  // Class-matched EV recommendations for the chosen gas car (§6) — only once a
+  // gas car is picked, so nothing is suggested on an empty form.
+  const matches = useMemo(() => (gasSel ? recommendEvs(gas, vehicles) : []), [gasSel, gas]);
   const [showResults, setShowResults] = useState(false);
 
-  // When the gas car changes, jump the comparison to its closest EV match.
-  const lastGasId = useRef(gasId);
-  useEffect(() => {
-    if (lastGasId.current !== gasId) {
-      lastGasId.current = gasId;
-      if (matches.length) setEvId(matches[0].ev.id);
+  // Lead-capture gate — first name + email collected once before results reveal.
+  const [lead, setLead] = useState<Lead | null>(null);
+  const [leadOpen, setLeadOpen] = useState(false);
+  const [leadForm, setLeadForm] = useState<Lead>(EMPTY_LEAD);
+  const [leadError, setLeadError] = useState("");
+  const firstName = (lead?.fullName.trim().split(/\s+/)[0]) ?? "";
+
+  // Click "Calculate" → reveal results if we already know the visitor, else gate.
+  const requestResults = () => {
+    if (!bothSelected) return;
+    if (lead) { setShowResults(true); return; }
+    setLeadError("");
+    setLeadOpen(true);
+  };
+
+  const captureLead = (e: React.FormEvent) => {
+    e.preventDefault();
+    const fullName = leadForm.fullName.trim();
+    const email = leadForm.email.trim();
+    if (!fullName) { setLeadError("Please enter your first name."); return; }
+    if (!isValidEmail(email)) { setLeadError("Please enter a valid email address."); return; }
+
+    const captured: Lead = { fullName, email };
+    setLead(captured);
+    setLeadError("");
+    setLeadOpen(false);
+    setShowResults(true);
+
+    // Best-effort: notify the n8n flow that a new lead was captured.
+    if (N8N_WEBHOOK_URL) {
+      fetch(N8N_WEBHOOK_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "captureLead", source: "tco-calculator", ...captured }),
+      }).catch(() => { /* non-blocking */ });
     }
-  }, [gasId, matches]);
+  };
 
   // Live per-state gas prices (AAA via n8n proxy, localStorage-cached). Falls
   // back to static state values when unavailable.
@@ -218,7 +267,6 @@ const ElectricityVsGasoline = () => {
   // an intentional choice. Setting the state cascades into the price presets.
   const hadStateParam = useRef(searchParams.get("state") != null);
   useEffect(() => {
-    if (hadStateParam.current) return;
     let cancelled = false;
     (async () => {
       try {
@@ -228,11 +276,15 @@ const ElectricityVsGasoline = () => {
         if (cancelled || data?.country_code !== "US") return;
         const code = String(data?.region_code ?? "").toUpperCase();
         const postal = String(data?.postal ?? "").replace(/\D/g, "").slice(0, 5);
+        // ZIP is always auto-detected from the visitor's location.
         if (postal.length === 5) setZip(postal);
-        const resolved = code in STATE_ENERGY_RATES ? code : zipToState(postal);
-        if (resolved && resolved in STATE_ENERGY_RATES) {
-          setStateCode(resolved);
-          setDetectedState(resolved);
+        // State preset only auto-applies when the URL didn't pin a state.
+        if (!hadStateParam.current) {
+          const resolved = code in STATE_ENERGY_RATES ? code : zipToState(postal);
+          if (resolved && resolved in STATE_ENERGY_RATES) {
+            setStateCode(resolved);
+            setDetectedState(resolved);
+          }
         }
       } catch {
         /* offline / blocked / rate-limited — keep the default state */
@@ -364,6 +416,44 @@ const ElectricityVsGasoline = () => {
 
   const winnerName = calc.evCheaper ? ev.name : gas.name;
 
+  // ── Social sharing — the URL already encodes the full result state, so a
+  // shared link reopens the exact comparison the visitor is looking at. ──
+  const buildShare = () => {
+    const url = window.location.href;
+    const yr = currency(Math.abs(calc.res.annualSavings));
+    const text = evWinsFuel
+      ? `The ${ev.name} saves about ${yr}/year on fuel vs the ${gas.name}. See how much you could save:`
+      : `I compared the ${ev.name} vs the ${gas.name} on real U.S. energy prices — check your own EV savings:`;
+    return { url, text };
+  };
+
+  const shareTo = (network: "x" | "facebook" | "linkedin" | "whatsapp" | "email") => {
+    const { url, text } = buildShare();
+    const u = encodeURIComponent(url);
+    const t = encodeURIComponent(text);
+    const links: Record<typeof network, string> = {
+      x: `https://twitter.com/intent/tweet?text=${t}&url=${u}`,
+      facebook: `https://www.facebook.com/sharer/sharer.php?u=${u}`,
+      linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${u}`,
+      whatsapp: `https://wa.me/?text=${encodeURIComponent(`${text} ${url}`)}`,
+      email: `mailto:?subject=${encodeURIComponent("EV vs Gas — my savings")}&body=${encodeURIComponent(`${text}\n\n${url}`)}`,
+    };
+    window.open(links[network], network === "email" ? "_self" : "_blank", "noopener,noreferrer");
+  };
+
+  const canNativeShare = typeof navigator !== "undefined" && typeof navigator.share === "function";
+  const nativeShare = async () => {
+    const { url, text } = buildShare();
+    try {
+      await navigator.share({ title: "EV vs Gas Calculator", text, url });
+    } catch {
+      /* user dismissed the share sheet — no-op */
+    }
+  };
+
+  const shareRow =
+    "w-full flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-sm text-foreground hover:bg-muted transition-colors text-left";
+
   return (
     <div className="evg evg-grain min-h-screen flex flex-col">
       <div className="evg-atmos" aria-hidden />
@@ -468,12 +558,12 @@ const ElectricityVsGasoline = () => {
             <div className="rounded-3xl border border-border bg-card p-6 md:p-7 mb-6">
               <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-6">
                 <div>
-                  <label className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground mb-2 block">Your car today</label>
+                  <label className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground mb-2 block">Your Current Gas Car</label>
                   <Select value={gasId} onValueChange={setGasId}>
-                    <SelectTrigger className="evg-field rounded-xl h-12"><SelectValue /></SelectTrigger>
+                    <SelectTrigger className="evg-field rounded-xl h-12"><SelectValue placeholder="Select your gas car" /></SelectTrigger>
                     <SelectContent className="max-h-72">
                       {gasVehicles.map((v) => (
-                        <SelectItem key={v.id} value={v.id}>{v.name} ({priceK(v.msrp)})</SelectItem>
+                        <SelectItem key={v.id} value={v.id}>{v.name} ({currency(v.msrp, 0)})</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -481,10 +571,10 @@ const ElectricityVsGasoline = () => {
                 <div>
                   <label className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground mb-2 block">Electric car</label>
                   <Select value={evId} onValueChange={setEvId}>
-                    <SelectTrigger className="evg-field rounded-xl h-12"><SelectValue /></SelectTrigger>
+                    <SelectTrigger className="evg-field rounded-xl h-12"><SelectValue placeholder="Select an electric car" /></SelectTrigger>
                     <SelectContent className="max-h-72">
                       {evVehicles.map((v) => (
-                        <SelectItem key={v.id} value={v.id}>{v.name} ({priceK(v.msrp)})</SelectItem>
+                        <SelectItem key={v.id} value={v.id}>{v.name} ({currency(v.msrp, 0)})</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -494,6 +584,7 @@ const ElectricityVsGasoline = () => {
                   <Input
                     value={zip}
                     onChange={(e) => handleZip(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter") setShowResults(true); }}
                     inputMode="numeric"
                     maxLength={5}
                     placeholder="Auto-detected"
@@ -516,7 +607,10 @@ const ElectricityVsGasoline = () => {
                   </ToggleGroup>
                 </div>
               </div>
-              <p className="text-xs text-muted-foreground mt-5 flex items-center gap-1.5">
+              <p className="text-[11px] text-muted-foreground mt-4">
+                Vehicle prices shown are the Manufacturer's Suggested Retail Price (MSRP).
+              </p>
+              <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1.5">
                 <MapPin className="w-3.5 h-3.5 text-primary" />
                 Prices preset for {rates.name} — {currency(gasPrice, 2)}/gal gas, {currency(electricityRate, 2)}/kWh at home.
                 Charging mix: {Math.round(homeShareFor(homeCharging) * 100)}% home / {Math.round((1 - homeShareFor(homeCharging)) * 100)}% public.
@@ -533,42 +627,75 @@ const ElectricityVsGasoline = () => {
               </p>
             </div>
 
-            {!showResults && (
-              <div className="mb-6 flex justify-center">
-                <Button
-                  onClick={() => setShowResults(true)}
-                  variant="hero"
-                  size="lg"
-                  className="rounded-xl px-8"
-                >
-                  <Sparkles className="w-5 h-5" /> Calculate my savings
-                </Button>
-              </div>
-            )}
-
-            {/* ── EMBED CTA — put this calculator on your own site ── */}
-            {!embed && (
-              <div className="mb-8 rounded-3xl border border-border bg-card p-6 md:p-7 shadow-card text-center">
-                <span className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-primary mb-3">
-                  <Code2 className="w-4 h-4" /> Embed
-                </span>
-                <h2 className="font-charge text-2xl md:text-3xl text-foreground mb-2">
-                  Would you like to include this on your website?
-                </h2>
-                <p className="text-muted-foreground max-w-xl mx-auto mb-6">
-                  Add the live EV&nbsp;vs&nbsp;Gas Calculator and EVan, your E-Mobility Concierge, to
-                  your own site — kept in sync with our latest U.S. energy &amp; vehicle data automatically.
+            <div className="mb-6 flex flex-col items-center gap-2">
+              <Button
+                onClick={requestResults}
+                disabled={!bothSelected}
+                variant="hero"
+                size="lg"
+                className="rounded-xl px-8 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Sparkles className="w-5 h-5" /> {showResults ? "Update my savings" : "Calculate my savings"}
+              </Button>
+              {!bothSelected && (
+                <p className="text-xs text-muted-foreground">
+                  Select your current gas car and an electric car to calculate.
                 </p>
-                <Link to="/contact-us">
-                  <Button variant="hero" className="rounded-xl">
-                    <Sparkles className="w-4 h-4" /> Add EVan to my site
+              )}
+            </div>
+
+            {/* Lead-capture gate — first name + email before results reveal. */}
+            <Dialog open={leadOpen} onOpenChange={setLeadOpen}>
+              <DialogContent aria-describedby={undefined} className="sm:max-w-md rounded-3xl bg-white">
+                <DialogHeader>
+                  <DialogTitle className="font-charge text-2xl flex items-center gap-2">
+                    <Sparkles className="w-5 h-5 text-primary" /> Almost there
+                  </DialogTitle>
+                </DialogHeader>
+                <form onSubmit={captureLead} className="space-y-3 pt-1">
+                  <Input
+                    type="text"
+                    value={leadForm.fullName}
+                    onChange={(e) => setLeadForm((f) => ({ ...f, fullName: e.target.value }))}
+                    placeholder="First name *"
+                    autoComplete="given-name"
+                    autoFocus
+                    className="rounded-xl border-2 border-slate-300 bg-slate-50 focus-visible:border-primary focus-visible:ring-primary/20"
+                  />
+                  <Input
+                    type="email"
+                    value={leadForm.email}
+                    onChange={(e) => setLeadForm((f) => ({ ...f, email: e.target.value }))}
+                    placeholder="Email address *"
+                    autoComplete="email"
+                    className="rounded-xl border-2 border-slate-300 bg-slate-50 focus-visible:border-primary focus-visible:ring-primary/20"
+                  />
+                  {leadError && <p className="text-xs text-red-500">{leadError}</p>}
+                  <Button type="submit" variant="hero" size="lg" className="w-full rounded-xl">
+                    <Sparkles className="w-5 h-5" /> Show my savings
                   </Button>
-                </Link>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">
+                    We use this only to send your results and follow up. No spam.
+                  </p>
+                </form>
+              </DialogContent>
+            </Dialog>
+
+            {showResults && bothSelected && (
+            <>
+            {/* Personalized greeting once a lead is captured. */}
+            {firstName && (
+              <div className="mb-6 rounded-2xl border border-primary/20 bg-primary/5 px-5 py-4 flex items-center gap-3">
+                <span className="grid place-items-center w-9 h-9 rounded-full gradient-primary shrink-0">
+                  <Sparkles className="w-4 h-4 text-primary-foreground" />
+                </span>
+                <p className="text-sm md:text-base text-foreground">
+                  <span className="font-charge">Thank you, {firstName}.</span>{" "}
+                  <span className="text-muted-foreground">Here are your personalized savings below.</span>
+                </p>
               </div>
             )}
 
-            {showResults && (
-            <>
             {/* Recommended EV matches (§6 — class-matched substitutes) */}
             <div className="mb-6">
               <div className="flex items-center justify-between gap-3 mb-3">
@@ -708,8 +835,8 @@ const ElectricityVsGasoline = () => {
                   </div>
                 </div>
 
-                <div className="mt-6 flex flex-wrap items-center gap-2.5">
-                  <span className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-4 py-1.5 text-sm">
+                <div className="mt-6 flex flex-wrap items-center justify-center gap-2.5">
+                  <span className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-4 py-2 text-sm">
                     <Clock className="w-4 h-4" />
                     {calc.ownershipBreakEven
                       ? <>Total cost break-even · <span className="font-semibold">year {calc.ownershipBreakEven.toFixed(1)}</span></>
@@ -717,25 +844,76 @@ const ElectricityVsGasoline = () => {
                   </span>
                   <Popover>
                     <PopoverTrigger asChild>
-                      <button className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-4 py-1.5 text-sm capitalize hover:bg-white/25 transition-colors">
+                      <button className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-4 py-2 text-sm capitalize hover:bg-white/25 transition-colors">
                         <ShieldCheck className="w-4 h-4" /> {confidence} confidence
                       </button>
                     </PopoverTrigger>
-                    <PopoverContent align="start" className="w-72 text-xs rounded-2xl">
+                    <PopoverContent align="center" className="w-72 text-xs rounded-2xl">
                       <div className="font-semibold text-foreground mb-1 capitalize">{confidence} confidence</div>
                       <p className="text-muted-foreground">{CONFIDENCE_COPY[confidence]}</p>
                     </PopoverContent>
                   </Popover>
-                  <button
-                    type="button"
-                    onClick={handleShare}
-                    className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-4 py-1.5 text-sm hover:bg-white/25 transition-colors"
-                  >
-                    <Share2 className="w-4 h-4" /> Copy share link
-                  </button>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button
+                        type="button"
+                        className="inline-flex items-center gap-2 rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white shadow-sm ring-1 ring-white/25 hover:bg-blue-700 transition-colors"
+                      >
+                        <Share2 className="w-4 h-4" /> Share this
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent align="center" className="w-56 p-2 rounded-2xl">
+                      <p className="px-2.5 py-1.5 text-xs font-semibold text-muted-foreground">Share your result</p>
+                      {canNativeShare && (
+                        <button type="button" onClick={nativeShare} className={shareRow}>
+                          <Share2 className="w-4 h-4 text-primary" /> Share…
+                        </button>
+                      )}
+                      <button type="button" onClick={() => shareTo("x")} className={shareRow}>
+                        <XLogo className="w-4 h-4" /> X
+                      </button>
+                      <button type="button" onClick={() => shareTo("facebook")} className={shareRow}>
+                        <Facebook className="w-4 h-4" style={{ color: "#1877F2" }} /> Facebook
+                      </button>
+                      <button type="button" onClick={() => shareTo("linkedin")} className={shareRow}>
+                        <Linkedin className="w-4 h-4" style={{ color: "#0A66C2" }} /> LinkedIn
+                      </button>
+                      <button type="button" onClick={() => shareTo("whatsapp")} className={shareRow}>
+                        <MessageCircle className="w-4 h-4" style={{ color: "#25D366" }} /> WhatsApp
+                      </button>
+                      <button type="button" onClick={() => shareTo("email")} className={shareRow}>
+                        <Mail className="w-4 h-4 text-muted-foreground" /> Email
+                      </button>
+                      <div className="my-1 h-px bg-border" />
+                      <button type="button" onClick={handleShare} className={shareRow}>
+                        <Copy className="w-4 h-4 text-muted-foreground" /> Copy link
+                      </button>
+                    </PopoverContent>
+                  </Popover>
                 </div>
               </div>
             </div>
+
+            {/* ── EMBED CTA — put this calculator on your own site ── */}
+            {!embed && (
+              <div className="mb-8 rounded-3xl border border-border bg-card p-6 md:p-7 shadow-card text-center">
+                <span className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-primary mb-3">
+                  <Code2 className="w-4 h-4" /> Embed
+                </span>
+                <h2 className="font-charge text-2xl md:text-3xl text-foreground mb-2">
+                  Would you like to include this on your website?
+                </h2>
+                <p className="text-muted-foreground max-w-xl mx-auto mb-6">
+                  Add the live EV&nbsp;vs&nbsp;Gas Calculator and EVan, your E-Mobility Concierge, to
+                  your own site — kept in sync with our latest U.S. energy &amp; vehicle data automatically.
+                </p>
+                <Link to="/contact-us">
+                  <Button variant="hero" className="rounded-xl">
+                    <Sparkles className="w-4 h-4" /> Add this EV vs Gas Calculator to my site
+                  </Button>
+                </Link>
+              </div>
+            )}
 
             {/* Interactive map — framed as an instrument panel */}
             <div className="rounded-3xl border border-border bg-card shadow-xl overflow-hidden mb-6">
@@ -1016,7 +1194,7 @@ const ElectricityVsGasoline = () => {
             Powered by{" "}
             <a href="https://emobilityresearch.com" target="_blank" rel="noopener noreferrer"
               className="font-semibold text-foreground hover:text-primary transition-colors">
-              emobilityresearch.com
+              EmobilityResearch.com
             </a>
           </p>
         </div>

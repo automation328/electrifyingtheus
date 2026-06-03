@@ -69,7 +69,7 @@ const Navbar = () => {
               {item.label}
             </a>
           ))}
-          <a href="https://afdc.energy.gov/fuels/electricity_locations.html#/find/nearest?fuel=ELEC" target="_blank" rel="noopener noreferrer">
+          <a href="/find-a-charger">
             <Button variant={solid ? "default" : "hero"} size="sm" className="ml-2">
               Find a Charger
             </Button>
@@ -103,7 +103,7 @@ const Navbar = () => {
               {item.label}
             </a>
           ))}
-          <a href="https://afdc.energy.gov/fuels/electricity_locations.html#/find/nearest?fuel=ELEC" target="_blank" rel="noopener noreferrer" className="block mt-2">
+          <a href="/find-a-charger" className="block mt-2">
             <Button variant="default" className="w-full">Find a Charger</Button>
           </a>
         </div>
