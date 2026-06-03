@@ -43,6 +43,12 @@ import { type Lead, EMPTY_LEAD, isValidEmail } from "@/lib/lead";
 //   VITE_N8N_WEBHOOK_URL="https://<your-n8n-host>/webhook/<id>/chat"
 const N8N_WEBHOOK_URL = (import.meta as { env?: Record<string, string> }).env?.VITE_N8N_WEBHOOK_URL;
 
+// Stable per-visit id so the lead notification's Session field is populated.
+const sessionId =
+  (typeof crypto !== "undefined" && "randomUUID" in crypto)
+    ? crypto.randomUUID()
+    : `evg-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
 const EV_COLOR = "hsl(145, 55%, 42%)"; // green
 const GAS_COLOR = "#f97316"; // orange
 // The $7,500 federal EV tax credit has ended — no purchase incentive is applied here.
@@ -234,12 +240,23 @@ const ElectricityVsGasoline = () => {
     setLeadOpen(false);
     setShowResults(true);
 
-    // Best-effort: notify the n8n flow that a new lead was captured.
+    // Best-effort: notify the n8n flow that a new lead was captured. Sends the
+    // same fields the EVan chat does (firstName, name, sessionId) so the Slack
+    // alert's Name + Session populate, plus a clear source label for routing.
     if (N8N_WEBHOOK_URL) {
+      const firstName = fullName.split(/\s+/)[0];
       fetch(N8N_WEBHOOK_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "captureLead", source: "tco-calculator", ...captured }),
+        body: JSON.stringify({
+          action: "captureLead",
+          source: "tco-calculator",
+          leadSource: "EV vs Gas Calculator",
+          firstName,
+          name: fullName,
+          sessionId,
+          ...captured,
+        }),
       }).catch(() => { /* non-blocking */ });
     }
   };
