@@ -6,6 +6,8 @@ import {
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { submitLead } from "@/lib/submitLead";
+import { getRecaptchaToken } from "@/lib/recaptcha";
 
 // Text fields live in one object; choice/file/consent state is held separately.
 const EMPTY = {
@@ -96,17 +98,28 @@ const ListYourEvent = () => {
     fd.append("marketingConsent", String(marketingConsent));
     files.forEach((f, i) => fd.append(`image_${i + 1}`, f, f.name));
 
+    // reCAPTCHA v3 token so the n8n webhook can score this upload too.
+    const recaptchaToken = await getRecaptchaToken("list_event");
+    if (recaptchaToken) fd.append("recaptchaToken", recaptchaToken);
+
     if (EVENT_WEBHOOK) {
       try {
         await fetch(EVENT_WEBHOOK, { method: "POST", body: fd });
       } catch { /* non-blocking — still confirm to the user */ }
     }
+    // Upsert the organizer as a GHL lead with the event-submission tag.
+    await submitLead("list-event", {
+      firstName: form.firstName, lastName: form.lastName, email: form.email,
+      mobile: form.mobile, city: form.city, zip: form.zip,
+      company: form.company, title: form.title, department: form.department,
+      industry: form.industry, subject: form.eventTitle,
+    });
     setSubmitting(false);
     setSubmitted(true);
   };
 
   const inputCls =
-    "w-full rounded-xl border border-border bg-background px-3.5 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20";
+    "w-full rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20";
   const labelCls = "block text-xs font-medium text-foreground mb-1.5";
   const reqStar = <span className="text-primary">*</span>;
 

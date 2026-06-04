@@ -3,7 +3,7 @@ import { ArrowRight, Calendar, Newspaper, Rss, AlertCircle, Loader2, BookOpen } 
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { BLOG_POSTS } from "@/data/blog-posts";
+import { usePosts } from "@/hooks/use-content";
 
 // E-mobility RSS sources, aggregated client-side through the rss2json proxy
 // (CORS-enabled, no key required for low volume). Add/remove feeds here.
@@ -101,6 +101,8 @@ const News = () => {
   const featured = items[0];
   const rest = items.slice(1);
 
+  const { posts } = usePosts();
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
@@ -119,7 +121,7 @@ const News = () => {
             </div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {BLOG_POSTS.map((post, i) => (
+              {posts.map((post, i) => (
                 <Link
                   key={post.slug}
                   to={`/blog/${post.slug}`}

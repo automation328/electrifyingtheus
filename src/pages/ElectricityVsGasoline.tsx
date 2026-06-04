@@ -17,14 +17,13 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle,
-} from "@/components/ui/dialog";
-import {
   TrendingDown, Gauge, MapPin, BarChart3, Zap, Fuel, Clock, Trophy,
   Info, SlidersHorizontal, ChevronDown, ShieldCheck, House, Sparkles, Award, CircleDollarSign,
-  Share2, Code2, Car, Tag, Facebook, Linkedin, MessageCircle, Mail, Copy, type LucideIcon,
+  Share2, Code2, Car, Tag, Facebook, Linkedin, MessageCircle, Mail, Copy, Send,
+  Gift, BadgeCheck, ArrowRight, type LucideIcon,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
+import ShareResultDialog from "@/components/forms/ShareResultDialog";
 import Footer from "@/components/Footer";
 import UsElectricityMap from "@/components/UsElectricityMap";
 import { vehicles, getVehiclesByType } from "@/data/vehicles";
@@ -32,22 +31,12 @@ import { useGasPrices } from "@/hooks/use-gas-prices";
 import { STATE_ENERGY_RATES, NATIONAL_AVG } from "@/data/state-energy-rates";
 import { calculate, homeShareFor, DEFAULTS } from "@/lib/ev-cost";
 import { recommendEvs, type MatchLabel } from "@/lib/ev-match";
+import { incentiveHeadline } from "@/data/incentives";
 import { parseCalcState, serializeCalcState, type CalcState } from "@/lib/evg-url";
 import { zipToState } from "@/lib/zip-to-state";
 import {
   SOURCES, CONFIDENCE_COPY, overallConfidence, type SourceMeta, type Confidence,
 } from "@/data/sources";
-import { type Lead, EMPTY_LEAD, isValidEmail } from "@/lib/lead";
-
-// Best-effort lead notification — same n8n flow EVan uses. Set in .env.local:
-//   VITE_N8N_WEBHOOK_URL="https://<your-n8n-host>/webhook/<id>/chat"
-const N8N_WEBHOOK_URL = (import.meta as { env?: Record<string, string> }).env?.VITE_N8N_WEBHOOK_URL;
-
-// Stable per-visit id so the lead notification's Session field is populated.
-const sessionId =
-  (typeof crypto !== "undefined" && "randomUUID" in crypto)
-    ? crypto.randomUUID()
-    : `evg-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
 const EV_COLOR = "hsl(145, 55%, 42%)"; // green
 const GAS_COLOR = "#f97316"; // orange
@@ -57,7 +46,6 @@ const currency = (n: number, frac = 0) =>
   new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: frac, minimumFractionDigits: frac }).format(n);
 
 const miles = (n: number) => `${Math.round(n).toLocaleString()} mi`;
-const priceK = (msrp: number) => `$${Math.round(msrp / 1000)}k`;
 
 // X (formerly Twitter) wordmark — lucide ships only the legacy bird.
 const XLogo = ({ className }: { className?: string }) => (
@@ -68,6 +56,13 @@ const XLogo = ({ className }: { className?: string }) => (
 
 const gasVehicles = getVehiclesByType("gas");
 const evVehicles = getVehiclesByType("ev");
+
+// Plugstar-style Make → Model pickers. Make is the leading token of the name
+// ("Tesla Model 3" → make "Tesla", model "Model 3").
+const makeOf = (name: string) => name.split(" ")[0];
+const modelOf = (name: string) => name.slice(makeOf(name).length).trim();
+const gasMakes = [...new Set(gasVehicles.map((v) => makeOf(v.name)))].sort();
+const evMakes = [...new Set(evVehicles.map((v) => makeOf(v.name)))].sort();
 
 // Animates a number toward its target with an ease-out cubic — used for the
 // headline figures so they "settle in" as inputs change.
@@ -171,7 +166,15 @@ const ElectricityVsGasoline = () => {
   // (?car=…&ev=…) still hydrate the selection when present.
   const [gasId, setGasId] = useState(searchParams.get("car") ?? "");
   const [evId, setEvId] = useState(searchParams.get("ev") ?? "");
+  // Make selection drives the Model dropdown. Kept in sync with the chosen id
+  // (deep links, EV-match cards) via the effects below.
+  const [gasMake, setGasMake] = useState(() => { const v = vehicles.find((x) => x.id === (searchParams.get("car") ?? "")); return v ? makeOf(v.name) : ""; });
+  const [evMake, setEvMake] = useState(() => { const v = vehicles.find((x) => x.id === (searchParams.get("ev") ?? "")); return v ? makeOf(v.name) : ""; });
   const [homeCharging, setHomeCharging] = useState(initial.homeCharging);
+
+  // Keep Make in sync whenever the selected vehicle id changes elsewhere.
+  useEffect(() => { const v = vehicles.find((x) => x.id === gasId); if (v) setGasMake(makeOf(v.name)); }, [gasId]);
+  useEffect(() => { const v = vehicles.find((x) => x.id === evId); if (v) setEvMake(makeOf(v.name)); }, [evId]);
 
   // ZIP code drives the state preset (autodetected from IP, or typed). State
   // remains the source of truth for rates/URL; ZIP is the UI affordance.
@@ -197,6 +200,7 @@ const ElectricityVsGasoline = () => {
   const [compareClass, setCompareClass] = useState<"Sedan" | "SUV">("SUV");
 
   const rates = STATE_ENERGY_RATES[stateCode];
+  const incentives = useMemo(() => incentiveHeadline(stateCode), [stateCode]);
   const gasSel = vehicles.find((v) => v.id === gasId);
   const evSel = vehicles.find((v) => v.id === evId);
   // Fallbacks keep the math from crashing before a selection; the results stay
@@ -207,58 +211,23 @@ const ElectricityVsGasoline = () => {
   const ev = evSel ?? FALLBACK_EV;
   const bothSelected = !!gasSel && !!evSel;
 
+  // Models available for the chosen make (drives the second dropdown).
+  const gasModels = gasMake ? gasVehicles.filter((v) => makeOf(v.name) === gasMake) : [];
+  const evModels = evMake ? evVehicles.filter((v) => makeOf(v.name) === evMake) : [];
+  const pickMake = (mk: string, id: string, setMake: (s: string) => void, setId: (s: string) => void) => {
+    setMake(mk);
+    const cur = vehicles.find((v) => v.id === id);
+    if (!cur || makeOf(cur.name) !== mk) setId("");
+  };
+
   // Class-matched EV recommendations for the chosen gas car (§6) — only once a
   // gas car is picked, so nothing is suggested on an empty form.
   const matches = useMemo(() => (gasSel ? recommendEvs(gas, vehicles) : []), [gasSel, gas]);
   const [showResults, setShowResults] = useState(false);
 
-  // Lead-capture gate — first name + email collected once before results reveal.
-  const [lead, setLead] = useState<Lead | null>(null);
-  const [leadOpen, setLeadOpen] = useState(false);
-  const [leadForm, setLeadForm] = useState<Lead>(EMPTY_LEAD);
-  const [leadError, setLeadError] = useState("");
-  const firstName = (lead?.fullName.trim().split(/\s+/)[0]) ?? "";
-
-  // Click "Calculate" → reveal results if we already know the visitor, else gate.
+  // Calculate → reveal results directly (no lead gate).
   const requestResults = () => {
-    if (!bothSelected) return;
-    if (lead) { setShowResults(true); return; }
-    setLeadError("");
-    setLeadOpen(true);
-  };
-
-  const captureLead = (e: React.FormEvent) => {
-    e.preventDefault();
-    const fullName = leadForm.fullName.trim();
-    const email = leadForm.email.trim();
-    if (!fullName) { setLeadError("Please enter your first name."); return; }
-    if (!isValidEmail(email)) { setLeadError("Please enter a valid email address."); return; }
-
-    const captured: Lead = { fullName, email };
-    setLead(captured);
-    setLeadError("");
-    setLeadOpen(false);
-    setShowResults(true);
-
-    // Best-effort: notify the n8n flow that a new lead was captured. Sends the
-    // same fields the EVan chat does (firstName, name, sessionId) so the Slack
-    // alert's Name + Session populate, plus a clear source label for routing.
-    if (N8N_WEBHOOK_URL) {
-      const firstName = fullName.split(/\s+/)[0];
-      fetch(N8N_WEBHOOK_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "captureLead",
-          source: "tco-calculator",
-          leadSource: "EV vs Gas Calculator",
-          firstName,
-          name: fullName,
-          sessionId,
-          ...captured,
-        }),
-      }).catch(() => { /* non-blocking */ });
-    }
+    if (bothSelected) setShowResults(true);
   };
 
   // Live per-state gas prices (AAA via n8n proxy, localStorage-cached). Falls
@@ -572,76 +541,118 @@ const ElectricityVsGasoline = () => {
             </p>
 
             {/* Primary inputs — your current car, the EV, your state, home charging */}
-            <div className="rounded-3xl border border-border bg-card p-6 md:p-7 mb-6">
-              <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-6">
-                <div>
-                  <label className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground mb-2 block">Your Current Gas Car</label>
-                  <Select value={gasId} onValueChange={setGasId}>
-                    <SelectTrigger className="evg-field rounded-xl h-12"><SelectValue placeholder="Select your gas car" /></SelectTrigger>
-                    <SelectContent className="max-h-72">
-                      {gasVehicles.map((v) => (
-                        <SelectItem key={v.id} value={v.id}>{v.name} ({currency(v.msrp, 0)})</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+            <div className="relative overflow-hidden rounded-3xl border border-border bg-card shadow-card mb-6">
+              <div className="h-1.5 w-full gradient-hero" aria-hidden />
+              <div className="p-6 md:p-8">
+                <div className="flex items-center gap-3 mb-6">
+                  <span className="grid place-items-center w-10 h-10 rounded-xl gradient-hero shadow-md shrink-0">
+                    <Car className="w-5 h-5 text-primary-foreground" />
+                  </span>
+                  <div>
+                    <div className="font-charge text-lg text-foreground leading-tight">Build your matchup</div>
+                    <div className="text-xs text-muted-foreground">Pick the car you drive today vs the EV you're eyeing</div>
+                  </div>
                 </div>
-                <div>
-                  <label className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground mb-2 block">Electric car</label>
-                  <Select value={evId} onValueChange={setEvId}>
-                    <SelectTrigger className="evg-field rounded-xl h-12"><SelectValue placeholder="Select an electric car" /></SelectTrigger>
-                    <SelectContent className="max-h-72">
-                      {evVehicles.map((v) => (
-                        <SelectItem key={v.id} value={v.id}>{v.name} ({currency(v.msrp, 0)})</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+
+                {/* Vehicle pickers — gas vs EV */}
+                <div className="grid md:grid-cols-[1fr_auto_1fr] md:items-end gap-5 md:gap-4">
+                  <div>
+                    <label className="text-[11px] font-semibold uppercase tracking-[0.14em] mb-2 flex items-center gap-1.5" style={{ color: GAS_COLOR }}>
+                      <Fuel className="w-3.5 h-3.5" /> Your current gas car
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Select value={gasMake} onValueChange={(mk) => pickMake(mk, gasId, setGasMake, setGasId)}>
+                        <SelectTrigger className="evg-field rounded-xl h-12"><SelectValue placeholder="Make" /></SelectTrigger>
+                        <SelectContent className="max-h-72">
+                          {gasMakes.map((mk) => <SelectItem key={mk} value={mk}>{mk}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                      <Select value={gasId} onValueChange={setGasId} disabled={!gasMake}>
+                        <SelectTrigger className="evg-field rounded-xl h-12"><SelectValue placeholder="Model" /></SelectTrigger>
+                        <SelectContent className="max-h-72">
+                          {gasModels.map((v) => <SelectItem key={v.id} value={v.id}>{modelOf(v.name)} ({currency(v.msrp, 0)})</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="hidden md:flex items-center justify-center pb-2">
+                    <span className="grid place-items-center w-10 h-10 rounded-full border border-border bg-background font-charge text-sm text-foreground shadow-sm">vs</span>
+                  </div>
+
+                  <div>
+                    <label className="text-[11px] font-semibold uppercase tracking-[0.14em] mb-2 flex items-center gap-1.5" style={{ color: EV_COLOR }}>
+                      <Zap className="w-3.5 h-3.5" /> Electric car
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Select value={evMake} onValueChange={(mk) => pickMake(mk, evId, setEvMake, setEvId)}>
+                        <SelectTrigger className="evg-field rounded-xl h-12"><SelectValue placeholder="Make" /></SelectTrigger>
+                        <SelectContent className="max-h-72">
+                          {evMakes.map((mk) => <SelectItem key={mk} value={mk}>{mk}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                      <Select value={evId} onValueChange={setEvId} disabled={!evMake}>
+                        <SelectTrigger className="evg-field rounded-xl h-12"><SelectValue placeholder="Model" /></SelectTrigger>
+                        <SelectContent className="max-h-72">
+                          {evModels.map((v) => <SelectItem key={v.id} value={v.id}>{modelOf(v.name)} ({currency(v.msrp, 0)})</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <label className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground mb-2 block">ZIP code</label>
-                  <Input
-                    value={zip}
-                    onChange={(e) => handleZip(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === "Enter") setShowResults(true); }}
-                    inputMode="numeric"
-                    maxLength={5}
-                    placeholder="Auto-detected"
-                    aria-label="ZIP code"
-                    className="evg-field rounded-xl h-12"
-                  />
+
+                {/* Location + charging */}
+                <div className="grid sm:grid-cols-2 gap-5 mt-6 pt-6 border-t border-border">
+                  <div>
+                    <label className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground mb-2 flex items-center gap-1.5">
+                      <MapPin className="w-3.5 h-3.5" /> ZIP code
+                    </label>
+                    <Input
+                      value={zip}
+                      onChange={(e) => handleZip(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === "Enter") setShowResults(true); }}
+                      inputMode="numeric"
+                      maxLength={5}
+                      placeholder="Auto-detected"
+                      aria-label="ZIP code"
+                      className="evg-field rounded-xl h-12"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground mb-2 flex items-center gap-1.5">
+                      <House className="w-3.5 h-3.5" /> Charge at home?
+                    </label>
+                    <ToggleGroup
+                      type="single"
+                      value={homeCharging ? "yes" : "no"}
+                      onValueChange={(v) => { if (v) setHomeCharging(v === "yes"); }}
+                      className="evg-field h-12 w-full rounded-xl p-1 grid grid-cols-2 gap-1"
+                    >
+                      <ToggleGroupItem value="yes" className="rounded-lg data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">Yes</ToggleGroupItem>
+                      <ToggleGroupItem value="no" className="rounded-lg data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">No</ToggleGroupItem>
+                    </ToggleGroup>
+                  </div>
                 </div>
-                <div>
-                  <label className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground mb-2 flex items-center gap-1.5">
-                    <House className="w-3.5 h-3.5" /> Charge at home?
-                  </label>
-                  <ToggleGroup
-                    type="single"
-                    value={homeCharging ? "yes" : "no"}
-                    onValueChange={(v) => { if (v) setHomeCharging(v === "yes"); }}
-                    className="evg-field h-12 w-full rounded-xl p-1 grid grid-cols-2 gap-1"
-                  >
-                    <ToggleGroupItem value="yes" className="rounded-lg data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">Yes</ToggleGroupItem>
-                    <ToggleGroupItem value="no" className="rounded-lg data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">No</ToggleGroupItem>
-                  </ToggleGroup>
+
+                {/* Preset summary */}
+                <div className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-2">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 text-primary text-xs font-semibold px-3 py-1.5">
+                    <MapPin className="w-3.5 h-3.5" /> {rates.name} · {currency(gasPrice, 2)}/gal · {currency(electricityRate, 2)}/kWh · {Math.round(homeShareFor(homeCharging) * 100)}% home charging
+                  </span>
+                  <span className="text-[11px] text-muted-foreground">Prices are MSRP, preset from state averages.</span>
                 </div>
+
+                <p className="text-[11px] leading-relaxed text-muted-foreground mt-4 pt-4 border-t border-border flex items-start gap-2">
+                  <Info className="w-3.5 h-3.5 shrink-0 mt-0.5 text-muted-foreground" />
+                  <span>
+                    All figures shown are estimates based on average fuel prices, vehicle efficiency ratings, and
+                    driving assumptions for the selected state. Actual savings, costs, and fuel prices will vary based
+                    on individual driving habits, local energy rates, vehicle condition, insurance, and other factors.
+                    This tool is for informational purposes only and should not be relied upon as a guarantee of
+                    savings or financial advice.
+                  </span>
+                </p>
               </div>
-              <p className="text-[11px] text-muted-foreground mt-4">
-                Vehicle prices shown are the Manufacturer's Suggested Retail Price (MSRP).
-              </p>
-              <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1.5">
-                <MapPin className="w-3.5 h-3.5 text-primary" />
-                Prices preset for {rates.name} — {currency(gasPrice, 2)}/gal gas, {currency(electricityRate, 2)}/kWh at home.
-                Charging mix: {Math.round(homeShareFor(homeCharging) * 100)}% home / {Math.round((1 - homeShareFor(homeCharging)) * 100)}% public.
-              </p>
-              <p className="text-[11px] leading-relaxed text-muted-foreground mt-4 pt-4 border-t border-border flex items-start gap-2">
-                <Info className="w-3.5 h-3.5 shrink-0 mt-0.5 text-muted-foreground" />
-                <span>
-                  All figures shown are estimates based on average fuel prices, vehicle efficiency ratings, and
-                  driving assumptions for the selected state. Actual savings, costs, and fuel prices will vary based
-                  on individual driving habits, local energy rates, vehicle condition, insurance, and other factors.
-                  This tool is for informational purposes only and should not be relied upon as a guarantee of
-                  savings or financial advice.
-                </span>
-              </p>
             </div>
 
             <div className="mb-6 flex flex-col items-center gap-2">
@@ -661,58 +672,8 @@ const ElectricityVsGasoline = () => {
               )}
             </div>
 
-            {/* Lead-capture gate — first name + email before results reveal. */}
-            <Dialog open={leadOpen} onOpenChange={setLeadOpen}>
-              <DialogContent aria-describedby={undefined} className="sm:max-w-md rounded-3xl bg-white">
-                <DialogHeader>
-                  <DialogTitle className="font-charge text-2xl flex items-center gap-2">
-                    <Sparkles className="w-5 h-5 text-primary" /> Almost there
-                  </DialogTitle>
-                </DialogHeader>
-                <form onSubmit={captureLead} className="space-y-3 pt-1">
-                  <Input
-                    type="text"
-                    value={leadForm.fullName}
-                    onChange={(e) => setLeadForm((f) => ({ ...f, fullName: e.target.value }))}
-                    placeholder="First name *"
-                    autoComplete="given-name"
-                    autoFocus
-                    className="rounded-xl border-2 border-slate-300 bg-slate-50 focus-visible:border-primary focus-visible:ring-primary/20"
-                  />
-                  <Input
-                    type="email"
-                    value={leadForm.email}
-                    onChange={(e) => setLeadForm((f) => ({ ...f, email: e.target.value }))}
-                    placeholder="Email address *"
-                    autoComplete="email"
-                    className="rounded-xl border-2 border-slate-300 bg-slate-50 focus-visible:border-primary focus-visible:ring-primary/20"
-                  />
-                  {leadError && <p className="text-xs text-red-500">{leadError}</p>}
-                  <Button type="submit" variant="hero" size="lg" className="w-full rounded-xl">
-                    <Sparkles className="w-5 h-5" /> Show my savings
-                  </Button>
-                  <p className="text-[11px] text-muted-foreground leading-relaxed">
-                    We use this only to send your results and follow up. No spam.
-                  </p>
-                </form>
-              </DialogContent>
-            </Dialog>
-
             {showResults && bothSelected && (
             <>
-            {/* Personalized greeting once a lead is captured. */}
-            {firstName && (
-              <div className="mb-6 rounded-2xl border border-primary/20 bg-primary/5 px-5 py-4 flex items-center gap-3">
-                <span className="grid place-items-center w-9 h-9 rounded-full gradient-primary shrink-0">
-                  <Sparkles className="w-4 h-4 text-primary-foreground" />
-                </span>
-                <p className="text-sm md:text-base text-foreground">
-                  <span className="font-charge">Thank you, {firstName}.</span>{" "}
-                  <span className="text-muted-foreground">Here are your personalized savings below.</span>
-                </p>
-              </div>
-            )}
-
             {/* Recommended EV matches (§6 — class-matched substitutes) */}
             <div className="mb-6">
               <div className="flex items-center justify-between gap-3 mb-3">
@@ -752,7 +713,7 @@ const ElectricityVsGasoline = () => {
                         <meta.icon className="w-3 h-3" /> {m.label}
                       </span>
                       <div className="font-charge text-lg text-foreground leading-tight">{m.ev.name}</div>
-                      <div className="text-sm text-muted-foreground mb-2">{priceK(m.ev.msrp)} · {m.ev.rangeMi} mi range</div>
+                      <div className="text-sm text-muted-foreground mb-2">{currency(m.ev.msrp, 0)} · {m.ev.rangeMi} mi range</div>
                       <p className="text-xs text-muted-foreground">{m.reason}</p>
                       {m.caveat && (
                         <p className="text-[11px] text-amber-600 mt-1.5 flex items-center gap-1">
@@ -760,13 +721,158 @@ const ElectricityVsGasoline = () => {
                         </p>
                       )}
                       <div className="mt-3 pt-3 border-t border-border flex items-center justify-between text-xs">
-                        <span className="text-muted-foreground">5-yr cost</span>
-                        <span className="font-charge text-base text-foreground tabular-nums">{currency(m.fiveYearTotal)}</span>
+                        <span className="text-muted-foreground">MSRP</span>
+                        <span className="font-charge text-base text-foreground tabular-nums">{currency(m.ev.msrp, 0)}</span>
                       </div>
                     </button>
                   );
                 })}
               </div>
+            </div>
+
+            {/* Fuel-savings verdict scoreboard — moved above the range bars */}
+            <div className={`relative overflow-hidden rounded-3xl p-7 md:p-9 text-primary-foreground shadow-elevated mb-4 ${evWinsFuel ? "gradient-green" : "gradient-primary"}`}>
+              <Trophy className="absolute -right-6 -top-6 w-40 h-40 opacity-10" />
+              <div className="relative">
+                <div className="flex items-center gap-2 text-xs uppercase tracking-[0.18em] opacity-90 mb-2">
+                  <Fuel className="w-3.5 h-3.5" /> Fuel savings · {ev.name} vs {gas.name}
+                </div>
+                <div className="flex flex-wrap items-end gap-x-6 gap-y-3">
+                  <div>
+                    <div className="font-charge text-6xl md:text-7xl leading-none">
+                      {evWinsFuel ? "" : "−"}{currency(animatedTotal)}
+                    </div>
+                    <div className="text-sm opacity-90 mt-1.5">saved over {ownershipYears} years on fuel</div>
+                  </div>
+                  <div className="flex gap-6 mb-1">
+                    <div>
+                      <div className="font-charge text-2xl leading-none">{currency(Math.abs(calc.res.annualSavings))}</div>
+                      <div className="text-xs opacity-80 mt-1">per year</div>
+                    </div>
+                    <div>
+                      <div className="font-charge text-2xl leading-none">{currency(Math.abs(calc.res.monthlySavings))}</div>
+                      <div className="text-xs opacity-80 mt-1">per month</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-6 flex flex-wrap items-center justify-center gap-2.5">
+                  <span className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-4 py-2 text-sm">
+                    <Clock className="w-4 h-4" />
+                    {calc.ownershipBreakEven
+                      ? <>Total cost break-even · <span className="font-semibold">year {calc.ownershipBreakEven.toFixed(1)}</span></>
+                      : <>EV leads on total cost from day one</>}
+                  </span>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-4 py-2 text-sm capitalize hover:bg-white/25 transition-colors">
+                        <ShieldCheck className="w-4 h-4" /> {confidence} confidence
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent align="center" className="w-72 text-xs rounded-2xl">
+                      <div className="font-semibold text-foreground mb-1 capitalize">{confidence} confidence</div>
+                      <p className="text-muted-foreground">{CONFIDENCE_COPY[confidence]}</p>
+                    </PopoverContent>
+                  </Popover>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button
+                        type="button"
+                        className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-2 text-sm font-semibold text-primary shadow-sm hover:bg-white/90 transition-colors"
+                      >
+                        <Share2 className="w-4 h-4" /> Share this result
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent align="center" className="w-56 p-2 rounded-2xl">
+                      <p className="px-2.5 py-1.5 text-xs font-semibold text-muted-foreground">Share your result</p>
+                      {canNativeShare && (
+                        <button type="button" onClick={nativeShare} className={shareRow}>
+                          <Share2 className="w-4 h-4 text-primary" /> Share…
+                        </button>
+                      )}
+                      <button type="button" onClick={() => shareTo("x")} className={shareRow}>
+                        <XLogo className="w-4 h-4" /> X
+                      </button>
+                      <button type="button" onClick={() => shareTo("facebook")} className={shareRow}>
+                        <Facebook className="w-4 h-4" style={{ color: "#1877F2" }} /> Facebook
+                      </button>
+                      <button type="button" onClick={() => shareTo("linkedin")} className={shareRow}>
+                        <Linkedin className="w-4 h-4" style={{ color: "#0A66C2" }} /> LinkedIn
+                      </button>
+                      <button type="button" onClick={() => shareTo("whatsapp")} className={shareRow}>
+                        <MessageCircle className="w-4 h-4" style={{ color: "#25D366" }} /> WhatsApp
+                      </button>
+                      <button type="button" onClick={() => shareTo("email")} className={shareRow}>
+                        <Mail className="w-4 h-4 text-muted-foreground" /> Email
+                      </button>
+                      <div className="my-1 h-px bg-border" />
+                      <button type="button" onClick={handleShare} className={shareRow}>
+                        <Copy className="w-4 h-4 text-muted-foreground" /> Copy link
+                      </button>
+                    </PopoverContent>
+                  </Popover>
+                  <ShareResultDialog
+                    shareUrl={typeof window !== "undefined" ? window.location.href : ""}
+                    vehicleSummary={`${ev.name} vs ${gas.name}`}
+                    savingsSummary={evWinsFuel
+                      ? `${currency(Math.abs(calc.res.horizonTotalSaved))} saved over ${ownershipYears} years on fuel`
+                      : undefined}
+                    trigger={
+                      <button
+                        type="button"
+                        className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-2 text-sm font-semibold text-primary shadow-sm hover:bg-white/90 transition-colors"
+                      >
+                        <Send className="w-4 h-4" /> Email / Text result
+                      </button>
+                    }
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Typical incentives — listed below the scoreboard, auto-populated from state/ZIP */}
+            <div className="rounded-3xl border border-border bg-card p-6 md:p-7 shadow-card mb-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+                <div className="flex items-center gap-3">
+                  <span className="grid place-items-center w-11 h-11 rounded-2xl bg-secondary/10 text-secondary shrink-0">
+                    <Gift className="w-5 h-5" />
+                  </span>
+                  <div>
+                    <h3 className="font-charge text-xl text-foreground leading-tight">
+                      Typical incentives in {incentives.stateName}
+                    </h3>
+                    <p className="text-xs text-muted-foreground">
+                      {incentives.topAmount && (
+                        <>Up to <span className="font-semibold text-foreground">{currency(incentives.topAmount)}</span> · </>
+                      )}
+                      {incentives.count} program{incentives.count === 1 ? "" : "s"} for your area
+                    </p>
+                  </div>
+                </div>
+                <Link
+                  to="/rebates-incentives"
+                  className="group inline-flex items-center gap-1.5 rounded-xl gradient-primary text-primary-foreground text-sm font-semibold px-5 py-2.5 hover:opacity-90 transition-opacity shrink-0"
+                >
+                  See your incentives <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                </Link>
+              </div>
+
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {incentives.items.map((it) => (
+                  <div key={it.name} className="flex items-start gap-2.5 rounded-2xl border border-border bg-background p-3.5">
+                    <BadgeCheck className="w-4 h-4 mt-0.5 shrink-0 text-secondary" />
+                    <div className="min-w-0">
+                      <div className="text-sm font-medium text-foreground leading-snug">{it.name}</div>
+                      {it.amount && <div className="text-xs font-semibold text-gradient-primary mt-0.5">{it.amount}</div>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <p className="text-[11px] text-muted-foreground mt-3 flex items-start gap-1.5">
+                <Info className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                Federal + state/utility programs for {incentives.stateName}. Typical maximums — verify eligibility on each program page.
+              </p>
             </div>
 
             {/* Dollar-driving hero — the share-worthy number (§3) */}
@@ -826,109 +932,27 @@ const ElectricityVsGasoline = () => {
               </p>
             </div>
 
-            {/* Fuel-savings verdict scoreboard */}
-            <div className={`relative overflow-hidden rounded-3xl p-7 md:p-9 text-primary-foreground shadow-elevated mb-6 ${evWinsFuel ? "gradient-green" : "gradient-primary"}`}>
-              <Trophy className="absolute -right-6 -top-6 w-40 h-40 opacity-10" />
-              <div className="relative">
-                <div className="flex items-center gap-2 text-xs uppercase tracking-[0.18em] opacity-90 mb-2">
-                  <Fuel className="w-3.5 h-3.5" /> Fuel savings · {ev.name} vs {gas.name}
-                </div>
-                <div className="flex flex-wrap items-end gap-x-6 gap-y-3">
-                  <div>
-                    <div className="font-charge text-6xl md:text-7xl leading-none">
-                      {evWinsFuel ? "" : "−"}{currency(animatedTotal)}
-                    </div>
-                    <div className="text-sm opacity-90 mt-1.5">saved over {ownershipYears} years on fuel</div>
-                  </div>
-                  <div className="flex gap-6 mb-1">
-                    <div>
-                      <div className="font-charge text-2xl leading-none">{currency(Math.abs(calc.res.annualSavings))}</div>
-                      <div className="text-xs opacity-80 mt-1">per year</div>
-                    </div>
-                    <div>
-                      <div className="font-charge text-2xl leading-none">{currency(Math.abs(calc.res.monthlySavings))}</div>
-                      <div className="text-xs opacity-80 mt-1">per month</div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-6 flex flex-wrap items-center justify-center gap-2.5">
-                  <span className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-4 py-2 text-sm">
-                    <Clock className="w-4 h-4" />
-                    {calc.ownershipBreakEven
-                      ? <>Total cost break-even · <span className="font-semibold">year {calc.ownershipBreakEven.toFixed(1)}</span></>
-                      : <>EV leads on total cost from day one</>}
-                  </span>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <button className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-4 py-2 text-sm capitalize hover:bg-white/25 transition-colors">
-                        <ShieldCheck className="w-4 h-4" /> {confidence} confidence
-                      </button>
-                    </PopoverTrigger>
-                    <PopoverContent align="center" className="w-72 text-xs rounded-2xl">
-                      <div className="font-semibold text-foreground mb-1 capitalize">{confidence} confidence</div>
-                      <p className="text-muted-foreground">{CONFIDENCE_COPY[confidence]}</p>
-                    </PopoverContent>
-                  </Popover>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <button
-                        type="button"
-                        className="inline-flex items-center gap-2 rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white shadow-sm ring-1 ring-white/25 hover:bg-blue-700 transition-colors"
-                      >
-                        <Share2 className="w-4 h-4" /> Share this
-                      </button>
-                    </PopoverTrigger>
-                    <PopoverContent align="center" className="w-56 p-2 rounded-2xl">
-                      <p className="px-2.5 py-1.5 text-xs font-semibold text-muted-foreground">Share your result</p>
-                      {canNativeShare && (
-                        <button type="button" onClick={nativeShare} className={shareRow}>
-                          <Share2 className="w-4 h-4 text-primary" /> Share…
-                        </button>
-                      )}
-                      <button type="button" onClick={() => shareTo("x")} className={shareRow}>
-                        <XLogo className="w-4 h-4" /> X
-                      </button>
-                      <button type="button" onClick={() => shareTo("facebook")} className={shareRow}>
-                        <Facebook className="w-4 h-4" style={{ color: "#1877F2" }} /> Facebook
-                      </button>
-                      <button type="button" onClick={() => shareTo("linkedin")} className={shareRow}>
-                        <Linkedin className="w-4 h-4" style={{ color: "#0A66C2" }} /> LinkedIn
-                      </button>
-                      <button type="button" onClick={() => shareTo("whatsapp")} className={shareRow}>
-                        <MessageCircle className="w-4 h-4" style={{ color: "#25D366" }} /> WhatsApp
-                      </button>
-                      <button type="button" onClick={() => shareTo("email")} className={shareRow}>
-                        <Mail className="w-4 h-4 text-muted-foreground" /> Email
-                      </button>
-                      <div className="my-1 h-px bg-border" />
-                      <button type="button" onClick={handleShare} className={shareRow}>
-                        <Copy className="w-4 h-4 text-muted-foreground" /> Copy link
-                      </button>
-                    </PopoverContent>
-                  </Popover>
-                </div>
-              </div>
-            </div>
-
             {/* ── EMBED CTA — put this calculator on your own site ── */}
             {!embed && (
-              <div className="mb-8 rounded-3xl border border-border bg-card p-6 md:p-7 shadow-card text-center">
-                <span className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-primary mb-3">
-                  <Code2 className="w-4 h-4" /> Embed
-                </span>
-                <h2 className="font-charge text-2xl md:text-3xl text-foreground mb-2">
-                  Would you like to include this on your website?
-                </h2>
-                <p className="text-muted-foreground max-w-xl mx-auto mb-6">
-                  Add the live EV&nbsp;vs&nbsp;Gas Calculator and EVan, your E-Mobility Concierge, to
-                  your own site — kept in sync with our latest U.S. energy &amp; vehicle data automatically.
-                </p>
-                <Link to="/contact-us">
-                  <Button variant="hero" className="rounded-xl">
-                    <Sparkles className="w-4 h-4" /> Add this EV vs Gas Calculator to my site
-                  </Button>
-                </Link>
+              <div className="relative overflow-hidden mb-8 rounded-3xl gradient-hero text-primary-foreground p-7 md:p-9 shadow-elevated text-center">
+                <Code2 className="absolute -right-6 -bottom-6 w-40 h-40 opacity-10" />
+                <div className="relative">
+                  <span className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-primary-foreground mb-3">
+                    <Code2 className="w-4 h-4" /> Embed
+                  </span>
+                  <h2 className="font-charge text-2xl md:text-3xl text-primary-foreground mb-2">
+                    Would you like to include this on your website?
+                  </h2>
+                  <p className="text-primary-foreground/90 max-w-xl mx-auto mb-6">
+                    Add the live EV&nbsp;vs&nbsp;Gas Calculator and EVan, your E-Mobility Concierge, to
+                    your own site — kept in sync with our latest U.S. energy &amp; vehicle data automatically.
+                  </p>
+                  <Link to="/contact-us">
+                    <Button className="rounded-xl bg-white text-primary font-semibold hover:bg-white/90">
+                      <Sparkles className="w-4 h-4" /> Add this EV vs Gas Calculator to my site
+                    </Button>
+                  </Link>
+                </div>
               </div>
             )}
 
@@ -1091,19 +1115,27 @@ const ElectricityVsGasoline = () => {
         {/* ───────────────── STATS BAND ───────────────── */}
         <section className="py-16 border-y border-border bg-muted/40">
           <div className="container px-4 max-w-5xl">
-            <h2 className="text-center font-charge text-3xl md:text-4xl text-foreground mb-12">
-              The fight isn't close, coast to coast
-            </h2>
-            <div className="grid sm:grid-cols-3 gap-8 md:gap-10">
+            <div className="text-center max-w-2xl mx-auto mb-12">
+              <h2 className="font-charge text-3xl md:text-4xl text-foreground">
+                The fight isn't close, coast to coast
+              </h2>
+              <p className="text-muted-foreground mt-3">
+                Wherever you plug in, the numbers line up the same way — electricity beats gasoline on cost, range, and access.
+              </p>
+            </div>
+            <div className="grid sm:grid-cols-3 gap-5 md:gap-6">
               {[
-                { icon: TrendingDown, value: "~60%", label: "Cheaper to fuel per mile vs. gas", color: "text-primary" },
-                { icon: Gauge, value: "283 mi", label: "Average EV range on a full charge", color: "text-secondary" },
-                { icon: MapPin, value: "240K+", label: "Public charging ports nationwide", color: "text-primary" },
+                { icon: TrendingDown, value: "~60%", label: "Cheaper to fuel per mile vs. gas", accent: "gradient-primary" },
+                { icon: Gauge, value: "283 mi", label: "Average EV range on a full charge", accent: "gradient-green" },
+                { icon: MapPin, value: "240K+", label: "Public charging ports nationwide", accent: "gradient-hero" },
               ].map((s) => (
-                <div key={s.label} className="text-center sm:text-left sm:border-l sm:border-border sm:pl-6 first:sm:border-l-0 first:sm:pl-0">
-                  <s.icon className={`w-7 h-7 mb-3 mx-auto sm:mx-0 ${s.color}`} />
-                  <div className={`font-charge text-5xl md:text-6xl ${s.color}`}>{s.value}</div>
-                  <p className="text-muted-foreground text-sm mt-2">{s.label}</p>
+                <div key={s.label} className="group relative overflow-hidden rounded-3xl bg-card border border-border p-7 shadow-card transition-all hover:shadow-xl hover:-translate-y-1">
+                  <div className={`absolute top-0 left-0 right-0 h-1 ${s.accent}`} aria-hidden />
+                  <span className={`grid place-items-center w-14 h-14 rounded-2xl ${s.accent} shadow-md mb-5 group-hover:scale-105 transition-transform`}>
+                    <s.icon className="w-6 h-6 text-primary-foreground" />
+                  </span>
+                  <div className="font-charge text-5xl md:text-6xl text-gradient-primary leading-none">{s.value}</div>
+                  <p className="text-muted-foreground text-sm mt-3 leading-relaxed">{s.label}</p>
                 </div>
               ))}
             </div>

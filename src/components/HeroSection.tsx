@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
@@ -7,25 +7,16 @@ import {
 } from "lucide-react";
 import heroBg from "@/assets/hero-bg.jpg";
 import logo from "@/assets/hero-logo.png";
-import { EVENTS, type EventItem } from "@/data/events";
+import { type EventItem } from "@/data/events";
 import { JOBS, type Job } from "@/data/careers";
-import { BLOG_POSTS, type BlogPost } from "@/data/blog-posts";
+import { type BlogPost } from "@/data/blog-posts";
+import { useEvents, usePosts } from "@/hooks/use-content";
 
 type Slide =
   | { kind: "brand" }
   | { kind: "event"; data: EventItem }
   | { kind: "career"; data: Job }
   | { kind: "article"; data: BlogPost };
-
-// Build the deck: brand intro first, then a couple of upcoming events,
-// featured careers, and featured articles. Each event/career/article slide
-// shows its own image. Edit the slice counts to show more/less.
-const SLIDES: Slide[] = [
-  { kind: "brand" },
-  ...EVENTS.slice(0, 2).map((data): Slide => ({ kind: "event", data })),
-  ...JOBS.filter((j) => j.featured).slice(0, 2).map((data): Slide => ({ kind: "career", data })),
-  ...BLOG_POSTS.slice(0, 2).map((data): Slide => ({ kind: "article", data })),
-];
 
 const AUTOPLAY_MS = 6000;
 
@@ -36,6 +27,18 @@ const slideBg = (slide: Slide) => (slide.kind === "brand" ? heroBg : slide.data.
 const HeroSection = () => {
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
+
+  const { events } = useEvents();
+  const { posts } = usePosts();
+
+  // Build the deck: brand intro first, then a couple of upcoming events,
+  // featured careers, and featured articles. Each slide shows its own image.
+  const SLIDES = useMemo<Slide[]>(() => [
+    { kind: "brand" },
+    ...events.slice(0, 2).map((data): Slide => ({ kind: "event", data })),
+    ...JOBS.filter((j) => j.featured).slice(0, 2).map((data): Slide => ({ kind: "career", data })),
+    ...posts.slice(0, 2).map((data): Slide => ({ kind: "article", data })),
+  ], [events, posts]);
   const count = SLIDES.length;
 
   const go = useCallback((i: number) => setIndex(((i % count) + count) % count), [count]);
@@ -134,6 +137,31 @@ const HeroSection = () => {
 
 /* ---------------------------------------------------------------- slides */
 
+// Crisp framed thumbnail of the slide's own image — sits over the (blurred,
+// gradient-washed) background so the subject reads clearly. Optional date badge
+// overlays the top-left corner, matching the Featured Events cards.
+const SlideThumb = ({
+  src,
+  alt,
+  badge,
+}: {
+  src: string;
+  alt: string;
+  badge?: { month: string; day: string };
+}) => (
+  <div className="mx-auto mb-6 w-full max-w-sm md:max-w-md">
+    <div className="relative aspect-video overflow-hidden rounded-3xl ring-1 ring-white/25 shadow-2xl">
+      <img src={src} alt={alt} className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
+      {badge && (
+        <div className="absolute top-3 left-3 w-14 rounded-2xl bg-white/95 text-center shadow-lg overflow-hidden backdrop-blur">
+          <div className="bg-secondary text-primary-foreground text-[9px] font-bold tracking-wider py-0.5">{badge.month}</div>
+          <div className="text-foreground text-xl font-bold font-display leading-none py-1">{badge.day}</div>
+        </div>
+      )}
+    </div>
+  </div>
+);
+
 const BrandSlide = ({ active }: { active: boolean }) => (
   <div className="max-w-4xl mx-auto">
     <img
@@ -175,12 +203,7 @@ const EventSlide = ({ event }: { event: EventItem }) => (
       <CalendarDays className="w-4 h-4" /> Upcoming Event · {event.type}
     </span>
 
-    <div className="flex items-center justify-center gap-5 mb-5">
-      <div className="shrink-0 w-24 h-24 rounded-3xl bg-primary-foreground/15 backdrop-blur flex flex-col items-center justify-center text-primary-foreground">
-        <span className="text-xs font-semibold tracking-wider opacity-90">{event.month}</span>
-        <span className="text-4xl font-bold font-display leading-none">{event.day}</span>
-      </div>
-    </div>
+    <SlideThumb src={event.image} alt={event.title} badge={{ month: event.month, day: event.day }} />
 
     <h2 className="text-3xl md:text-5xl font-bold font-display text-primary-foreground leading-tight mb-4">
       {event.title}
@@ -191,9 +214,9 @@ const EventSlide = ({ event }: { event: EventItem }) => (
       <span className="flex items-center gap-1.5"><Clock className="w-4 h-4" /> {event.time}</span>
     </div>
 
-    <Link to="/events">
+    <Link to={event.slug ? `/events/${event.slug}` : "/events"}>
       <Button variant="green" size="lg" className="text-base px-8 py-6 rounded-2xl">
-        View Events <ArrowRight className="w-4 h-4 ml-1" />
+        {event.slug ? "View Event" : "View Events"} <ArrowRight className="w-4 h-4 ml-1" />
       </Button>
     </Link>
   </div>
@@ -204,6 +227,8 @@ const CareerSlide = ({ job }: { job: Job }) => (
     <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary-foreground/15 text-primary-foreground text-sm font-semibold mb-6 backdrop-blur">
       <Briefcase className="w-4 h-4" /> We're Hiring · {job.department}
     </span>
+
+    <SlideThumb src={job.image} alt={job.title} />
 
     <h2 className="text-3xl md:text-5xl font-bold font-display text-primary-foreground leading-tight mb-4">
       {job.title}
@@ -228,6 +253,8 @@ const ArticleSlide = ({ post }: { post: BlogPost }) => (
     <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary-foreground/15 text-primary-foreground text-sm font-semibold mb-6 backdrop-blur">
       <Newspaper className="w-4 h-4" /> Featured Article · {post.category}
     </span>
+
+    <SlideThumb src={post.image} alt={post.title} />
 
     <h2 className="text-3xl md:text-5xl font-bold font-display text-primary-foreground leading-tight mb-5">
       {post.title}

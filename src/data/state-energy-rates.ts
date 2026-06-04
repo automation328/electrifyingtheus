@@ -68,7 +68,7 @@ export const STATE_ENERGY_RATES: Record<string, StateEnergyRate> = {
 /** National-average fallbacks used for class comparisons. */
 export const NATIONAL_AVG = {
   electricityCentsPerKwh: 16.0,
-  gasPricePerGallon: 3.30,
+  gasPricePerGallon: 4.44,
 };
 
 export const STATE_CODES = Object.keys(STATE_ENERGY_RATES).sort((a, b) =>

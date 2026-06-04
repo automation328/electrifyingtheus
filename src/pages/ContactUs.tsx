@@ -2,10 +2,12 @@ import { useState, type ComponentType } from "react";
 import { Link } from "react-router-dom";
 import {
   Mail, Handshake, Sparkles, CalendarDays, Send, CheckCircle2, Loader2,
-  ArrowRight, MessageSquare,
+  ArrowRight, MessageSquare, User, Building2, HelpCircle,
 } from "lucide-react";
+import { FloatingInput, FloatingSelect, FloatingTextarea } from "@/components/forms/FloatingField";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { submitLead } from "@/lib/submitLead";
 
 const EMPTY = { firstName: "", lastName: "", email: "", company: "", topic: "General question", message: "" };
 
@@ -19,10 +21,6 @@ const TOPICS = [
 ];
 
 const isValidEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
-
-const CONTACT_WEBHOOK =
-  (import.meta as { env?: Record<string, string> }).env?.VITE_CONTACT_WEBHOOK_URL ??
-  (import.meta as { env?: Record<string, string> }).env?.VITE_N8N_WEBHOOK_URL;
 
 const REASONS: { icon: ComponentType<{ className?: string }>; title: string; text: string }[] = [
   { icon: Handshake, title: "Partner with us", text: "Utilities, automakers, employers, labor, and community groups — let's collaborate." },
@@ -48,22 +46,11 @@ const ContactUs = () => {
     if (!form.message.trim()) { setError("Please add a short message."); return; }
     setError("");
     setSubmitting(true);
-    if (CONTACT_WEBHOOK) {
-      try {
-        await fetch(CONTACT_WEBHOOK, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "contact", ...form }),
-        });
-      } catch { /* non-blocking */ }
-    }
+    await submitLead("contact-us", form);
     setSubmitting(false);
     setSubmitted(true);
   };
 
-  const inputCls =
-    "w-full rounded-xl border border-border bg-background px-3.5 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20";
-  const labelCls = "block text-xs font-medium text-muted-foreground mb-1.5";
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -142,42 +129,24 @@ const ContactUs = () => {
                       </p>
                     </div>
                   ) : (
-                    <form onSubmit={onSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-4" noValidate>
-                      <div>
-                        <label htmlFor="c-first" className={labelCls}>First name *</label>
-                        <input id="c-first" className={inputCls} value={form.firstName} onChange={set("firstName")} autoComplete="given-name" placeholder="Jane" />
-                      </div>
-                      <div>
-                        <label htmlFor="c-last" className={labelCls}>Last name *</label>
-                        <input id="c-last" className={inputCls} value={form.lastName} onChange={set("lastName")} autoComplete="family-name" placeholder="Doe" />
-                      </div>
-                      <div className="sm:col-span-2">
-                        <label htmlFor="c-email" className={labelCls}>Email *</label>
-                        <input id="c-email" type="email" className={inputCls} value={form.email} onChange={set("email")} autoComplete="email" placeholder="jane@company.com" />
-                      </div>
-                      <div className="sm:col-span-2">
-                        <label htmlFor="c-company" className={labelCls}>Company or organization</label>
-                        <input id="c-company" className={inputCls} value={form.company} onChange={set("company")} autoComplete="organization" placeholder="Acme Utilities" />
-                      </div>
-                      <div className="sm:col-span-2">
-                        <label htmlFor="c-topic" className={labelCls}>What can we help with?</label>
-                        <select id="c-topic" className={`${inputCls} cursor-pointer`} value={form.topic} onChange={set("topic")}>
-                          {TOPICS.map((t) => <option key={t} value={t}>{t}</option>)}
-                        </select>
-                      </div>
-                      <div className="sm:col-span-2">
-                        <label htmlFor="c-message" className={labelCls}>Message *</label>
-                        <textarea id="c-message" rows={5} className={`${inputCls} resize-y`} value={form.message} onChange={set("message")} placeholder="Tell us a bit about what you're looking for…" />
-                      </div>
+                    <form onSubmit={onSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-3.5" noValidate>
+                      <FloatingInput id="c-first" label="First name" required icon={User} value={form.firstName} onChange={set("firstName")} autoComplete="given-name" />
+                      <FloatingInput id="c-last" label="Last name" required icon={User} value={form.lastName} onChange={set("lastName")} autoComplete="family-name" />
+                      <FloatingInput id="c-email" label="Email" required type="email" icon={Mail} className="sm:col-span-2" value={form.email} onChange={set("email")} autoComplete="email" />
+                      <FloatingInput id="c-company" label="Company or organization" icon={Building2} className="sm:col-span-2" value={form.company} onChange={set("company")} autoComplete="organization" />
+                      <FloatingSelect id="c-topic" label="What can we help with?" icon={HelpCircle} className="sm:col-span-2" value={form.topic} onChange={set("topic")}>
+                        {TOPICS.map((t) => <option key={t} value={t}>{t}</option>)}
+                      </FloatingSelect>
+                      <FloatingTextarea id="c-message" label="Message" required icon={MessageSquare} className="sm:col-span-2" rows={5} value={form.message} onChange={set("message")} />
 
                       {error && <p className="sm:col-span-2 text-sm text-red-500">{error}</p>}
 
                       <button
                         type="submit"
                         disabled={submitting}
-                        className="sm:col-span-2 inline-flex items-center justify-center gap-2 rounded-xl gradient-primary text-primary-foreground font-semibold text-sm px-5 py-3.5 hover:opacity-90 transition disabled:opacity-60"
+                        className="sm:col-span-2 group inline-flex items-center justify-center gap-2 rounded-2xl gradient-primary text-primary-foreground font-semibold px-5 py-4 shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 transition-all disabled:opacity-60 disabled:hover:translate-y-0"
                       >
-                        {submitting ? (<><Loader2 className="w-4 h-4 animate-spin" /> Sending…</>) : (<><Send className="w-4 h-4" /> Send message</>)}
+                        {submitting ? (<><Loader2 className="w-4 h-4 animate-spin" /> Sending…</>) : (<><Send className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" /> Send message</>)}
                       </button>
                       <p className="sm:col-span-2 text-[11px] text-muted-foreground leading-relaxed">
                         By submitting you agree to be contacted by Electrifying the US. We never sell your data.

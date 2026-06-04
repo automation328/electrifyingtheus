@@ -14,7 +14,8 @@ const navItems = [
   { label: "EV vs Gas Calculator", href: "/electricity-vs-gasoline" },
   { label: "News", href: "/news" },
   { label: "Events", href: "/events" },
-  { label: "Career", href: "/careers" },
+  { label: "Gallery", href: "/gallery" },
+  { label: "Careers", href: "/careers" },
   { label: "Contact", href: "/contact-us" },
 ];
 

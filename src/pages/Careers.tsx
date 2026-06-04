@@ -8,6 +8,10 @@ import {
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { JOBS as jobs, type Job } from "@/data/careers";
+import { submitLead } from "@/lib/submitLead";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 const DEPT_ICON: Record<string, LucideIcon> = {
   Outreach: Megaphone,
@@ -30,10 +34,30 @@ const Careers = () => {
   const [alertDone, setAlertDone] = useState(false);
   const [alertErr, setAlertErr] = useState("");
 
+  // Apply gate — capture first name + email, then route to the employer's site.
+  const [applyJob, setApplyJob] = useState<Job | null>(null);
+  const [applyForm, setApplyForm] = useState({ firstName: "", email: "" });
+  const [applyErr, setApplyErr] = useState("");
+
   const filtered = dept === "All" ? jobs : jobs.filter((j) => j.department === dept);
 
-  const applyHref = (j: Job) =>
-    `mailto:${j.applyEmail ?? "careers@electrifyingtheus.com"}?subject=${encodeURIComponent(`Application: ${j.title} — ${j.company}`)}`;
+  const applyTo = (j: Job) =>
+    j.applyUrl ?? `https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(`${j.title} ${j.company}`)}`;
+
+  const openApply = (j: Job) => { setApplyForm({ firstName: "", email: "" }); setApplyErr(""); setApplyJob(j); };
+
+  const submitApply = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!applyForm.firstName.trim()) { setApplyErr("Please enter your first name."); return; }
+    if (!isValidEmail(applyForm.email)) { setApplyErr("Please enter a valid email address."); return; }
+    const j = applyJob!;
+    submitLead("job-apply", {
+      firstName: applyForm.firstName, email: applyForm.email,
+      jobTitle: j.title, company: j.company, location: j.location, jobType: j.type,
+    });
+    setApplyJob(null);
+    window.open(applyTo(j), "_blank", "noopener,noreferrer");
+  };
 
   // Share a listing via the visitor's email or SMS app.
   const shareUrl = typeof window !== "undefined" ? `${window.location.origin}/careers` : "https://electrifyingtheus.com/careers";
@@ -46,6 +70,7 @@ const Careers = () => {
     e.preventDefault();
     if (!isValidEmail(alertEmail)) { setAlertErr("Please enter a valid email address."); return; }
     setAlertErr("");
+    submitLead("career-alerts", { email: alertEmail });
     setAlertDone(true);
   };
 
@@ -111,9 +136,9 @@ const Careers = () => {
                     </div>
                     <p className="text-sm text-muted-foreground mb-4">{j.description}</p>
                     <div className="flex items-center gap-2">
-                      <a href={applyHref(j)} className="inline-flex items-center gap-2 gradient-primary text-primary-foreground font-semibold text-sm px-5 py-2.5 rounded-xl hover:opacity-90 transition">
+                      <button type="button" onClick={() => openApply(j)} className="inline-flex items-center gap-2 gradient-primary text-primary-foreground font-semibold text-sm px-5 py-2.5 rounded-xl hover:opacity-90 transition">
                         Apply <ArrowRight className="w-4 h-4" />
-                      </a>
+                      </button>
                       <a href={shareEmail(j)} aria-label="Share via email" className="grid place-items-center w-9 h-9 rounded-lg border border-border text-muted-foreground hover:text-primary hover:border-primary/40 transition"><Mail className="w-4 h-4" /></a>
                       <a href={shareSms(j)} aria-label="Share via SMS" className="grid place-items-center w-9 h-9 rounded-lg border border-border text-muted-foreground hover:text-primary hover:border-primary/40 transition"><MessageSquare className="w-4 h-4" /></a>
                     </div>
@@ -180,9 +205,9 @@ const Careers = () => {
                   <div className="shrink-0 flex items-center gap-2">
                     <a href={shareEmail(j)} aria-label="Share via email" className="grid place-items-center w-10 h-10 rounded-lg border border-border text-muted-foreground hover:text-primary hover:border-primary/40 transition"><Mail className="w-4 h-4" /></a>
                     <a href={shareSms(j)} aria-label="Share via SMS" className="grid place-items-center w-10 h-10 rounded-lg border border-border text-muted-foreground hover:text-primary hover:border-primary/40 transition"><MessageSquare className="w-4 h-4" /></a>
-                    <a href={applyHref(j)} className="inline-flex items-center justify-center gap-2 gradient-primary text-primary-foreground font-semibold text-sm px-6 py-3 rounded-xl hover:opacity-90 group-hover:gap-3 transition-all">
+                    <button type="button" onClick={() => openApply(j)} className="inline-flex items-center justify-center gap-2 gradient-primary text-primary-foreground font-semibold text-sm px-6 py-3 rounded-xl hover:opacity-90 group-hover:gap-3 transition-all">
                       Apply <ArrowRight className="w-4 h-4" />
-                    </a>
+                    </button>
                   </div>
                 </article>
               );
@@ -210,7 +235,7 @@ const Careers = () => {
                   type="email"
                   placeholder="you@email.com"
                   aria-label="Email for job alerts"
-                  className="flex-1 rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                  className="flex-1 rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20"
                 />
                 <button type="submit" className="inline-flex items-center justify-center gap-2 gradient-primary text-primary-foreground font-semibold text-sm px-5 py-3 rounded-xl hover:opacity-90 transition">
                   Subscribe <ArrowRight className="w-4 h-4" />
@@ -278,6 +303,54 @@ const Careers = () => {
           </div>
         </div>
       </main>
+
+      {/* Apply gate — capture first name + email, then route to the employer's site */}
+      <Dialog open={!!applyJob} onOpenChange={(o) => { if (!o) setApplyJob(null); }}>
+        <DialogContent aria-describedby={undefined} className="sm:max-w-md rounded-3xl overflow-hidden p-0 bg-white">
+          <div className="h-1.5 w-full gradient-hero" aria-hidden />
+          <div className="p-6">
+            <DialogHeader>
+              <DialogTitle className="font-display text-2xl flex items-center gap-2">
+                <Briefcase className="w-5 h-5 text-primary" /> Apply for this role
+              </DialogTitle>
+            </DialogHeader>
+            {applyJob && (
+              <div className="mt-2 mb-4 rounded-2xl border border-border bg-muted/40 p-3.5">
+                <p className="font-semibold text-foreground text-sm">{applyJob.title}</p>
+                <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-0.5">
+                  <Building2 className="w-3.5 h-3.5" /> {applyJob.company} · {applyJob.location}
+                </p>
+              </div>
+            )}
+            <form onSubmit={submitApply} className="space-y-3">
+              <Input
+                value={applyForm.firstName}
+                onChange={(e) => setApplyForm((f) => ({ ...f, firstName: e.target.value }))}
+                placeholder="First name *"
+                autoComplete="given-name"
+                autoFocus
+                className="rounded-xl h-11"
+              />
+              <Input
+                type="email"
+                value={applyForm.email}
+                onChange={(e) => setApplyForm((f) => ({ ...f, email: e.target.value }))}
+                placeholder="Email address *"
+                autoComplete="email"
+                className="rounded-xl h-11"
+              />
+              {applyErr && <p className="text-xs text-red-500">{applyErr}</p>}
+              <Button type="submit" variant="hero" size="lg" className="w-full rounded-xl">
+                Continue to apply <ArrowRight className="w-4 h-4" />
+              </Button>
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                We'll take you to the employer's application page. Your details help us keep you posted on similar roles.
+              </p>
+            </form>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <Footer />
     </div>
   );

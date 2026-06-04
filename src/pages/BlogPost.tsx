@@ -4,7 +4,7 @@ import ReactMarkdown from "react-markdown";
 import { ArrowLeft, ArrowRight, Calendar, User, Clock } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { BLOG_POSTS, getPostBySlug } from "@/data/blog-posts";
+import { usePost, usePosts } from "@/hooks/use-content";
 
 const markdownComponents = {
   h2: ({ children }: { children?: React.ReactNode }) => (
@@ -40,7 +40,8 @@ const markdownComponents = {
 
 const BlogPost = () => {
   const { slug } = useParams<{ slug: string }>();
-  const post = slug ? getPostBySlug(slug) : undefined;
+  const { post, loading } = usePost(slug);
+  const { posts } = usePosts();
   const [progress, setProgress] = useState(0);
 
   // Scroll to top when navigating between posts.
@@ -58,6 +59,18 @@ const BlogPost = () => {
   }, [slug]);
 
   if (!post) {
+    // Still resolving dynamic (Supabase) posts — don't flash "not found".
+    if (loading) {
+      return (
+        <div className="min-h-screen flex flex-col bg-background">
+          <Navbar />
+          <main className="flex-1 pt-28 pb-16 flex items-center justify-center">
+            <div className="text-muted-foreground">Loading…</div>
+          </main>
+          <Footer />
+        </div>
+      );
+    }
     return (
       <div className="min-h-screen flex flex-col bg-background">
         <Navbar />
@@ -75,7 +88,7 @@ const BlogPost = () => {
     );
   }
 
-  const related = BLOG_POSTS.filter((p) => p.slug !== post.slug).slice(0, 3);
+  const related = posts.filter((p) => p.slug !== post.slug).slice(0, 3);
 
   return (
     <div className="min-h-screen flex flex-col bg-background">

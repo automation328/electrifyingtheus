@@ -2,10 +2,7 @@ import { Link } from "react-router-dom";
 import { ArrowRight, Calendar, User, Clock } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { BLOG_POSTS } from "@/data/blog-posts";
-
-const featured = BLOG_POSTS.find((p) => p.featured) ?? BLOG_POSTS[0];
-const posts = BLOG_POSTS.filter((p) => p.slug !== featured.slug);
+import { usePosts } from "@/hooks/use-content";
 
 const PostMeta = ({ date, author, readTime }: { date: string; author: string; readTime?: string }) => (
   <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
@@ -16,6 +13,12 @@ const PostMeta = ({ date, author, readTime }: { date: string; author: string; re
 );
 
 const Blog = () => {
+  const { posts: allPosts } = usePosts();
+  const featured = allPosts.find((p) => p.featured) ?? allPosts[0];
+  const posts = allPosts.filter((p) => p.slug !== featured?.slug);
+
+  if (!featured) return null;
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />

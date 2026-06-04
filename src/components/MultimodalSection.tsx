@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { Plane, Bus, Ship, Bike, Car, GraduationCap, Truck, Bot, PlaneTakeoff } from "lucide-react";
 import schoolBus from "@/assets/school-bus.jpg";
 import sustainableAviation from "@/assets/sustainable-aviation.jpg";
@@ -14,63 +15,63 @@ const modes = [
     icon: Bot,
     title: "Self-Driving Vehicles and Delivery Robots",
     desc: "Self-driving cars, delivery robots, aren't science fiction — they're on America's roads, sidewalks, and skies right now, reshaping how people and goods move across the country. This autonomous revolution promises cleaner, faster, and more connected communities.",
-    link: "https://www.nhtsa.gov/vehicle-safety/automated-vehicles-safety",
+    path: "/self-driving-vehicles",
     image: selfDriving,
   },
   {
     icon: PlaneTakeoff,
     title: "eVTOLs and Drone Delivery",
     desc: "A new layer of infrastructure is taking shape above our cities. Electric air taxis are beginning to shuttle passengers over congested streets, while delivery drones are reaching rural homes and hospital rooftops in minutes — ushering in an era of on-demand aerial mobility that was unimaginable just a decade ago.",
-    link: "https://www.transportation.gov/sites/dot.gov/files/2025-12/AAM%20National%20Strategy%202025.pdf",
+    path: "/evtol-drone-delivery",
     image: evtolDrone,
   },
   {
     icon: Plane,
     title: "Sustainable Aviation and eGSE",
     desc: "Airports and Airlines are quickly reducing emissions through the electrification of ground service equipment. Also the utilization of SAF reduces lifecycle CO₂ by up to 80%. Electric commuter planes now connect regional airports for trips under 250 miles and this sector is growing rapidly.",
-    link: "https://www.safii.org/the-future-of-worldwide-sustainable-aviation-fuel-saf-demand-different-transatlantic-government-policies-make-pathways-to-net-zero-aviation-difficult/",
+    path: "/sustainable-aviation",
     image: sustainableAviation,
   },
   {
     icon: GraduationCap,
     title: "Electric School Buses",
     desc: "EPA investing $5B to replace diesel buses. 8,700+ electric buses funded across 1,300 school districts.",
-    link: "https://www.epa.gov/cleanschoolbus/clean-school-bus-program-awards",
+    path: "/electric-school-buses",
     image: schoolBus,
   },
   {
     icon: Truck,
     title: "Heavy-Duty Electrification",
     desc: "Zero-emission freight corridor strategy prioritizing charging hubs along major interstates handling 10,000+ trucks daily.",
-    link: "https://www.transportation.gov/freight/NFSP",
+    path: "/heavy-duty-electrification",
     image: heavyDuty,
   },
   {
     icon: Bus,
     title: "Electric Public Transit",
     desc: "$2B+ in annual federal funding for low/no-emission vehicles. Transit authorities in all 50 states replacing diesel fleets.",
-    link: "https://itdp.org/2026/01/06/better-bus-service-electric-buses-stmagazine-37/",
+    path: "/electric-public-transit",
     image: electricTransitBus,
   },
   {
     icon: Car,
     title: "Rideshare, Rental Cars, and Fleets",
     desc: "Uber and Lyft committing to 100% EV fleets. Rental companies offering EVs nationwide at competitive rates.",
-    link: "https://www.cnbc.com/2022/06/18/how-the-massive-ev-transition-is-starting-in-the-car-rental-industry.html",
+    path: "/rideshare-rental-fleets",
     image: rideshareFleet,
   },
   {
     icon: Bike,
     title: "Micro-mobility",
     desc: "150M+ shared trips annually in 400+ cities. E-bike rebate programs offering up to $1,500 in savings.",
-    link: "https://www.peopleforbikes.org/news/solutions-to-the-e-moto-problem",
+    path: "/micro-mobility",
     image: micromobility,
   },
   {
     icon: Ship,
     title: "Sustainable Maritime",
     desc: "70%+ of major U.S. ports equipped with Shore Power by end of 2026. Electric ferries and tugboats cut costs 30-40%.",
-    link: "https://www.epa.gov/ports-initiative",
+    path: "/sustainable-maritime",
     image: maritime,
   },
 ];
@@ -93,11 +94,9 @@ const MultimodalSection = () => {
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           {modes.map((mode, i) => (
-            <a
+            <Link
               key={i}
-              href={mode.link}
-              target="_blank"
-              rel="noopener noreferrer"
+              to={mode.path}
               className={`group bg-card rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-1 border border-border/50 ${
                 mode.image ? "lg:col-span-2 lg:row-span-2" : ""
               }`}
@@ -124,7 +123,7 @@ const MultimodalSection = () => {
                   Read More →
                 </span>
               </div>
-            </a>
+            </Link>
           ))}
         </div>
       </div>

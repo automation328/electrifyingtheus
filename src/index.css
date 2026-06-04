@@ -42,6 +42,7 @@
     --gradient-blue: linear-gradient(135deg, hsl(214, 100%, 36%), hsl(214, 100%, 50%));
     --gradient-green: linear-gradient(135deg, hsl(145, 45%, 38%), hsl(145, 55%, 48%));
     --gradient-hero: linear-gradient(135deg, hsl(214, 100%, 36%), hsl(145, 45%, 38%));
+    --gradient-hero-rev: linear-gradient(135deg, hsl(145, 45%, 38%), hsl(214, 100%, 42%));
     --shadow-card: 0 4px 24px -4px hsl(214 100% 36% / 0.08);
     --shadow-elevated: 0 12px 40px -8px hsl(214 100% 36% / 0.15);
 
@@ -94,6 +95,10 @@
 
   .gradient-hero {
     background-image: var(--gradient-hero);
+  }
+
+  .gradient-hero-rev {
+    background-image: var(--gradient-hero-rev);
   }
 
   .animate-fade-up {
@@ -363,8 +368,8 @@ html[data-theme="glass"] .gradient-hero {
 /* Clearly-bordered input boxes on the calculator — stays legible even under
    the glass theme, which otherwise renders borders as translucent white. */
 .evg-field {
-  border: 1px solid hsl(214 20% 80%) !important;
-  background-color: #fff !important;
+  border: 1px solid hsl(214 20% 78%) !important;
+  background-color: #f1f5f9 !important;
   box-shadow: 0 1px 2px hsl(214 30% 20% / 0.06);
   transition: border-color 0.15s, box-shadow 0.15s;
 }
@@ -513,11 +518,19 @@ html[data-theme="glass"] .gradient-hero {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
 }
 
-/* Cinematic grade laid over the hero photograph */
+/* Cinematic grade laid over the hero photograph.
+   Strong light wash over the lower half keeps the dark title + intro legible
+   even on bright photos (e.g. the heavy-duty truck). */
 .brief-hero-grade {
   background:
-    linear-gradient(180deg, hsl(var(--b-ink) / 0.30) 0%, hsl(var(--b-ink) / 0.10) 30%, hsl(0 0% 100% / 0.55) 78%, hsl(var(--background)) 100%),
-    linear-gradient(105deg, hsl(var(--b-blue-deep) / 0.55), transparent 55%, hsl(var(--b-green) / 0.30));
+    linear-gradient(180deg,
+      hsl(var(--b-ink) / 0.34) 0%,
+      hsl(var(--b-ink) / 0.12) 22%,
+      hsl(0 0% 100% / 0.50) 48%,
+      hsl(0 0% 100% / 0.84) 70%,
+      hsl(var(--background) / 0.96) 88%,
+      hsl(var(--background)) 100%),
+    linear-gradient(105deg, hsl(var(--b-blue-deep) / 0.45), transparent 52%, hsl(var(--b-green) / 0.26));
   mix-blend-mode: normal;
 }
 .brief-hero-img { filter: saturate(1.05) contrast(1.04); }

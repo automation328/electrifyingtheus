@@ -1,11 +1,13 @@
 import { Link } from "react-router-dom";
 import { MapPin, Clock, ArrowRight, CalendarDays, Star } from "lucide-react";
-import { EVENTS } from "@/data/events";
-
-// Promote a few events on the home page; deep-links to the full Events page.
-const highlights = (EVENTS.filter((e) => e.featured).length ? EVENTS.filter((e) => e.featured) : EVENTS).slice(0, 3);
+import { useEvents } from "@/hooks/use-content";
 
 const FeaturedEventsSection = () => {
+  const { events } = useEvents();
+  // Promote a few events on the home page; deep-links to the full Events page.
+  const featuredEvents = events.filter((e) => e.featured);
+  const highlights = (featuredEvents.length ? featuredEvents : events).slice(0, 3);
+
   return (
     <section id="events" className="py-20 md:py-28 bg-muted/30">
       <div className="container">
@@ -27,39 +29,51 @@ const FeaturedEventsSection = () => {
         </div>
 
         <div className="grid md:grid-cols-3 gap-6">
-          {highlights.map((e, i) => (
-            <Link
-              to="/events"
-              key={e.title}
-              className="group relative rounded-3xl border border-border bg-card overflow-hidden shadow-card hover:shadow-xl hover:-translate-y-1 transition-all animate-fade-up"
-              style={{ animationDelay: `${i * 0.08}s` }}
-            >
-              <div className="relative gradient-primary text-primary-foreground p-6">
-                {e.featured && (
-                  <span className="absolute top-4 right-4 inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary-foreground/15 text-[11px] font-bold">
-                    <Star className="w-3 h-3" fill="currentColor" /> Featured
-                  </span>
-                )}
-                <div className="flex items-center gap-3">
-                  <div className="shrink-0 w-16 h-16 rounded-2xl bg-primary-foreground/15 backdrop-blur flex flex-col items-center justify-center">
-                    <span className="text-[10px] font-semibold tracking-wider opacity-90">{e.month}</span>
-                    <span className="text-2xl font-bold font-display leading-none">{e.day}</span>
+          {highlights.map((e, i) => {
+            // Blue↔green hero gradient bodies, alternating direction (matches the reference cards).
+            const body = i % 2 === 0 ? "gradient-hero" : "gradient-hero-rev";
+            return (
+              <Link
+                to={e.slug ? `/events/${e.slug}` : "/events"}
+                key={e.title}
+                className="group flex flex-col rounded-3xl overflow-hidden shadow-card hover:shadow-xl hover:-translate-y-1 transition-all animate-fade-up"
+                style={{ animationDelay: `${i * 0.08}s` }}
+              >
+                {/* Poster image with date badge + featured flag overlaid */}
+                <div className="relative aspect-[4/3] overflow-hidden">
+                  <img
+                    src={e.image}
+                    alt={e.title}
+                    loading="lazy"
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                  <span className="absolute inset-0 bg-gradient-to-t from-foreground/30 to-transparent" aria-hidden />
+                  <div className="absolute top-3 left-3 w-16 rounded-2xl bg-white text-center shadow-lg overflow-hidden">
+                    <div className="bg-secondary text-primary-foreground text-[10px] font-bold tracking-wider py-1">{e.month}</div>
+                    <div className="text-foreground text-2xl font-bold font-display leading-none py-1.5">{e.day}</div>
                   </div>
-                  <span className="inline-block px-3 py-1 rounded-full bg-primary-foreground/15 text-xs font-semibold">{e.type}</span>
+                  {e.featured && (
+                    <span className="absolute top-3 right-3 inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/90 text-foreground text-[11px] font-bold shadow">
+                      <Star className="w-3 h-3 text-secondary" fill="currentColor" /> Featured
+                    </span>
+                  )}
                 </div>
-              </div>
-              <div className="p-6">
-                <h3 className="text-lg font-bold font-display text-foreground mb-3 leading-snug group-hover:text-primary transition-colors">{e.title}</h3>
-                <div className="flex flex-col gap-1.5 text-sm text-muted-foreground mb-4">
-                  <span className="flex items-center gap-1.5"><MapPin className="w-4 h-4 text-secondary" /> {e.location}</span>
-                  <span className="flex items-center gap-1.5"><Clock className="w-4 h-4 text-secondary" /> {e.time}</span>
+
+                {/* Colored body */}
+                <div className={`${body} text-primary-foreground p-5 flex flex-col flex-1`}>
+                  <span className="inline-block self-start px-2.5 py-0.5 rounded-full bg-white/20 text-[11px] font-semibold mb-2.5">{e.type}</span>
+                  <h3 className="text-lg font-bold font-display leading-snug mb-3">{e.title}</h3>
+                  <div className="flex flex-col gap-1.5 text-sm text-primary-foreground/90 mb-4">
+                    <span className="flex items-center gap-1.5"><MapPin className="w-4 h-4" /> {e.location}</span>
+                    <span className="flex items-center gap-1.5"><Clock className="w-4 h-4" /> {e.time}</span>
+                  </div>
+                  <span className="mt-auto inline-flex items-center justify-center gap-1.5 rounded-xl bg-white text-foreground text-sm font-bold py-2.5 transition-colors group-hover:bg-white/90">
+                    Register <ArrowRight className="w-4 h-4" />
+                  </span>
                 </div>
-                <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary group-hover:gap-2.5 transition-all">
-                  Details &amp; register <ArrowRight className="w-4 h-4" />
-                </span>
-              </div>
-            </Link>
-          ))}
+              </Link>
+            );
+          })}
         </div>
       </div>
     </section>

@@ -5,6 +5,7 @@ import {
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { submitLead } from "@/lib/submitLead";
 
 const EMPTY = {
   firstName: "", lastName: "", email: "", mobile: "", city: "", zip: "",
@@ -16,11 +17,6 @@ const EMPTY = {
 type Field = keyof typeof EMPTY;
 
 const isValidEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
-
-const JOB_WEBHOOK =
-  (import.meta as { env?: Record<string, string> }).env?.VITE_JOB_WEBHOOK_URL ??
-  (import.meta as { env?: Record<string, string> }).env?.VITE_CONTACT_WEBHOOK_URL ??
-  (import.meta as { env?: Record<string, string> }).env?.VITE_N8N_WEBHOOK_URL;
 
 const JOB_TYPES = [
   "Full-time", "Part-time", "Contract", "Temporary",
@@ -73,21 +69,13 @@ const PostAJob = () => {
 
     setError("");
     setSubmitting(true);
-    if (JOB_WEBHOOK) {
-      try {
-        await fetch(JOB_WEBHOOK, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "postJob", ...form, permission, marketingConsent }),
-        });
-      } catch { /* non-blocking */ }
-    }
+    await submitLead("post-job", { ...form, marketingConsent });
     setSubmitting(false);
     setSubmitted(true);
   };
 
   const inputCls =
-    "w-full rounded-xl border border-border bg-background px-3.5 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20";
+    "w-full rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20";
   const labelCls = "block text-xs font-medium text-foreground mb-1.5";
   const reqStar = <span className="text-primary">*</span>;
 

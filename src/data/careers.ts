@@ -17,6 +17,9 @@ export interface Job {
   image: string;
   featured?: boolean;
   applyEmail?: string;
+  /** External application URL — where Apply routes after the lead is captured.
+   *  Falls back to a LinkedIn jobs search for the title + company if unset. */
+  applyUrl?: string;
 }
 
 export const JOBS: Job[] = [

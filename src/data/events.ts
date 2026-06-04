@@ -3,6 +3,7 @@ import evCharging from "@/assets/ev-charging.jpg";
 import workforce from "@/assets/workforce.jpg";
 import steamEducation from "@/assets/steam-education.jpg";
 import heavyDuty from "@/assets/heavy-duty.jpg";
+import pumpToPlug from "@/assets/event-pump-to-plug.jpg";
 
 export interface EventItem {
   month: string;
@@ -18,9 +19,27 @@ export interface EventItem {
   /** Hero/card image for this exact event. */
   image: string;
   featured?: boolean;
+  /** When set, the event links to its own detail page at /events/{slug}. */
+  slug?: string;
+  /** External registration link (e.g. webinar signup). */
+  registerUrl?: string;
 }
 
 export const EVENTS: EventItem[] = [
+  {
+    month: "JUN", day: "25", year: 2026,
+    title: "From Pump to Plug: How Electric Vehicles Are Saving Thousands",
+    type: "Webinar",
+    location: "Online · Live Webinar",
+    region: "Online",
+    time: "2:00 – 3:00 PM ET",
+    description:
+      "A free one-hour webinar on how switching from gas to electric saves drivers thousands — on fuel, maintenance, and incentives. See real cost comparisons and how to find the rebates available in your area. Powered by Electrifying Michigan, Electrifying the US, and Electrifying Virginia.",
+    image: pumpToPlug,
+    featured: true,
+    slug: "from-pump-to-plug",
+    registerUrl: "https://bit.ly/SaveWithEVs",
+  },
   {
     month: "JUN", day: "14", year: 2026,
     title: "National Drive Electric — Ride & Drive",

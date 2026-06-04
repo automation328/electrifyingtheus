@@ -1,0 +1,199 @@
+{
+  "name": "Site Content — Events & Blog (Add/Delete)",
+  "nodes": [
+    {
+      "name": "Submit Event or Blog",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.5,
+      "position": [0, 288],
+      "parameters": {
+        "formTitle": "Electrifying the US — Publish Event / Blog",
+        "formDescription": "Add a new event and/or blog post to the website, or delete an existing one. Pick the Action and Content Type, then fill the matching section. For Delete, put the event id or blog slug in the last field.",
+        "formFields": {
+          "values": [
+            { "fieldLabel": "Action", "fieldType": "dropdown", "requiredField": true, "fieldOptions": { "values": [{ "option": "Add" }, { "option": "Delete" }] } },
+            { "fieldLabel": "Content Type", "fieldType": "dropdown", "requiredField": true, "fieldOptions": { "values": [{ "option": "Event" }, { "option": "Blog" }, { "option": "Both" }] } },
+            { "fieldLabel": "Event Title", "fieldType": "text" },
+            { "fieldLabel": "Event Type", "fieldType": "text", "placeholder": "Ride & Drive, Webinar, Expo…" },
+            { "fieldLabel": "Event Date", "fieldType": "date" },
+            { "fieldLabel": "Event Time", "fieldType": "text", "placeholder": "10:00 AM – 4:00 PM EDT" },
+            { "fieldLabel": "Event Location", "fieldType": "text", "placeholder": "Atlanta, GA · Piedmont Park" },
+            { "fieldLabel": "Event Region", "fieldType": "text", "placeholder": "Atlanta, GA" },
+            { "fieldLabel": "Event Description", "fieldType": "textarea" },
+            { "fieldLabel": "Event Image URL", "fieldType": "text", "placeholder": "https://…/image.jpg" },
+            { "fieldLabel": "Event Featured", "fieldType": "dropdown", "fieldOptions": { "values": [{ "option": "No" }, { "option": "Yes" }] } },
+            { "fieldLabel": "Blog Title", "fieldType": "text" },
+            { "fieldLabel": "Blog Slug", "fieldType": "text", "placeholder": "why-2026-is-the-tipping-point" },
+            { "fieldLabel": "Blog Category", "fieldType": "text", "placeholder": "Policy & Trends, EV 101…" },
+            { "fieldLabel": "Blog Excerpt", "fieldType": "textarea" },
+            { "fieldLabel": "Blog Author", "fieldType": "text", "placeholder": "Electrifying the US Team" },
+            { "fieldLabel": "Blog Read Time", "fieldType": "text", "placeholder": "5 min read" },
+            { "fieldLabel": "Blog Image URL", "fieldType": "text", "placeholder": "https://…/image.jpg" },
+            { "fieldLabel": "Blog Content", "fieldType": "textarea", "placeholder": "Markdown body" },
+            { "fieldLabel": "Blog Featured", "fieldType": "dropdown", "fieldOptions": { "values": [{ "option": "No" }, { "option": "Yes" }] } },
+            { "fieldLabel": "Delete ID or Slug", "fieldType": "text", "placeholder": "event id (uuid) or blog slug" }
+          ]
+        },
+        "responseMode": "onReceived",
+        "options": {
+          "path": "publish-content",
+          "buttonLabel": "Publish",
+          "respondWithOptions": { "values": { "respondWith": "text", "formSubmittedText": "Saved. The website will reflect this within a few minutes." } }
+        }
+      }
+    },
+    {
+      "name": "Add an Event?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [224, 0],
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "loose" },
+          "conditions": [{ "leftValue": "={{ $json['Action'] === 'Add' && ($json['Content Type'] === 'Event' || $json['Content Type'] === 'Both') }}", "rightValue": "", "operator": { "type": "boolean", "operation": "true", "singleValue": true } }]
+        }
+      }
+    },
+    {
+      "name": "Insert Event Row",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [448, 0],
+      "parameters": {
+        "resource": "row",
+        "operation": "create",
+        "tableId": "site_events",
+        "dataToSend": "defineBelow",
+        "fieldsUi": {
+          "fieldValues": [
+            { "fieldId": "status", "fieldValue": "published" },
+            { "fieldId": "event_date", "fieldValue": "={{ $json['Event Date'] }}" },
+            { "fieldId": "title", "fieldValue": "={{ $json['Event Title'] }}" },
+            { "fieldId": "type", "fieldValue": "={{ $json['Event Type'] }}" },
+            { "fieldId": "location", "fieldValue": "={{ $json['Event Location'] }}" },
+            { "fieldId": "region", "fieldValue": "={{ $json['Event Region'] }}" },
+            { "fieldId": "time", "fieldValue": "={{ $json['Event Time'] }}" },
+            { "fieldId": "description", "fieldValue": "={{ $json['Event Description'] }}" },
+            { "fieldId": "image", "fieldValue": "={{ $json['Event Image URL'] }}" },
+            { "fieldId": "featured", "fieldValue": "={{ $json['Event Featured'] === 'Yes' }}" }
+          ]
+        }
+      },
+      "credentials": { "supabaseApi": { "name": "Supabase" } }
+    },
+    {
+      "name": "Add a Blog?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [224, 192],
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "loose" },
+          "conditions": [{ "leftValue": "={{ $json['Action'] === 'Add' && ($json['Content Type'] === 'Blog' || $json['Content Type'] === 'Both') }}", "rightValue": "", "operator": { "type": "boolean", "operation": "true", "singleValue": true } }]
+        }
+      }
+    },
+    {
+      "name": "Insert Blog Row",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [448, 192],
+      "parameters": {
+        "resource": "row",
+        "operation": "create",
+        "tableId": "site_blog_posts",
+        "dataToSend": "defineBelow",
+        "fieldsUi": {
+          "fieldValues": [
+            { "fieldId": "status", "fieldValue": "published" },
+            { "fieldId": "slug", "fieldValue": "={{ $json['Blog Slug'] }}" },
+            { "fieldId": "title", "fieldValue": "={{ $json['Blog Title'] }}" },
+            { "fieldId": "excerpt", "fieldValue": "={{ $json['Blog Excerpt'] }}" },
+            { "fieldId": "category", "fieldValue": "={{ $json['Blog Category'] }}" },
+            { "fieldId": "date", "fieldValue": "={{ $now.toFormat('LLLL d, yyyy') }}" },
+            { "fieldId": "published_at", "fieldValue": "={{ $now.toFormat('yyyy-MM-dd') }}" },
+            { "fieldId": "author", "fieldValue": "={{ $json['Blog Author'] }}" },
+            { "fieldId": "read_time", "fieldValue": "={{ $json['Blog Read Time'] }}" },
+            { "fieldId": "image", "fieldValue": "={{ $json['Blog Image URL'] }}" },
+            { "fieldId": "content", "fieldValue": "={{ $json['Blog Content'] }}" },
+            { "fieldId": "featured", "fieldValue": "={{ $json['Blog Featured'] === 'Yes' }}" }
+          ]
+        }
+      },
+      "credentials": { "supabaseApi": { "name": "Supabase" } }
+    },
+    {
+      "name": "Delete an Event?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [224, 384],
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "loose" },
+          "conditions": [{ "leftValue": "={{ $json['Action'] === 'Delete' && ($json['Content Type'] === 'Event' || $json['Content Type'] === 'Both') }}", "rightValue": "", "operator": { "type": "boolean", "operation": "true", "singleValue": true } }]
+        }
+      }
+    },
+    {
+      "name": "Delete Event Row",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [448, 384],
+      "parameters": {
+        "resource": "row",
+        "operation": "delete",
+        "tableId": "site_events",
+        "filterType": "manual",
+        "matchType": "allFilters",
+        "filters": { "conditions": [{ "keyName": "id", "condition": "eq", "keyValue": "={{ $json['Delete ID or Slug'] }}" }] }
+      },
+      "credentials": { "supabaseApi": { "name": "Supabase" } }
+    },
+    {
+      "name": "Delete a Blog?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [224, 576],
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "loose" },
+          "conditions": [{ "leftValue": "={{ $json['Action'] === 'Delete' && ($json['Content Type'] === 'Blog' || $json['Content Type'] === 'Both') }}", "rightValue": "", "operator": { "type": "boolean", "operation": "true", "singleValue": true } }]
+        }
+      }
+    },
+    {
+      "name": "Delete Blog Row",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [448, 576],
+      "parameters": {
+        "resource": "row",
+        "operation": "delete",
+        "tableId": "site_blog_posts",
+        "filterType": "manual",
+        "matchType": "allFilters",
+        "filters": { "conditions": [{ "keyName": "slug", "condition": "eq", "keyValue": "={{ $json['Delete ID or Slug'] }}" }] }
+      },
+      "credentials": { "supabaseApi": { "name": "Supabase" } }
+    }
+  ],
+  "connections": {
+    "Submit Event or Blog": {
+      "main": [[
+        { "node": "Add an Event?", "type": "main", "index": 0 },
+        { "node": "Add a Blog?", "type": "main", "index": 0 },
+        { "node": "Delete an Event?", "type": "main", "index": 0 },
+        { "node": "Delete a Blog?", "type": "main", "index": 0 }
+      ]]
+    },
+    "Add an Event?": { "main": [[{ "node": "Insert Event Row", "type": "main", "index": 0 }]] },
+    "Add a Blog?": { "main": [[{ "node": "Insert Blog Row", "type": "main", "index": 0 }]] },
+    "Delete an Event?": { "main": [[{ "node": "Delete Event Row", "type": "main", "index": 0 }]] },
+    "Delete a Blog?": { "main": [[{ "node": "Delete Blog Row", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" }
+}

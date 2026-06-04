@@ -190,7 +190,7 @@ export function compareVehicles(evResult: TCOResult, gasResult: TCOResult): Comp
 export const defaultInputs: UserInputs = {
   annualMileage: 12000,
   ownershipYears: 5,
-  gasPricePerGallon: 3.50,
+  gasPricePerGallon: 4.44,
   electricityRatePerKwh: 0.14,
   financingRate: 6.5,
   downPaymentPercent: 10,

@@ -11,6 +11,8 @@ import ElectricityVsGasoline from "./pages/ElectricityVsGasoline.tsx";
 import News from "./pages/News.tsx";
 import BlogPost from "./pages/BlogPost.tsx";
 import Events from "./pages/Events.tsx";
+import EventFromPumpToPlug from "./pages/EventFromPumpToPlug.tsx";
+import Gallery from "./pages/Gallery.tsx";
 import ListYourEvent from "./pages/ListYourEvent.tsx";
 import Careers from "./pages/Careers.tsx";
 import PostAJob from "./pages/PostAJob.tsx";
@@ -24,6 +26,15 @@ import EvsInWinter from "./pages/EvsInWinter.tsx";
 import FinancialSavings from "./pages/FinancialSavings.tsx";
 import UsEvPolicies from "./pages/UsEvPolicies.tsx";
 import ReducedEmissions from "./pages/ReducedEmissions.tsx";
+import SelfDrivingVehicles from "./pages/SelfDrivingVehicles.tsx";
+import EvtolDroneDelivery from "./pages/EvtolDroneDelivery.tsx";
+import SustainableAviation from "./pages/SustainableAviation.tsx";
+import ElectricSchoolBuses from "./pages/ElectricSchoolBuses.tsx";
+import HeavyDutyElectrification from "./pages/HeavyDutyElectrification.tsx";
+import ElectricPublicTransit from "./pages/ElectricPublicTransit.tsx";
+import RideshareRentalFleets from "./pages/RideshareRentalFleets.tsx";
+import MicroMobility from "./pages/MicroMobility.tsx";
+import SustainableMaritime from "./pages/SustainableMaritime.tsx";
 import PrivacyPolicy from "./pages/PrivacyPolicy.tsx";
 import TermsConditions from "./pages/TermsConditions.tsx";
 import ContactUs from "./pages/ContactUs.tsx";
@@ -48,6 +59,8 @@ const App = () => (
           <Route path="/blog" element={<Navigate to="/news" replace />} />
           <Route path="/blog/:slug" element={<BlogPost />} />
           <Route path="/events" element={<Events />} />
+          <Route path="/events/from-pump-to-plug" element={<EventFromPumpToPlug />} />
+          <Route path="/gallery" element={<Gallery />} />
           <Route path="/list-your-event" element={<ListYourEvent />} />
           <Route path="/careers" element={<Careers />} />
           <Route path="/post-a-job" element={<PostAJob />} />
@@ -61,6 +74,15 @@ const App = () => (
           <Route path="/financial-savings" element={<FinancialSavings />} />
           <Route path="/us-ev-policies" element={<UsEvPolicies />} />
           <Route path="/reduced-emissions" element={<ReducedEmissions />} />
+          <Route path="/self-driving-vehicles" element={<SelfDrivingVehicles />} />
+          <Route path="/evtol-drone-delivery" element={<EvtolDroneDelivery />} />
+          <Route path="/sustainable-aviation" element={<SustainableAviation />} />
+          <Route path="/electric-school-buses" element={<ElectricSchoolBuses />} />
+          <Route path="/heavy-duty-electrification" element={<HeavyDutyElectrification />} />
+          <Route path="/electric-public-transit" element={<ElectricPublicTransit />} />
+          <Route path="/rideshare-rental-fleets" element={<RideshareRentalFleets />} />
+          <Route path="/micro-mobility" element={<MicroMobility />} />
+          <Route path="/sustainable-maritime" element={<SustainableMaritime />} />
           <Route path="/contact-us" element={<ContactUs />} />
           <Route path="/thank-you" element={<ThankYou />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />

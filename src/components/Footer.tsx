@@ -5,6 +5,7 @@ import {
   User, Phone, MapPin, Building2, Briefcase, Network, Factory,
 } from "lucide-react";
 import logo from "@/assets/logo-white.png";
+import { submitLead } from "@/lib/submitLead";
 
 const EMPTY = {
   firstName: "", lastName: "", email: "", mobile: "",
@@ -24,12 +25,6 @@ const INDUSTRIES = [
 ];
 
 const isValidEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
-
-// Optional lead destination — POSTs the signup when a webhook is configured
-// (.env.local), otherwise the form just confirms success client-side.
-const SIGNUP_WEBHOOK =
-  (import.meta as { env?: Record<string, string> }).env?.VITE_NEWSLETTER_WEBHOOK_URL ??
-  (import.meta as { env?: Record<string, string> }).env?.VITE_N8N_WEBHOOK_URL;
 
 // Transparent, white-outlined field on the blue footer.
 const fieldCls =
@@ -59,17 +54,7 @@ const Footer = () => {
     setError("");
     setSubmitting(true);
 
-    if (SIGNUP_WEBHOOK) {
-      try {
-        await fetch(SIGNUP_WEBHOOK, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "newsletterSignup", ...form }),
-        });
-      } catch {
-        /* non-blocking — still confirm to the user */
-      }
-    }
+    await submitLead("newsletter", form);
 
     setSubmitting(false);
     setSubmitted(true);
