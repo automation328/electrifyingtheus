@@ -191,11 +191,29 @@ const AgentChatSection = () => {
     setInput("");
     setLoading(true);
 
-    // Editorially-approved answers return verbatim — never routed to the agent.
+    // Editorially-approved answers return verbatim — rendered locally without
+    // waiting on the agent. We still notify n8n (non-blocking) with the exact
+    // answer the visitor saw, so the Q&A is logged to Slack just like a live
+    // agent reply (via the `answerOverride` field).
     const canned = cannedAnswerFor(text);
     if (canned) {
       setMessages((prev) => [...prev, { role: "assistant", content: canned }]);
       setLoading(false);
+      if (N8N_WEBHOOK_URL) {
+        fetch(N8N_WEBHOOK_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "sendMessage",
+            sessionId,
+            chatInput: text,
+            message: text,
+            answerOverride: canned,
+            firstName: leadInfo.fullName.split(/\s+/)[0],
+            ...leadInfo,
+          }),
+        }).catch(() => { /* non-blocking — logging only */ });
+      }
       return;
     }
 

@@ -102,7 +102,7 @@
         "select": "channel",
         "channelId": { "__rl": true, "mode": "name", "value": "lem-test", "cachedResultName": "lem-test" },
         "messageType": "text",
-        "text": "=:speech_balloon: *New EVan chat inquiry*\n*Name:* {{ $(\"EVan Chat Webhook\").item.json.body.firstName }}\n*Email:* {{ $(\"EVan Chat Webhook\").item.json.body.email }}\n*Question:* {{ $(\"EVan Chat Webhook\").item.json.body.chatInput }}\n*EVan answered:* {{ $(\"EVan Agent\").item.json.output }}\n*Session:* {{ $(\"EVan Chat Webhook\").item.json.body.sessionId }}",
+        "text": "=:speech_balloon: *New EVan chat inquiry*\n*Name:* {{ $(\"EVan Chat Webhook\").item.json.body.firstName }}\n*Email:* {{ $(\"EVan Chat Webhook\").item.json.body.email }}\n*Question:* {{ $(\"EVan Chat Webhook\").item.json.body.chatInput }}\n*EVan answered:* {{ $(\"EVan Chat Webhook\").item.json.body.answerOverride || $(\"EVan Agent\").item.json.output }}\n*Session:* {{ $(\"EVan Chat Webhook\").item.json.body.sessionId }}",
         "otherOptions": { "includeLinkToWorkflow": false }
       }
     },
