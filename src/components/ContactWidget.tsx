@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { MessageCircle } from "lucide-react";
+import { Headset } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger,
 } from "@/components/ui/dialog";
@@ -16,9 +16,13 @@ const ContactWidget = () => {
       <DialogTrigger asChild>
         <button
           aria-label="Contact us"
-          className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full gradient-primary shadow-xl flex items-center justify-center hover:scale-110 transition-transform"
+          className="group fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full gradient-primary shadow-xl flex items-center justify-center transition-transform hover:scale-110 active:scale-95 animate-float"
         >
-          <MessageCircle className="text-primary-foreground" size={24} />
+          {/* Attention pulse — a soft expanding ring, idle only while closed. */}
+          {!open && (
+            <span aria-hidden className="absolute inset-0 inline-flex rounded-full bg-primary/40 animate-ping" />
+          )}
+          <Headset className="relative text-primary-foreground" size={24} />
         </button>
       </DialogTrigger>
 
