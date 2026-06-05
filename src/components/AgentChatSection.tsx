@@ -166,6 +166,28 @@ const markdownComponents = {
   td: ({ children }: { children?: React.ReactNode }) => <td className="px-2.5 py-1.5 align-top text-[hsl(var(--term-text))]">{children}</td>,
 };
 
+// Render the conversation as a readable transcript for the GHL note.
+const buildTranscript = (msgs: Message[]) =>
+  msgs.map((m) => `${m.role === "user" ? "Visitor" : "EVan"}: ${m.content}`).join("\n\n");
+
+// Upsert the chatbot lead into GoHighLevel via the secure /api/lead proxy.
+// Tagged `chatbot-lead` (see api/lead.ts). Fire-and-forget — never blocks chat.
+const pushChatLeadToGHL = (lead: Lead) => {
+  try {
+    fetch("/api/lead", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      keepalive: true,
+      body: JSON.stringify({
+        formType: "evan-chat",
+        firstName: lead.fullName.split(/\s+/)[0],
+        email: lead.email,
+        sessionId,
+      }),
+    }).catch(() => { /* best-effort */ });
+  } catch { /* best-effort */ }
+};
+
 const AgentChatSection = () => {
   const [messages, setMessages] = useState<Message[]>([{ role: "assistant", content: GREETING }]);
   const [input, setInput] = useState("");
@@ -183,6 +205,46 @@ const AgentChatSection = () => {
     const el = scrollRef.current;
     if (el) el.scrollTop = el.scrollHeight;
   }, [messages, loading]);
+
+  // Refs let the unload listener read the latest lead + transcript without
+  // re-binding on every message.
+  const leadRef = useRef<Lead | null>(null);
+  const messagesRef = useRef<Message[]>(messages);
+  const transcriptSentLenRef = useRef(0);
+  useEffect(() => { leadRef.current = lead; }, [lead]);
+  useEffect(() => { messagesRef.current = messages; }, [messages]);
+
+  // Save the full conversation to the GHL contact as a single note when the
+  // visitor leaves. Uses sendBeacon so it survives the page unload. Guarded by
+  // transcript length so a tab-switch mid-chat doesn't spam duplicate notes.
+  useEffect(() => {
+    const flushTranscript = () => {
+      const l = leadRef.current;
+      const msgs = messagesRef.current;
+      if (!l) return;
+      if (!msgs.some((m) => m.role === "user")) return;          // nothing asked yet
+      const transcript = buildTranscript(msgs);
+      if (transcript.length <= transcriptSentLenRef.current) return;
+      transcriptSentLenRef.current = transcript.length;
+      const payload = JSON.stringify({
+        formType: "evan-chat",
+        firstName: l.fullName.split(/\s+/)[0],
+        email: l.email,
+        sessionId,
+        transcript,
+      });
+      try {
+        navigator.sendBeacon("/api/lead", new Blob([payload], { type: "application/json" }));
+      } catch { /* best-effort */ }
+    };
+    const onHide = () => { if (document.visibilityState === "hidden") flushTranscript(); };
+    document.addEventListener("visibilitychange", onHide);
+    window.addEventListener("pagehide", flushTranscript);
+    return () => {
+      document.removeEventListener("visibilitychange", onHide);
+      window.removeEventListener("pagehide", flushTranscript);
+    };
+  }, []);
 
   // Actually deliver a question to the n8n agent and render the reply. The
   // lead is passed in explicitly so it works on the same tick it's captured.
@@ -298,7 +360,7 @@ const AgentChatSection = () => {
     const firstName = fullName.split(/\s+/)[0];
     setMessages((prev) => [...prev, { role: "assistant", content: `Thank you, ${firstName}! Let me pull that up for you.` }]);
 
-    // Best-effort: notify the n8n flow that a new lead was captured.
+    // Best-effort: notify the n8n flow that a new lead was captured (Slack alert).
     if (N8N_WEBHOOK_URL) {
       fetch(N8N_WEBHOOK_URL, {
         method: "POST",
@@ -306,6 +368,10 @@ const AgentChatSection = () => {
         body: JSON.stringify({ action: "captureLead", sessionId, firstName, ...captured }),
       }).catch(() => { /* non-blocking */ });
     }
+
+    // Upsert the lead into GoHighLevel immediately (tagged `chatbot-lead`). The
+    // full transcript is attached as a note when the visitor leaves.
+    pushChatLeadToGHL(captured);
 
     const q = pending;
     setPending(null);

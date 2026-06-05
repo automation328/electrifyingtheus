@@ -25,7 +25,7 @@ const FORM_TAGS: Record<string, string[]> = {
   "event-alerts":     ["website-lead", "event-alerts", "source:event-alerts"],
   "career-alerts":    ["website-lead", "career-alerts", "source:career-alerts"],
   "job-apply":        ["website-lead", "job-application", "source:job-apply"],
-  "evan-chat":        ["website-lead", "evan-chat", "source:evan-concierge"],
+  "evan-chat":        ["website-lead", "evan-chat", "chatbot-lead", "source:evan-concierge"],
   "calculator-share": ["website-lead", "calculator-share", "source:calculator-share"],
 };
 
@@ -90,6 +90,8 @@ export default async function handler(req: any, res: any) {
     // these carry the sender + the shareable result link.
     senderName = "", senderEmail = "", senderPhone = "",
     shareUrl = "", shareChannel = "", vehicleSummary = "", savingsSummary = "",
+    // EVan chatbot — full conversation log, saved as a note at session end.
+    transcript = "", sessionId = "",
     recaptchaToken = "",
     ...rest
   } = body as Record<string, string>;
@@ -151,6 +153,8 @@ export default async function handler(req: any, res: any) {
       shareUrl && `Result link: ${shareUrl}`,
       (senderName || senderEmail || senderPhone) &&
         `Shared by: ${[senderName, senderEmail, senderPhone].filter(Boolean).join(" · ")}`,
+      sessionId && `Session: ${sessionId}`,
+      transcript && `\n--- EVan chat transcript ---\n${transcript}`,
       ...Object.entries(rest).map(([k, v]) => (v ? `${k}: ${v}` : "")),
     ].filter(Boolean);
     if (contactId && userId && lines.length) {
