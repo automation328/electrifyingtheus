@@ -10,7 +10,6 @@ import FeaturedEventsSection from "@/components/FeaturedEventsSection";
 import TCOCalculatorSection from "@/components/TCOCalculatorSection";
 import ContactSection from "@/components/ContactSection";
 import Footer from "@/components/Footer";
-import ContactWidget from "@/components/ContactWidget";
 
 const Index = () => {
   return (
@@ -27,7 +26,6 @@ const Index = () => {
       <FeaturedEventsSection />
       <ContactSection />
       <Footer />
-      <ContactWidget />
     </div>
   );
 };

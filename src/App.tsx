@@ -40,6 +40,7 @@ import TermsConditions from "./pages/TermsConditions.tsx";
 import ContactUs from "./pages/ContactUs.tsx";
 import ThankYou from "./pages/ThankYou.tsx";
 import NotFound from "./pages/NotFound.tsx";
+import ContactWidget from "./components/ContactWidget.tsx";
 
 const queryClient = new QueryClient();
 
@@ -90,6 +91,8 @@ const App = () => (
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
+        {/* Floating contact widget — visible on every page. */}
+        <ContactWidget />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
