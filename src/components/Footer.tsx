@@ -98,7 +98,11 @@ const Footer = () => {
                 <h4 className="font-display font-bold text-white mb-4 text-sm tracking-wide">Quick Links</h4>
                 <div className="flex flex-col gap-2.5">
                   {["About", "EV Dashboard", "EV 101", "Benefits", "Multimodal", "Contact"].map((l) => (
-                    <a key={l} href={`#${l.toLowerCase().replace(/ /g, "")}`} className={navLink}>
+                    <a
+                      key={l}
+                      href={l === "Contact" ? "/contact-us" : `#${l.toLowerCase().replace(/ /g, "")}`}
+                      className={navLink}
+                    >
                       {l}
                     </a>
                   ))}

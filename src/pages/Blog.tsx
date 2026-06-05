@@ -91,7 +91,7 @@ const Blog = () => {
             <p className="text-primary-foreground/90 mb-6 max-w-xl mx-auto">
               Get EV news, guides, and event invites delivered to your inbox.
             </p>
-            <Link to="/#contact" className="inline-flex items-center gap-2 bg-primary-foreground text-primary font-semibold px-6 py-3 rounded-2xl hover:opacity-90 transition-opacity">
+            <Link to="/contact-us" className="inline-flex items-center gap-2 bg-primary-foreground text-primary font-semibold px-6 py-3 rounded-2xl hover:opacity-90 transition-opacity">
               Subscribe <ArrowRight className="w-5 h-5" />
             </Link>
           </div>

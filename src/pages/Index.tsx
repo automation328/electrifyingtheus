@@ -8,7 +8,6 @@ import BenefitsSection from "@/components/BenefitsSection";
 import MultimodalSection from "@/components/MultimodalSection";
 import FeaturedEventsSection from "@/components/FeaturedEventsSection";
 import TCOCalculatorSection from "@/components/TCOCalculatorSection";
-import ContactSection from "@/components/ContactSection";
 import Footer from "@/components/Footer";
 
 const Index = () => {
@@ -24,7 +23,6 @@ const Index = () => {
       <MultimodalSection />
       <TCOCalculatorSection />
       <FeaturedEventsSection />
-      <ContactSection />
       <Footer />
     </div>
   );

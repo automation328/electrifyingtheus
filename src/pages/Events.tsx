@@ -74,7 +74,7 @@ const Events = () => {
           <Ticket className="w-4 h-4" /> Register
         </a>
       ) : (
-        <Link to="/#contact" className="inline-flex items-center gap-2 gradient-primary text-primary-foreground font-semibold text-sm px-5 py-2.5 rounded-xl hover:opacity-90 transition">
+        <Link to="/contact-us" className="inline-flex items-center gap-2 gradient-primary text-primary-foreground font-semibold text-sm px-5 py-2.5 rounded-xl hover:opacity-90 transition">
           <Ticket className="w-4 h-4" /> Register
         </Link>
       )}
@@ -100,7 +100,7 @@ const Events = () => {
           <Ticket className="w-4 h-4" /> Register
         </a>
       ) : (
-        <Link to="/#contact" className="inline-flex items-center gap-2 bg-white text-foreground font-bold text-sm px-5 py-2.5 rounded-xl hover:bg-white/90 transition">
+        <Link to="/contact-us" className="inline-flex items-center gap-2 bg-white text-foreground font-bold text-sm px-5 py-2.5 rounded-xl hover:bg-white/90 transition">
           <Ticket className="w-4 h-4" /> Register
         </Link>
       )}
