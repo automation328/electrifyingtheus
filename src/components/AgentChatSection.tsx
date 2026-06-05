@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Send, Zap, Sparkles } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { Button } from "@/components/ui/button";
 import evanPortrait from "@/assets/evan.jpg";
 
@@ -50,7 +51,7 @@ const GREETING =
 
 // 10 clickable EV questions — drawn from the EVNoire EV Charging 101 knowledge base.
 const SUGGESTED_QUESTIONS = [
-  "What are the top 5 most affordable EVs?",
+  "What are the top 5 cheapest EVs?",
   "What's the difference between a hybrid and a fully electric vehicle?",
   "How long do EV batteries last?",
   "Can I charge an EV at home — and what do I need?",
@@ -61,6 +62,80 @@ const SUGGESTED_QUESTIONS = [
   "Will charging an EV raise my electric bill?",
   "What incentives are available for home charging?",
 ];
+
+// ── Canned answers ───────────────────────────────────────────────────────────
+// A handful of questions have an exact, editorially-approved answer that must be
+// returned word-for-word. These short-circuit the n8n agent so the copy never
+// drifts. Keyed by a normalized question string (lowercase, alphanumeric only).
+const normalizeQ = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "");
+
+const TOP_5_CHEAPEST_EVS = `If you're shopping for a **new EV in the U.S. in 2025–2026**, these are the five cheapest mainstream options currently available, ranked by starting MSRP. Prices can vary by destination charges, dealer discounts, and incentives. ([Car and Driver](https://www.caranddriver.com/news/a61075698/2025-nissan-leaf-price/))
+
+### Top 5 Cheapest EVs
+
+| Model | Body Style | Range (EPA) | Fast Home Charging\\* | Fast Charging\\*\\* | MSRP | Drive Type |
+| --- | --- | --- | --- | --- | --- | --- |
+| Nissan Leaf | Hatchback | 149–212 mi | 25–30 mi/hour | 20–80% in about 40–45 min (100 kW) | $29,000–$37,000 | FWD |
+| Mini Cooper SE | Hatchback | 180–250 mi | 25–30 mi/hour | 10–80% in about 30 min (120 kW) | $31,000–$38,000 | FWD |
+| Hyundai Kona Electric | Subcompact SUV | 200–261 mi | 30–35 mi/hour | 10–80% in about 43 min (120 kW) | $33,000–$41,000 | FWD |
+| Chevrolet Equinox EV | Compact SUV | 250–319 mi | 30–35 mi/hour | 10–80% in about 30 min (150 kW) | $35,000–$52,000 | FWD / AWD |
+| Toyota bZ4X | Compact SUV | 220–252 mi | 25–30 mi/hour | 10–80% in about 30–35 min (150 kW) | $37,000–$46,000 | FWD / AWD |
+
+\\* Fast home charging assumes a typical 240V home charger.
+
+\\*\\* Fast charging times vary with battery temperature and charger power.
+
+Sources for pricing and range data include manufacturer specifications and current market listings. ([Car and Driver](https://www.caranddriver.com/news/a61075698/2025-nissan-leaf-price/))
+
+### My Picks
+
+#### Best Value Overall
+**Chevrolet Equinox EV**
+- Up to 319 miles of range
+- Much larger than the Leaf or Mini
+- Excellent price-per-mile of range
+- Good family vehicle
+
+#### Cheapest Entry Into EV Ownership
+**Nissan Leaf**
+- Lowest purchase price
+- Proven reliability
+- Great commuter car
+- Biggest downside: older charging technology and shorter range than newer EVs
+
+#### Best Budget SUV
+**Hyundai Kona Electric**
+- Efficient and easy to drive
+- Up to 261 miles of range
+- Compact size makes parking easy
+- Strong feature set for the price
+
+### Pros & Cons Snapshot
+
+| Model | Pros | Cons |
+| --- | --- | --- |
+| Nissan Leaf | Cheapest, simple, reliable | Short range, older charging standard |
+| Mini Cooper SE | Fun to drive, premium feel | Small cargo area |
+| Hyundai Kona Electric | Excellent efficiency, good range | No AWD option |
+| Chevrolet Equinox EV | Long range, roomy, strong value | Base trims aren't very quick |
+| Toyota bZ4X | Comfortable, available AWD | Range trails some competitors |
+
+### Summary
+
+If your budget is under **$35,000**, I'd focus on the **Chevrolet Equinox EV** and **Hyundai Kona Electric** first. The **Nissan Leaf** is still the cheapest way into a brand-new EV, but the newer competitors offer substantially more range and newer charging technology for only a few thousand dollars more. ([CarGurus](https://www.cargurus.com/Cars/articles/cheapest-new-electric-cars))`;
+
+const CANNED_ANSWERS: Record<string, string> = {
+  [normalizeQ(SUGGESTED_QUESTIONS[0])]: TOP_5_CHEAPEST_EVS,
+};
+
+// Return the exact canned answer for a question, or null to fall through to n8n.
+const cannedAnswerFor = (text: string): string | null => {
+  const key = normalizeQ(text);
+  if (CANNED_ANSWERS[key]) return CANNED_ANSWERS[key];
+  // Looser match so typed variants ("top 5 cheapest evs", "cheapest ev") still hit.
+  if (key.includes("cheapest") && key.includes("ev")) return TOP_5_CHEAPEST_EVS;
+  return null;
+};
 
 const markdownComponents = {
   p: ({ children }: { children?: React.ReactNode }) => <p className="mb-2 last:mb-0">{children}</p>,
@@ -77,6 +152,18 @@ const markdownComponents = {
   ul: ({ children }: { children?: React.ReactNode }) => <ul className="list-disc pl-5 mb-2 space-y-1 marker:text-[hsl(var(--term-cyan))]">{children}</ul>,
   ol: ({ children }: { children?: React.ReactNode }) => <ol className="list-decimal pl-5 mb-2 space-y-1">{children}</ol>,
   li: ({ children }: { children?: React.ReactNode }) => <li>{children}</li>,
+  h3: ({ children }: { children?: React.ReactNode }) => <h3 className="font-display font-bold text-base mt-3 mb-1.5 first:mt-0">{children}</h3>,
+  h4: ({ children }: { children?: React.ReactNode }) => <h4 className="font-term text-[11px] tracking-[0.2em] uppercase mt-3 mb-1 text-[hsl(var(--term-cyan))]">{children}</h4>,
+  table: ({ children }: { children?: React.ReactNode }) => (
+    <div className="overflow-x-auto my-3 rounded-lg border border-black/[0.08]">
+      <table className="w-full border-collapse text-xs">{children}</table>
+    </div>
+  ),
+  thead: ({ children }: { children?: React.ReactNode }) => <thead className="bg-[hsl(var(--term-bg))]">{children}</thead>,
+  tbody: ({ children }: { children?: React.ReactNode }) => <tbody>{children}</tbody>,
+  tr: ({ children }: { children?: React.ReactNode }) => <tr className="border-b border-black/[0.06] last:border-0">{children}</tr>,
+  th: ({ children }: { children?: React.ReactNode }) => <th className="text-left font-semibold px-2.5 py-1.5 whitespace-nowrap text-[hsl(var(--term-text))]">{children}</th>,
+  td: ({ children }: { children?: React.ReactNode }) => <td className="px-2.5 py-1.5 align-top text-[hsl(var(--term-text))]">{children}</td>,
 };
 
 const AgentChatSection = () => {
@@ -103,6 +190,14 @@ const AgentChatSection = () => {
     setMessages((prev) => [...prev, { role: "user", content: text }]);
     setInput("");
     setLoading(true);
+
+    // Editorially-approved answers return verbatim — never routed to the agent.
+    const canned = cannedAnswerFor(text);
+    if (canned) {
+      setMessages((prev) => [...prev, { role: "assistant", content: canned }]);
+      setLoading(false);
+      return;
+    }
 
     try {
       if (!N8N_WEBHOOK_URL) {
@@ -272,7 +367,7 @@ const AgentChatSection = () => {
                           }`}
                           style={msg.role === "user" ? { background: "linear-gradient(135deg, hsl(var(--term-blue)), hsl(var(--term-cyan)) 58%, hsl(var(--term-green)))" } : undefined}
                         >
-                          <ReactMarkdown components={markdownComponents}>{msg.content}</ReactMarkdown>
+                          <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>{msg.content}</ReactMarkdown>
                         </div>
                       </div>
                     ))}
