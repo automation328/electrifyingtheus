@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import heroBg from "@/assets/hero-bg.jpg";
 import logo from "@/assets/hero-logo.png";
+import pumpToPlugFlyer from "@/assets/from-pump-to-plug-flyer.jpg";
 import { type EventItem } from "@/data/events";
 import { JOBS, type Job } from "@/data/careers";
 import { type BlogPost } from "@/data/blog-posts";
@@ -76,19 +77,34 @@ const HeroSection = () => {
             }`}
             aria-hidden={!active}
           >
-            <img
-              src={slideBg(slide)}
-              alt=""
-              className="absolute inset-0 w-full h-full object-cover"
-              width={1920}
-              height={1080}
-              loading={i === 0 ? "eager" : "lazy"}
-            />
-            {!plain && (
-              <div className="absolute inset-0 bg-gradient-to-b from-primary/80 via-primary/60 to-primary/90" />
+            {plain ? (
+              // Designed flyer: show it whole (no crop) over a blurred fill of
+              // itself so the wide banner reads on a tall hero.
+              <>
+                <img src={pumpToPlugFlyer} alt="" aria-hidden className="absolute inset-0 w-full h-full object-cover scale-125 blur-2xl" />
+                <div className="absolute inset-0 bg-black/30" />
+                <img
+                  src={pumpToPlugFlyer}
+                  alt="From Pump to Plug: How Electric Vehicles Are Saving Thousands — webinar, Thursday June 25, 2–3 PM ET"
+                  className="absolute inset-0 w-full h-full object-contain"
+                  loading="lazy"
+                />
+              </>
+            ) : (
+              <>
+                <img
+                  src={slideBg(slide)}
+                  alt=""
+                  className="absolute inset-0 w-full h-full object-cover"
+                  width={1920}
+                  height={1080}
+                  loading={i === 0 ? "eager" : "lazy"}
+                />
+                <div className="absolute inset-0 bg-gradient-to-b from-primary/80 via-primary/60 to-primary/90" />
+              </>
             )}
 
-            <div className="relative z-10 h-full container flex items-center justify-center text-center px-4">
+            <div className={`relative z-10 h-full container flex justify-center text-center px-4 ${plain ? "items-end pb-24" : "items-center"}`}>
               {slide.kind === "brand" && <BrandSlide active={active} />}
               {slide.kind === "event" && <EventSlide event={slide.data} plain={plain} />}
               {slide.kind === "career" && <CareerSlide job={slide.data} />}
@@ -202,31 +218,43 @@ const BrandSlide = ({ active }: { active: boolean }) => (
   </div>
 );
 
-const EventSlide = ({ event, plain }: { event: EventItem; plain?: boolean }) => (
-  <div className="max-w-3xl mx-auto">
-    <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary-foreground/15 text-primary-foreground text-sm font-semibold mb-6 backdrop-blur">
-      <CalendarDays className="w-4 h-4" /> Upcoming Event · {event.type}
-    </span>
+const EventSlide = ({ event, plain }: { event: EventItem; plain?: boolean }) => {
+  // Bare slide: the flyer image carries all the copy — show only the button.
+  if (plain) {
+    return (
+      <Link to={event.slug ? `/events/${event.slug}` : "/events"}>
+        <Button variant="green" size="lg" className="text-base px-8 py-6 rounded-2xl shadow-2xl">
+          {event.slug ? "View Event" : "View Events"} <ArrowRight className="w-4 h-4 ml-1" />
+        </Button>
+      </Link>
+    );
+  }
 
-    {/* The bare slide skips the framed thumbnail — its image IS the backdrop. */}
-    {!plain && <SlideThumb src={event.image} alt={event.title} badge={{ month: event.month, day: event.day }} />}
+  return (
+    <div className="max-w-3xl mx-auto">
+      <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary-foreground/15 text-primary-foreground text-sm font-semibold mb-6 backdrop-blur">
+        <CalendarDays className="w-4 h-4" /> Upcoming Event · {event.type}
+      </span>
 
-    <h2 className={`text-3xl md:text-5xl font-bold font-display text-primary-foreground leading-tight mb-4 ${plain ? "[text-shadow:0_2px_14px_rgb(0_0_0_/_0.55)]" : ""}`}>
-      {event.title}
-    </h2>
+      <SlideThumb src={event.image} alt={event.title} badge={{ month: event.month, day: event.day }} />
 
-    <div className={`flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-primary-foreground/90 text-sm md:text-base mb-7 ${plain ? "[text-shadow:0_2px_10px_rgb(0_0_0_/_0.6)]" : ""}`}>
-      <span className="flex items-center gap-1.5"><MapPin className="w-4 h-4" /> {event.location}</span>
-      <span className="flex items-center gap-1.5"><Clock className="w-4 h-4" /> {event.time}</span>
+      <h2 className="text-3xl md:text-5xl font-bold font-display text-primary-foreground leading-tight mb-4">
+        {event.title}
+      </h2>
+
+      <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-primary-foreground/90 text-sm md:text-base mb-7">
+        <span className="flex items-center gap-1.5"><MapPin className="w-4 h-4" /> {event.location}</span>
+        <span className="flex items-center gap-1.5"><Clock className="w-4 h-4" /> {event.time}</span>
+      </div>
+
+      <Link to={event.slug ? `/events/${event.slug}` : "/events"}>
+        <Button variant="green" size="lg" className="text-base px-8 py-6 rounded-2xl">
+          {event.slug ? "View Event" : "View Events"} <ArrowRight className="w-4 h-4 ml-1" />
+        </Button>
+      </Link>
     </div>
-
-    <Link to={event.slug ? `/events/${event.slug}` : "/events"}>
-      <Button variant="green" size="lg" className="text-base px-8 py-6 rounded-2xl">
-        {event.slug ? "View Event" : "View Events"} <ArrowRight className="w-4 h-4 ml-1" />
-      </Button>
-    </Link>
-  </div>
-);
+  );
+};
 
 const CareerSlide = ({ job }: { job: Job }) => (
   <div className="max-w-3xl mx-auto">
