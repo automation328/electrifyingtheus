@@ -44,6 +44,50 @@ const SOURCE_LABEL: Record<string, string> = {
 
 const safeJson = (s: string) => { try { return JSON.parse(s); } catch { return {}; } };
 
+// Internal Slack alert (Incoming Webhook) — posts ONE message per lead to the
+// team channel with a deep link to the GHL contact. No-op if SLACK_WEBHOOK_URL
+// is unset. The chatbot only notifies once the chat is done (transcript present);
+// the transcript itself is NOT sent to Slack — it lives on the GHL contact.
+async function notifySlack(opts: {
+  formType: string; contactId?: string;
+  name?: string; email?: string; phone?: string; company?: string;
+  subject?: string; message?: string; transcript?: string;
+}): Promise<void> {
+  const url = process.env.SLACK_WEBHOOK_URL;
+  if (!url) return;                                            // Slack disabled
+  // Chatbot: only notify at session end (when the transcript is flushed).
+  if (opts.formType === "evan-chat" && !opts.transcript) return;
+
+  const label = SOURCE_LABEL[opts.formType] ?? "Electrifying the US website";
+  const isChat = opts.formType === "evan-chat";
+  const loc = process.env.GHL_LOCATION_ID;
+  const link = opts.contactId && loc
+    ? `https://app.gohighlevel.com/v2/location/${loc}/contacts/detail/${opts.contactId}`
+    : "";
+  const trim = (s: string, n: number) => (s.length > n ? `${s.slice(0, n)}…` : s);
+
+  const lines = [
+    isChat ? ":speech_balloon: *New EVan chatbot lead*" : `:inbox_tray: *New lead — ${label}*`,
+    opts.name && `*Name:* ${opts.name}`,
+    opts.email && `*Email:* ${opts.email}`,
+    opts.phone && `*Phone:* ${opts.phone}`,
+    opts.company && `*Company:* ${opts.company}`,
+    opts.subject && `*Subject:* ${trim(opts.subject, 200)}`,
+    opts.message && `*Message:* ${trim(opts.message, 600)}`,
+    `*Source:* ${label}`,
+    link && `*GHL contact:* <${link}|View in GoHighLevel>`,
+    isChat && "_Full transcript saved to the GHL contact note._",
+  ].filter(Boolean);
+
+  try {
+    await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: lines.join("\n") }),
+    });
+  } catch { /* non-blocking */ }
+}
+
 // reCAPTCHA v3 — verify the token + score. Returns true when verification is
 // disabled (no secret set) so local/dev still works. Reject on low score/fail.
 const RECAPTCHA_MIN_SCORE = 0.5;
@@ -181,6 +225,14 @@ export default async function handler(req: any, res: any) {
       await ghl("/contacts/upsert", { method: "POST", body: JSON.stringify(senderContact) })
         .catch(() => { /* non-blocking */ });
     }
+
+    // Internal Slack alert with the GHL contact link (once, on a real submission;
+    // for the chatbot, only when the chat is done).
+    await notifySlack({
+      formType, contactId,
+      name, email, phone: phone || mobile, company,
+      subject: subject || topic, message, transcript,
+    });
 
     res.status(200).json({ ok: true, contactId });
   } catch (err) {

@@ -253,29 +253,13 @@ const AgentChatSection = () => {
     setInput("");
     setLoading(true);
 
-    // Editorially-approved answers return verbatim — rendered locally without
-    // waiting on the agent. We still notify n8n (non-blocking) with the exact
-    // answer the visitor saw, so the Q&A is logged to Slack just like a live
-    // agent reply (via the `answerOverride` field).
+    // Editorially-approved answers return verbatim, rendered locally without
+    // touching the agent. The Q&A is captured in the transcript that's saved to
+    // the GHL contact at chat close — no per-message logging needed.
     const canned = cannedAnswerFor(text);
     if (canned) {
       setMessages((prev) => [...prev, { role: "assistant", content: canned }]);
       setLoading(false);
-      if (N8N_WEBHOOK_URL) {
-        fetch(N8N_WEBHOOK_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            action: "sendMessage",
-            sessionId,
-            chatInput: text,
-            message: text,
-            answerOverride: canned,
-            firstName: leadInfo.fullName.split(/\s+/)[0],
-            ...leadInfo,
-          }),
-        }).catch(() => { /* non-blocking — logging only */ });
-      }
       return;
     }
 
@@ -360,17 +344,9 @@ const AgentChatSection = () => {
     const firstName = fullName.split(/\s+/)[0];
     setMessages((prev) => [...prev, { role: "assistant", content: `Thank you, ${firstName}! Let me pull that up for you.` }]);
 
-    // Best-effort: notify the n8n flow that a new lead was captured (Slack alert).
-    if (N8N_WEBHOOK_URL) {
-      fetch(N8N_WEBHOOK_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "captureLead", sessionId, firstName, ...captured }),
-      }).catch(() => { /* non-blocking */ });
-    }
-
     // Upsert the lead into GoHighLevel immediately (tagged `chatbot-lead`). The
-    // full transcript is attached as a note when the visitor leaves.
+    // full transcript is attached as a note — and the single Slack alert fires —
+    // when the visitor leaves (see the transcript-flush effect above).
     pushChatLeadToGHL(captured);
 
     const q = pending;
