@@ -26,7 +26,7 @@ const ContactWidget = () => {
         </button>
       </DialogTrigger>
 
-      <DialogContent className="sm:max-w-xl max-h-[88vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-xl max-h-[88vh] overflow-y-auto bg-white">
         <DialogHeader className="text-left">
           <DialogTitle className="font-display text-2xl">Contact Us</DialogTitle>
           <DialogDescription>

@@ -65,6 +65,9 @@ const HeroSection = () => {
       {/* Slides (cross-fade) */}
       {SLIDES.map((slide, i) => {
         const active = i === index;
+        // One-off: the "From Pump to Plug" event shows its designed image bare —
+        // no blue overlay, no framed thumbnail. Every other slide is unchanged.
+        const plain = slide.kind === "event" && slide.data.slug === "from-pump-to-plug";
         return (
           <div
             key={i}
@@ -81,11 +84,13 @@ const HeroSection = () => {
               height={1080}
               loading={i === 0 ? "eager" : "lazy"}
             />
-            <div className="absolute inset-0 bg-gradient-to-b from-primary/80 via-primary/60 to-primary/90" />
+            {!plain && (
+              <div className="absolute inset-0 bg-gradient-to-b from-primary/80 via-primary/60 to-primary/90" />
+            )}
 
             <div className="relative z-10 h-full container flex items-center justify-center text-center px-4">
               {slide.kind === "brand" && <BrandSlide active={active} />}
-              {slide.kind === "event" && <EventSlide event={slide.data} />}
+              {slide.kind === "event" && <EventSlide event={slide.data} plain={plain} />}
               {slide.kind === "career" && <CareerSlide job={slide.data} />}
               {slide.kind === "article" && <ArticleSlide post={slide.data} />}
             </div>
@@ -197,19 +202,20 @@ const BrandSlide = ({ active }: { active: boolean }) => (
   </div>
 );
 
-const EventSlide = ({ event }: { event: EventItem }) => (
+const EventSlide = ({ event, plain }: { event: EventItem; plain?: boolean }) => (
   <div className="max-w-3xl mx-auto">
     <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary-foreground/15 text-primary-foreground text-sm font-semibold mb-6 backdrop-blur">
       <CalendarDays className="w-4 h-4" /> Upcoming Event · {event.type}
     </span>
 
-    <SlideThumb src={event.image} alt={event.title} badge={{ month: event.month, day: event.day }} />
+    {/* The bare slide skips the framed thumbnail — its image IS the backdrop. */}
+    {!plain && <SlideThumb src={event.image} alt={event.title} badge={{ month: event.month, day: event.day }} />}
 
-    <h2 className="text-3xl md:text-5xl font-bold font-display text-primary-foreground leading-tight mb-4">
+    <h2 className={`text-3xl md:text-5xl font-bold font-display text-primary-foreground leading-tight mb-4 ${plain ? "[text-shadow:0_2px_14px_rgb(0_0_0_/_0.55)]" : ""}`}>
       {event.title}
     </h2>
 
-    <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-primary-foreground/90 text-sm md:text-base mb-7">
+    <div className={`flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-primary-foreground/90 text-sm md:text-base mb-7 ${plain ? "[text-shadow:0_2px_10px_rgb(0_0_0_/_0.6)]" : ""}`}>
       <span className="flex items-center gap-1.5"><MapPin className="w-4 h-4" /> {event.location}</span>
       <span className="flex items-center gap-1.5"><Clock className="w-4 h-4" /> {event.time}</span>
     </div>
