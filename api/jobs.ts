@@ -39,11 +39,25 @@ const isUS = (loc: string): boolean => {
   return !!m && US_STATES.has(m[1].toUpperCase());
 };
 
+// Greenhouse returns `content` as HTML that is itself entity-encoded (e.g.
+// "&lt;div&gt;"), so decode entities BEFORE stripping tags — otherwise the
+// encoded markup shows up as visible text. Decode twice to handle double
+// encoding (&amp;lt; -> &lt; -> <); decode &amp; last so it doesn't corrupt
+// other entities.
+const decodeEntities = (s: string) =>
+  String(s)
+    .replace(/&lt;/g, "<").replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"').replace(/&#0?39;|&rsquo;|&lsquo;|&apos;/g, "'")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)))
+    .replace(/&#x([0-9a-fA-F]+);/g, (_, h) => String.fromCharCode(parseInt(h, 16)))
+    .replace(/&amp;/g, "&");
+
 const strip = (html: string, n = 280) => {
-  const text = String(html || "")
+  const text = decodeEntities(decodeEntities(String(html || "")))
     .replace(/<[^>]+>/g, " ")
-    .replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&#39;|&rsquo;/g, "'")
-    .replace(/&quot;/g, '"').replace(/\s+/g, " ").trim();
+    .replace(/\s+/g, " ")
+    .trim();
   return text.length > n ? `${text.slice(0, n).trimEnd()}…` : text;
 };
 
