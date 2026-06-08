@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import ShareResultDialog from "@/components/forms/ShareResultDialog";
+import CalculatorGateDialog from "@/components/forms/CalculatorGateDialog";
 import Footer from "@/components/Footer";
 import UsElectricityMap from "@/components/UsElectricityMap";
 import { vehicles, getVehiclesByType } from "@/data/vehicles";
@@ -225,9 +226,34 @@ const ElectricityVsGasoline = () => {
   const matches = useMemo(() => (gasSel ? recommendEvs(gas, vehicles) : []), [gasSel, gas]);
   const [showResults, setShowResults] = useState(false);
 
-  // Calculate → reveal results directly (no lead gate).
+  // Lead gate — first visit asks for a name + email before revealing results.
+  // Once captured we remember it (localStorage) so re-running the numbers later
+  // doesn't re-prompt the same visitor.
+  const [gateOpen, setGateOpen] = useState(false);
+  // Gate is remembered for the browser session only — closing the browser
+  // re-asks on the next visit (sessionStorage, not localStorage).
+  const [unlocked, setUnlocked] = useState(() => {
+    try { return sessionStorage.getItem("evg_unlocked") === "1"; } catch { return false; }
+  });
+  const [leadName, setLeadName] = useState(() => {
+    try { return sessionStorage.getItem("evg_name") ?? ""; } catch { return ""; }
+  });
+
+  // Calculate → reveal results, gating behind the lead form on first use.
   const requestResults = () => {
-    if (bothSelected) setShowResults(true);
+    if (!bothSelected) return;
+    if (unlocked) { setShowResults(true); return; }
+    setGateOpen(true);
+  };
+
+  const handleUnlock = (firstName: string) => {
+    try {
+      sessionStorage.setItem("evg_unlocked", "1");
+      if (firstName) sessionStorage.setItem("evg_name", firstName);
+    } catch { /* private mode — fine */ }
+    if (firstName) setLeadName(firstName);
+    setUnlocked(true);
+    setShowResults(true);
   };
 
   // Live per-state gas prices (AAA via n8n proxy, localStorage-cached). Falls
@@ -610,7 +636,7 @@ const ElectricityVsGasoline = () => {
                     <Input
                       value={zip}
                       onChange={(e) => handleZip(e.target.value)}
-                      onKeyDown={(e) => { if (e.key === "Enter") setShowResults(true); }}
+                      onKeyDown={(e) => { if (e.key === "Enter") requestResults(); }}
                       inputMode="numeric"
                       maxLength={5}
                       placeholder="Auto-detected"
@@ -652,6 +678,17 @@ const ElectricityVsGasoline = () => {
                     savings or financial advice.
                   </span>
                 </p>
+
+                <p className="text-[11px] leading-relaxed text-muted-foreground mt-3 pt-3 border-t border-border flex items-start gap-2">
+                  <Tag className="w-3.5 h-3.5 shrink-0 mt-0.5 text-muted-foreground" />
+                  <span>
+                    <strong className="text-foreground">A note on pricing:</strong> All new vehicle prices are starting MSRPs
+                    before taxes, fees, dealer markups, or incentives. Federal EV tax credits (up to $7,500 for new vehicles)
+                    and state/utility incentives may significantly lower your out-of-pocket cost. Always check{" "}
+                    <a href="https://www.fueleconomy.gov" target="_blank" rel="noopener noreferrer" className="underline font-medium text-primary">fueleconomy.gov</a>{" "}
+                    for the latest eligibility details.
+                  </span>
+                </p>
               </div>
             </div>
 
@@ -672,8 +709,31 @@ const ElectricityVsGasoline = () => {
               )}
             </div>
 
+            <CalculatorGateDialog
+              open={gateOpen}
+              onOpenChange={setGateOpen}
+              onUnlock={handleUnlock}
+              vehicleSummary={bothSelected ? `${ev.name} vs ${gas.name}` : undefined}
+              stateName={rates.name}
+            />
+
             {showResults && bothSelected && (
             <>
+            {/* Thank-you intro — personalized with the captured first name. */}
+            <div className="mb-6 rounded-3xl border border-secondary/30 bg-secondary/5 p-5 md:p-6 flex items-start gap-3">
+              <span className="grid place-items-center w-10 h-10 rounded-2xl bg-secondary/10 text-secondary shrink-0">
+                <Sparkles className="w-5 h-5" />
+              </span>
+              <div>
+                <h3 className="font-charge text-xl text-foreground leading-tight">
+                  Thank you{leadName ? `, ${leadName}` : ""}!
+                </h3>
+                <p className="text-sm text-muted-foreground mt-0.5">
+                  Below is your personalized {ev.name} vs {gas.name} savings breakdown for {rates.name}.
+                </p>
+              </div>
+            </div>
+
             {/* Recommended EV matches (§6 — class-matched substitutes) */}
             <div className="mb-6">
               <div className="flex items-center justify-between gap-3 mb-3">
