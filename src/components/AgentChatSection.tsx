@@ -58,6 +58,9 @@ const SUGGESTED_QUESTIONS = [
   "How long does it take to charge an EV?",
   "What's the difference between a hybrid and an electric vehicle?",
   "How will charging an EV affect my electric bill?",
+  "How long do EV batteries last?",
+  "Can I charge an EV at home — and what do I need?",
+  "What EV tax credits and incentives are available?",
 ];
 
 // ── Canned answers ───────────────────────────────────────────────────────────
