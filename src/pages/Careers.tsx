@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import {
   MapPin, Briefcase, Clock, ArrowRight, Megaphone, GraduationCap, HardHat,
@@ -7,7 +7,8 @@ import {
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { JOBS as jobs, type Job } from "@/data/careers";
+import { JOBS, type Job } from "@/data/careers";
+import { useExternalJobs } from "@/hooks/use-external-jobs";
 import { submitLead } from "@/lib/submitLead";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -23,9 +24,6 @@ const DEPT_ICON: Record<string, LucideIcon> = {
   Infrastructure: Building2,
 };
 
-const departments = ["All", ...Array.from(new Set(jobs.map((j) => j.department)))];
-const countFor = (d: string) => (d === "All" ? jobs.length : jobs.filter((j) => j.department === d).length);
-
 const isValidEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
 
 const Careers = () => {
@@ -39,7 +37,23 @@ const Careers = () => {
   const [applyForm, setApplyForm] = useState({ firstName: "", email: "" });
   const [applyErr, setApplyErr] = useState("");
 
-  const filtered = dept === "All" ? jobs : jobs.filter((j) => j.department === dept);
+  // Real openings from EV companies' public ATS boards (/api/jobs). Falls back
+  // to the curated static list when the feed is empty (no boards configured).
+  const { jobs: externalJobs } = useExternalJobs();
+  const liveJobs = externalJobs.length ? externalJobs : JOBS;
+
+  // Department chips — "All" plus the 8 most common departments (real boards can
+  // have dozens; the rest still appear under "All").
+  const departments = useMemo(() => {
+    const counts = new Map<string, number>();
+    liveJobs.forEach((j) => counts.set(j.department, (counts.get(j.department) ?? 0) + 1));
+    const top = [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8).map(([d]) => d);
+    return ["All", ...top];
+  }, [liveJobs]);
+
+  const countFor = (d: string) => (d === "All" ? liveJobs.length : liveJobs.filter((j) => j.department === d).length);
+
+  const filtered = dept === "All" ? liveJobs : liveJobs.filter((j) => j.department === dept);
 
   const applyTo = (j: Job) =>
     j.applyUrl ?? `https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(`${j.title} ${j.company}`)}`;
@@ -74,7 +88,7 @@ const Careers = () => {
     setAlertDone(true);
   };
 
-  const featured = jobs.filter((j) => j.featured);
+  const featured = liveJobs.filter((j) => j.featured);
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -116,10 +130,10 @@ const Careers = () => {
               <h2 className="text-xl md:text-2xl font-bold font-display text-foreground">Featured roles</h2>
             </div>
             <div className="grid md:grid-cols-2 gap-5">
-              {featured.map((j) => {
+              {featured.map((j, i) => {
                 const Icon = DEPT_ICON[j.department] ?? Briefcase;
                 return (
-                  <article key={j.title} className="relative p-6 rounded-3xl border border-primary/30 bg-card shadow-card overflow-hidden">
+                  <article key={`${j.company}-${j.title}-${i}`} className="relative p-6 rounded-3xl border border-primary/30 bg-card shadow-card overflow-hidden">
                     <span className="absolute top-4 right-4 inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-[11px] font-bold">
                       <Star className="w-3 h-3" fill="currentColor" /> Featured
                     </span>
@@ -179,7 +193,7 @@ const Careers = () => {
               const Icon = DEPT_ICON[j.department] ?? Briefcase;
               return (
                 <article
-                  key={j.title}
+                  key={`${j.company}-${j.title}-${i}`}
                   className="group relative flex flex-col md:flex-row md:items-center gap-5 p-6 rounded-3xl border border-border bg-card shadow-card hover:shadow-xl hover:-translate-y-0.5 hover:border-primary/30 transition-all animate-fade-up overflow-hidden"
                   style={{ animationDelay: `${i * 0.06}s` }}
                 >
