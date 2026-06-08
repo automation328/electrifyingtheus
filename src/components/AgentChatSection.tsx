@@ -51,16 +51,13 @@ const GREETING =
 
 // 10 clickable EV questions — drawn from the EVNoire EV Charging 101 knowledge base.
 const SUGGESTED_QUESTIONS = [
-  "What are the top 5 cheapest EVs?",
-  "What's the difference between a hybrid and a fully electric vehicle?",
-  "How long do EV batteries last?",
-  "Can I charge an EV at home — and what do I need?",
-  "How much does it cost to charge an EV at home?",
-  "Where can I find public charging stations?",
-  "I live in an apartment — can I still charge?",
-  "Which charging connector does my EV use (NACS vs CCS)?",
-  "Will charging an EV raise my electric bill?",
-  "What incentives are available for home charging?",
+  "What Are the Top 5 Most Affordable New EVs for 2026?",
+  "How far can you drive on a single charge?",
+  "Do EVs require more maintenance than gas vehicles?",
+  "Can you drive an EV on a long trip?",
+  "How long does it take to charge an EV?",
+  "What's the difference between a hybrid and an electric vehicle?",
+  "How will charging an EV affect my electric bill?",
 ];
 
 // ── Canned answers ───────────────────────────────────────────────────────────
@@ -69,71 +66,101 @@ const SUGGESTED_QUESTIONS = [
 // drifts. Keyed by a normalized question string (lowercase, alphanumeric only).
 const normalizeQ = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "");
 
-const TOP_5_CHEAPEST_EVS = `If you're shopping for a **new EV in the U.S. in 2025–2026**, these are the five cheapest mainstream options currently available, ranked by starting MSRP. Prices can vary by destination charges, dealer discounts, and incentives. ([Car and Driver](https://www.caranddriver.com/news/a61075698/2025-nissan-leaf-price/))
+// `{name}` is replaced with the visitor's first name at send time (see doSend).
+const TOP_5_AFFORDABLE_EVS = `Great question {name}! The good news: going electric doesn't have to break the bank. For context, the average price of a new gas-powered vehicle in the US is now **$50,000+**, and pre-owned vehicles average **$26,000+** nationwide. Against that backdrop, these five EVs represent some of the best value on the market today. Here are the most affordable new electric vehicles you can buy right now — ranked by starting price, before taxes, fees, or any available **[incentives](/rebates-incentives)** that could lower your cost even further.
 
-### Top 5 Cheapest EVs
+Want to dig into the numbers? Compare any two cars in the **[EV vs Gas Cost Calculator](/electricity-vs-gasoline)**, see what you qualify for under **[Incentives](/rebates-incentives)**, and locate stations near you with **[Find a Charger](/find-a-charger)**.
 
-| Model | Body Style | Range (EPA) | Fast Home Charging\\* | Fast Charging\\*\\* | MSRP | Drive Type |
-| --- | --- | --- | --- | --- | --- | --- |
-| Nissan Leaf | Hatchback | 149–212 mi | 25–30 mi/hour | 20–80% in about 40–45 min (100 kW) | $29,000–$37,000 | FWD |
-| Mini Cooper SE | Hatchback | 180–250 mi | 25–30 mi/hour | 10–80% in about 30 min (120 kW) | $31,000–$38,000 | FWD |
-| Hyundai Kona Electric | Subcompact SUV | 200–261 mi | 30–35 mi/hour | 10–80% in about 43 min (120 kW) | $33,000–$41,000 | FWD |
-| Chevrolet Equinox EV | Compact SUV | 250–319 mi | 30–35 mi/hour | 10–80% in about 30 min (150 kW) | $35,000–$52,000 | FWD / AWD |
-| Toyota bZ4X | Compact SUV | 220–252 mi | 25–30 mi/hour | 10–80% in about 30–35 min (150 kW) | $37,000–$46,000 | FWD / AWD |
+### 🔋 Top 5 Most Affordable New EVs (2026)
 
-\\* Fast home charging assumes a typical 240V home charger.
+| Model | Starting MSRP | Range | Drive Type |
+| --- | --- | --- | --- |
+| Nissan Leaf S | $29,000 | 149 mi | FWD |
+| Mini Cooper Electric | $31,000 | 180–250 mi | FWD |
+| Hyundai Kona Electric | $34,000 | 200–260 mi | FWD |
+| Chevrolet Equinox EV | $35,000 | 250–319 mi | FWD / AWD |
+| Volvo EX30 | $36,000 | 200–275 mi | RWD / AWD |
 
-\\*\\* Fast charging times vary with battery temperature and charger power.
+### ⚡ Charging at a Glance
 
-Sources for pricing and range data include manufacturer specifications and current market listings. ([Car and Driver](https://www.caranddriver.com/news/a61075698/2025-nissan-leaf-price/))
-
-### My Picks
-
-#### Best Value Overall
-**Chevrolet Equinox EV**
-- Up to 319 miles of range
-- Much larger than the Leaf or Mini
-- Excellent price-per-mile of range
-- Good family vehicle
-
-#### Cheapest Entry Into EV Ownership
-**Nissan Leaf**
-- Lowest purchase price
-- Proven reliability
-- Great commuter car
-- Biggest downside: older charging technology and shorter range than newer EVs
-
-#### Best Budget SUV
-**Hyundai Kona Electric**
-- Efficient and easy to drive
-- Up to 261 miles of range
-- Compact size makes parking easy
-- Strong feature set for the price
-
-### Pros & Cons Snapshot
-
-| Model | Pros | Cons |
+| Model | Level 2 Home Charging | DC Fast Charging |
 | --- | --- | --- |
-| Nissan Leaf | Cheapest, simple, reliable | Short range, older charging standard |
-| Mini Cooper SE | Fun to drive, premium feel | Small cargo area |
-| Hyundai Kona Electric | Excellent efficiency, good range | No AWD option |
-| Chevrolet Equinox EV | Long range, roomy, strong value | Base trims aren't very quick |
-| Toyota bZ4X | Comfortable, available AWD | Range trails some competitors |
+| Nissan Leaf S | ~25–30 mi/hr | 20%→80% in ~40–45 min |
+| Mini Cooper Electric | ~25–30 mi/hr | 10%→80% in ~30 min |
+| Hyundai Kona Electric | ~30–35 mi/hr | 10%→80% in ~40 min |
+| Chevrolet Equinox EV | ~30–35 mi/hr | 10%→80% in ~35 min |
+| Volvo EX30 | ~30–35 mi/hr | 10%→80% in ~27 min |
 
-### Summary
+Level 2 home charging uses a standard 240V charger. Fast charging times vary based on battery temperature and charger availability. Locate nearby stations with **[Find a Charger](/find-a-charger)**.
 
-If your budget is under **$35,000**, I'd focus on the **Chevrolet Equinox EV** and **Hyundai Kona Electric** first. The **Nissan Leaf** is still the cheapest way into a brand-new EV, but the newer competitors offer substantially more range and newer charging technology for only a few thousand dollars more. ([CarGurus](https://www.cargurus.com/Cars/articles/cheapest-new-electric-cars))`;
+### 🏆 Our Top Picks & Why
+
+**🥇 Best Overall Value — Chevrolet Equinox EV (~$35,000)**
+The Equinox EV punches well above its price tag. With up to 319 miles of range, SUV-sized space, and access to a growing charging network, it's the most well-rounded affordable EV on this list. Ideal for families, commuters, rideshare drivers, and first-time EV buyers alike.
+
+**🥈 Best Premium Feel for the Price — Volvo EX30 (~$36,000)**
+If you want a sophisticated, fast-charging EV that feels like it costs twice as much, the EX30 delivers. It has the fastest charging on this list and impressive acceleration — just know the cargo space is compact.
+
+**🥉 Best Proven Reliability — Hyundai Kona Electric (~$34,000)**
+The Kona Electric has a strong track record, solid range, and easy maneuverability. A dependable choice if you want an EV from a brand with a long history of building them right.
+
+### 💡 Want to Stretch Your Budget Further? Consider Pre-Owned.
+
+A used EV can be an incredible value:
+
+| Model | Typical Used Price | Why It's Worth a Look |
+| --- | --- | --- |
+| Chevrolet Bolt EV (2020–2023) | $13,000–$22,000 | Best bang for the buck — 259 mi range at a bargain price |
+| Nissan Leaf Plus | $12,000–$20,000 | Reliable, widely available |
+| Hyundai Kona Electric | $18,000–$28,000 | Proven model with good resale value |
+| Tesla Model 3 (2018–2021) | $16,000–$25,000 | Great range and charging network access |
+| Kia Niro EV | $18,000–$27,000 | Practical, efficient, and comfortable |
+
+The used **Chevrolet Bolt EV** is currently one of the best EV bargains in America — solid range, low price, and widely available.
+
+Ready to run your own numbers? Try the **[EV vs Gas Cost Calculator](/electricity-vs-gasoline)** and check your **[Incentives](/rebates-incentives)**.`;
+
+const EV_RANGE_ANSWER = `The range of an EV — how many miles it can travel on a full charge — varies by model. Current models offer an EPA-rated range from about **150 miles** for entry-level vehicles to over **500+ miles** for some premium models.
+
+Most popular EVs in the U.S. today — such as the **Tesla Model 3**, **Model Y**, **Chevy Equinox EV**, and **Ford Mustang Mach-E** — typically provide **250–330 miles** of range. For context, the average American drives about **37 miles per day**, well within the range of nearly every EV available.`;
+
+const EV_CHARGING_TIME_ANSWER = `Charging an EV fits naturally into most daily routines — most drivers simply plug in when they get home, just like a laptop, iPad, or mobile phone, and wake up to a full charge every morning. When you're on the road and need a quick top-off, a DC fast charger can take you from nearly empty to 80% in about **15–40 minutes** — often about the time it takes to grab a coffee and stretch your legs. Think of it like your phone or tablet: whether you plug in at 5% or 60%, the higher your battery level, the less time it takes to reach a full charge.
+
+The time it takes depends on the charging level, battery size, and state of charge when you begin. Here's a breakdown:
+
+| Charging Level | Speed | Full Charge | Best For |
+| --- | --- | --- | --- |
+| **Level 1** — 120V household outlet | ~3–5 mi range/hour | Overnight, from empty | Shorter commutes |
+| **Level 2** — 240V home charger | ~20–60 mi range/hour | 4–8 hours (60–80 kWh battery) | Everyday home charging |
+| **DC Fast Charging** — public stations | Fastest available | ~80% in 15–30 min | Road trips & quick top-offs |
+
+For daily driving, most EV owners charge to about **80%**, and only to 100% for longer trips.
+
+**Note:** The average American drives less than **35 miles per day**. If your EV has a 300-mile range, you likely won't need to charge every single day. It's less a technical adjustment and more a simple shift in habit — one that most EV owners say quickly becomes second nature.`;
 
 const CANNED_ANSWERS: Record<string, string> = {
-  [normalizeQ(SUGGESTED_QUESTIONS[0])]: TOP_5_CHEAPEST_EVS,
+  [normalizeQ(SUGGESTED_QUESTIONS[0])]: TOP_5_AFFORDABLE_EVS,
+  [normalizeQ(SUGGESTED_QUESTIONS[1])]: EV_RANGE_ANSWER,
+  [normalizeQ(SUGGESTED_QUESTIONS[4])]: EV_CHARGING_TIME_ANSWER,
 };
 
 // Return the exact canned answer for a question, or null to fall through to n8n.
-const cannedAnswerFor = (text: string): string | null => {
+// `{name}` is interpolated with the visitor's first name (falls back to a warm
+// generic when unknown).
+const cannedAnswerFor = (text: string, firstName?: string): string | null => {
   const key = normalizeQ(text);
-  if (CANNED_ANSWERS[key]) return CANNED_ANSWERS[key];
-  // Looser match so typed variants ("top 5 cheapest evs", "cheapest ev") still hit.
-  if (key.includes("cheapest") && key.includes("ev")) return TOP_5_CHEAPEST_EVS;
+  const personalize = (s: string) => s.replace(/\{name\}/g, firstName?.trim() || "there");
+  if (CANNED_ANSWERS[key]) return personalize(CANNED_ANSWERS[key]);
+  // Looser matches so typed variants still hit the curated answers.
+  if (key.includes("ev") && (key.includes("affordable") || key.includes("cheapest"))) {
+    return personalize(TOP_5_AFFORDABLE_EVS);
+  }
+  if (key.includes("howfar") || key.includes("howmanymiles") || (key.includes("range") && key.includes("ev"))) {
+    return personalize(EV_RANGE_ANSWER);
+  }
+  if ((key.includes("howlong") && key.includes("charge")) || (key.includes("charging") && key.includes("time"))) {
+    return personalize(EV_CHARGING_TIME_ANSWER);
+  }
   return null;
 };
 
@@ -256,7 +283,7 @@ const AgentChatSection = () => {
     // Editorially-approved answers return verbatim, rendered locally without
     // touching the agent. The Q&A is captured in the transcript that's saved to
     // the GHL contact at chat close — no per-message logging needed.
-    const canned = cannedAnswerFor(text);
+    const canned = cannedAnswerFor(text, leadInfo.fullName.split(/\s+/)[0]);
     if (canned) {
       setMessages((prev) => [...prev, { role: "assistant", content: canned }]);
       setLoading(false);
