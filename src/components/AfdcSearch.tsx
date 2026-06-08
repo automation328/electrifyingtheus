@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
-import { Search, ExternalLink, Loader2, AlertCircle, FileSearch } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Search, ExternalLink, Loader2, AlertCircle, FileSearch, MapPin } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import { zipToState } from "@/lib/zip-to-state";
 
 // Calls our own serverless proxy (api/incentives.ts), which holds the NREL key
 // server-side and CDN-caches results to stay under NREL's rate limit.
@@ -70,6 +71,35 @@ const AfdcSearch = () => {
   const [laws, setLaws] = useState<Law[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [detectedState, setDetectedState] = useState<string | null>(null);
+
+  // Auto-detect the visitor's U.S. state from their IP (ZIP/region) on first
+  // load and preselect it in the jurisdiction dropdown. Runs once; a manual
+  // change afterward is never overridden.
+  const didDetect = useRef(false);
+  useEffect(() => {
+    if (didDetect.current) return;
+    didDetect.current = true;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("https://ipapi.co/json/");
+        if (!res.ok) return;
+        const data = await res.json();
+        if (cancelled || data?.country_code !== "US") return;
+        const code = String(data?.region_code ?? "").toUpperCase();
+        const postal = String(data?.postal ?? "").replace(/\D/g, "").slice(0, 5);
+        const resolved = JURISDICTIONS.some((j) => j.value === code) ? code : zipToState(postal);
+        if (resolved && JURISDICTIONS.some((j) => j.value === resolved)) {
+          setJurisdiction(resolved);
+          setDetectedState(resolved);
+        }
+      } catch {
+        /* offline / blocked / rate-limited — keep the Federal default */
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -119,11 +149,17 @@ const AfdcSearch = () => {
           <FileSearch className="w-4 h-4" /> Laws &amp; Incentives Database
         </span>
         <h2 className="text-2xl md:text-3xl font-bold font-display text-foreground mb-3">
-          Search every <span className="text-gradient-primary">law &amp; incentive</span>
+          Search <span className="text-gradient-primary">policy &amp; regulation</span> in your area
         </h2>
         <p className="text-muted-foreground">
           Filter the full U.S. Department of Energy database by jurisdiction, technology, and type.
         </p>
+        {detectedState && (
+          <p className="mt-2 inline-flex items-center gap-1.5 text-sm font-medium text-secondary">
+            <MapPin className="w-4 h-4" />
+            Showing {JURISDICTIONS.find((j) => j.value === detectedState)?.label ?? detectedState} — change the jurisdiction below anytime.
+          </p>
+        )}
       </div>
 
       {/* Controls */}
