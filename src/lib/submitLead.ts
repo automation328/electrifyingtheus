@@ -17,7 +17,11 @@ export type LeadFormType =
   | "career-alerts"
   | "job-apply"
   | "evan-chat"
-  | "calculator-share";
+  | "calculator-share"
+  | "calculator-unlock"
+  | "photo-share"
+  | "article-share"
+  | "incentive-share";
 
 export async function submitLead(
   formType: LeadFormType,

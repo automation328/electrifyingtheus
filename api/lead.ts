@@ -27,6 +27,10 @@ const FORM_TAGS: Record<string, string[]> = {
   "job-apply":        ["website-lead", "job-application", "source:job-apply"],
   "evan-chat":        ["website-lead", "evan-chat", "chatbot-lead", "source:evan-concierge"],
   "calculator-share": ["website-lead", "calculator-share", "source:calculator-share"],
+  "calculator-unlock": ["website-lead", "calculator-lead", "source:calculator-unlock"],
+  "photo-share":     ["website-lead", "content-share", "photo-share", "source:photo-share"],
+  "article-share":   ["website-lead", "content-share", "article-share", "source:article-share"],
+  "incentive-share": ["website-lead", "content-share", "incentive-share", "source:incentive-share"],
 };
 
 const SOURCE_LABEL: Record<string, string> = {
@@ -40,6 +44,10 @@ const SOURCE_LABEL: Record<string, string> = {
   "job-apply": "Job application (Apply click)",
   "evan-chat": "EVan concierge",
   "calculator-share": "EV Calculator share",
+  "calculator-unlock": "EV Calculator (unlock results)",
+  "photo-share": "Gallery photo share",
+  "article-share": "Blog / News share",
+  "incentive-share": "Incentive share",
 };
 
 const safeJson = (s: string) => { try { return JSON.parse(s); } catch { return {}; } };
