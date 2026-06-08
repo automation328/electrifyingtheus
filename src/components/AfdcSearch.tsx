@@ -5,8 +5,9 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 
-const NREL_KEY = (import.meta.env.VITE_NREL_API_KEY as string) || "DEMO_KEY";
-const ENDPOINT = "https://developer.nrel.gov/api/transportation-incentives-laws/v1.json";
+// Calls our own serverless proxy (api/incentives.ts), which holds the NREL key
+// server-side and CDN-caches results to stay under NREL's rate limit.
+const ENDPOINT = "/api/incentives";
 
 interface Law {
   id: number;
@@ -76,15 +77,10 @@ const AfdcSearch = () => {
       setLoading(true);
       setError("");
       try {
-        const params = new URLSearchParams({
-          api_key: NREL_KEY,
-          jurisdiction,
-          technology,
-          limit: "200",
-        });
+        const params = new URLSearchParams({ jurisdiction, technology });
         const res = await fetch(`${ENDPOINT}?${params}`, { signal: controller.signal });
-        if (!res.ok) throw new Error(`Request failed (${res.status})`);
-        const data = await res.json();
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data?.error || `Request failed (${res.status})`);
         setLaws(Array.isArray(data.result) ? data.result : []);
         setType("all");
       } catch (e) {
