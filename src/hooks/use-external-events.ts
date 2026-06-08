@@ -10,12 +10,13 @@ import evCharging from "@/assets/ev-charging.jpg";
 import evFamily from "@/assets/ev-family.jpg";
 import workforce from "@/assets/workforce.jpg";
 import rideshareFleet from "@/assets/rideshare-fleet.jpg";
-import pumpToPlug from "@/assets/event-pump-to-plug.jpg";
+import reducedEmissions from "@/assets/reduced-emissions.jpg";
 import micromobility from "@/assets/micromobility.jpg";
 
 // Image pool — external feed events have no image of their own, so we cycle
-// through these by index for visual variety instead of repeating one fallback.
-const IMAGE_POOL = [evFamily, evCharging, pumpToPlug, workforce, rideshareFleet, micromobility];
+// through these generic EV photos by index for visual variety. (Deliberately
+// excludes branded event flyers like "From Pump to Plug".)
+const IMAGE_POOL = [evFamily, evCharging, reducedEmissions, workforce, rideshareFleet, micromobility];
 
 interface FeedEvent {
   title: string;

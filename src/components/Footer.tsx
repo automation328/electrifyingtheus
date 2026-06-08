@@ -135,9 +135,9 @@ const Footer = () => {
                   <a href="https://www.electrifyingmi.com/" target="_blank" rel="noopener noreferrer" className={navLink}>
                     Electrifying Michigan
                   </a>
-                  <a href="https://afdc.energy.gov/stations" target="_blank" rel="noopener noreferrer" className={navLink}>
+                  <Link to="/find-a-charger" className={navLink}>
                     Find Charging Stations
-                  </a>
+                  </Link>
                 </div>
               </div>
             </div>
