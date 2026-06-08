@@ -18,7 +18,7 @@ export interface Incentive {
 // Federal / nationwide programs — merged into every ZIP's results.
 export const FEDERAL: Partial<Record<CatKey, Incentive[]>> = {
   vehicle: [{
-    name: "OBBBA Auto-Loan Interest Deduction",
+    name: "Federal Auto-Loan Interest Deduction",
     jurisdiction: "Federal Incentive",
     amount: "Up to $10,000/yr",
     income: true,
