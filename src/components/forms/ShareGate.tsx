@@ -103,7 +103,9 @@ const ShareGate = ({
       whatsapp: `https://wa.me/?text=${encodeURIComponent(`${title} ${absoluteUrl}`)}`,
       email: `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(`${title}\n\n${absoluteUrl}`)}`,
     };
-    window.open(links[network], network === "email" ? "_self" : "_blank", "noopener,noreferrer");
+    // mailto: must use location.href — window.open is unreliable for it.
+    if (network === "email") window.location.href = links.email;
+    else window.open(links[network], "_blank", "noopener,noreferrer");
   };
 
   const copyLink = async () => {

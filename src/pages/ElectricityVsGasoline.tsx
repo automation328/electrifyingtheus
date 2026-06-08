@@ -450,7 +450,9 @@ const ElectricityVsGasoline = () => {
       whatsapp: `https://wa.me/?text=${encodeURIComponent(`${text} ${url}`)}`,
       email: `mailto:?subject=${encodeURIComponent("EV vs Gas — my savings")}&body=${encodeURIComponent(`${text}\n\n${url}`)}`,
     };
-    window.open(links[network], network === "email" ? "_self" : "_blank", "noopener,noreferrer");
+    // mailto: must use location.href — window.open is unreliable for it.
+    if (network === "email") window.location.href = links.email;
+    else window.open(links[network], "_blank", "noopener,noreferrer");
   };
 
   const canNativeShare = typeof navigator !== "undefined" && typeof navigator.share === "function";
