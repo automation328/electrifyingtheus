@@ -6,6 +6,7 @@ import {
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AfdcSearch from "@/components/AfdcSearch";
+import ShareGate from "@/components/forms/ShareGate";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -217,14 +218,24 @@ const RebatesIncentives = () => {
 
                           <hr className="border-border/70 my-3" />
                           <p className="text-sm text-muted-foreground leading-relaxed flex-1">{it.desc}</p>
-                          <a
-                            href={it.link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1.5 mt-3 text-sm font-semibold text-primary hover:gap-2.5 transition-all"
-                          >
-                            Read More <ExternalLink className="w-3.5 h-3.5" />
-                          </a>
+                          <div className="mt-3 flex items-center justify-between gap-3">
+                            <a
+                              href={it.link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:gap-2.5 transition-all"
+                            >
+                              Read More <ExternalLink className="w-3.5 h-3.5" />
+                            </a>
+                            <ShareGate
+                              url={it.link}
+                              title={it.name}
+                              summary={[it.jurisdiction, it.amount].filter(Boolean).join(" · ")}
+                              formType="incentive-share"
+                              variant="label"
+                              label="Share"
+                            />
+                          </div>
                         </article>
                       ))}
                     </div>

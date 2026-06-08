@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { ArrowRight, Calendar, User, Clock } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import ShareGate from "@/components/forms/ShareGate";
 import { usePosts } from "@/hooks/use-content";
 
 const PostMeta = ({ date, author, readTime }: { date: string; author: string; readTime?: string }) => (
@@ -43,8 +44,11 @@ const Blog = () => {
             className="group grid lg:grid-cols-2 gap-8 items-center rounded-3xl border border-border bg-card overflow-hidden shadow-xl mb-14 hover:shadow-2xl transition-shadow animate-fade-up"
             style={{ animationDelay: "0.1s" }}
           >
-            <div className="h-64 lg:h-full min-h-[280px] overflow-hidden">
+            <div className="relative h-64 lg:h-full min-h-[280px] overflow-hidden">
               <img src={featured.image} alt={featured.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+              <div className="absolute top-3 right-3">
+                <ShareGate url={`/blog/${featured.slug}`} title={featured.title} formType="article-share" />
+              </div>
             </div>
             <div className="p-8">
               <span className="inline-block px-3 py-1 rounded-full bg-secondary/10 text-secondary text-xs font-semibold mb-4">
@@ -70,8 +74,11 @@ const Blog = () => {
                 className="group rounded-3xl border border-border bg-card overflow-hidden shadow-card hover:shadow-xl hover:-translate-y-1 transition-all animate-fade-up"
                 style={{ animationDelay: `${0.15 + i * 0.07}s` }}
               >
-                <div className="h-48 overflow-hidden">
+                <div className="relative h-48 overflow-hidden">
                   <img src={p.image} alt={p.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+                  <div className="absolute top-3 right-3">
+                    <ShareGate url={`/blog/${p.slug}`} title={p.title} formType="article-share" />
+                  </div>
                 </div>
                 <div className="p-6">
                   <span className="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold mb-3">

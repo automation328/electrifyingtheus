@@ -3,6 +3,7 @@ import { ArrowRight, Calendar, Newspaper, Rss, AlertCircle, Loader2, BookOpen } 
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import ShareGate from "@/components/forms/ShareGate";
 import { usePosts } from "@/hooks/use-content";
 
 // E-mobility RSS sources, aggregated client-side through the rss2json proxy
@@ -198,7 +199,7 @@ const News = () => {
                 className="group grid lg:grid-cols-2 gap-8 items-center rounded-3xl border border-border bg-card overflow-hidden shadow-xl mb-14 hover:shadow-2xl transition-shadow animate-fade-up"
                 style={{ animationDelay: "0.1s" }}
               >
-                <div className="h-64 lg:h-full min-h-[280px] overflow-hidden bg-muted">
+                <div className="relative h-64 lg:h-full min-h-[280px] overflow-hidden bg-muted">
                   {featured.image ? (
                     <img src={featured.image} alt={featured.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                   ) : (
@@ -206,6 +207,9 @@ const News = () => {
                       <Newspaper className="w-16 h-16 text-primary-foreground/40" />
                     </div>
                   )}
+                  <div className="absolute top-3 right-3">
+                    <ShareGate url={featured.link} title={featured.title} summary={featured.source} formType="article-share" />
+                  </div>
                 </div>
                 <div className="p-8">
                   <div className="flex items-center gap-3 mb-4">
@@ -235,7 +239,7 @@ const News = () => {
                     className="group rounded-3xl border border-border bg-card overflow-hidden shadow-card hover:shadow-xl hover:-translate-y-1 transition-all animate-fade-up flex flex-col"
                     style={{ animationDelay: `${0.15 + (i % 6) * 0.07}s` }}
                   >
-                    <div className="h-48 overflow-hidden bg-muted shrink-0">
+                    <div className="relative h-48 overflow-hidden bg-muted shrink-0">
                       {p.image ? (
                         <img src={p.image} alt={p.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
                       ) : (
@@ -243,6 +247,9 @@ const News = () => {
                           <Newspaper className="w-10 h-10 text-primary-foreground/40" />
                         </div>
                       )}
+                      <div className="absolute top-3 right-3">
+                        <ShareGate url={p.link} title={p.title} summary={p.source} formType="article-share" />
+                      </div>
                     </div>
                     <div className="p-6 flex flex-col flex-1">
                       <div className="flex items-center gap-3 mb-3">

@@ -3,6 +3,7 @@ import { Images, Film, ChevronLeft, ChevronRight, Camera } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import VideoEmbed from "@/components/VideoEmbed";
+import ShareGate from "@/components/forms/ShareGate";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useGallery } from "@/hooks/use-content";
 
@@ -143,6 +144,16 @@ const Gallery = () => {
                   alt={current.alt}
                   className="mx-auto max-h-[80vh] w-full rounded-xl object-contain"
                 />
+                <div className="absolute left-2 top-2">
+                  <ShareGate
+                    url="/gallery"
+                    title={current.caption || current.alt || "Photo from Electrifying the US"}
+                    summary={current.alt}
+                    formType="photo-share"
+                    variant="label"
+                    label="Share"
+                  />
+                </div>
                 {current.caption && (
                   <p className="mt-2 text-center text-sm text-muted-foreground">
                     {current.caption} · {lightbox! + 1} / {n}
