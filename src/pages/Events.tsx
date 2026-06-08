@@ -7,8 +7,9 @@ import {
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { gcalLink, type EventItem } from "@/data/events";
+import { gcalLink, isUpcoming, byDateAsc, type EventItem } from "@/data/events";
 import { useEvents } from "@/hooks/use-content";
+import { useExternalEvents } from "@/hooks/use-external-events";
 import { submitLead } from "@/lib/submitLead";
 
 const isValidEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
@@ -28,20 +29,29 @@ const Events = () => {
   const [featPage, setFeatPage] = useState(0);
 
   const { events } = useEvents();
+  const { events: externalEvents } = useExternalEvents();
+
+  // "All upcoming events" = ETU's own events first (soonest first), then the
+  // aggregated US-wide EV feed (soonest first). Past events are dropped.
+  const allUpcoming = useMemo(() => {
+    const etu = events.filter(isUpcoming).sort(byDateAsc);
+    const ext = externalEvents.filter(isUpcoming).sort(byDateAsc);
+    return [...etu, ...ext];
+  }, [events, externalEvents]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return events;
-    return events.filter(
+    if (!q) return allUpcoming;
+    return allUpcoming.filter(
       (e) =>
         e.region.toLowerCase().includes(q) ||
         e.location.toLowerCase().includes(q) ||
         e.title.toLowerCase().includes(q) ||
         e.type.toLowerCase().includes(q),
     );
-  }, [query, events]);
+  }, [query, allUpcoming]);
 
-  const featured = events.filter((e) => e.featured);
+  const featured = events.filter((e) => e.featured && isUpcoming(e));
 
   // Featured shows 2 cards at a time; arrows page through the rest.
   const FEAT_PER = 2;
@@ -331,6 +341,9 @@ const Events = () => {
                     <div className="flex flex-wrap items-center gap-2 mb-2">
                       <span className="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold">{e.type}</span>
                       <LocationChip e={e} />
+                      {e.external && e.source && (
+                        <span className="text-[11px] text-muted-foreground">via {e.source}</span>
+                      )}
                     </div>
                     <h3 className="text-xl font-bold font-display text-foreground mb-2 group-hover:text-primary transition-colors">{e.title}</h3>
                     <div className="flex flex-wrap gap-x-5 gap-y-1 text-sm text-muted-foreground mb-3">

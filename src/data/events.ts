@@ -23,7 +23,32 @@ export interface EventItem {
   slug?: string;
   /** External registration link (e.g. webinar signup). */
   registerUrl?: string;
+  /** True for events pulled from an external ICS/RSS feed (sorted below ETU's). */
+  external?: boolean;
+  /** Feed hostname for external events (shown as a small source label). */
+  source?: string;
 }
+
+const MONTH_NUM: Record<string, number> = {
+  JAN: 0, FEB: 1, MAR: 2, APR: 3, MAY: 4, JUN: 5,
+  JUL: 6, AUG: 7, SEP: 8, OCT: 9, NOV: 10, DEC: 11,
+};
+
+/** Parse an EventItem's month/day/year into a Date (local midnight). */
+export const eventDate = (e: EventItem): Date => {
+  const m = MONTH_NUM[e.month.slice(0, 3).toUpperCase()] ?? 0;
+  return new Date(e.year, m, parseInt(e.day, 10) || 1);
+};
+
+/** True when the event is today or in the future. */
+export const isUpcoming = (e: EventItem): boolean => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return eventDate(e).getTime() >= today.getTime();
+};
+
+/** Sort comparator: soonest first. */
+export const byDateAsc = (a: EventItem, b: EventItem) => eventDate(a).getTime() - eventDate(b).getTime();
 
 export const EVENTS: EventItem[] = [
   {
