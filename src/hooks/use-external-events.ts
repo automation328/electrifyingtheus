@@ -6,7 +6,16 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { type EventItem } from "@/data/events";
-import eventFallback from "@/assets/ev-charging.jpg";
+import evCharging from "@/assets/ev-charging.jpg";
+import evFamily from "@/assets/ev-family.jpg";
+import workforce from "@/assets/workforce.jpg";
+import rideshareFleet from "@/assets/rideshare-fleet.jpg";
+import pumpToPlug from "@/assets/event-pump-to-plug.jpg";
+import micromobility from "@/assets/micromobility.jpg";
+
+// Image pool — external feed events have no image of their own, so we cycle
+// through these by index for visual variety instead of repeating one fallback.
+const IMAGE_POOL = [evFamily, evCharging, pumpToPlug, workforce, rideshareFleet, micromobility];
 
 interface FeedEvent {
   title: string;
@@ -20,7 +29,7 @@ interface FeedEvent {
 
 const MONTH_ABBR = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
 
-const mapToEventItem = (e: FeedEvent): EventItem => {
+const mapToEventItem = (e: FeedEvent, index: number): EventItem => {
   const d = new Date(e.startISO);
   const hasTime = !(d.getUTCHours() === 0 && d.getUTCMinutes() === 0);
   const time = hasTime
@@ -39,7 +48,7 @@ const mapToEventItem = (e: FeedEvent): EventItem => {
     region: location,
     time,
     description: (e.description ?? "").slice(0, 320) || "EV event in the U.S. — see the organizer's page for full details.",
-    image: eventFallback,
+    image: IMAGE_POOL[index % IMAGE_POOL.length],
     registerUrl: e.url,
     external: true,
     source: e.source,
