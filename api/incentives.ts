@@ -9,11 +9,14 @@
 //     per IP), which is what was causing "Couldn't load incentives right now."
 //
 // Env (Vercel → Project → Settings → Environment Variables):
-//   NREL_API_KEY   Free key from https://developer.nrel.gov/signup/ (recommended).
+//   NREL_API_KEY   Free key from https://developer.nlr.gov/signup/ (recommended).
 //                  Falls back to DEMO_KEY if unset — works, but rate-limited.
+//
+// NREL retired developer.nrel.gov in 2026; its API now lives at developer.nlr.gov
+// (confirmed in NREL's own docs repo, github.com/NREL/developer.nrel.gov).
 
 const NREL_ENDPOINT =
-  "https://developer.nrel.gov/api/transportation-incentives-laws/v1.json";
+  "https://developer.nlr.gov/api/transportation-incentives-laws/v1.json";
 
 // Allowlists so this can't be abused as an open proxy to arbitrary NREL params.
 const JURISDICTIONS = new Set([
