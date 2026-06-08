@@ -1,6 +1,8 @@
 import { DollarSign, Fuel, Globe, TrendingUp, TrendingDown, Activity } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import statsBg from "@/assets/stats-bg.jpg";
+import { useGasPrices } from "@/hooks/use-gas-prices";
+import { NATIONAL_AVG, STATE_ENERGY_RATES } from "@/data/state-energy-rates";
 
 const stats = [
   {
@@ -33,6 +35,12 @@ const stats = [
 const StatsSection = () => {
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
+
+  // Live AAA national gas price — same source as the EV vs Gas page, so the two
+  // pages always show the same figure. Falls back to the national average.
+  const { data: gasData } = useGasPrices();
+  const national = gasData?.national ?? NATIONAL_AVG.gasPricePerGallon;
+  const caHigh = gasData?.prices?.CA ?? STATE_ENERGY_RATES.CA.gasPricePerGallon;
 
   useEffect(() => {
     const obs = new IntersectionObserver(
@@ -70,7 +78,13 @@ const StatsSection = () => {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-5xl mx-auto">
-          {stats.map((stat, i) => (
+          {stats.map((stat, i) => {
+            // The Fuel Price card pulls the live national + CA-high figures so it
+            // stays consistent with the EV vs Gas calculator.
+            const isFuel = stat.category === "Fuel Price";
+            const value = isFuel ? `$${national.toFixed(2)}` : stat.value;
+            const sub = isFuel ? `avg · up to $${caHigh.toFixed(2)} / gal` : stat.sub;
+            return (
             <div
               key={i}
               className={`group relative rounded-3xl p-7 md:p-8 bg-card/75 backdrop-blur-xl border border-white/40 shadow-lg overflow-hidden transition-all duration-500 hover:shadow-2xl hover:-translate-y-1.5 ${
@@ -94,9 +108,9 @@ const StatsSection = () => {
 
               <div className="relative">
                 <div className="text-4xl md:text-5xl font-bold font-display text-gradient-primary leading-none">
-                  {stat.value}
+                  {value}
                 </div>
-                {stat.sub && <div className="text-xs font-medium text-muted-foreground mt-1.5">{stat.sub}</div>}
+                {sub && <div className="text-xs font-medium text-muted-foreground mt-1.5">{sub}</div>}
                 <p className="text-sm md:text-[15px] text-muted-foreground mt-3 leading-relaxed">{stat.label}</p>
               </div>
 
@@ -105,7 +119,8 @@ const StatsSection = () => {
                 <span className={`text-xs font-semibold ${stat.trend.tone}`}>{stat.trend.text}</span>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
 
         <p className="text-center text-xs text-muted-foreground mt-8">
