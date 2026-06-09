@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import {
   MapPin, Briefcase, Clock, ArrowRight, Megaphone, GraduationCap, HardHat,
   BarChart3, CalendarDays, Handshake, Building2, Star, Mail, MessageSquare,
-  CheckCircle2, BellRing, Sparkles, type LucideIcon,
+  CheckCircle2, BellRing, Sparkles, ChevronDown, type LucideIcon,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -36,6 +36,16 @@ const Careers = () => {
   const [applyJob, setApplyJob] = useState<Job | null>(null);
   const [applyForm, setApplyForm] = useState({ firstName: "", email: "" });
   const [applyErr, setApplyErr] = useState("");
+
+  // Collapsible rows — collapsed shows the preview; expanded reveals the full
+  // description + Apply.
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const toggleExpanded = (key: string) =>
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      next.has(key) ? next.delete(key) : next.add(key);
+      return next;
+    });
 
   // Real openings from EV companies' public ATS boards (/api/jobs). Falls back
   // to the curated static list when the feed is empty (no boards configured).
@@ -191,38 +201,55 @@ const Careers = () => {
           <div className="space-y-4">
             {filtered.map((j, i) => {
               const Icon = DEPT_ICON[j.department] ?? Briefcase;
+              const key = `${j.company}-${j.title}-${i}`;
+              const open = expanded.has(key);
               return (
                 <article
-                  key={`${j.company}-${j.title}-${i}`}
-                  className="group relative flex flex-col md:flex-row md:items-center gap-5 p-6 rounded-3xl border border-border bg-card shadow-card hover:shadow-xl hover:-translate-y-0.5 hover:border-primary/30 transition-all animate-fade-up overflow-hidden"
+                  key={key}
+                  className="group relative rounded-3xl border border-border bg-card shadow-card hover:shadow-xl hover:border-primary/30 transition-all animate-fade-up overflow-hidden"
                   style={{ animationDelay: `${i * 0.06}s` }}
                 >
-                  <span className="absolute left-0 top-0 bottom-0 w-1 gradient-primary scale-y-0 group-hover:scale-y-100 origin-top transition-transform" aria-hidden />
+                  <span className={`absolute left-0 top-0 bottom-0 w-1 gradient-primary origin-top transition-transform ${open ? "scale-y-100" : "scale-y-0 group-hover:scale-y-100"}`} aria-hidden />
 
-                  <span className="shrink-0 w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center group-hover:bg-primary transition-colors">
-                    <Icon className="w-6 h-6 text-primary group-hover:text-primary-foreground transition-colors" />
-                  </span>
+                  {/* Clickable header — collapsed shows the preview; click to expand */}
+                  <button
+                    type="button"
+                    onClick={() => toggleExpanded(key)}
+                    aria-expanded={open}
+                    className="w-full flex items-start gap-5 p-6 text-left"
+                  >
+                    <span className={`shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center transition-colors ${open ? "bg-primary" : "bg-primary/10 group-hover:bg-primary"}`}>
+                      <Icon className={`w-6 h-6 transition-colors ${open ? "text-primary-foreground" : "text-primary group-hover:text-primary-foreground"}`} />
+                    </span>
 
-                  <div className="flex-1">
-                    <h3 className="text-xl font-bold font-display text-foreground mb-1 group-hover:text-primary transition-colors">{j.title}</h3>
-                    <p className="text-sm font-medium text-primary mb-2 flex items-center gap-1.5">
-                      <Building2 className="w-3.5 h-3.5" /> {j.company}
-                    </p>
-                    <div className="flex flex-wrap gap-x-5 gap-y-1 text-sm text-muted-foreground mb-3">
-                      <span className="flex items-center gap-1.5"><Briefcase className="w-4 h-4 text-primary" /> {j.department}</span>
-                      <span className="flex items-center gap-1.5"><MapPin className="w-4 h-4 text-secondary" /> {j.location}</span>
-                      <span className="flex items-center gap-1.5"><Clock className="w-4 h-4 text-secondary" /> {j.type}</span>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-xl font-bold font-display text-foreground mb-1 group-hover:text-primary transition-colors">{j.title}</h3>
+                      <p className="text-sm font-medium text-primary mb-2 flex items-center gap-1.5">
+                        <Building2 className="w-3.5 h-3.5" /> {j.company}
+                      </p>
+                      <div className="flex flex-wrap gap-x-5 gap-y-1 text-sm text-muted-foreground mb-3">
+                        <span className="flex items-center gap-1.5"><Briefcase className="w-4 h-4 text-primary" /> {j.department}</span>
+                        <span className="flex items-center gap-1.5"><MapPin className="w-4 h-4 text-secondary" /> {j.location}</span>
+                        <span className="flex items-center gap-1.5"><Clock className="w-4 h-4 text-secondary" /> {j.type}</span>
+                      </div>
+                      <p className={`text-sm text-muted-foreground leading-relaxed ${open ? "whitespace-pre-line" : ""}`}>
+                        {open ? (j.descriptionFull || j.description) : j.description}
+                      </p>
                     </div>
-                    <p className="text-sm text-muted-foreground">{j.description}</p>
-                  </div>
 
-                  <div className="shrink-0 flex items-center gap-2">
-                    <a href={shareEmail(j)} aria-label="Share via email" className="grid place-items-center w-10 h-10 rounded-lg border border-border text-muted-foreground hover:text-primary hover:border-primary/40 transition"><Mail className="w-4 h-4" /></a>
-                    <a href={shareSms(j)} aria-label="Share via SMS" className="grid place-items-center w-10 h-10 rounded-lg border border-border text-muted-foreground hover:text-primary hover:border-primary/40 transition"><MessageSquare className="w-4 h-4" /></a>
-                    <button type="button" onClick={() => openApply(j)} className="inline-flex items-center justify-center gap-2 gradient-primary text-primary-foreground font-semibold text-sm px-6 py-3 rounded-xl hover:opacity-90 group-hover:gap-3 transition-all">
-                      Apply <ArrowRight className="w-4 h-4" />
-                    </button>
-                  </div>
+                    <ChevronDown className={`w-5 h-5 text-muted-foreground shrink-0 mt-1 transition-transform ${open ? "rotate-180 text-primary" : ""}`} />
+                  </button>
+
+                  {/* Apply + share — revealed when expanded */}
+                  {open && (
+                    <div className="px-6 pb-6 md:pl-[68px] flex flex-wrap items-center gap-2">
+                      <button type="button" onClick={() => openApply(j)} className="inline-flex items-center justify-center gap-2 gradient-primary text-primary-foreground font-semibold text-sm px-6 py-3 rounded-xl hover:opacity-90 hover:gap-3 transition-all">
+                        Apply <ArrowRight className="w-4 h-4" />
+                      </button>
+                      <a href={shareEmail(j)} aria-label="Share via email" className="grid place-items-center w-10 h-10 rounded-lg border border-border text-muted-foreground hover:text-primary hover:border-primary/40 transition"><Mail className="w-4 h-4" /></a>
+                      <a href={shareSms(j)} aria-label="Share via SMS" className="grid place-items-center w-10 h-10 rounded-lg border border-border text-muted-foreground hover:text-primary hover:border-primary/40 transition"><MessageSquare className="w-4 h-4" /></a>
+                    </div>
+                  )}
                 </article>
               );
             })}

@@ -14,6 +14,7 @@ interface FeedJob {
   location: string;
   type: string;
   description: string;
+  descriptionFull?: string;
   url: string;
 }
 
@@ -24,6 +25,7 @@ const mapToJob = (j: FeedJob, index: number): Job => ({
   location: j.location || "See listing",
   type: j.type || "Full-time",
   description: j.description || `Open role at ${j.company}.`,
+  descriptionFull: j.descriptionFull || j.description,
   image: jobFallback,
   applyUrl: j.url,
   featured: index < 2, // surface the first couple in the Featured section
