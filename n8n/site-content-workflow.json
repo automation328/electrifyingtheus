@@ -36,7 +36,7 @@
         },
         "responseMode": "onReceived",
         "options": {
-          "path": "publish-content",
+          "path": "etu-content",
           "buttonLabel": "Publish",
           "respondWithOptions": { "values": { "respondWith": "text", "formSubmittedText": "Saved. The website will reflect this within a few minutes." } }
         }
