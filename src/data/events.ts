@@ -1,8 +1,3 @@
-import evFamily from "@/assets/ev-family.jpg";
-import evCharging from "@/assets/ev-charging.jpg";
-import workforce from "@/assets/workforce.jpg";
-import steamEducation from "@/assets/steam-education.jpg";
-import heavyDuty from "@/assets/heavy-duty.jpg";
 import pumpToPlug from "@/assets/event-pump-to-plug.jpg";
 
 export interface EventItem {
@@ -64,58 +59,6 @@ export const EVENTS: EventItem[] = [
     featured: true,
     slug: "from-pump-to-plug",
     registerUrl: "https://bit.ly/SaveWithEVs",
-  },
-  {
-    month: "JUN", day: "14", year: 2026,
-    title: "National Drive Electric — Ride & Drive",
-    type: "Ride & Drive",
-    location: "Atlanta, GA · Piedmont Park",
-    region: "Atlanta, GA",
-    time: "10:00 AM – 4:00 PM EDT",
-    description: "Test-drive the latest EVs from multiple automakers, talk to owners, and learn about incentives — all in one place. Free and open to the public.",
-    image: evFamily,
-    featured: true,
-  },
-  {
-    month: "JUN", day: "26", year: 2026,
-    title: "Charging at Home: Free Webinar",
-    type: "Webinar",
-    location: "Online · Zoom",
-    region: "Online",
-    time: "6:00 PM – 7:00 PM EDT",
-    description: "Everything you need to know about Level 2 home charging — equipment, installation, costs, and utility rebates. Live Q&A with EV experts.",
-    image: evCharging,
-  },
-  {
-    month: "JUL", day: "10", year: 2026,
-    title: "Clean Mobility Workforce Summit",
-    type: "Conference",
-    location: "Detroit, MI · TCF Center",
-    region: "Detroit, MI",
-    time: "9:00 AM – 5:00 PM EDT",
-    description: "Connect with employers, training programs, and labor partners building the clean-energy workforce. Career fair and hands-on demos included.",
-    image: workforce,
-    featured: true,
-  },
-  {
-    month: "AUG", day: "02", year: 2026,
-    title: "Electrifying Virginia Community Expo",
-    type: "Expo",
-    location: "Richmond, VA · Main Street Station",
-    region: "Richmond, VA",
-    time: "11:00 AM – 6:00 PM EDT",
-    description: "A family-friendly celebration of e-mobility: EVs, e-bikes, electric buses, food trucks, and STEAM activities for kids.",
-    image: steamEducation,
-  },
-  {
-    month: "SEP", day: "18", year: 2026,
-    title: "Fleet Electrification Workshop",
-    type: "Workshop",
-    location: "Online · Virtual",
-    region: "Online",
-    time: "1:00 PM – 3:00 PM EDT",
-    description: "For businesses and municipalities: how to plan, fund, and roll out electric fleets. Case studies, TCO modeling, and grant guidance.",
-    image: heavyDuty,
   },
 ];
 
