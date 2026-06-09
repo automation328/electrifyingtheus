@@ -685,10 +685,7 @@ const ElectricityVsGasoline = () => {
                   <Tag className="w-3.5 h-3.5 shrink-0 mt-0.5 text-muted-foreground" />
                   <span>
                     <strong className="text-foreground">A note on pricing:</strong> All new vehicle prices are starting MSRPs
-                    before taxes, fees, dealer markups, or incentives. Federal EV tax credits (up to $7,500 for new vehicles)
-                    and state/utility incentives may significantly lower your out-of-pocket cost. Always check{" "}
-                    <a href="https://www.fueleconomy.gov" target="_blank" rel="noopener noreferrer" className="underline font-medium text-primary">fueleconomy.gov</a>{" "}
-                    for the latest eligibility details.
+                    before taxes, fees, dealer markups, or incentives.
                   </span>
                 </p>
               </div>
