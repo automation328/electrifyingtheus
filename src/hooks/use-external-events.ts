@@ -48,7 +48,7 @@ const mapToEventItem = (e: FeedEvent, index: number): EventItem => {
     location,
     region: location,
     time,
-    description: (e.description ?? "").slice(0, 320) || "EV event in the U.S. — see the organizer's page for full details.",
+    description: (e.description ?? "").slice(0, 1200) || "EV event in the U.S. — see the organizer's page for full details.",
     image: IMAGE_POOL[index % IMAGE_POOL.length],
     registerUrl: e.url,
     external: true,

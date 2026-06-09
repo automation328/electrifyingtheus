@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import {
   MapPin, Clock, ArrowRight, Ticket, Mail, MessageSquare,
   CalendarPlus, BellRing, Search, Star, CheckCircle2, Sparkles, Megaphone,
-  ChevronLeft, ChevronRight,
+  ChevronLeft, ChevronRight, ChevronDown,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -27,6 +27,16 @@ const Events = () => {
   const [alertDone, setAlertDone] = useState(false);
   const [alertErr, setAlertErr] = useState("");
   const [featPage, setFeatPage] = useState(0);
+
+  // Collapsible event descriptions — "Read more" reveals the full details while
+  // the Register button stays visible.
+  const [expandedEvents, setExpandedEvents] = useState<Set<string>>(new Set());
+  const toggleEvent = (key: string) =>
+    setExpandedEvents((prev) => {
+      const next = new Set(prev);
+      next.has(key) ? next.delete(key) : next.add(key);
+      return next;
+    });
 
   const { events } = useEvents();
   const { events: externalEvents } = useExternalEvents();
@@ -349,7 +359,27 @@ const Events = () => {
                     <div className="flex flex-wrap gap-x-5 gap-y-1 text-sm text-muted-foreground mb-3">
                       <span className="flex items-center gap-1.5"><Clock className="w-4 h-4 text-secondary" /> {e.time}</span>
                     </div>
-                    <p className="text-sm text-muted-foreground mb-4">{e.description}</p>
+                    {(() => {
+                      const key = `${e.title}-${i}`;
+                      const open = expandedEvents.has(key);
+                      const long = e.description.length > 180;
+                      const text = open || !long ? e.description : `${e.description.slice(0, 180).trimEnd()}…`;
+                      return (
+                        <div className="mb-4">
+                          <p className="text-sm text-muted-foreground whitespace-pre-line">{text}</p>
+                          {long && (
+                            <button
+                              type="button"
+                              onClick={() => toggleEvent(key)}
+                              className="mt-1.5 inline-flex items-center gap-1 text-sm font-semibold text-primary hover:gap-1.5 transition-all"
+                            >
+                              {open ? "Show less" : "Read more"}
+                              <ChevronDown className={`w-4 h-4 transition-transform ${open ? "rotate-180" : ""}`} />
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })()}
                     <ActionRow e={e} />
                   </div>
                 </article>
