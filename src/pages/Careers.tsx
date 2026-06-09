@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import {
   MapPin, Briefcase, Clock, ArrowRight, Megaphone, GraduationCap, HardHat,
-  BarChart3, CalendarDays, Handshake, Building2, Star, Mail, MessageSquare,
+  BarChart3, CalendarDays, Handshake, Building2, Star, MessageSquare,
   CheckCircle2, BellRing, Sparkles, ChevronDown, type LucideIcon,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
@@ -10,6 +10,7 @@ import Footer from "@/components/Footer";
 import { JOBS, type Job } from "@/data/careers";
 import { useExternalJobs } from "@/hooks/use-external-jobs";
 import { submitLead } from "@/lib/submitLead";
+import EmailShareButton from "@/components/forms/EmailShareButton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -83,10 +84,11 @@ const Careers = () => {
     window.open(applyTo(j), "_blank", "noopener,noreferrer");
   };
 
-  // Share a listing via the visitor's email or SMS app.
+  // Share a listing via the visitor's webmail (gated) or SMS app.
   const shareUrl = typeof window !== "undefined" ? `${window.location.origin}/careers` : "https://electrifyingtheus.com/careers";
-  const shareEmail = (j: Job) =>
-    `mailto:?subject=${encodeURIComponent(`EV job: ${j.title} at ${j.company}`)}&body=${encodeURIComponent(`Thought you might be interested in this role:\n\n${j.title} — ${j.company}\n${j.location} · ${j.type}\n\n${shareUrl}`)}`;
+  const shareSubject = (j: Job) => `EV job: ${j.title} at ${j.company}`;
+  const shareBody = (j: Job) =>
+    `Thought you might be interested in this role:\n\n${j.title} — ${j.company}\n${j.location} · ${j.type}\n\n${shareUrl}`;
   const shareSms = (j: Job) =>
     `sms:?&body=${encodeURIComponent(`EV job: ${j.title} at ${j.company} — ${shareUrl}`)}`;
 
@@ -163,7 +165,14 @@ const Careers = () => {
                       <button type="button" onClick={() => openApply(j)} className="inline-flex items-center gap-2 gradient-primary text-primary-foreground font-semibold text-sm px-5 py-2.5 rounded-xl hover:opacity-90 transition">
                         Apply <ArrowRight className="w-4 h-4" />
                       </button>
-                      <a href={shareEmail(j)} aria-label="Share via email" className="grid place-items-center w-9 h-9 rounded-lg border border-border text-muted-foreground hover:text-primary hover:border-primary/40 transition"><Mail className="w-4 h-4" /></a>
+                      <EmailShareButton
+                        formType="job-share"
+                        title={`${j.title} at ${j.company}`}
+                        summary={`${j.company} · ${j.location}`}
+                        subject={shareSubject(j)}
+                        body={shareBody(j)}
+                        className="grid place-items-center w-9 h-9 rounded-lg border border-border text-muted-foreground hover:text-primary hover:border-primary/40 transition"
+                      />
                       <a href={shareSms(j)} aria-label="Share via SMS" className="grid place-items-center w-9 h-9 rounded-lg border border-border text-muted-foreground hover:text-primary hover:border-primary/40 transition"><MessageSquare className="w-4 h-4" /></a>
                     </div>
                   </article>
@@ -246,7 +255,14 @@ const Careers = () => {
                       <button type="button" onClick={() => openApply(j)} className="inline-flex items-center justify-center gap-2 gradient-primary text-primary-foreground font-semibold text-sm px-6 py-3 rounded-xl hover:opacity-90 hover:gap-3 transition-all">
                         Apply <ArrowRight className="w-4 h-4" />
                       </button>
-                      <a href={shareEmail(j)} aria-label="Share via email" className="grid place-items-center w-10 h-10 rounded-lg border border-border text-muted-foreground hover:text-primary hover:border-primary/40 transition"><Mail className="w-4 h-4" /></a>
+                      <EmailShareButton
+                        formType="job-share"
+                        title={`${j.title} at ${j.company}`}
+                        summary={`${j.company} · ${j.location}`}
+                        subject={shareSubject(j)}
+                        body={shareBody(j)}
+                        className="grid place-items-center w-10 h-10 rounded-lg border border-border text-muted-foreground hover:text-primary hover:border-primary/40 transition"
+                      />
                       <a href={shareSms(j)} aria-label="Share via SMS" className="grid place-items-center w-10 h-10 rounded-lg border border-border text-muted-foreground hover:text-primary hover:border-primary/40 transition"><MessageSquare className="w-4 h-4" /></a>
                     </div>
                   )}

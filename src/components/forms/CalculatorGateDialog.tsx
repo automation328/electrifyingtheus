@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { submitLead } from "@/lib/submitLead";
+import { rememberLeadEmail } from "@/lib/emailCompose";
 
 const isEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
 
@@ -47,6 +48,7 @@ const CalculatorGateDialog = ({ open, onOpenChange, onUnlock, vehicleSummary, st
       vehicleSummary: vehicleSummary ?? "",
       city: stateName ?? "",
     });
+    rememberLeadEmail(email.trim());
     setSending(false);
     // Hand the name up so the page can show the "Thank you, {name}!" intro, then
     // close the dialog to reveal the results beneath it.
