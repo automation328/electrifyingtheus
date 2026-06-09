@@ -1,0 +1,119 @@
+{
+  "name": "Site Blog — Add / Remove",
+  "nodes": [
+    {
+      "name": "Submit Blog",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.5,
+      "position": [0, 200],
+      "parameters": {
+        "formTitle": "Electrifying the US — Blog Post",
+        "formDescription": "Add a new blog post to the website, or remove one. Choose Add and fill the post fields (leave Slug blank to auto-generate it from the title). To remove, choose Delete and enter the post's Slug — Remove hides it from the site and is recoverable (archived, not permanently deleted).",
+        "formFields": {
+          "values": [
+            { "fieldLabel": "Action", "fieldType": "dropdown", "requiredField": true, "fieldOptions": { "values": [{ "option": "Add" }, { "option": "Delete" }] } },
+            { "fieldLabel": "Title", "fieldType": "text", "placeholder": "Why 2026 is the EV tipping point" },
+            { "fieldLabel": "Slug", "fieldType": "text", "placeholder": "leave blank to auto-generate from the title" },
+            { "fieldLabel": "Category", "fieldType": "text", "placeholder": "Policy & Trends, EV 101, News…" },
+            { "fieldLabel": "Excerpt", "fieldType": "textarea", "placeholder": "One or two sentences shown on the card." },
+            { "fieldLabel": "Author", "fieldType": "text", "placeholder": "Electrifying the US Team" },
+            { "fieldLabel": "Read Time", "fieldType": "text", "placeholder": "5 min read" },
+            { "fieldLabel": "Image URL", "fieldType": "text", "placeholder": "https://…/image.jpg" },
+            { "fieldLabel": "Content", "fieldType": "textarea", "placeholder": "Full post body (Markdown supported)." },
+            { "fieldLabel": "Featured", "fieldType": "dropdown", "fieldOptions": { "values": [{ "option": "No" }, { "option": "Yes" }] } },
+            { "fieldLabel": "Slug to remove", "fieldType": "text", "placeholder": "only for Delete — e.g. why-2026-is-the-tipping-point" }
+          ]
+        },
+        "responseMode": "onReceived",
+        "options": {
+          "path": "etu-blog",
+          "buttonLabel": "Save",
+          "respondWithOptions": { "values": { "respondWith": "text", "formSubmittedText": "Saved. The website will reflect this within a few minutes." } }
+        }
+      }
+    },
+    {
+      "name": "Add a Blog?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [240, 80],
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "loose" },
+          "conditions": [{ "leftValue": "={{ $json['Action'] === 'Add' }}", "rightValue": "", "operator": { "type": "boolean", "operation": "true", "singleValue": true } }]
+        }
+      }
+    },
+    {
+      "name": "Insert Blog Row",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [480, 80],
+      "parameters": {
+        "resource": "row",
+        "operation": "create",
+        "tableId": "site_blog_posts",
+        "dataToSend": "defineBelow",
+        "fieldsUi": {
+          "fieldValues": [
+            { "fieldId": "status", "fieldValue": "published" },
+            { "fieldId": "slug", "fieldValue": "={{ ($json['Slug'] || $json['Title'] || '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') }}" },
+            { "fieldId": "title", "fieldValue": "={{ $json['Title'] }}" },
+            { "fieldId": "excerpt", "fieldValue": "={{ $json['Excerpt'] || '' }}" },
+            { "fieldId": "category", "fieldValue": "={{ $json['Category'] || 'News' }}" },
+            { "fieldId": "date", "fieldValue": "={{ $now.toFormat('LLLL d, yyyy') }}" },
+            { "fieldId": "published_at", "fieldValue": "={{ $now.toFormat('yyyy-MM-dd') }}" },
+            { "fieldId": "author", "fieldValue": "={{ $json['Author'] || 'Electrifying the US Team' }}" },
+            { "fieldId": "read_time", "fieldValue": "={{ $json['Read Time'] || '3 min read' }}" },
+            { "fieldId": "image", "fieldValue": "={{ $json['Image URL'] }}" },
+            { "fieldId": "content", "fieldValue": "={{ $json['Content'] || '' }}" },
+            { "fieldId": "featured", "fieldValue": "={{ $json['Featured'] === 'Yes' }}" }
+          ]
+        }
+      },
+      "credentials": { "supabaseApi": { "name": "Supabase" } }
+    },
+    {
+      "name": "Remove a Blog?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [240, 320],
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "loose" },
+          "conditions": [{ "leftValue": "={{ $json['Action'] === 'Delete' }}", "rightValue": "", "operator": { "type": "boolean", "operation": "true", "singleValue": true } }]
+        }
+      }
+    },
+    {
+      "name": "Archive Blog Row",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [480, 320],
+      "parameters": {
+        "resource": "row",
+        "operation": "update",
+        "tableId": "site_blog_posts",
+        "filterType": "manual",
+        "matchType": "allFilters",
+        "filters": { "conditions": [{ "keyName": "slug", "condition": "eq", "keyValue": "={{ $json['Slug to remove'] }}" }] },
+        "dataToSend": "defineBelow",
+        "fieldsUi": { "fieldValues": [{ "fieldId": "status", "fieldValue": "archived" }] }
+      },
+      "credentials": { "supabaseApi": { "name": "Supabase" } }
+    }
+  ],
+  "connections": {
+    "Submit Blog": {
+      "main": [[
+        { "node": "Add a Blog?", "type": "main", "index": 0 },
+        { "node": "Remove a Blog?", "type": "main", "index": 0 }
+      ]]
+    },
+    "Add a Blog?": { "main": [[{ "node": "Insert Blog Row", "type": "main", "index": 0 }]] },
+    "Remove a Blog?": { "main": [[{ "node": "Archive Blog Row", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" }
+}

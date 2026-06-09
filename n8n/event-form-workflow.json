@@ -1,0 +1,117 @@
+{
+  "name": "Site Events — Add / Remove",
+  "nodes": [
+    {
+      "name": "Submit Event",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.5,
+      "position": [0, 200],
+      "parameters": {
+        "formTitle": "Electrifying the US — Event",
+        "formDescription": "Add a new event to the website, or remove one. Choose Add and fill the event fields (Title and Date are the essentials). To remove, choose Delete and enter the event's Title — Remove hides it from the site and is recoverable (archived, not permanently deleted).",
+        "formFields": {
+          "values": [
+            { "fieldLabel": "Action", "fieldType": "dropdown", "requiredField": true, "fieldOptions": { "values": [{ "option": "Add" }, { "option": "Delete" }] } },
+            { "fieldLabel": "Title", "fieldType": "text", "placeholder": "National Drive Electric — Ride & Drive" },
+            { "fieldLabel": "Type", "fieldType": "text", "placeholder": "Ride & Drive, Webinar, Expo, Workshop…" },
+            { "fieldLabel": "Date", "fieldType": "date" },
+            { "fieldLabel": "Time", "fieldType": "text", "placeholder": "10:00 AM – 4:00 PM EDT" },
+            { "fieldLabel": "Location", "fieldType": "text", "placeholder": "Atlanta, GA · Piedmont Park" },
+            { "fieldLabel": "Region", "fieldType": "text", "placeholder": "Atlanta, GA (used for area alerts)" },
+            { "fieldLabel": "Description", "fieldType": "textarea", "placeholder": "What attendees can expect." },
+            { "fieldLabel": "Image URL", "fieldType": "text", "placeholder": "https://…/image.jpg" },
+            { "fieldLabel": "Featured", "fieldType": "dropdown", "fieldOptions": { "values": [{ "option": "No" }, { "option": "Yes" }] } },
+            { "fieldLabel": "Title to remove", "fieldType": "text", "placeholder": "only for Delete — the exact event title" }
+          ]
+        },
+        "responseMode": "onReceived",
+        "options": {
+          "path": "etu-event",
+          "buttonLabel": "Save",
+          "respondWithOptions": { "values": { "respondWith": "text", "formSubmittedText": "Saved. The website will reflect this within a few minutes." } }
+        }
+      }
+    },
+    {
+      "name": "Add an Event?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [240, 80],
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "loose" },
+          "conditions": [{ "leftValue": "={{ $json['Action'] === 'Add' }}", "rightValue": "", "operator": { "type": "boolean", "operation": "true", "singleValue": true } }]
+        }
+      }
+    },
+    {
+      "name": "Insert Event Row",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [480, 80],
+      "parameters": {
+        "resource": "row",
+        "operation": "create",
+        "tableId": "site_events",
+        "dataToSend": "defineBelow",
+        "fieldsUi": {
+          "fieldValues": [
+            { "fieldId": "status", "fieldValue": "published" },
+            { "fieldId": "event_date", "fieldValue": "={{ $json['Date'] }}" },
+            { "fieldId": "title", "fieldValue": "={{ $json['Title'] }}" },
+            { "fieldId": "type", "fieldValue": "={{ $json['Type'] || 'Event' }}" },
+            { "fieldId": "location", "fieldValue": "={{ $json['Location'] || '' }}" },
+            { "fieldId": "region", "fieldValue": "={{ $json['Region'] || $json['Location'] || '' }}" },
+            { "fieldId": "time", "fieldValue": "={{ $json['Time'] || '' }}" },
+            { "fieldId": "description", "fieldValue": "={{ $json['Description'] || '' }}" },
+            { "fieldId": "image", "fieldValue": "={{ $json['Image URL'] }}" },
+            { "fieldId": "featured", "fieldValue": "={{ $json['Featured'] === 'Yes' }}" }
+          ]
+        }
+      },
+      "credentials": { "supabaseApi": { "name": "Supabase" } }
+    },
+    {
+      "name": "Remove an Event?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [240, 320],
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "loose" },
+          "conditions": [{ "leftValue": "={{ $json['Action'] === 'Delete' }}", "rightValue": "", "operator": { "type": "boolean", "operation": "true", "singleValue": true } }]
+        }
+      }
+    },
+    {
+      "name": "Archive Event Row",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [480, 320],
+      "parameters": {
+        "resource": "row",
+        "operation": "update",
+        "tableId": "site_events",
+        "filterType": "manual",
+        "matchType": "allFilters",
+        "filters": { "conditions": [{ "keyName": "title", "condition": "eq", "keyValue": "={{ $json['Title to remove'] }}" }] },
+        "dataToSend": "defineBelow",
+        "fieldsUi": { "fieldValues": [{ "fieldId": "status", "fieldValue": "archived" }] }
+      },
+      "credentials": { "supabaseApi": { "name": "Supabase" } }
+    }
+  ],
+  "connections": {
+    "Submit Event": {
+      "main": [[
+        { "node": "Add an Event?", "type": "main", "index": 0 },
+        { "node": "Remove an Event?", "type": "main", "index": 0 }
+      ]]
+    },
+    "Add an Event?": { "main": [[{ "node": "Insert Event Row", "type": "main", "index": 0 }]] },
+    "Remove an Event?": { "main": [[{ "node": "Archive Event Row", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" }
+}
