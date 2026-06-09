@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import {
   DollarSign, Zap, PlugZap, BadgeCheck, ArrowRight,
   MapPin, ExternalLink, Search, Info, Home, type LucideIcon,
@@ -251,14 +252,12 @@ const RebatesIncentives = () => {
                         <h3 className="font-bold font-display text-foreground">Home Charging Advisor</h3>
                         <p className="text-sm text-muted-foreground">Find chargers and apply for incentives for charging your EV at home.</p>
                       </div>
-                      <a
-                        href="https://homecharging.electricforall.org/"
-                        target="_blank"
-                        rel="noopener noreferrer"
+                      <Link
+                        to="/find-a-charger"
                         className="inline-flex items-center gap-1.5 gradient-primary text-primary-foreground text-sm font-semibold px-5 py-2.5 rounded-xl hover:opacity-90 transition-opacity shrink-0"
                       >
                         Find your charger <ArrowRight className="w-4 h-4" />
-                      </a>
+                      </Link>
                     </div>
                   )}
                 </section>
