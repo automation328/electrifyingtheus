@@ -8,7 +8,7 @@
       "position": [0, 288],
       "parameters": {
         "formTitle": "Electrifying the US — Publish Event / Blog",
-        "formDescription": "Add a new event and/or blog post to the website, or delete an existing one. Pick the Action and Content Type, then fill the matching section. For Delete, put the event id or blog slug in the last field.",
+        "formDescription": "Add a new event and/or blog post to the website, or remove an existing one. Pick the Action and Content Type, then fill the matching section. To Add a blog, leave Blog Slug blank and it's generated from the title. To Remove, choose Delete and put the event id or blog slug in the last field — Remove hides it from the site and is recoverable (it is archived, not permanently deleted).",
         "formFields": {
           "values": [
             { "fieldLabel": "Action", "fieldType": "dropdown", "requiredField": true, "fieldOptions": { "values": [{ "option": "Add" }, { "option": "Delete" }] } },
@@ -108,14 +108,14 @@
         "fieldsUi": {
           "fieldValues": [
             { "fieldId": "status", "fieldValue": "published" },
-            { "fieldId": "slug", "fieldValue": "={{ $json['Blog Slug'] }}" },
+            { "fieldId": "slug", "fieldValue": "={{ ($json['Blog Slug'] || $json['Blog Title'] || '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') }}" },
             { "fieldId": "title", "fieldValue": "={{ $json['Blog Title'] }}" },
             { "fieldId": "excerpt", "fieldValue": "={{ $json['Blog Excerpt'] }}" },
-            { "fieldId": "category", "fieldValue": "={{ $json['Blog Category'] }}" },
+            { "fieldId": "category", "fieldValue": "={{ $json['Blog Category'] || 'News' }}" },
             { "fieldId": "date", "fieldValue": "={{ $now.toFormat('LLLL d, yyyy') }}" },
             { "fieldId": "published_at", "fieldValue": "={{ $now.toFormat('yyyy-MM-dd') }}" },
-            { "fieldId": "author", "fieldValue": "={{ $json['Blog Author'] }}" },
-            { "fieldId": "read_time", "fieldValue": "={{ $json['Blog Read Time'] }}" },
+            { "fieldId": "author", "fieldValue": "={{ $json['Blog Author'] || 'Electrifying the US Team' }}" },
+            { "fieldId": "read_time", "fieldValue": "={{ $json['Blog Read Time'] || '3 min read' }}" },
             { "fieldId": "image", "fieldValue": "={{ $json['Blog Image URL'] }}" },
             { "fieldId": "content", "fieldValue": "={{ $json['Blog Content'] }}" },
             { "fieldId": "featured", "fieldValue": "={{ $json['Blog Featured'] === 'Yes' }}" }
@@ -138,17 +138,19 @@
       }
     },
     {
-      "name": "Delete Event Row",
+      "name": "Archive Event Row",
       "type": "n8n-nodes-base.supabase",
       "typeVersion": 1,
       "position": [448, 384],
       "parameters": {
         "resource": "row",
-        "operation": "delete",
+        "operation": "update",
         "tableId": "site_events",
         "filterType": "manual",
         "matchType": "allFilters",
-        "filters": { "conditions": [{ "keyName": "id", "condition": "eq", "keyValue": "={{ $json['Delete ID or Slug'] }}" }] }
+        "filters": { "conditions": [{ "keyName": "id", "condition": "eq", "keyValue": "={{ $json['Delete ID or Slug'] }}" }] },
+        "dataToSend": "defineBelow",
+        "fieldsUi": { "fieldValues": [{ "fieldId": "status", "fieldValue": "archived" }] }
       },
       "credentials": { "supabaseApi": { "name": "Supabase" } }
     },
@@ -166,17 +168,19 @@
       }
     },
     {
-      "name": "Delete Blog Row",
+      "name": "Archive Blog Row",
       "type": "n8n-nodes-base.supabase",
       "typeVersion": 1,
       "position": [448, 576],
       "parameters": {
         "resource": "row",
-        "operation": "delete",
+        "operation": "update",
         "tableId": "site_blog_posts",
         "filterType": "manual",
         "matchType": "allFilters",
-        "filters": { "conditions": [{ "keyName": "slug", "condition": "eq", "keyValue": "={{ $json['Delete ID or Slug'] }}" }] }
+        "filters": { "conditions": [{ "keyName": "slug", "condition": "eq", "keyValue": "={{ $json['Delete ID or Slug'] }}" }] },
+        "dataToSend": "defineBelow",
+        "fieldsUi": { "fieldValues": [{ "fieldId": "status", "fieldValue": "archived" }] }
       },
       "credentials": { "supabaseApi": { "name": "Supabase" } }
     }
@@ -192,8 +196,8 @@
     },
     "Add an Event?": { "main": [[{ "node": "Insert Event Row", "type": "main", "index": 0 }]] },
     "Add a Blog?": { "main": [[{ "node": "Insert Blog Row", "type": "main", "index": 0 }]] },
-    "Delete an Event?": { "main": [[{ "node": "Delete Event Row", "type": "main", "index": 0 }]] },
-    "Delete a Blog?": { "main": [[{ "node": "Delete Blog Row", "type": "main", "index": 0 }]] }
+    "Delete an Event?": { "main": [[{ "node": "Archive Event Row", "type": "main", "index": 0 }]] },
+    "Delete a Blog?": { "main": [[{ "node": "Archive Blog Row", "type": "main", "index": 0 }]] }
   },
   "settings": { "executionOrder": "v1" }
 }
