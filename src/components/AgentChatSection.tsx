@@ -69,6 +69,11 @@ const SUGGESTED_QUESTIONS = [
 // drifts. Keyed by a normalized question string (lowercase, alphanumeric only).
 const normalizeQ = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "");
 
+// Appended whenever EVan can't answer — points the visitor to the floating
+// Contact Us widget (bottom-right) so a human can follow up.
+const CONTACT_HINT =
+  "\n\nIf I couldn't fully answer that, tap the **Contact Us** button at the bottom-right of your screen and our team will help you directly.";
+
 // `{name}` is replaced with the visitor's first name at send time (see doSend).
 const TOP_5_AFFORDABLE_EVS = `Great question {name}! The good news: going electric doesn't have to break the bank. For context, the average price of a new gas-powered vehicle in the US is now **$50,000+**, and pre-owned vehicles average **$26,000+** nationwide. Against that backdrop, these five EVs represent some of the best value on the market today. Here are the most affordable new electric vehicles you can buy right now — ranked by starting price, before taxes, fees, or any available **[incentives](/rebates-incentives)** that could lower your cost even further.
 
@@ -300,7 +305,7 @@ const AgentChatSection = () => {
           {
             role: "assistant",
             content:
-              "I'm running in **demo mode** right now — the AI agent isn't connected yet. Once the team sets the n8n webhook, I'll answer your questions live. In the meantime, explore the site or reach us at **info@electrifyingtheus.com**.",
+              "I'm running in **demo mode** right now — the AI agent isn't connected yet. Once the team sets the n8n webhook, I'll answer your questions live. In the meantime, explore the site, or tap the **Contact Us** button at the bottom-right of your screen and our team will help you directly.",
           },
         ]);
         setLoading(false);
@@ -333,12 +338,12 @@ const AgentChatSection = () => {
 
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: reply.trim() || "Thanks! I didn't catch a response that time — could you rephrase?" },
+        { role: "assistant", content: reply.trim() || `Thanks! I didn't catch a response that time — could you rephrase?${CONTACT_HINT}` },
       ]);
     } catch {
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: "Sorry, I had trouble reaching the assistant. Please try again in a moment." },
+        { role: "assistant", content: `Sorry, I had trouble reaching the assistant. Please try again in a moment.${CONTACT_HINT}` },
       ]);
     }
     setLoading(false);
