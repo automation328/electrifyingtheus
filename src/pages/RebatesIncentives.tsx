@@ -225,7 +225,7 @@ const RebatesIncentives = () => {
                               rel="noopener noreferrer"
                               className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:gap-2.5 transition-all"
                             >
-                              Read More <ExternalLink className="w-3.5 h-3.5" />
+                              Learn More and Apply Here <ExternalLink className="w-3.5 h-3.5" />
                             </a>
                             <ShareGate
                               url={it.link}
