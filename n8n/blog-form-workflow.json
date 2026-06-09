@@ -5,10 +5,10 @@
       "name": "Submit Blog",
       "type": "n8n-nodes-base.formTrigger",
       "typeVersion": 2.5,
-      "position": [0, 200],
+      "position": [0, 300],
       "parameters": {
         "formTitle": "Electrifying the US — Blog Post",
-        "formDescription": "Add a new blog post to the website, or remove one. Choose Add and fill the post fields (leave Slug blank to auto-generate it from the title). To remove, choose Delete and enter the post's Slug — Remove hides it from the site and is recoverable (archived, not permanently deleted).",
+        "formDescription": "Add a new blog post to the website, or remove one. Choose Add and fill the post fields (leave Slug blank to auto-generate it from the title). You can upload an image or paste an Image URL. To remove, choose Delete and enter the post's Slug — Remove hides it from the site and is recoverable (archived, not permanently deleted).",
         "formFields": {
           "values": [
             { "fieldLabel": "Action", "fieldType": "dropdown", "requiredField": true, "fieldOptions": { "values": [{ "option": "Add" }, { "option": "Delete" }] } },
@@ -18,7 +18,8 @@
             { "fieldLabel": "Excerpt", "fieldType": "textarea", "placeholder": "One or two sentences shown on the card." },
             { "fieldLabel": "Author", "fieldType": "text", "placeholder": "Electrifying the US Team" },
             { "fieldLabel": "Read Time", "fieldType": "text", "placeholder": "5 min read" },
-            { "fieldLabel": "Image URL", "fieldType": "text", "placeholder": "https://…/image.jpg" },
+            { "fieldLabel": "Image URL", "fieldType": "text", "placeholder": "https://…/image.jpg (or upload below)" },
+            { "fieldLabel": "Image upload", "fieldType": "file", "acceptFileTypes": ".jpg,.jpeg,.png,.webp,.gif", "multipleFiles": false },
             { "fieldLabel": "Content", "fieldType": "textarea", "placeholder": "Full post body (Markdown supported)." },
             { "fieldLabel": "Featured", "fieldType": "dropdown", "fieldOptions": { "values": [{ "option": "No" }, { "option": "Yes" }] } },
             { "fieldLabel": "Slug to remove", "fieldType": "text", "placeholder": "only for Delete — e.g. why-2026-is-the-tipping-point" }
@@ -36,7 +37,7 @@
       "name": "Add a Blog?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
-      "position": [240, 80],
+      "position": [240, 160],
       "parameters": {
         "conditions": {
           "combinator": "and",
@@ -46,10 +47,60 @@
       }
     },
     {
-      "name": "Insert Blog Row",
+      "name": "Has image file?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [460, 80],
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "loose" },
+          "conditions": [{ "leftValue": "={{ $json['Image upload'] != null }}", "rightValue": "", "operator": { "type": "boolean", "operation": "true", "singleValue": true } }]
+        }
+      }
+    },
+    {
+      "name": "Build Filename",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [680, 0],
+      "parameters": {
+        "mode": "manual",
+        "includeOtherFields": true,
+        "assignments": {
+          "assignments": [
+            { "id": "objpath", "name": "objectPath", "type": "string", "value": "={{ (($('Submit Blog').item.json['Slug'] || $('Submit Blog').item.json['Title'] || 'post').toString().toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')) + '-' + $now.toMillis() + '.' + ($binary['Image_upload'].fileExtension || 'jpg') }}" }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Upload Blog Image",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [900, 0],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ 'https://wmwjjejrgequyersrjnh.supabase.co/storage/v1/object/site-media/' + $json.objectPath }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [
+          { "name": "Content-Type", "value": "={{ $binary['Image_upload'].mimeType }}" },
+          { "name": "x-upsert", "value": "true" }
+        ] },
+        "sendBody": true,
+        "contentType": "binaryData",
+        "inputDataFieldName": "Image_upload",
+        "options": {}
+      },
+      "credentials": { "httpHeaderAuth": { "name": "Supabase Storage (header)" } }
+    },
+    {
+      "name": "Insert Blog (uploaded)",
       "type": "n8n-nodes-base.supabase",
       "typeVersion": 1,
-      "position": [480, 80],
+      "position": [1120, 0],
       "parameters": {
         "resource": "row",
         "operation": "create",
@@ -58,17 +109,46 @@
         "fieldsUi": {
           "fieldValues": [
             { "fieldId": "status", "fieldValue": "published" },
-            { "fieldId": "slug", "fieldValue": "={{ ($json['Slug'] || $json['Title'] || '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') }}" },
-            { "fieldId": "title", "fieldValue": "={{ $json['Title'] }}" },
-            { "fieldId": "excerpt", "fieldValue": "={{ $json['Excerpt'] || '' }}" },
-            { "fieldId": "category", "fieldValue": "={{ $json['Category'] || 'News' }}" },
+            { "fieldId": "slug", "fieldValue": "={{ ($('Submit Blog').item.json['Slug'] || $('Submit Blog').item.json['Title'] || '').toString().toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') }}" },
+            { "fieldId": "title", "fieldValue": "={{ $('Submit Blog').item.json['Title'] }}" },
+            { "fieldId": "excerpt", "fieldValue": "={{ $('Submit Blog').item.json['Excerpt'] || '' }}" },
+            { "fieldId": "category", "fieldValue": "={{ $('Submit Blog').item.json['Category'] || 'News' }}" },
             { "fieldId": "date", "fieldValue": "={{ $now.toFormat('LLLL d, yyyy') }}" },
             { "fieldId": "published_at", "fieldValue": "={{ $now.toFormat('yyyy-MM-dd') }}" },
-            { "fieldId": "author", "fieldValue": "={{ $json['Author'] || 'Electrifying the US Team' }}" },
-            { "fieldId": "read_time", "fieldValue": "={{ $json['Read Time'] || '3 min read' }}" },
-            { "fieldId": "image", "fieldValue": "={{ $json['Image URL'] }}" },
-            { "fieldId": "content", "fieldValue": "={{ $json['Content'] || '' }}" },
-            { "fieldId": "featured", "fieldValue": "={{ $json['Featured'] === 'Yes' }}" }
+            { "fieldId": "author", "fieldValue": "={{ $('Submit Blog').item.json['Author'] || 'Electrifying the US Team' }}" },
+            { "fieldId": "read_time", "fieldValue": "={{ $('Submit Blog').item.json['Read Time'] || '3 min read' }}" },
+            { "fieldId": "image", "fieldValue": "={{ 'https://wmwjjejrgequyersrjnh.supabase.co/storage/v1/object/public/site-media/' + $('Build Filename').item.json.objectPath }}" },
+            { "fieldId": "content", "fieldValue": "={{ $('Submit Blog').item.json['Content'] || '' }}" },
+            { "fieldId": "featured", "fieldValue": "={{ $('Submit Blog').item.json['Featured'] === 'Yes' }}" }
+          ]
+        }
+      },
+      "credentials": { "supabaseApi": { "name": "Supabase" } }
+    },
+    {
+      "name": "Insert Blog (url)",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [680, 220],
+      "parameters": {
+        "resource": "row",
+        "operation": "create",
+        "tableId": "site_blog_posts",
+        "dataToSend": "defineBelow",
+        "fieldsUi": {
+          "fieldValues": [
+            { "fieldId": "status", "fieldValue": "published" },
+            { "fieldId": "slug", "fieldValue": "={{ ($('Submit Blog').item.json['Slug'] || $('Submit Blog').item.json['Title'] || '').toString().toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') }}" },
+            { "fieldId": "title", "fieldValue": "={{ $('Submit Blog').item.json['Title'] }}" },
+            { "fieldId": "excerpt", "fieldValue": "={{ $('Submit Blog').item.json['Excerpt'] || '' }}" },
+            { "fieldId": "category", "fieldValue": "={{ $('Submit Blog').item.json['Category'] || 'News' }}" },
+            { "fieldId": "date", "fieldValue": "={{ $now.toFormat('LLLL d, yyyy') }}" },
+            { "fieldId": "published_at", "fieldValue": "={{ $now.toFormat('yyyy-MM-dd') }}" },
+            { "fieldId": "author", "fieldValue": "={{ $('Submit Blog').item.json['Author'] || 'Electrifying the US Team' }}" },
+            { "fieldId": "read_time", "fieldValue": "={{ $('Submit Blog').item.json['Read Time'] || '3 min read' }}" },
+            { "fieldId": "image", "fieldValue": "={{ $('Submit Blog').item.json['Image URL'] }}" },
+            { "fieldId": "content", "fieldValue": "={{ $('Submit Blog').item.json['Content'] || '' }}" },
+            { "fieldId": "featured", "fieldValue": "={{ $('Submit Blog').item.json['Featured'] === 'Yes' }}" }
           ]
         }
       },
@@ -78,7 +158,7 @@
       "name": "Remove a Blog?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
-      "position": [240, 320],
+      "position": [240, 480],
       "parameters": {
         "conditions": {
           "combinator": "and",
@@ -91,7 +171,7 @@
       "name": "Archive Blog Row",
       "type": "n8n-nodes-base.supabase",
       "typeVersion": 1,
-      "position": [480, 320],
+      "position": [460, 480],
       "parameters": {
         "resource": "row",
         "operation": "update",
@@ -112,7 +192,15 @@
         { "node": "Remove a Blog?", "type": "main", "index": 0 }
       ]]
     },
-    "Add a Blog?": { "main": [[{ "node": "Insert Blog Row", "type": "main", "index": 0 }]] },
+    "Add a Blog?": { "main": [[{ "node": "Has image file?", "type": "main", "index": 0 }]] },
+    "Has image file?": {
+      "main": [
+        [{ "node": "Build Filename", "type": "main", "index": 0 }],
+        [{ "node": "Insert Blog (url)", "type": "main", "index": 0 }]
+      ]
+    },
+    "Build Filename": { "main": [[{ "node": "Upload Blog Image", "type": "main", "index": 0 }]] },
+    "Upload Blog Image": { "main": [[{ "node": "Insert Blog (uploaded)", "type": "main", "index": 0 }]] },
     "Remove a Blog?": { "main": [[{ "node": "Archive Blog Row", "type": "main", "index": 0 }]] }
   },
   "settings": { "executionOrder": "v1" }
