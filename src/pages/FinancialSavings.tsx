@@ -97,6 +97,7 @@ const FinancialSavings = () => (
     heroImage={financialSavings}
     icon={DollarSign}
     stats={stats}
+    statsCta={{ label: "Calculate my savings", to: "/electricity-vs-gasoline" }}
     sections={sections}
     gallery={gallery}
     video={video}
