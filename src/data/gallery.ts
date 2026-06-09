@@ -1,18 +1,9 @@
-// Media gallery seed data. Photos use bundled assets; swap to Supabase Storage
-// URLs (public bucket) once media is uploaded via the n8n form. Videos embed
-// from YouTube/Vimeo — replace the sample IDs with real event recaps.
+// Media gallery data. Photos are real, watermarked event photos bundled under
+// src/assets/gallery (auto-imported below — drop more etu-*.jpg files there and
+// they appear automatically). Videos embed from YouTube/Vimeo or a self-hosted
+// (e.g. Supabase Storage) URL.
 
 import type { VideoProvider } from "@/components/VideoEmbed";
-import evFamily from "@/assets/ev-family.jpg";
-import evCharging from "@/assets/ev-charging.jpg";
-import workforce from "@/assets/workforce.jpg";
-import steamEducation from "@/assets/steam-education.jpg";
-import heavyDuty from "@/assets/heavy-duty.jpg";
-import micromobility from "@/assets/micromobility.jpg";
-import evWinter from "@/assets/ev-winter.jpg";
-import evSavings from "@/assets/ev-savings.jpg";
-import reducedEmissions from "@/assets/reduced-emissions.jpg";
-import pumpToPlug from "@/assets/event-pump-to-plug.jpg";
 
 export interface GalleryPhoto {
   src: string;
@@ -33,18 +24,20 @@ export interface GalleryVideo {
   poster?: string;
 }
 
-export const GALLERY_PHOTOS: GalleryPhoto[] = [
-  { src: pumpToPlug, alt: "From Pump to Plug webinar", caption: "From Pump to Plug — webinar" },
-  { src: evFamily, alt: "Family at an EV ride & drive", caption: "Ride & Drive — Atlanta, GA" },
-  { src: evCharging, alt: "Charging an EV at home", caption: "Home charging demo" },
-  { src: workforce, alt: "Clean-energy workforce training", caption: "Workforce Summit — Detroit, MI" },
-  { src: steamEducation, alt: "Students at a STEAM event", caption: "STEAM education day" },
-  { src: heavyDuty, alt: "Electric heavy-duty truck", caption: "Fleet electrification workshop" },
-  { src: micromobility, alt: "E-bikes and micromobility", caption: "Micromobility expo" },
-  { src: evSavings, alt: "EV cost savings", caption: "Cost-of-ownership clinic" },
-  { src: evWinter, alt: "EV in winter conditions", caption: "Winter range workshop" },
-  { src: reducedEmissions, alt: "Cleaner air community event", caption: "Community air-quality event" },
-];
+// Eager-import every watermarked photo in src/assets/gallery as a URL string.
+// Sorted by filename (etu-01, etu-02, …) so order is stable.
+const photoModules = import.meta.glob("../assets/gallery/*.jpg", {
+  eager: true,
+  import: "default",
+}) as Record<string, string>;
+
+export const GALLERY_PHOTOS: GalleryPhoto[] = Object.keys(photoModules)
+  .sort()
+  .map((path) => ({
+    src: photoModules[path],
+    alt: "Electrifying the US community event",
+    caption: "Electrifying the US",
+  }));
 
 export const GALLERY_VIDEOS: GalleryVideo[] = [
   // YouTube/Vimeo — replace sample IDs with your real recap videos.
@@ -57,7 +50,6 @@ export const GALLERY_VIDEOS: GalleryVideo[] = [
   //   provider: "file",
   //   title: "Ride & Drive — Atlanta recap",
   //   src: "https://<ref>.supabase.co/storage/v1/object/public/gallery/atlanta-recap.mp4",
-  //   poster: pumpToPlug,
-  //   // captions: "https://<ref>.supabase.co/storage/v1/object/public/gallery/atlanta-recap.en.vtt",
+  //   poster: GALLERY_PHOTOS[0]?.src,
   // },
 ];
