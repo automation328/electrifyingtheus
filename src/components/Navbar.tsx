@@ -25,21 +25,25 @@ type Spotlight = {
 
 // `dialog: true` items open the shared Contact Us popup (same <ContactForm /> as
 // the floating ContactWidget) instead of navigating. `href` stays as a fallback.
-type NavItem = { label: string; href: string; dialog?: boolean };
+// `primary: true` items also show inline in the desktop nav bar; on desktop they
+// are hidden from the burger panel (the panel then holds only the rest).
+type NavItem = { label: string; href: string; dialog?: boolean; primary?: boolean };
 
 const navItems: NavItem[] = [
-  { label: "About", href: "#about" },
-  { label: "EV Dashboard", href: "#dashboard" },
-  { label: "EV 101", href: "#ev101" },
-  { label: "Benefits", href: "#benefits" },
-  { label: "Multimodal", href: "#multimodal" },
-  { label: "EV vs Gas Calculator", href: "/electricity-vs-gasoline" },
+  { label: "About", href: "#about", primary: true },
+  { label: "EV Dashboard", href: "#dashboard", primary: true },
+  { label: "EV 101", href: "#ev101", primary: true },
+  { label: "Benefits", href: "#benefits", primary: true },
+  { label: "Multimodal", href: "#multimodal", primary: true },
+  { label: "EV vs Gas Calculator", href: "/electricity-vs-gasoline", primary: true },
   { label: "News", href: "/news" },
   { label: "Events", href: "/events" },
   { label: "Gallery", href: "/gallery" },
   { label: "Careers", href: "/careers" },
   { label: "Contact", href: "/contact-us", dialog: true },
 ];
+
+const primaryItems = navItems.filter((i) => i.primary);
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);      // logical open/closed
@@ -129,8 +133,9 @@ const Navbar = () => {
           solid ? "glass shadow-lg py-2" : "bg-transparent py-4"
         }`}
       >
-        <div className="container flex items-center justify-between">
-          <a href="/" className="flex items-center gap-2">
+        <div className="container flex items-center">
+          {/* Logo — left */}
+          <a href="/" className="flex flex-1 items-center gap-2">
             <img
               src={solid ? logoColored : logoWhite}
               alt="Electrifying the US"
@@ -138,19 +143,38 @@ const Navbar = () => {
             />
           </a>
 
-          {/* Burger toggle (all sizes) — electric pulse draws the eye while closed */}
-          <button
-            className={`relative z-[60] p-2 rounded-lg transition-transform active:scale-90 ${open ? "" : "burger-electric"}`}
-            onClick={toggleMenu}
-            aria-label="Toggle menu"
-            aria-expanded={open}
-          >
-            {open ? (
-              <X className={`burger-bolt ${solid ? "text-primary" : "text-primary-foreground"}`} size={24} />
-            ) : (
-              <Menu className={`burger-bolt ${solid ? "text-primary" : "text-primary-foreground"}`} size={24} />
-            )}
-          </button>
+          {/* Primary links — centered; inline on desktop, the rest live in the burger */}
+          <div className="hidden lg:flex items-center gap-1">
+            {primaryItems.map((item) => (
+              <a
+                key={item.href}
+                href={linkHref(item.href)}
+                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  solid
+                    ? "text-foreground hover:text-primary hover:bg-muted"
+                    : "text-primary-foreground/90 hover:text-primary-foreground hover:bg-primary-foreground/10"
+                }`}
+              >
+                {item.label}
+              </a>
+            ))}
+          </div>
+
+          {/* Burger toggle — right */}
+          <div className="flex flex-1 justify-end">
+            <button
+              className={`relative z-[60] p-2 rounded-lg transition-transform active:scale-90 ${open ? "" : "burger-electric"}`}
+              onClick={toggleMenu}
+              aria-label="Toggle menu"
+              aria-expanded={open}
+            >
+              {open ? (
+                <X className={`burger-bolt ${solid ? "text-primary" : "text-primary-foreground"}`} size={24} />
+              ) : (
+                <Menu className={`burger-bolt ${solid ? "text-primary" : "text-primary-foreground"}`} size={24} />
+              )}
+            </button>
+          </div>
         </div>
       </nav>
 
@@ -218,7 +242,10 @@ const Navbar = () => {
               <div className="p-3 flex flex-col flex-1 overflow-y-auto">
                 {navItems.map((item, i) => {
                   const delay = open ? { animationDelay: `${i * 40}ms` } : undefined;
-                  const cls = `block w-full text-left pl-5 pr-4 py-2.5 rounded-lg text-foreground font-medium hover:bg-muted hover:text-primary transition-colors ${open ? "nav-item" : ""}`;
+                  // Primary items show inline in the desktop bar, so hide them from
+                  // the panel on lg+ (they stay in the panel on smaller screens).
+                  const hideOnDesktop = item.primary ? "lg:hidden" : "";
+                  const cls = `block w-full text-left pl-5 pr-4 py-2.5 rounded-lg text-foreground font-medium hover:bg-muted hover:text-primary transition-colors ${hideOnDesktop} ${open ? "nav-item" : ""}`;
                   return item.dialog ? (
                     <button
                       key={item.href}

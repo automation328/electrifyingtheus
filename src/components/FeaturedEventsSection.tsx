@@ -37,12 +37,14 @@ const FeaturedEventsSection = () => {
           </Link>
         </div>
 
-        {/* Featured Events */}
+        {/* Featured Events (left) + Featured News (right), side by side */}
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-start">
+        <div>
         <div className="flex items-center gap-2 mb-5">
           <CalendarDays className="w-5 h-5 text-secondary" />
           <h3 className="text-xl md:text-2xl font-bold font-display text-foreground">Featured Events</h3>
         </div>
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-1 gap-6">
           {eventCards.map((e, i) => {
             // Blue↔green hero gradient bodies, alternating direction (matches the reference cards).
             const body = i % 2 === 0 ? "gradient-hero" : "gradient-hero-rev";
@@ -98,11 +100,12 @@ const FeaturedEventsSection = () => {
             );
           })}
         </div>
+        </div>
 
-        {/* Featured News */}
+        {/* Featured News (right column) */}
         {newsCards.length > 0 && (
-          <>
-            <div className="flex items-center justify-between mt-14 mb-5">
+          <div>
+            <div className="flex items-center justify-between mb-5">
               <div className="flex items-center gap-2">
                 <Newspaper className="w-5 h-5 text-primary" />
                 <h3 className="text-xl md:text-2xl font-bold font-display text-foreground">Featured News</h3>
@@ -111,31 +114,30 @@ const FeaturedEventsSection = () => {
                 View all news <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
-            <div className="grid md:grid-cols-3 gap-6">
-              {newsCards.map((p, i) => (
+            <div className="space-y-6">
+              {/* Lead story — large card */}
+              {newsCards[0] && (
                 <Link
-                  to={`/blog/${p.slug}`}
-                  key={p.slug}
+                  to={`/blog/${newsCards[0].slug}`}
                   className="group flex flex-col rounded-3xl overflow-hidden bg-card border border-border shadow-card hover:shadow-xl hover:-translate-y-1 transition-all animate-fade-up"
-                  style={{ animationDelay: `${i * 0.08}s` }}
                 >
-                  <div className="relative h-48 overflow-hidden bg-muted shrink-0">
+                  <div className="relative h-56 overflow-hidden bg-muted shrink-0">
                     <img
-                      src={p.image}
-                      alt={p.title}
+                      src={newsCards[0].image}
+                      alt={newsCards[0].title}
                       loading="lazy"
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
-                    {p.featured && (
-                      <span className="absolute top-3 right-3 inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/90 text-foreground text-[11px] font-bold shadow">
+                    {newsCards[0].featured && (
+                      <span className="absolute top-3 left-3 inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/90 text-foreground text-[11px] font-bold shadow">
                         <Star className="w-3 h-3 text-secondary" fill="currentColor" /> Featured
                       </span>
                     )}
                     <div className="absolute bottom-3 right-3">
                       <ShareGate
-                        url={`/blog/${p.slug}`}
-                        title={p.title}
-                        summary={p.category}
+                        url={`/blog/${newsCards[0].slug}`}
+                        title={newsCards[0].title}
+                        summary={newsCards[0].category}
                         formType="article-share"
                         className={GREEN_SHARE}
                       />
@@ -143,20 +145,60 @@ const FeaturedEventsSection = () => {
                   </div>
                   <div className="p-6 flex flex-col flex-1">
                     <div className="flex items-center gap-3 mb-3">
-                      <span className="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold">{p.category}</span>
-                      <span className="text-xs text-muted-foreground">{p.date}</span>
+                      <span className="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold">{newsCards[0].category}</span>
+                      <span className="text-xs text-muted-foreground">{newsCards[0].date}</span>
                     </div>
-                    <h3 className="text-lg font-bold font-display text-foreground mb-2 leading-snug group-hover:text-primary transition-colors">{p.title}</h3>
-                    <p className="text-sm text-muted-foreground line-clamp-3 flex-1">{p.excerpt}</p>
+                    <h3 className="text-xl font-bold font-display text-foreground mb-2 leading-snug group-hover:text-primary transition-colors">{newsCards[0].title}</h3>
+                    <p className="text-sm text-muted-foreground line-clamp-3 flex-1">{newsCards[0].excerpt}</p>
                     <span className="inline-flex items-center gap-1.5 mt-4 text-sm font-semibold text-primary group-hover:gap-2.5 transition-all">
                       Read article <ArrowRight className="w-4 h-4" />
                     </span>
                   </div>
                 </Link>
-              ))}
+              )}
+
+              {/* Secondary stories — compact 2-up grid */}
+              {newsCards.length > 1 && (
+                <div className="grid sm:grid-cols-2 gap-6">
+                  {newsCards.slice(1).map((p, i) => (
+                    <Link
+                      to={`/blog/${p.slug}`}
+                      key={p.slug}
+                      className="group flex flex-col rounded-2xl overflow-hidden bg-card border border-border shadow-card hover:shadow-xl hover:-translate-y-1 transition-all animate-fade-up"
+                      style={{ animationDelay: `${i * 0.08}s` }}
+                    >
+                      <div className="relative h-32 overflow-hidden bg-muted shrink-0">
+                        <img
+                          src={p.image}
+                          alt={p.title}
+                          loading="lazy"
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
+                        <div className="absolute bottom-2 right-2">
+                          <ShareGate
+                            url={`/blog/${p.slug}`}
+                            title={p.title}
+                            summary={p.category}
+                            formType="article-share"
+                            className="inline-grid place-items-center w-8 h-8 rounded-full gradient-green text-primary-foreground shadow-sm hover:opacity-90 transition-opacity"
+                          />
+                        </div>
+                      </div>
+                      <div className="p-4 flex flex-col flex-1">
+                        <span className="inline-block self-start px-2.5 py-0.5 mb-2 rounded-full bg-primary/10 text-primary text-[11px] font-semibold">{p.category}</span>
+                        <h3 className="text-sm font-bold font-display text-foreground leading-snug line-clamp-2 group-hover:text-primary transition-colors">{p.title}</h3>
+                        <span className="inline-flex items-center gap-1 mt-2.5 text-xs font-semibold text-primary group-hover:gap-2 transition-all">
+                          Read more <ArrowRight className="w-3.5 h-3.5" />
+                        </span>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
             </div>
-          </>
+          </div>
         )}
+        </div>
       </div>
     </section>
   );
