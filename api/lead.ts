@@ -31,6 +31,8 @@ const FORM_TAGS: Record<string, string[]> = {
   "photo-share":     ["website-lead", "content-share", "photo-share", "source:photo-share"],
   "article-share":   ["website-lead", "content-share", "article-share", "source:article-share"],
   "incentive-share": ["website-lead", "content-share", "incentive-share", "source:incentive-share"],
+  "event-share":     ["website-lead", "content-share", "event-share", "source:event-share"],
+  "job-share":       ["website-lead", "content-share", "job-share", "source:job-share"],
 };
 
 const SOURCE_LABEL: Record<string, string> = {
@@ -48,6 +50,8 @@ const SOURCE_LABEL: Record<string, string> = {
   "photo-share": "Gallery photo share",
   "article-share": "Blog / News share",
   "incentive-share": "Incentive share",
+  "event-share": "Event share (email)",
+  "job-share": "Job share (email)",
 };
 
 const safeJson = (s: string) => { try { return JSON.parse(s); } catch { return {}; } };

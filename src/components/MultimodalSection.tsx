@@ -41,7 +41,7 @@ const modes = [
   },
   {
     icon: Truck,
-    title: "Heavy-Duty Electrification",
+    title: "Medium and Heavy-Duty Electrification",
     desc: "Zero-emission freight corridor strategy prioritizing charging hubs along major interstates handling 10,000+ trucks daily.",
     path: "/heavy-duty-electrification",
     image: heavyDuty,

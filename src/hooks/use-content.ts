@@ -5,10 +5,11 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { isSupabaseConfigured } from "@/lib/supabase";
-import { fetchEvents, fetchPosts, fetchGallery, mergeEvents, mergePosts } from "@/lib/content";
+import { fetchEvents, fetchPosts, fetchGallery, fetchJobs, mergeEvents, mergePosts } from "@/lib/content";
 import { EVENTS, type EventItem } from "@/data/events";
 import { BLOG_POSTS, type BlogPost } from "@/data/blog-posts";
 import { GALLERY_PHOTOS, GALLERY_VIDEOS, type GalleryPhoto, type GalleryVideo } from "@/data/gallery";
+import { type Job } from "@/data/careers";
 
 const FIVE_MIN = 5 * 60 * 1000;
 
@@ -37,6 +38,17 @@ export function usePosts(): { posts: BlogPost[]; loading: boolean } {
 export function usePost(slug: string | undefined): { post: BlogPost | undefined; loading: boolean } {
   const { posts, loading } = usePosts();
   return { post: slug ? posts.find((p) => p.slug === slug) : undefined, loading };
+}
+
+export function usePostedJobs(): { jobs: Job[]; loading: boolean } {
+  const q = useQuery({
+    queryKey: ["site-jobs"],
+    queryFn: fetchJobs,
+    enabled: isSupabaseConfigured,
+    staleTime: FIVE_MIN,
+  });
+  if (!isSupabaseConfigured) return { jobs: [], loading: false };
+  return { jobs: q.data ?? [], loading: q.isLoading };
 }
 
 export function useGallery(): { photos: GalleryPhoto[]; videos: GalleryVideo[]; loading: boolean } {

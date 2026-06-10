@@ -21,7 +21,9 @@ export type LeadFormType =
   | "calculator-unlock"
   | "photo-share"
   | "article-share"
-  | "incentive-share";
+  | "incentive-share"
+  | "event-share"
+  | "job-share";
 
 export async function submitLead(
   formType: LeadFormType,

@@ -17,6 +17,7 @@ interface Job {
   location: string;
   type: string;
   description: string;
+  descriptionFull: string;
   url: string;
 }
 
@@ -61,6 +62,21 @@ const strip = (html: string, n = 280) => {
   return text.length > n ? `${text.slice(0, n).trimEnd()}…` : text;
 };
 
+// Full description as readable plain text — preserves paragraph/bullet breaks
+// (block tags become newlines) so the expanded card isn't one giant blob.
+const richText = (html: string, n = 2400) => {
+  const text = decodeEntities(decodeEntities(String(html || "")))
+    .replace(/<\s*(br)\s*\/?>/gi, "\n")
+    .replace(/<\s*li[^>]*>/gi, "\n• ")
+    .replace(/<\/\s*(p|div|li|ul|ol|h[1-6]|tr|section)\s*>/gi, "\n")
+    .replace(/<[^>]+>/g, "")
+    .replace(/[ \t]+/g, " ")
+    .replace(/[ \t]*\n[ \t]*/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+  return text.length > n ? `${text.slice(0, n).trimEnd()}…` : text;
+};
+
 async function fetchJson(url: string): Promise<any | null> {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), 8000);
@@ -86,6 +102,7 @@ async function greenhouse(token: string, company: string): Promise<Job[]> {
     location: j.location?.name || "See listing",
     type: "Full-time",
     description: strip(j.content),
+    descriptionFull: richText(j.content),
     url: j.absolute_url || "",
   }));
 }
@@ -100,6 +117,7 @@ async function lever(token: string, company: string): Promise<Job[]> {
     location: j.categories?.location || j.workplaceType || "See listing",
     type: j.categories?.commitment || "Full-time",
     description: strip(j.descriptionPlain || j.description),
+    descriptionFull: richText(j.description || j.descriptionPlain),
     url: j.hostedUrl || j.applyUrl || "",
   }));
 }
@@ -117,6 +135,7 @@ async function ashby(token: string, company: string): Promise<Job[]> {
       location: j.location || j.locationName || "See listing",
       type: j.employmentType ? titleCase(j.employmentType) : "Full-time",
       description: strip(j.descriptionPlain || j.descriptionHtml),
+      descriptionFull: richText(j.descriptionHtml || j.descriptionPlain),
       url: j.jobUrl || j.applyUrl || "",
     }));
 }

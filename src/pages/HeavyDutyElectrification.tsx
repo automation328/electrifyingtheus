@@ -66,7 +66,7 @@ const HeavyDutyElectrification = () => (
   <ContentPageLayout
     badge="Beyond Cars · Freight"
     kicker="Multimodal · Field Brief"
-    title="Heavy-Duty"
+    title="Medium and Heavy-Duty"
     highlight="Electrification"
     intro="A national zero-emission freight strategy is prioritizing charging hubs along the major interstates that handle more than 10,000 trucks a day — targeting the diesel-heavy heavy-duty sector that drives an outsized share of transportation emissions."
     heroImage={heavyDuty}

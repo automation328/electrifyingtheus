@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import {
-  MapPin, Clock, ArrowRight, Ticket, Mail, MessageSquare,
+  MapPin, Clock, ArrowRight, Ticket, MessageSquare,
   CalendarPlus, BellRing, Search, Star, CheckCircle2, Sparkles, Megaphone,
-  ChevronLeft, ChevronRight,
+  ChevronLeft, ChevronRight, ChevronDown,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -11,12 +11,14 @@ import { gcalLink, isUpcoming, byDateAsc, type EventItem } from "@/data/events";
 import { useEvents } from "@/hooks/use-content";
 import { useExternalEvents } from "@/hooks/use-external-events";
 import { submitLead } from "@/lib/submitLead";
+import EmailShareButton from "@/components/forms/EmailShareButton";
 
 const isValidEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
 const shareBase = typeof window !== "undefined" ? `${window.location.origin}/events` : "https://electrifyingtheus.com/events";
 
-const shareEmail = (e: EventItem) =>
-  `mailto:?subject=${encodeURIComponent(`EV event: ${e.title}`)}&body=${encodeURIComponent(`${e.title}\n${e.location}\n${e.month} ${e.day}, ${e.year} · ${e.time}\n\n${e.description}\n\n${shareBase}`)}`;
+const shareSubject = (e: EventItem) => `EV event: ${e.title}`;
+const shareBody = (e: EventItem) =>
+  `${e.title}\n${e.location}\n${e.month} ${e.day}, ${e.year} · ${e.time}\n\n${e.description}\n\n${shareBase}`;
 const shareSms = (e: EventItem) =>
   `sms:?&body=${encodeURIComponent(`EV event: ${e.title} — ${e.location}, ${e.month} ${e.day} — ${shareBase}`)}`;
 
@@ -27,6 +29,16 @@ const Events = () => {
   const [alertDone, setAlertDone] = useState(false);
   const [alertErr, setAlertErr] = useState("");
   const [featPage, setFeatPage] = useState(0);
+
+  // Collapsible event descriptions — "Read more" reveals the full details while
+  // the Register button stays visible.
+  const [expandedEvents, setExpandedEvents] = useState<Set<string>>(new Set());
+  const toggleEvent = (key: string) =>
+    setExpandedEvents((prev) => {
+      const next = new Set(prev);
+      next.has(key) ? next.delete(key) : next.add(key);
+      return next;
+    });
 
   const { events } = useEvents();
   const { events: externalEvents } = useExternalEvents();
@@ -77,8 +89,10 @@ const Events = () => {
     setAlertDone(true);
   };
 
-  const ActionRow = ({ e }: { e: EventItem }) => (
-    <div className="flex items-center gap-2">
+  // Register stays visible in both states; the secondary actions (Details,
+  // calendar, share) are revealed once the card is expanded.
+  const ActionRow = ({ e, expanded = true }: { e: EventItem; expanded?: boolean }) => (
+    <div className="flex flex-wrap items-center gap-2">
       {e.registerUrl ? (
         <a href={e.registerUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 gradient-primary text-primary-foreground font-semibold text-sm px-5 py-2.5 rounded-xl hover:opacity-90 transition">
           <Ticket className="w-4 h-4" /> Register
@@ -88,17 +102,27 @@ const Events = () => {
           <Ticket className="w-4 h-4" /> Register
         </Link>
       )}
-      {e.slug && (
-        <Link to={`/events/${e.slug}`} className="inline-flex items-center gap-2 border border-border text-foreground font-semibold text-sm px-4 py-2.5 rounded-xl hover:border-primary/40 hover:text-primary transition">
-          Details
-        </Link>
+      {expanded && (
+        <>
+          {e.slug && (
+            <Link to={`/events/${e.slug}`} className="inline-flex items-center gap-2 border border-border text-foreground font-semibold text-sm px-4 py-2.5 rounded-xl hover:border-primary/40 hover:text-primary transition">
+              Details
+            </Link>
+          )}
+          <a href={gcalLink(e)} target="_blank" rel="noopener noreferrer" aria-label="Set a reminder" title="Add to calendar / set reminder"
+            className="grid place-items-center w-9 h-9 rounded-lg border border-border text-muted-foreground hover:text-primary hover:border-primary/40 transition"><CalendarPlus className="w-4 h-4" /></a>
+          <EmailShareButton
+            formType="event-share"
+            title={e.title}
+            summary={`${e.location} · ${e.month} ${e.day}, ${e.year}`}
+            subject={shareSubject(e)}
+            body={shareBody(e)}
+            className="grid place-items-center w-9 h-9 rounded-lg border border-border text-muted-foreground hover:text-primary hover:border-primary/40 transition"
+          />
+          <a href={shareSms(e)} aria-label="Share via SMS" title="Share via SMS"
+            className="grid place-items-center w-9 h-9 rounded-lg border border-border text-muted-foreground hover:text-primary hover:border-primary/40 transition"><MessageSquare className="w-4 h-4" /></a>
+        </>
       )}
-      <a href={gcalLink(e)} target="_blank" rel="noopener noreferrer" aria-label="Set a reminder" title="Add to calendar / set reminder"
-        className="grid place-items-center w-9 h-9 rounded-lg border border-border text-muted-foreground hover:text-primary hover:border-primary/40 transition"><CalendarPlus className="w-4 h-4" /></a>
-      <a href={shareEmail(e)} aria-label="Share via email" title="Share via email"
-        className="grid place-items-center w-9 h-9 rounded-lg border border-border text-muted-foreground hover:text-primary hover:border-primary/40 transition"><Mail className="w-4 h-4" /></a>
-      <a href={shareSms(e)} aria-label="Share via SMS" title="Share via SMS"
-        className="grid place-items-center w-9 h-9 rounded-lg border border-border text-muted-foreground hover:text-primary hover:border-primary/40 transition"><MessageSquare className="w-4 h-4" /></a>
     </div>
   );
 
@@ -121,8 +145,14 @@ const Events = () => {
       )}
       <a href={gcalLink(e)} target="_blank" rel="noopener noreferrer" aria-label="Set a reminder" title="Add to calendar / set reminder"
         className="grid place-items-center w-9 h-9 rounded-lg bg-white/15 text-primary-foreground hover:bg-white/25 transition"><CalendarPlus className="w-4 h-4" /></a>
-      <a href={shareEmail(e)} aria-label="Share via email" title="Share via email"
-        className="grid place-items-center w-9 h-9 rounded-lg bg-white/15 text-primary-foreground hover:bg-white/25 transition"><Mail className="w-4 h-4" /></a>
+      <EmailShareButton
+        formType="event-share"
+        title={e.title}
+        summary={`${e.location} · ${e.month} ${e.day}, ${e.year}`}
+        subject={shareSubject(e)}
+        body={shareBody(e)}
+        className="grid place-items-center w-9 h-9 rounded-lg bg-white/15 text-primary-foreground hover:bg-white/25 transition"
+      />
       <a href={shareSms(e)} aria-label="Share via SMS" title="Share via SMS"
         className="grid place-items-center w-9 h-9 rounded-lg bg-white/15 text-primary-foreground hover:bg-white/25 transition"><MessageSquare className="w-4 h-4" /></a>
     </div>
@@ -317,43 +347,71 @@ const Events = () => {
             </div>
           ) : (
             <div className="space-y-5">
-              {filtered.map((e, i) => (
-                <article
-                  key={e.title}
-                  className="group relative flex flex-col sm:flex-row gap-5 sm:gap-7 p-5 sm:p-6 rounded-3xl border border-border bg-card shadow-card hover:shadow-xl hover:-translate-y-0.5 hover:border-primary/30 transition-all animate-fade-up overflow-hidden"
-                  style={{ animationDelay: `${i * 0.05}s` }}
-                >
-                  <div className="relative shrink-0 w-full sm:w-52 h-44 sm:h-auto sm:self-stretch rounded-2xl overflow-hidden bg-muted">
-                    <img
-                      src={e.image}
-                      alt={e.title}
-                      loading="lazy"
-                      className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                    <span className="absolute inset-0 bg-gradient-to-t from-foreground/35 to-transparent" aria-hidden />
-                    <div className="absolute top-2.5 left-2.5 w-14 rounded-xl bg-white text-center shadow-lg overflow-hidden">
-                      <div className="bg-secondary text-primary-foreground text-[9px] font-bold tracking-wider py-0.5">{e.month}</div>
-                      <div className="text-foreground text-xl font-bold font-display leading-none py-1">{e.day}</div>
-                    </div>
-                  </div>
+              {filtered.map((e, i) => {
+                const key = `${e.title}-${i}`;
+                const open = expandedEvents.has(key);
+                const long = e.description.length > 180;
+                const preview = long ? `${e.description.slice(0, 180).trimEnd()}…` : e.description;
+                return (
+                  <article
+                    key={key}
+                    className="group relative rounded-3xl border border-border bg-card shadow-card hover:shadow-xl hover:-translate-y-0.5 hover:border-primary/30 transition-all animate-fade-up overflow-hidden"
+                    style={{ animationDelay: `${i * 0.05}s` }}
+                  >
+                    {/* Clickable header — collapsed shows a preview; click anywhere to reveal full details */}
+                    <button
+                      type="button"
+                      onClick={() => toggleEvent(key)}
+                      aria-expanded={open}
+                      className="w-full flex flex-col sm:flex-row gap-5 sm:gap-7 p-5 sm:p-6 text-left"
+                    >
+                      <div className="relative shrink-0 w-full sm:w-52 h-44 sm:h-auto sm:self-stretch rounded-2xl overflow-hidden bg-muted">
+                        <img
+                          src={e.image}
+                          alt={e.title}
+                          loading="lazy"
+                          className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                        <span className="absolute inset-0 bg-gradient-to-t from-foreground/35 to-transparent" aria-hidden />
+                        <div className="absolute top-2.5 left-2.5 w-14 rounded-xl bg-white text-center shadow-lg overflow-hidden">
+                          <div className="bg-secondary text-primary-foreground text-[9px] font-bold tracking-wider py-0.5">{e.month}</div>
+                          <div className="text-foreground text-xl font-bold font-display leading-none py-1">{e.day}</div>
+                        </div>
+                      </div>
 
-                  <div className="flex-1">
-                    <div className="flex flex-wrap items-center gap-2 mb-2">
-                      <span className="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold">{e.type}</span>
-                      <LocationChip e={e} />
-                      {e.external && e.source && (
-                        <span className="text-[11px] text-muted-foreground">via {e.source}</span>
-                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-wrap items-center gap-2 mb-2">
+                          <span className="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold">{e.type}</span>
+                          <LocationChip e={e} />
+                          {e.external && e.source && (
+                            <span className="text-[11px] text-muted-foreground">via {e.source}</span>
+                          )}
+                        </div>
+                        <div className="flex items-start justify-between gap-3">
+                          <h3 className="text-xl font-bold font-display text-foreground mb-2 group-hover:text-primary transition-colors">{e.title}</h3>
+                          <ChevronDown className={`w-5 h-5 text-muted-foreground shrink-0 mt-1 transition-transform ${open ? "rotate-180 text-primary" : ""}`} />
+                        </div>
+                        <div className="flex flex-wrap gap-x-5 gap-y-1 text-sm text-muted-foreground mb-3">
+                          <span className="flex items-center gap-1.5"><Clock className="w-4 h-4 text-secondary" /> {e.time}</span>
+                        </div>
+                        <p className={`text-sm text-muted-foreground ${open ? "whitespace-pre-line" : ""}`}>
+                          {open ? e.description : preview}
+                        </p>
+                        {!open && long && (
+                          <span className="mt-1.5 inline-flex items-center gap-1 text-sm font-semibold text-primary">
+                            Read more <ChevronDown className="w-4 h-4" />
+                          </span>
+                        )}
+                      </div>
+                    </button>
+
+                    {/* Actions — Register always visible; the rest appear when expanded */}
+                    <div className="px-5 sm:px-6 pb-5 sm:pb-6 sm:pl-[236px]">
+                      <ActionRow e={e} expanded={open} />
                     </div>
-                    <h3 className="text-xl font-bold font-display text-foreground mb-2 group-hover:text-primary transition-colors">{e.title}</h3>
-                    <div className="flex flex-wrap gap-x-5 gap-y-1 text-sm text-muted-foreground mb-3">
-                      <span className="flex items-center gap-1.5"><Clock className="w-4 h-4 text-secondary" /> {e.time}</span>
-                    </div>
-                    <p className="text-sm text-muted-foreground mb-4">{e.description}</p>
-                    <ActionRow e={e} />
-                  </div>
-                </article>
-              ))}
+                  </article>
+                );
+              })}
             </div>
           )}
         </div>

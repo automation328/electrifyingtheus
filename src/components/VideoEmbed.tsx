@@ -4,14 +4,16 @@ import { Play } from "lucide-react";
 // Lazy "facade" video embed — shows a poster + play button and only loads the
 // player (iframe or <video> bytes) on click. Keeps the page fast.
 //
-// Three sources:
+// Sources:
 //   provider "youtube" / "vimeo"  → embed by id (no third-party JS until play)
+//   provider "drive"              → Google Drive file embed by id (the file must be
+//                                    shared "anyone with the link"); `id` is the Drive file id.
 //   provider "file"               → self-hosted MP4/WebM via native <video>,
 //                                    `src` is the file URL (e.g. Supabase Storage).
 // Self-hosted hosts should support HTTP range requests so seeking works
 // (Supabase Storage, Cloudflare R2, Bunny, etc. all do).
 
-export type VideoProvider = "youtube" | "vimeo" | "file";
+export type VideoProvider = "youtube" | "vimeo" | "file" | "drive";
 
 interface VideoEmbedProps {
   title: string;
@@ -30,6 +32,8 @@ interface VideoEmbedProps {
 const embedSrc = (provider: VideoProvider, id: string) =>
   provider === "youtube"
     ? `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0`
+    : provider === "drive"
+    ? `https://drive.google.com/file/d/${id}/preview`
     : `https://player.vimeo.com/video/${id}?autoplay=1`;
 
 const VideoEmbed = ({ title, provider = "youtube", id, src, captions, poster, className = "" }: VideoEmbedProps) => {

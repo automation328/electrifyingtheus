@@ -6,8 +6,10 @@ import { supabase } from "@/lib/supabase";
 import { EVENTS, type EventItem } from "@/data/events";
 import { BLOG_POSTS, type BlogPost } from "@/data/blog-posts";
 import type { GalleryPhoto, GalleryVideo } from "@/data/gallery";
+import type { Job } from "@/data/careers";
 import type { VideoProvider } from "@/components/VideoEmbed";
 import fallbackImg from "@/assets/ev-charging.jpg";
+import jobFallbackImg from "@/assets/workforce.jpg";
 
 const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
 
@@ -112,7 +114,7 @@ export async function fetchGallery(): Promise<{ photos: GalleryPhoto[]; videos: 
     .filter((r) => r.kind === "video")
     .map((r) => {
       const provider = (r.provider || "file") as VideoProvider;
-      const isEmbed = provider === "youtube" || provider === "vimeo";
+      const isEmbed = provider === "youtube" || provider === "vimeo" || provider === "drive";
       return {
         provider,
         title: r.title || r.album || "Video",
@@ -122,4 +124,37 @@ export async function fetchGallery(): Promise<{ photos: GalleryPhoto[]; videos: 
       };
     });
   return { photos, videos };
+}
+
+// ── Jobs (site_jobs) ─────────────────────────────────────────────────────────
+interface JobRow {
+  title: string; company: string | null; department: string | null;
+  location: string | null; type: string | null; description: string | null;
+  description_full: string | null; image: string | null;
+  apply_url: string | null; apply_email: string | null; featured: boolean | null;
+}
+
+function rowToJob(r: JobRow): Job {
+  return {
+    title: r.title,
+    company: r.company || "Electrifying the US",
+    department: r.department || "EV Industry",
+    location: r.location || "Remote · U.S.",
+    type: r.type || "Full-time",
+    description: r.description || "",
+    descriptionFull: r.description_full || r.description || "",
+    image: r.image || jobFallbackImg,
+    featured: !!r.featured,
+    applyUrl: r.apply_url || undefined,
+    applyEmail: r.apply_email || undefined,
+  };
+}
+
+export async function fetchJobs(): Promise<Job[]> {
+  if (!supabase) return [];
+  const { data, error } = await supabase
+    .from("site_jobs").select("*").eq("status", "published")
+    .order("sort", { ascending: true }).order("created_at", { ascending: false });
+  if (error || !data) return [];
+  return (data as JobRow[]).map(rowToJob);
 }

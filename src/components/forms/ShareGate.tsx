@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { submitLead, type LeadFormType } from "@/lib/submitLead";
+import { openEmailCompose, rememberLeadEmail } from "@/lib/emailCompose";
 import { toast } from "sonner";
 
 const isEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
@@ -87,6 +88,7 @@ const ShareGate = ({
       message: `Shared "${title}"${summary ? ` — ${summary}` : ""}`,
       shareUrl: absoluteUrl,
     });
+    rememberLeadEmail(email.trim());
     setSending(false);
     try { sessionStorage.setItem(SESSION_KEY, "1"); } catch { /* private mode */ }
     // Reveal the share options (non-blocking — proceeds even if the POST hiccups).
@@ -94,18 +96,25 @@ const ShareGate = ({
   };
 
   const shareTo = (network: "x" | "facebook" | "linkedin" | "whatsapp" | "email") => {
+    if (network === "email") {
+      // Open the visitor's webmail (or mail client) with the message prefilled —
+      // works even when no desktop mail app is registered.
+      openEmailCompose({
+        subject: title,
+        body: `${title}\n\n${absoluteUrl}`,
+        fromEmail: email.trim() || undefined,
+      });
+      return;
+    }
     const u = encodeURIComponent(absoluteUrl);
     const t = encodeURIComponent(title);
-    const links: Record<typeof network, string> = {
+    const links: Record<"x" | "facebook" | "linkedin" | "whatsapp", string> = {
       x: `https://twitter.com/intent/tweet?text=${t}&url=${u}`,
       facebook: `https://www.facebook.com/sharer/sharer.php?u=${u}`,
       linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${u}`,
       whatsapp: `https://wa.me/?text=${encodeURIComponent(`${title} ${absoluteUrl}`)}`,
-      email: `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(`${title}\n\n${absoluteUrl}`)}`,
     };
-    // mailto: must use location.href — window.open is unreliable for it.
-    if (network === "email") window.location.href = links.email;
-    else window.open(links[network], "_blank", "noopener,noreferrer");
+    window.open(links[network], "_blank", "noopener,noreferrer");
   };
 
   const copyLink = async () => {

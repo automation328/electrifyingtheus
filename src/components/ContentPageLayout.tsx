@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, ArrowUpRight, ExternalLink, Play, type LucideIcon } from "lucide-react";
+import { ArrowRight, ArrowUpRight, ExternalLink, Play, Calculator, type LucideIcon } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
@@ -44,11 +44,13 @@ interface ContentPageLayoutProps {
   pullQuote?: string;
   gallery?: ContentShot[];
   video?: ContentVideo;
+  /** Optional CTA button shown directly under the stats row. */
+  statsCta?: { label: string; to: string };
 }
 
 const ContentPageLayout = ({
   badge, title, highlight, intro, heroImage, icon: Icon,
-  stats, sections, sources, kicker, pullQuote, gallery, video,
+  stats, sections, sources, kicker, pullQuote, gallery, video, statsCta,
 }: ContentPageLayoutProps) => {
   const [playing, setPlaying] = useState(false);
 
@@ -157,6 +159,15 @@ const ContentPageLayout = ({
                 </div>
               ))}
             </div>
+            {statsCta && (
+              <div className="mt-5 flex justify-center brief-reveal">
+                <Link to={statsCta.to}>
+                  <button className="inline-flex items-center gap-2 gradient-primary text-primary-foreground font-semibold px-6 py-3 rounded-xl shadow-card hover:opacity-90 transition-opacity">
+                    <Calculator className="w-5 h-5" /> {statsCta.label} <ArrowRight className="w-5 h-5" />
+                  </button>
+                </Link>
+              </div>
+            )}
           </div>
         )}
 

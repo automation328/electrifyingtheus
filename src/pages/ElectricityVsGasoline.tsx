@@ -25,6 +25,7 @@ import {
 import Navbar from "@/components/Navbar";
 import ShareResultDialog from "@/components/forms/ShareResultDialog";
 import CalculatorGateDialog from "@/components/forms/CalculatorGateDialog";
+import { openEmailCompose } from "@/lib/emailCompose";
 import Footer from "@/components/Footer";
 import UsElectricityMap from "@/components/UsElectricityMap";
 import { vehicles, getVehiclesByType } from "@/data/vehicles";
@@ -441,18 +442,21 @@ const ElectricityVsGasoline = () => {
 
   const shareTo = (network: "x" | "facebook" | "linkedin" | "whatsapp" | "email") => {
     const { url, text } = buildShare();
+    if (network === "email") {
+      // Open the visitor's webmail (or mail client) prefilled — the calculator
+      // gate already captured their address, so this routes to the right inbox.
+      openEmailCompose({ subject: "EV vs Gas — my savings", body: `${text}\n\n${url}` });
+      return;
+    }
     const u = encodeURIComponent(url);
     const t = encodeURIComponent(text);
-    const links: Record<typeof network, string> = {
+    const links: Record<"x" | "facebook" | "linkedin" | "whatsapp", string> = {
       x: `https://twitter.com/intent/tweet?text=${t}&url=${u}`,
       facebook: `https://www.facebook.com/sharer/sharer.php?u=${u}`,
       linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${u}`,
       whatsapp: `https://wa.me/?text=${encodeURIComponent(`${text} ${url}`)}`,
-      email: `mailto:?subject=${encodeURIComponent("EV vs Gas — my savings")}&body=${encodeURIComponent(`${text}\n\n${url}`)}`,
     };
-    // mailto: must use location.href — window.open is unreliable for it.
-    if (network === "email") window.location.href = links.email;
-    else window.open(links[network], "_blank", "noopener,noreferrer");
+    window.open(links[network], "_blank", "noopener,noreferrer");
   };
 
   const canNativeShare = typeof navigator !== "undefined" && typeof navigator.share === "function";

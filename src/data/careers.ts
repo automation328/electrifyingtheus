@@ -13,6 +13,8 @@ export interface Job {
   location: string;
   type: string;
   description: string;
+  /** Full job description (readable plain text) shown when a card is expanded. */
+  descriptionFull?: string;
   /** Hero/card image for this exact role. */
   image: string;
   featured?: boolean;
