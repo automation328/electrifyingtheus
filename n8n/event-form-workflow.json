@@ -8,7 +8,7 @@
       "position": [0, 300],
       "parameters": {
         "formTitle": "Electrifying the US — Event",
-        "formDescription": "Add a new event to the website, or remove one. Choose Add and fill the event fields (Title and Date are the essentials). You can upload an image or paste an Image URL. To remove, choose Delete and enter the event's Title — Remove hides it from the site and is recoverable (archived, not permanently deleted).",
+        "formDescription": "Add a new event to the website, or remove one. To ADD: choose Add and fill the fields (Title and Date are the essentials; upload an image or paste an Image URL). To REMOVE: choose Delete and put the event's Title in the Title field — that's all that's needed. Remove hides it from the site and is recoverable (archived, not permanently deleted).",
         "formFields": {
           "values": [
             { "fieldLabel": "Action", "fieldType": "dropdown", "requiredField": true, "fieldOptions": { "values": [{ "option": "Add" }, { "option": "Delete" }] } },
@@ -21,8 +21,7 @@
             { "fieldLabel": "Description", "fieldType": "textarea", "placeholder": "What attendees can expect." },
             { "fieldLabel": "Image URL", "fieldType": "text", "placeholder": "https://…/image.jpg (or upload below)" },
             { "fieldLabel": "Image upload", "fieldType": "file", "acceptFileTypes": ".jpg,.jpeg,.png,.webp,.gif", "multipleFiles": false },
-            { "fieldLabel": "Featured", "fieldType": "dropdown", "fieldOptions": { "values": [{ "option": "No" }, { "option": "Yes" }] } },
-            { "fieldLabel": "Title to remove", "fieldType": "text", "placeholder": "only for Delete — the exact event title" }
+            { "fieldLabel": "Featured", "fieldType": "dropdown", "fieldOptions": { "values": [{ "option": "No" }, { "option": "Yes" }] } }
           ]
         },
         "responseMode": "onReceived",
@@ -174,7 +173,7 @@
         "tableId": "site_events",
         "filterType": "manual",
         "matchType": "allFilters",
-        "filters": { "conditions": [{ "keyName": "title", "condition": "eq", "keyValue": "={{ $json['Title to remove'] }}" }] },
+        "filters": { "conditions": [{ "keyName": "title", "condition": "eq", "keyValue": "={{ $json['Title'] }}" }] },
         "dataToSend": "defineBelow",
         "fieldsUi": { "fieldValues": [{ "fieldId": "status", "fieldValue": "archived" }] }
       },

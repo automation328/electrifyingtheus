@@ -8,7 +8,7 @@
       "position": [0, 300],
       "parameters": {
         "formTitle": "Electrifying the US — Blog Post",
-        "formDescription": "Add a new blog post to the website, or remove one. Choose Add and fill the post fields (leave Slug blank to auto-generate it from the title). You can upload an image or paste an Image URL. To remove, choose Delete and enter the post's Slug — Remove hides it from the site and is recoverable (archived, not permanently deleted).",
+        "formDescription": "Add a new blog post to the website, or remove one. To ADD: choose Add and fill the fields (leave Slug blank to auto-generate it from the title; upload an image or paste an Image URL). To REMOVE: choose Delete and put the post's Title (or Slug) in the Title / Slug field — that's all that's needed. Remove hides it from the site and is recoverable (archived, not permanently deleted).",
         "formFields": {
           "values": [
             { "fieldLabel": "Action", "fieldType": "dropdown", "requiredField": true, "fieldOptions": { "values": [{ "option": "Add" }, { "option": "Delete" }] } },
@@ -21,8 +21,7 @@
             { "fieldLabel": "Image URL", "fieldType": "text", "placeholder": "https://…/image.jpg (or upload below)" },
             { "fieldLabel": "Image upload", "fieldType": "file", "acceptFileTypes": ".jpg,.jpeg,.png,.webp,.gif", "multipleFiles": false },
             { "fieldLabel": "Content", "fieldType": "textarea", "placeholder": "Full post body (Markdown supported)." },
-            { "fieldLabel": "Featured", "fieldType": "dropdown", "fieldOptions": { "values": [{ "option": "No" }, { "option": "Yes" }] } },
-            { "fieldLabel": "Title or slug to remove", "fieldType": "text", "placeholder": "only for Delete — paste the post's title or slug" }
+            { "fieldLabel": "Featured", "fieldType": "dropdown", "fieldOptions": { "values": [{ "option": "No" }, { "option": "Yes" }] } }
           ]
         },
         "responseMode": "onReceived",
@@ -178,7 +177,7 @@
         "tableId": "site_blog_posts",
         "filterType": "manual",
         "matchType": "allFilters",
-        "filters": { "conditions": [{ "keyName": "slug", "condition": "eq", "keyValue": "={{ ($json['Title or slug to remove'] || '').toString().toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') }}" }] },
+        "filters": { "conditions": [{ "keyName": "slug", "condition": "eq", "keyValue": "={{ ($json['Slug'] || $json['Title'] || '').toString().toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') }}" }] },
         "dataToSend": "defineBelow",
         "fieldsUi": { "fieldValues": [{ "fieldId": "status", "fieldValue": "archived" }] }
       },
