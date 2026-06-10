@@ -22,7 +22,7 @@
             { "fieldLabel": "Image upload", "fieldType": "file", "acceptFileTypes": ".jpg,.jpeg,.png,.webp,.gif", "multipleFiles": false },
             { "fieldLabel": "Content", "fieldType": "textarea", "placeholder": "Full post body (Markdown supported)." },
             { "fieldLabel": "Featured", "fieldType": "dropdown", "fieldOptions": { "values": [{ "option": "No" }, { "option": "Yes" }] } },
-            { "fieldLabel": "Slug to remove", "fieldType": "text", "placeholder": "only for Delete — e.g. why-2026-is-the-tipping-point" }
+            { "fieldLabel": "Title or slug to remove", "fieldType": "text", "placeholder": "only for Delete — paste the post's title or slug" }
           ]
         },
         "responseMode": "onReceived",
@@ -178,7 +178,7 @@
         "tableId": "site_blog_posts",
         "filterType": "manual",
         "matchType": "allFilters",
-        "filters": { "conditions": [{ "keyName": "slug", "condition": "eq", "keyValue": "={{ $json['Slug to remove'] }}" }] },
+        "filters": { "conditions": [{ "keyName": "slug", "condition": "eq", "keyValue": "={{ ($json['Title or slug to remove'] || '').toString().toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') }}" }] },
         "dataToSend": "defineBelow",
         "fieldsUi": { "fieldValues": [{ "fieldId": "status", "fieldValue": "archived" }] }
       },
