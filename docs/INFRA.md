@@ -25,7 +25,8 @@
 - **Content forms** (active):
   - **Site Blog — Add / Remove** · id `RJwHjm1djOo8KtJs` · form `…/form/etu-blog` · source `n8n/blog-form-workflow.json`
   - **Site Events — Add / Remove** · id `iZZUWrPBKJ7EDf6M` · form `…/form/etu-event` · source `n8n/event-form-workflow.json`
-  - Each: Add/Remove, image **upload → site-media** or URL fallback, auto-slug (blog), soft-archive on remove.
+  - **Site Gallery — Add / Remove** · id `AqTYBEnrqQxhoMvw` · form `…/form/etu-gallery` · source `n8n/gallery-form-workflow.json` (photos: upload/URL; videos: YouTube/Vimeo/file)
+  - Each: Add/Remove, image **upload → site-media** or URL fallback, soft-archive on remove (Delete + Title).
 - **Other existing workflows**: `EV Events Feed (ICS)` (`wkgAx2x0Z8dBRKxb`) → `/webhook/ev-events`; `/webhook/evan-chat`; `/webhook/gas-prices`.
 
 ## Vercel
