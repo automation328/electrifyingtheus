@@ -4,6 +4,7 @@ import ReactMarkdown from "react-markdown";
 import { ArrowLeft, ArrowRight, Calendar, User, Clock } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import ShareGate from "@/components/forms/ShareGate";
 import { usePost, usePosts } from "@/hooks/use-content";
 
 const markdownComponents = {
@@ -108,10 +109,23 @@ const BlogPost = () => {
             {post.title}
           </h1>
           <p className="text-lg text-muted-foreground mb-6">{post.excerpt}</p>
-          <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-sm text-muted-foreground mb-8">
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-sm text-muted-foreground mb-6">
             <span className="flex items-center gap-1.5"><User className="w-4 h-4" /> {post.author}</span>
             <span className="flex items-center gap-1.5"><Calendar className="w-4 h-4" /> {post.date}</span>
             <span className="flex items-center gap-1.5"><Clock className="w-4 h-4" /> {post.readTime}</span>
+          </div>
+
+          {/* Share — gates name + email, then social / email / SMS / more */}
+          <div className="mb-8">
+            <ShareGate
+              url={`/blog/${post.slug}`}
+              title={post.title}
+              summary={post.category}
+              formType="article-share"
+              variant="label"
+              label="Share this article"
+              className="inline-flex items-center gap-1.5 rounded-full gradient-green text-primary-foreground px-5 py-2.5 text-sm font-semibold shadow-card hover:opacity-90 transition-opacity"
+            />
           </div>
 
           {/* Hero image */}

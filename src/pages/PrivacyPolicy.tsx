@@ -79,7 +79,7 @@ const sections: LegalSection[] = [
   {
     heading: "Mobile and SMS Terms of Service",
     body: [
-      "EVNoire provides text messaging services. By opting in, you consent to receive recurring messages. Message and data rates may apply. You can unsubscribe at any time by texting STOP. For help, contact info@evnoire.com.",
+      "EVNoire provides text messaging services. By opting in, you consent to receive recurring messages. Message and data rates may apply. You can unsubscribe at any time by texting STOP. For help, contact Info@electrifyingtheus.com.",
     ],
   },
 ];

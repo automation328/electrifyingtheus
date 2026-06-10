@@ -12,6 +12,10 @@ import { Label } from "@/components/ui/label";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
+import ShareGate from "@/components/forms/ShareGate";
+
+const GREEN_SHARE_ICON =
+  "inline-grid place-items-center w-9 h-9 rounded-full gradient-green text-primary-foreground shadow-sm hover:opacity-90 transition-opacity";
 
 const fmtDate = (iso: string) => {
   const d = new Date(iso);
@@ -227,16 +231,25 @@ const CommunityBlogs = () => {
                 <button onClick={() => setReader(b)} className="text-sm font-semibold text-primary hover:underline">
                   Read more
                 </button>
-                {isMine(b) && (
-                  <div className="flex items-center gap-1">
-                    <button onClick={() => openEdit(b)} className="p-2 rounded-lg hover:bg-muted text-muted-foreground hover:text-primary transition-colors" title="Edit">
-                      <Pencil className="w-4 h-4" />
-                    </button>
-                    <button onClick={() => deleteBlog(b)} className="p-2 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors" title="Delete">
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                )}
+                <div className="flex items-center gap-1">
+                  <ShareGate
+                    url="/news"
+                    title={b.title}
+                    summary={b.author_name ?? "Community author"}
+                    formType="article-share"
+                    className={GREEN_SHARE_ICON}
+                  />
+                  {isMine(b) && (
+                    <>
+                      <button onClick={() => openEdit(b)} className="p-2 rounded-lg hover:bg-muted text-muted-foreground hover:text-primary transition-colors" title="Edit">
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                      <button onClick={() => deleteBlog(b)} className="p-2 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors" title="Delete">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
             </article>
           ))}

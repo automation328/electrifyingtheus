@@ -70,8 +70,8 @@ const LegalLayout = ({
 
           <div className="rounded-2xl border border-border bg-card p-6 text-sm text-muted-foreground">
             Questions about this policy? Contact us at{" "}
-            <a href="mailto:info@evnoire.com" className="font-semibold text-primary hover:underline">
-              info@evnoire.com
+            <a href="mailto:Info@electrifyingtheus.com" className="font-semibold text-primary hover:underline">
+              Info@electrifyingtheus.com
             </a>.
           </div>
         </article>

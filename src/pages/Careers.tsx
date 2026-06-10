@@ -12,6 +12,7 @@ import { useExternalJobs } from "@/hooks/use-external-jobs";
 import { usePostedJobs } from "@/hooks/use-content";
 import { submitLead } from "@/lib/submitLead";
 import EmailShareButton from "@/components/forms/EmailShareButton";
+import ShareGate from "@/components/forms/ShareGate";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -171,15 +172,13 @@ const Careers = () => {
                       <button type="button" onClick={() => openApply(j)} className="inline-flex items-center gap-2 gradient-primary text-primary-foreground font-semibold text-sm px-5 py-2.5 rounded-xl hover:opacity-90 transition">
                         Apply <ArrowRight className="w-4 h-4" />
                       </button>
-                      <EmailShareButton
-                        formType="job-share"
+                      <ShareGate
+                        url="/careers"
                         title={`${j.title} at ${j.company}`}
                         summary={`${j.company} · ${j.location}`}
-                        subject={shareSubject(j)}
-                        body={shareBody(j)}
-                        className="grid place-items-center w-9 h-9 rounded-lg border border-border text-muted-foreground hover:text-primary hover:border-primary/40 transition"
+                        formType="job-share"
+                        className="grid place-items-center w-9 h-9 rounded-lg gradient-green text-primary-foreground shadow-sm hover:opacity-90 transition-opacity"
                       />
-                      <a href={shareSms(j)} aria-label="Share via SMS" className="grid place-items-center w-9 h-9 rounded-lg border border-border text-muted-foreground hover:text-primary hover:border-primary/40 transition"><MessageSquare className="w-4 h-4" /></a>
                     </div>
                   </article>
                 );
@@ -261,15 +260,13 @@ const Careers = () => {
                       <button type="button" onClick={() => openApply(j)} className="inline-flex items-center justify-center gap-2 gradient-primary text-primary-foreground font-semibold text-sm px-6 py-3 rounded-xl hover:opacity-90 hover:gap-3 transition-all">
                         Apply <ArrowRight className="w-4 h-4" />
                       </button>
-                      <EmailShareButton
-                        formType="job-share"
+                      <ShareGate
+                        url="/careers"
                         title={`${j.title} at ${j.company}`}
                         summary={`${j.company} · ${j.location}`}
-                        subject={shareSubject(j)}
-                        body={shareBody(j)}
-                        className="grid place-items-center w-10 h-10 rounded-lg border border-border text-muted-foreground hover:text-primary hover:border-primary/40 transition"
+                        formType="job-share"
+                        className="grid place-items-center w-10 h-10 rounded-lg gradient-green text-primary-foreground shadow-sm hover:opacity-90 transition-opacity"
                       />
-                      <a href={shareSms(j)} aria-label="Share via SMS" className="grid place-items-center w-10 h-10 rounded-lg border border-border text-muted-foreground hover:text-primary hover:border-primary/40 transition"><MessageSquare className="w-4 h-4" /></a>
                     </div>
                   )}
                 </article>

@@ -610,6 +610,100 @@ html[data-theme="glass"] .gradient-hero {
   .brief-reveal { opacity: 1; transform: none; transition: none; }
 }
 
+/* =========================================================================
+   ELECTRIC BURGER — attention-grabbing nav toggle + charged dropdown
+   ========================================================================= */
+
+/* The toggle button: layered glow + a pulsing energy ring so the eye catches it */
+.burger-electric { position: relative; }
+
+/* Soft brand glow that breathes behind the icon */
+.burger-electric::before {
+  content: ""; position: absolute; inset: -5px; border-radius: 0.85rem;
+  background-image: var(--gradient-hero);
+  z-index: -1; opacity: 0; filter: blur(9px);
+  animation: burgerGlow 2.6s ease-in-out infinite;
+}
+/* Expanding ring pulse (the "charge" ping) */
+.burger-electric::after {
+  content: ""; position: absolute; inset: 0; border-radius: 0.85rem;
+  border: 2px solid hsl(214 100% 50% / 0.7);
+  z-index: -1; opacity: 0;
+  animation: burgerPing 2.6s ease-out infinite;
+}
+@keyframes burgerGlow {
+  0%, 100% { opacity: 0; transform: scale(0.92); }
+  50%      { opacity: 0.5; transform: scale(1.06); }
+}
+@keyframes burgerPing {
+  0%   { opacity: 0.7; transform: scale(0.85); }
+  70%  { opacity: 0; transform: scale(1.6); }
+  100% { opacity: 0; transform: scale(1.6); }
+}
+
+/* The icon itself: periodic electric flicker/jitter, like a live current */
+.burger-bolt { animation: burgerZap 2.6s ease-in-out infinite; transform-origin: center; }
+@keyframes burgerZap {
+  0%, 88%, 100% { filter: none; transform: translateX(0); }
+  90% { filter: drop-shadow(0 0 6px hsl(214 100% 58%)); transform: translateX(-1px) scale(1.06); }
+  93% { filter: drop-shadow(0 0 10px hsl(145 60% 50%)); transform: translateX(1.5px) scale(1.06); }
+  96% { filter: drop-shadow(0 0 6px hsl(214 100% 58%)); transform: translateX(-1px) scale(1.04); }
+}
+
+/* Full-viewport blurred backdrop behind the menu */
+.nav-backdrop {
+  background: hsl(214 55% 16% / 0.30);
+  -webkit-backdrop-filter: blur(14px) saturate(135%);
+          backdrop-filter: blur(14px) saturate(135%);
+}
+.nav-fade-in  { animation: navFade 0.30s ease forwards; }
+.nav-fade-out { animation: navFade 0.35s ease reverse forwards; }
+@keyframes navFade { from { opacity: 0; } to { opacity: 1; } }
+
+/* Panel slides in from / out to the right edge */
+.nav-panel-in  { animation: navPanelIn  0.42s cubic-bezier(0.16,0.84,0.44,1) forwards; }
+.nav-panel-out { animation: navPanelOut 0.40s cubic-bezier(0.7,0,0.84,0) forwards; }
+@keyframes navPanelIn  { from { opacity: 0; transform: translateX(110%); } to   { opacity: 1; transform: translateX(0); } }
+@keyframes navPanelOut { from { opacity: 1; transform: translateX(0); }    to   { opacity: 0; transform: translateX(110%); } }
+
+/* Featured event card slides in from / out to the left */
+.nav-feature-in  { animation: navFeatureIn  0.50s cubic-bezier(0.16,0.84,0.44,1) 0.06s both; }
+.nav-feature-out { animation: navFeatureOut 0.35s ease forwards; }
+@keyframes navFeatureIn  { from { opacity: 0; transform: translateX(-44px) scale(0.96); } to { opacity: 1; transform: none; } }
+@keyframes navFeatureOut { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateX(-32px); } }
+
+/* Charged current bar across the top of the dropdown */
+.nav-current {
+  height: 2px; border-radius: 999px;
+  background: linear-gradient(90deg, transparent, hsl(214 100% 50%), hsl(145 55% 48%), hsl(214 100% 50%), transparent);
+  background-size: 220% 100%;
+  animation: evgFlow 3s linear infinite;
+}
+
+/* Staggered item entrance + electric hover accent */
+.nav-item {
+  position: relative; opacity: 0;
+  animation: navItemIn 0.45s cubic-bezier(0.16,0.84,0.44,1) forwards;
+}
+.nav-item::before {
+  content: ""; position: absolute; left: 6px; top: 50%; transform: translateY(-50%);
+  width: 3px; height: 0; border-radius: 999px;
+  background-image: var(--gradient-hero);
+  transition: height 0.2s ease;
+}
+.nav-item:hover::before { height: 60%; }
+@keyframes navItemIn {
+  from { opacity: 0; transform: translateX(10px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .burger-electric::before, .burger-electric::after, .burger-bolt,
+  .nav-current, .nav-item, .nav-panel-in, .nav-panel-out,
+  .nav-fade-in, .nav-fade-out, .nav-feature-in, .nav-feature-out { animation: none; }
+  .nav-item { opacity: 1; }
+}
+
 /* Footer nav links — soft underline grows on hover */
 .footer-link { position: relative; width: fit-content; }
 .footer-link::after {

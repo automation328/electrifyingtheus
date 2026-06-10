@@ -90,6 +90,10 @@ const SourceBadge = ({ source }: { source: string }) => (
   </span>
 );
 
+// Green share trigger used on every News card.
+const GREEN_SHARE =
+  "inline-grid place-items-center w-9 h-9 rounded-full gradient-green text-primary-foreground shadow-sm hover:opacity-90 transition-opacity";
+
 const News = () => {
   const { data, isLoading, isError } = useQuery({
     queryKey: ["emobility-news"],
@@ -129,9 +133,18 @@ const News = () => {
                   className="group rounded-3xl border border-border bg-card overflow-hidden shadow-card hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col animate-fade-up"
                   style={{ animationDelay: `${(i % 6) * 0.07}s` }}
                 >
-                  <div className="h-48 overflow-hidden bg-muted shrink-0">
+                  <div className="relative h-48 overflow-hidden bg-muted shrink-0">
                     <img src={post.image} alt={post.title} loading="lazy"
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    <div className="absolute top-3 right-3">
+                      <ShareGate
+                        url={`/blog/${post.slug}`}
+                        title={post.title}
+                        summary={post.category}
+                        formType="article-share"
+                        className={GREEN_SHARE}
+                      />
+                    </div>
                   </div>
                   <div className="p-6 flex flex-col flex-1">
                     <div className="flex items-center gap-3 mb-3">
@@ -208,7 +221,7 @@ const News = () => {
                     </div>
                   )}
                   <div className="absolute top-3 right-3">
-                    <ShareGate url={featured.link} title={featured.title} summary={featured.source} formType="article-share" />
+                    <ShareGate url={featured.link} title={featured.title} summary={featured.source} formType="article-share" className={GREEN_SHARE} />
                   </div>
                 </div>
                 <div className="p-8">
@@ -248,7 +261,7 @@ const News = () => {
                         </div>
                       )}
                       <div className="absolute top-3 right-3">
-                        <ShareGate url={p.link} title={p.title} summary={p.source} formType="article-share" />
+                        <ShareGate url={p.link} title={p.title} summary={p.source} formType="article-share" className={GREEN_SHARE} />
                       </div>
                     </div>
                     <div className="p-6 flex flex-col flex-1">

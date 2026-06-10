@@ -12,6 +12,10 @@ import { useEvents } from "@/hooks/use-content";
 import { useExternalEvents } from "@/hooks/use-external-events";
 import { submitLead } from "@/lib/submitLead";
 import EmailShareButton from "@/components/forms/EmailShareButton";
+import ShareGate from "@/components/forms/ShareGate";
+
+const eventShareUrl = (e: EventItem) => (e.slug ? `/events/${e.slug}` : "/events");
+const eventShareSummary = (e: EventItem) => `${e.location} · ${e.month} ${e.day}, ${e.year}`;
 
 const isValidEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
 const shareBase = typeof window !== "undefined" ? `${window.location.origin}/events` : "https://electrifyingtheus.com/events";
@@ -111,16 +115,13 @@ const Events = () => {
           )}
           <a href={gcalLink(e)} target="_blank" rel="noopener noreferrer" aria-label="Set a reminder" title="Add to calendar / set reminder"
             className="grid place-items-center w-9 h-9 rounded-lg border border-border text-muted-foreground hover:text-primary hover:border-primary/40 transition"><CalendarPlus className="w-4 h-4" /></a>
-          <EmailShareButton
-            formType="event-share"
+          <ShareGate
+            url={eventShareUrl(e)}
             title={e.title}
-            summary={`${e.location} · ${e.month} ${e.day}, ${e.year}`}
-            subject={shareSubject(e)}
-            body={shareBody(e)}
+            summary={eventShareSummary(e)}
+            formType="event-share"
             className="grid place-items-center w-9 h-9 rounded-lg border border-border text-muted-foreground hover:text-primary hover:border-primary/40 transition"
           />
-          <a href={shareSms(e)} aria-label="Share via SMS" title="Share via SMS"
-            className="grid place-items-center w-9 h-9 rounded-lg border border-border text-muted-foreground hover:text-primary hover:border-primary/40 transition"><MessageSquare className="w-4 h-4" /></a>
         </>
       )}
     </div>
@@ -145,16 +146,13 @@ const Events = () => {
       )}
       <a href={gcalLink(e)} target="_blank" rel="noopener noreferrer" aria-label="Set a reminder" title="Add to calendar / set reminder"
         className="grid place-items-center w-9 h-9 rounded-lg bg-white/15 text-primary-foreground hover:bg-white/25 transition"><CalendarPlus className="w-4 h-4" /></a>
-      <EmailShareButton
-        formType="event-share"
+      <ShareGate
+        url={eventShareUrl(e)}
         title={e.title}
-        summary={`${e.location} · ${e.month} ${e.day}, ${e.year}`}
-        subject={shareSubject(e)}
-        body={shareBody(e)}
+        summary={eventShareSummary(e)}
+        formType="event-share"
         className="grid place-items-center w-9 h-9 rounded-lg bg-white/15 text-primary-foreground hover:bg-white/25 transition"
       />
-      <a href={shareSms(e)} aria-label="Share via SMS" title="Share via SMS"
-        className="grid place-items-center w-9 h-9 rounded-lg bg-white/15 text-primary-foreground hover:bg-white/25 transition"><MessageSquare className="w-4 h-4" /></a>
     </div>
   );
 

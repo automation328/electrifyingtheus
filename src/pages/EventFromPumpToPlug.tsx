@@ -5,6 +5,7 @@ import {
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import ShareGate from "@/components/forms/ShareGate";
 import { EVENTS, gcalLink } from "@/data/events";
 import flyer from "@/assets/event-pump-to-plug.jpg";
 
@@ -70,6 +71,15 @@ const EventFromPumpToPlug = () => {
                   className="inline-flex items-center gap-2 bg-card border border-border text-foreground font-semibold px-6 py-3 rounded-xl hover:border-primary/40 hover:text-primary transition">
                   <CalendarPlus className="w-5 h-5" /> Add to calendar
                 </a>
+                <ShareGate
+                  url={event.slug ? `/events/${event.slug}` : "/events"}
+                  title={event.title}
+                  summary={`${event.location} · ${event.month} ${event.day}, ${event.year}`}
+                  formType="event-share"
+                  variant="label"
+                  label="Share"
+                  className="inline-flex items-center gap-2 bg-card border border-border text-foreground font-semibold px-6 py-3 rounded-xl hover:border-primary/40 hover:text-primary transition"
+                />
               </div>
 
               <p className="text-xs text-muted-foreground">

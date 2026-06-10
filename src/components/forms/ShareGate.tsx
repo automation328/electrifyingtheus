@@ -8,7 +8,7 @@
 
 import { useState } from "react";
 import {
-  Share2, User, Mail, Loader2, Facebook, Linkedin, MessageCircle, Copy,
+  Share2, User, Mail, Loader2, Facebook, Linkedin, MessageCircle, MessageSquare, Copy, MoreHorizontal,
 } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
@@ -32,7 +32,10 @@ const XLogo = ({ className }: { className?: string }) => (
   </svg>
 );
 
-type ShareFormType = Extract<LeadFormType, "photo-share" | "article-share" | "incentive-share">;
+type ShareFormType = Extract<
+  LeadFormType,
+  "photo-share" | "article-share" | "incentive-share" | "event-share" | "job-share" | "calculator-share"
+>;
 
 interface ShareGateProps {
   /** Relative route ("/blog/x") or absolute URL ("https://…"). */
@@ -95,7 +98,7 @@ const ShareGate = ({
     setCaptured(true);
   };
 
-  const shareTo = (network: "x" | "facebook" | "linkedin" | "whatsapp" | "email") => {
+  const shareTo = (network: "x" | "facebook" | "linkedin" | "whatsapp" | "email" | "sms") => {
     if (network === "email") {
       // Open the visitor's webmail (or mail client) with the message prefilled —
       // works even when no desktop mail app is registered.
@@ -104,6 +107,12 @@ const ShareGate = ({
         body: `${title}\n\n${absoluteUrl}`,
         fromEmail: email.trim() || undefined,
       });
+      return;
+    }
+    if (network === "sms") {
+      // Open the device SMS composer with the message prefilled. `?&body=` is the
+      // form that works across both iOS and Android.
+      window.location.href = `sms:?&body=${encodeURIComponent(`${title} ${absoluteUrl}`)}`;
       return;
     }
     const u = encodeURIComponent(absoluteUrl);
@@ -124,6 +133,15 @@ const ShareGate = ({
     } catch {
       toast.error("Couldn't copy", { description: "Copy the link from your address bar." });
     }
+  };
+
+  // Native OS share sheet (mobile + some desktops) — covers SMS, AirDrop, and
+  // any other installed app. Only offered when the browser supports it.
+  const canNativeShare = typeof navigator !== "undefined" && typeof navigator.share === "function";
+  const nativeShare = async () => {
+    try {
+      await navigator.share({ title, text: title, url: absoluteUrl });
+    } catch { /* user dismissed the sheet */ }
   };
 
   const row =
@@ -214,6 +232,14 @@ const ShareGate = ({
                 <button type="button" onClick={() => shareTo("email")} className={row}>
                   <Mail className="w-4 h-4 text-muted-foreground" /> Email
                 </button>
+                <button type="button" onClick={() => shareTo("sms")} className={row}>
+                  <MessageSquare className="w-4 h-4" style={{ color: "#16a34a" }} /> Text message (SMS)
+                </button>
+                {canNativeShare && (
+                  <button type="button" onClick={nativeShare} className={row}>
+                    <MoreHorizontal className="w-4 h-4 text-muted-foreground" /> More options…
+                  </button>
+                )}
                 <div className="my-1 h-px bg-border" />
                 <button type="button" onClick={copyLink} className={row}>
                   <Copy className="w-4 h-4 text-muted-foreground" /> Copy link

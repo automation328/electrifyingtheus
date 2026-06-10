@@ -108,27 +108,38 @@ const Gallery = () => {
             </h2>
             <div className="gap-4 columns-2 sm:columns-3 lg:columns-4 [&>*]:mb-4">
               {photos.map((p, i) => (
-                <button
-                  key={p.src}
-                  type="button"
-                  onClick={() => setLightbox(i)}
-                  className="group block w-full break-inside-avoid overflow-hidden rounded-2xl ring-1 ring-border focus:outline-none focus:ring-2 focus:ring-primary"
-                  aria-label={`Open photo: ${p.alt}`}
-                >
-                  <span className="relative block">
-                    <img
-                      src={p.src}
-                      alt={p.alt}
-                      loading="lazy"
-                      className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+                <div key={p.src} className="group relative break-inside-avoid overflow-hidden rounded-2xl ring-1 ring-border">
+                  <button
+                    type="button"
+                    onClick={() => setLightbox(i)}
+                    className="block w-full focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    aria-label={`Open photo: ${p.alt}`}
+                  >
+                    <span className="relative block">
+                      <img
+                        src={p.src}
+                        alt={p.alt}
+                        loading="lazy"
+                        className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+                      />
+                      {p.caption && (
+                        <span className="absolute inset-x-0 bottom-0 translate-y-2 bg-gradient-to-t from-foreground/75 to-transparent p-3 text-left text-xs font-medium text-white opacity-0 transition-all group-hover:translate-y-0 group-hover:opacity-100">
+                          {p.caption}
+                        </span>
+                      )}
+                    </span>
+                  </button>
+                  {/* Per-photo share — gates first name + email, then social / email / SMS */}
+                  <div className="absolute right-2 top-2 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+                    <ShareGate
+                      url="/gallery"
+                      title={p.caption || p.alt || "Photo from Electrifying the US"}
+                      summary={p.alt}
+                      formType="photo-share"
+                      variant="icon"
                     />
-                    {p.caption && (
-                      <span className="absolute inset-x-0 bottom-0 translate-y-2 bg-gradient-to-t from-foreground/75 to-transparent p-3 text-left text-xs font-medium text-white opacity-0 transition-all group-hover:translate-y-0 group-hover:opacity-100">
-                        {p.caption}
-                      </span>
-                    )}
-                  </span>
-                </button>
+                  </div>
+                </div>
               ))}
             </div>
           </div>
@@ -144,21 +155,24 @@ const Gallery = () => {
                   alt={current.alt}
                   className="mx-auto max-h-[80vh] w-full rounded-xl object-contain"
                 />
-                <div className="absolute left-2 top-2">
+                {/* Share button — below the image, gates first name + email then
+                    offers social / email / SMS / more. */}
+                <div className="mt-3 flex flex-col items-center gap-2">
                   <ShareGate
                     url="/gallery"
                     title={current.caption || current.alt || "Photo from Electrifying the US"}
                     summary={current.alt}
                     formType="photo-share"
                     variant="label"
-                    label="Share"
+                    label="Share this photo"
+                    className="inline-flex items-center gap-1.5 rounded-full gradient-green text-primary-foreground px-5 py-2.5 text-sm font-semibold shadow-card hover:opacity-90 transition-opacity"
                   />
+                  {current.caption && (
+                    <p className="text-center text-sm text-muted-foreground">
+                      {current.caption} · {lightbox! + 1} / {n}
+                    </p>
+                  )}
                 </div>
-                {current.caption && (
-                  <p className="mt-2 text-center text-sm text-muted-foreground">
-                    {current.caption} · {lightbox! + 1} / {n}
-                  </p>
-                )}
 
                 {n > 1 && (
                   <>
