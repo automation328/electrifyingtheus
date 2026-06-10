@@ -9,6 +9,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { JOBS, type Job } from "@/data/careers";
 import { useExternalJobs } from "@/hooks/use-external-jobs";
+import { usePostedJobs } from "@/hooks/use-content";
 import { submitLead } from "@/lib/submitLead";
 import EmailShareButton from "@/components/forms/EmailShareButton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -48,10 +49,15 @@ const Careers = () => {
       return next;
     });
 
-  // Real openings from EV companies' public ATS boards (/api/jobs). Falls back
-  // to the curated static list when the feed is empty (no boards configured).
+  // Jobs we post ourselves (Supabase site_jobs, via the n8n job form) show first,
+  // then real openings from EV companies' public ATS boards (/api/jobs), falling
+  // back to the curated static list when the feed is empty.
+  const { jobs: postedJobs } = usePostedJobs();
   const { jobs: externalJobs } = useExternalJobs();
-  const liveJobs = externalJobs.length ? externalJobs : JOBS;
+  const liveJobs = useMemo(
+    () => [...postedJobs, ...(externalJobs.length ? externalJobs : JOBS)],
+    [postedJobs, externalJobs],
+  );
 
   // Department chips — "All" plus the 8 most common departments (real boards can
   // have dozens; the rest still appear under "All").
