@@ -17,8 +17,8 @@
             { "fieldLabel": "Album", "fieldType": "text", "placeholder": "Optional group, e.g. Ride & Drive 2026" },
             { "fieldLabel": "Image upload", "fieldType": "file", "acceptFileTypes": ".jpg,.jpeg,.png,.webp,.gif", "multipleFiles": false },
             { "fieldLabel": "Image URL", "fieldType": "text", "placeholder": "Photo only — paste a URL instead of uploading" },
-            { "fieldLabel": "Video provider", "fieldType": "dropdown", "fieldOptions": { "values": [{ "option": "YouTube" }, { "option": "Vimeo" }, { "option": "File URL" }] } },
-            { "fieldLabel": "Video ID or URL", "fieldType": "text", "placeholder": "Video only — YouTube/Vimeo link or ID, or a direct .mp4 URL" },
+            { "fieldLabel": "Video provider", "fieldType": "dropdown", "fieldOptions": { "values": [{ "option": "YouTube" }, { "option": "Vimeo" }, { "option": "Google Drive" }, { "option": "File URL" }] } },
+            { "fieldLabel": "Video ID or URL", "fieldType": "text", "placeholder": "Video only — YouTube/Vimeo/Google Drive link, or a direct .mp4 URL" },
             { "fieldLabel": "Poster URL", "fieldType": "text", "placeholder": "Video only — thumbnail image URL (recommended for Vimeo/file)" }
           ]
         },
@@ -157,7 +157,7 @@
       "position": [460, 360],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "const f = $('Submit Gallery').first().json;\nlet v = (f['Video ID or URL'] || '').toString().trim();\nconst p = f['Video provider'];\nlet provider = 'youtube';\nif (p === 'Vimeo') provider = 'vimeo';\nelse if (p === 'File URL') provider = 'file';\nif (provider === 'youtube') {\n  if (v.includes('v=')) v = v.split('v=')[1].split('&')[0].split('?')[0];\n  else v = v.split('?')[0].split('/').filter(Boolean).pop() || v;\n} else if (provider === 'vimeo') {\n  v = v.split('?')[0].split('/').filter(Boolean).pop() || v;\n}\nreturn [{ json: { url: v, provider, title: f['Title'] || '', album: f['Album'] || '', poster: f['Poster URL'] || '' } }];"
+        "jsCode": "const f = $('Submit Gallery').first().json;\nlet v = (f['Video ID or URL'] || '').toString().trim();\nconst p = f['Video provider'];\nlet provider = 'youtube';\nif (p === 'Vimeo') provider = 'vimeo';\nelse if (p === 'File URL') provider = 'file';\nelse if (p === 'Google Drive') provider = 'drive';\nif (provider === 'youtube') {\n  if (v.includes('v=')) v = v.split('v=')[1].split('&')[0].split('?')[0];\n  else v = v.split('?')[0].split('/').filter(Boolean).pop() || v;\n} else if (provider === 'vimeo') {\n  v = v.split('?')[0].split('/').filter(Boolean).pop() || v;\n} else if (provider === 'drive') {\n  if (v.includes('/d/')) v = v.split('/d/')[1].split('/')[0];\n  else if (v.includes('id=')) v = v.split('id=')[1].split('&')[0];\n}\nreturn [{ json: { url: v, provider, title: f['Title'] || '', album: f['Album'] || '', poster: f['Poster URL'] || '' } }];"
       }
     },
     {

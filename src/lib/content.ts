@@ -112,7 +112,7 @@ export async function fetchGallery(): Promise<{ photos: GalleryPhoto[]; videos: 
     .filter((r) => r.kind === "video")
     .map((r) => {
       const provider = (r.provider || "file") as VideoProvider;
-      const isEmbed = provider === "youtube" || provider === "vimeo";
+      const isEmbed = provider === "youtube" || provider === "vimeo" || provider === "drive";
       return {
         provider,
         title: r.title || r.album || "Video",
