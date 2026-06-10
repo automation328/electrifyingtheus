@@ -177,7 +177,7 @@
         "tableId": "site_blog_posts",
         "filterType": "manual",
         "matchType": "allFilters",
-        "filters": { "conditions": [{ "keyName": "slug", "condition": "eq", "keyValue": "={{ ($json['Slug'] || $json['Title'] || '').toString().toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') }}" }] },
+        "filters": { "conditions": [{ "keyName": "title", "condition": "eq", "keyValue": "={{ $json['Title'] }}" }] },
         "dataToSend": "defineBelow",
         "fieldsUi": { "fieldValues": [{ "fieldId": "status", "fieldValue": "archived" }] }
       },
