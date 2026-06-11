@@ -6,8 +6,6 @@
 
 import { ImageResponse } from "@vercel/og";
 
-export const config = { runtime: "edge" };
-
 const BLUE = "#0b5fd4";
 const BLUE_DEEP = "#0047a8";
 const GREEN = "#2f9e57";
