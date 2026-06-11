@@ -39,11 +39,24 @@ const money = (n: number) => "$" + Math.max(0, Math.round(n)).toLocaleString("en
 
 interface Meta { title: string; description: string; image: string; url: string; }
 
-function calculatorMeta(url: URL, origin: string): Meta | null {
+function calculatorMeta(url: URL, origin: string): Meta {
   const p = url.searchParams;
+  const image = origin + "/og/calculator.jpg";
+  const pageUrl = origin + url.pathname + url.search;
   const ev = p.get("ogEv");
   const gas = p.get("ogGas");
-  if (!ev || !gas) return null; // bare page share → fall back to generic site card
+
+  // Bare share (no result params, e.g. a copied page URL) → branded banner card.
+  if (!ev || !gas) {
+    return {
+      title: "EV vs Gas Calculator — See how much you'll save",
+      description:
+        "Compare any EV against a gas car on real U.S. energy prices, state by state — fuel, maintenance, and incentives.",
+      image,
+      url: pageUrl,
+    };
+  }
+
   const save = Number(p.get("ogSave") || "0") || 0;
   const evWins = (p.get("ogWin") || "ev") !== "gas";
   const state = p.get("ogState") || "U.S.";
