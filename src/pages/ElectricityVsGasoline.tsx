@@ -441,6 +441,21 @@ const ElectricityVsGasoline = () => {
     return { url, text };
   };
 
+  // Share URL with compact result params (og*) appended, so the social/OG
+  // crawler (handled in middleware.ts) can render a result-specific preview
+  // card — vehicles, state, and annual savings. The extra params are ignored
+  // by the page itself, which reads its own state from the canonical params.
+  const ogShareUrl = () => {
+    if (typeof window === "undefined") return "/electricity-vs-gasoline";
+    const u = new URL(window.location.href);
+    u.searchParams.set("ogEv", ev.name);
+    u.searchParams.set("ogGas", gas.name);
+    u.searchParams.set("ogSave", String(Math.round(Math.abs(calc.res.annualSavings))));
+    u.searchParams.set("ogWin", evWinsFuel ? "ev" : "gas");
+    u.searchParams.set("ogState", rates.name);
+    return u.toString();
+  };
+
   const shareTo = (network: "x" | "facebook" | "linkedin" | "whatsapp" | "email") => {
     const { url, text } = buildShare();
     if (network === "email") {
@@ -839,7 +854,7 @@ const ElectricityVsGasoline = () => {
                     </PopoverContent>
                   </Popover>
                   <ShareGate
-                    url={typeof window !== "undefined" ? window.location.href : "/electricity-vs-gasoline"}
+                    url={ogShareUrl()}
                     title={buildShare().text}
                     summary={`${ev.name} vs ${gas.name}`}
                     formType="calculator-share"
