@@ -12,6 +12,7 @@ import News from "./pages/News.tsx";
 import BlogPost from "./pages/BlogPost.tsx";
 import Events from "./pages/Events.tsx";
 import EventFromPumpToPlug from "./pages/EventFromPumpToPlug.tsx";
+import EventDetail from "./pages/EventDetail.tsx";
 import Gallery from "./pages/Gallery.tsx";
 import ListYourEvent from "./pages/ListYourEvent.tsx";
 import Careers from "./pages/Careers.tsx";
@@ -61,6 +62,7 @@ const App = () => (
           <Route path="/blog/:slug" element={<BlogPost />} />
           <Route path="/events" element={<Events />} />
           <Route path="/events/from-pump-to-plug" element={<EventFromPumpToPlug />} />
+          <Route path="/events/:slug" element={<EventDetail />} />
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/list-your-event" element={<ListYourEvent />} />
           <Route path="/careers" element={<Careers />} />

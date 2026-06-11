@@ -83,6 +83,18 @@ export default function middleware(request: Request) {
     }
   }
 
+  // Dynamic (Supabase-posted) blog/event detail pages have no static entry —
+  // fall back to the section's banner so the share still shows a branded
+  // thumbnail rather than nothing.
+  if (!meta && (path.startsWith("/events/") || path.startsWith("/blog/"))) {
+    const sectionPath = path.startsWith("/events/") ? "/events" : "/news";
+    const section = OG_ENTRIES.find((e) => e.path === sectionPath);
+    if (section) {
+      const image = section.image.startsWith("http") ? section.image : origin + section.image;
+      meta = { title: section.title, description: section.description, image, url: origin + path };
+    }
+  }
+
   if (!meta) return next();
 
   const html = `<!doctype html><html lang="en"><head><meta charset="utf-8">
