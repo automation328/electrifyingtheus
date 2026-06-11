@@ -44,18 +44,12 @@ function calculatorMeta(url: URL, origin: string): Meta | null {
     : `${gas} runs about ${money(save)}/year cheaper than the ${ev}`;
   const description = `Compared on real ${state} energy prices. See how much you could save with an EV.`;
 
-  const img = new URL(origin + "/api/og-calc");
-  img.searchParams.set("ev", ev);
-  img.searchParams.set("gas", gas);
-  img.searchParams.set("save", String(Math.round(save)));
-  img.searchParams.set("win", evWins ? "ev" : "gas");
-  img.searchParams.set("state", state);
-
-  // og:url keeps the full result params so a click reopens the exact comparison.
+  // The exact result lives in the title/description (shown prominently by FB &
+  // LinkedIn); the image is a branded calculator banner.
   return {
     title,
     description,
-    image: img.toString(),
+    image: origin + "/og/calculator.jpg",
     url: origin + url.pathname + url.search,
   };
 }
