@@ -78,6 +78,9 @@ const FeaturedEventsSection = () => {
                       url={e.slug ? `/events/${e.slug}` : "/events"}
                       title={e.title}
                       summary={`${e.location} · ${e.month} ${e.day}, ${e.year}`}
+                      description={e.description}
+                      image={e.image}
+                      meta={`${e.type} · ${e.location} · ${e.month} ${e.day}, ${e.year} · ${e.time}`}
                       formType="event-share"
                       className={GREEN_SHARE}
                     />
@@ -138,6 +141,9 @@ const FeaturedEventsSection = () => {
                         url={`/blog/${newsCards[0].slug}`}
                         title={newsCards[0].title}
                         summary={newsCards[0].category}
+                        description={newsCards[0].excerpt}
+                        image={newsCards[0].image}
+                        meta={`${newsCards[0].category} · ${newsCards[0].date}`}
                         formType="article-share"
                         className={GREEN_SHARE}
                       />
@@ -179,6 +185,9 @@ const FeaturedEventsSection = () => {
                             url={`/blog/${p.slug}`}
                             title={p.title}
                             summary={p.category}
+                            description={p.excerpt}
+                            image={p.image}
+                            meta={`${p.category} · ${p.date}`}
                             formType="article-share"
                             className="inline-grid place-items-center w-8 h-8 rounded-full gradient-green text-primary-foreground shadow-sm hover:opacity-90 transition-opacity"
                           />

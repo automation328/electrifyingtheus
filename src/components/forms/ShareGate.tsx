@@ -8,7 +8,7 @@
 
 import { useState } from "react";
 import {
-  Share2, User, Mail, Loader2, Facebook, Linkedin, MessageCircle, MessageSquare, Copy, MoreHorizontal,
+  Share2, User, Mail, Loader2, Facebook, Linkedin, Instagram, MessageCircle, MessageSquare, Copy, MoreHorizontal,
 } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
@@ -17,7 +17,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { submitLead, type LeadFormType } from "@/lib/submitLead";
-import { openEmailCompose, rememberLeadEmail } from "@/lib/emailCompose";
+import { rememberLeadEmail } from "@/lib/emailCompose";
+import { sendShareEmail } from "@/lib/sendShareEmail";
 import { toast } from "sonner";
 
 const isEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
@@ -46,6 +47,12 @@ interface ShareGateProps {
   formType: ShareFormType;
   /** Extra context saved to the GHL contact note (e.g. the item name). */
   summary?: string;
+  /** Full description / excerpt — included in the shared email & message body. */
+  description?: string;
+  /** Thumbnail URL — its absolute form is appended so the recipient sees it. */
+  image?: string;
+  /** Short meta line (date · location, author · category, …) for the body. */
+  meta?: string;
   /** Trigger look: compact icon, or icon + label. */
   variant?: "icon" | "label";
   /** Trigger label when variant="label". */
@@ -58,25 +65,41 @@ interface ShareGateProps {
 const SESSION_KEY = "share_unlocked";
 
 const ShareGate = ({
-  url, title, formType, summary, variant = "icon", label = "Share", className, stopNav = true,
+  url, title, formType, summary, description, image, meta,
+  variant = "icon", label = "Share", className, stopNav = true,
 }: ShareGateProps) => {
   const [open, setOpen] = useState(false);
   const [captured, setCaptured] = useState(false);
   const [firstName, setFirstName] = useState("");
   const [email, setEmail] = useState("");
   const [sending, setSending] = useState(false);
+  const [emailSending, setEmailSending] = useState(false);
 
-  const absoluteUrl = url.startsWith("http")
-    ? url
-    : (typeof window !== "undefined" ? window.location.origin + url : url);
+  const toAbsolute = (u: string) =>
+    u.startsWith("http") ? u : (typeof window !== "undefined" ? window.location.origin + u : u);
+
+  const absoluteUrl = toAbsolute(url);
+  const absoluteImage = image ? toAbsolute(image) : "";
+
+  // Rich plain-text body for email / messaging channels: title, description,
+  // meta, thumbnail link, then the page link (which unfurls a preview in most
+  // email clients). Social networks (FB/LinkedIn) read the page's OG tags, so
+  // they only need the URL.
+  const shareBody = [
+    title,
+    meta || undefined,
+    description || undefined,
+    absoluteImage ? `Image: ${absoluteImage}` : undefined,
+    `Read more: ${absoluteUrl}`,
+  ].filter(Boolean).join("\n\n");
 
   const valid = firstName.trim().length > 0 && isEmail(email);
 
   const openShare = (e: React.MouseEvent) => {
     if (stopNav) { e.preventDefault(); e.stopPropagation(); }
-    let unlocked = false;
-    try { unlocked = sessionStorage.getItem(SESSION_KEY) === "1"; } catch { /* private mode */ }
-    setCaptured(unlocked);
+    // Always re-ask for first name + email before every share — never skip the
+    // gate, even if this visitor shared earlier in the session.
+    setCaptured(false);
     setOpen(true);
   };
 
@@ -93,35 +116,56 @@ const ShareGate = ({
     });
     rememberLeadEmail(email.trim());
     setSending(false);
-    try { sessionStorage.setItem(SESSION_KEY, "1"); } catch { /* private mode */ }
     // Reveal the share options (non-blocking — proceeds even if the POST hiccups).
     setCaptured(true);
   };
 
-  const shareTo = (network: "x" | "facebook" | "linkedin" | "whatsapp" | "email" | "sms") => {
+  const shareTo = async (network: "facebook" | "linkedin" | "whatsapp" | "email" | "sms" | "instagram") => {
     if (network === "email") {
-      // Open the visitor's webmail (or mail client) with the message prefilled —
-      // works even when no desktop mail app is registered.
-      openEmailCompose({
-        subject: title,
-        body: `${title}\n\n${absoluteUrl}`,
-        fromEmail: email.trim() || undefined,
+      // Send a branded, site-styled HTML email (inline thumbnail + details) to
+      // the gate address via Resend — far nicer than a plain mailto: compose.
+      const addr = email.trim();
+      if (!isEmail(addr)) { toast.error("Enter your email above first."); return; }
+      setEmailSending(true);
+      const ok = await sendShareEmail({
+        to: addr,
+        senderEmail: addr,
+        senderName: firstName.trim() || undefined,
+        title,
+        description: description || summary,
+        meta,
+        imageUrl: absoluteImage || undefined,
+        url: absoluteUrl,
       });
+      setEmailSending(false);
+      if (ok) {
+        toast.success("Sent!", { description: `We emailed “${title}” to ${addr}.` });
+      } else {
+        toast.error("Couldn't send the email", { description: "Please try again in a moment." });
+      }
       return;
     }
     if (network === "sms") {
       // Open the device SMS composer with the message prefilled. `?&body=` is the
       // form that works across both iOS and Android.
-      window.location.href = `sms:?&body=${encodeURIComponent(`${title} ${absoluteUrl}`)}`;
+      window.location.href = `sms:?&body=${encodeURIComponent(shareBody)}`;
+      return;
+    }
+    if (network === "instagram") {
+      // Instagram has no web link-share endpoint — copy the link so the visitor
+      // can paste it into a Story, DM, or bio, then open Instagram.
+      try {
+        await navigator.clipboard.writeText(absoluteUrl);
+        toast.success("Link copied", { description: "Paste it into your Instagram story, DM, or bio." });
+      } catch { /* clipboard blocked — still open Instagram */ }
+      window.open("https://www.instagram.com/", "_blank", "noopener,noreferrer");
       return;
     }
     const u = encodeURIComponent(absoluteUrl);
-    const t = encodeURIComponent(title);
-    const links: Record<"x" | "facebook" | "linkedin" | "whatsapp", string> = {
-      x: `https://twitter.com/intent/tweet?text=${t}&url=${u}`,
+    const links: Record<"facebook" | "linkedin" | "whatsapp", string> = {
       facebook: `https://www.facebook.com/sharer/sharer.php?u=${u}`,
       linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${u}`,
-      whatsapp: `https://wa.me/?text=${encodeURIComponent(`${title} ${absoluteUrl}`)}`,
+      whatsapp: `https://wa.me/?text=${encodeURIComponent(shareBody)}`,
     };
     window.open(links[network], "_blank", "noopener,noreferrer");
   };
@@ -217,20 +261,22 @@ const ShareGate = ({
                 </DialogDescription>
               </DialogHeader>
               <div className="grid grid-cols-1 gap-1 pt-1">
-                <button type="button" onClick={() => shareTo("x")} className={row}>
-                  <XLogo className="w-4 h-4" /> X
-                </button>
-                <button type="button" onClick={() => shareTo("facebook")} className={row}>
-                  <Facebook className="w-4 h-4" style={{ color: "#1877F2" }} /> Facebook
+                <button type="button" onClick={() => shareTo("email")} disabled={emailSending} className={row}>
+                  {emailSending
+                    ? <><Loader2 className="w-4 h-4 animate-spin" /> Sending…</>
+                    : <><Mail className="w-4 h-4 text-muted-foreground" /> Email</>}
                 </button>
                 <button type="button" onClick={() => shareTo("linkedin")} className={row}>
                   <Linkedin className="w-4 h-4" style={{ color: "#0A66C2" }} /> LinkedIn
                 </button>
+                <button type="button" onClick={() => shareTo("facebook")} className={row}>
+                  <Facebook className="w-4 h-4" style={{ color: "#1877F2" }} /> Facebook
+                </button>
+                <button type="button" onClick={() => shareTo("instagram")} className={row}>
+                  <Instagram className="w-4 h-4" style={{ color: "#E4405F" }} /> Instagram
+                </button>
                 <button type="button" onClick={() => shareTo("whatsapp")} className={row}>
                   <MessageCircle className="w-4 h-4" style={{ color: "#25D366" }} /> WhatsApp
-                </button>
-                <button type="button" onClick={() => shareTo("email")} className={row}>
-                  <Mail className="w-4 h-4 text-muted-foreground" /> Email
                 </button>
                 <button type="button" onClick={() => shareTo("sms")} className={row}>
                   <MessageSquare className="w-4 h-4" style={{ color: "#16a34a" }} /> Text message (SMS)

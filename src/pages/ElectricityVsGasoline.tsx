@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import ShareResultDialog from "@/components/forms/ShareResultDialog";
+import ShareGate from "@/components/forms/ShareGate";
 import CalculatorGateDialog from "@/components/forms/CalculatorGateDialog";
 import { openEmailCompose } from "@/lib/emailCompose";
 import Footer from "@/components/Footer";
@@ -837,43 +838,16 @@ const ElectricityVsGasoline = () => {
                       <p className="text-muted-foreground">{CONFIDENCE_COPY[confidence]}</p>
                     </PopoverContent>
                   </Popover>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <button
-                        type="button"
-                        className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-2 text-sm font-semibold text-primary shadow-sm hover:bg-white/90 transition-colors"
-                      >
-                        <Share2 className="w-4 h-4" /> Share this result
-                      </button>
-                    </PopoverTrigger>
-                    <PopoverContent align="center" className="w-56 p-2 rounded-2xl">
-                      <p className="px-2.5 py-1.5 text-xs font-semibold text-muted-foreground">Share your result</p>
-                      {canNativeShare && (
-                        <button type="button" onClick={nativeShare} className={shareRow}>
-                          <Share2 className="w-4 h-4 text-primary" /> Share…
-                        </button>
-                      )}
-                      <button type="button" onClick={() => shareTo("x")} className={shareRow}>
-                        <XLogo className="w-4 h-4" /> X
-                      </button>
-                      <button type="button" onClick={() => shareTo("facebook")} className={shareRow}>
-                        <Facebook className="w-4 h-4" style={{ color: "#1877F2" }} /> Facebook
-                      </button>
-                      <button type="button" onClick={() => shareTo("linkedin")} className={shareRow}>
-                        <Linkedin className="w-4 h-4" style={{ color: "#0A66C2" }} /> LinkedIn
-                      </button>
-                      <button type="button" onClick={() => shareTo("whatsapp")} className={shareRow}>
-                        <MessageCircle className="w-4 h-4" style={{ color: "#25D366" }} /> WhatsApp
-                      </button>
-                      <button type="button" onClick={() => shareTo("email")} className={shareRow}>
-                        <Mail className="w-4 h-4 text-muted-foreground" /> Email
-                      </button>
-                      <div className="my-1 h-px bg-border" />
-                      <button type="button" onClick={handleShare} className={shareRow}>
-                        <Copy className="w-4 h-4 text-muted-foreground" /> Copy link
-                      </button>
-                    </PopoverContent>
-                  </Popover>
+                  <ShareGate
+                    url={typeof window !== "undefined" ? window.location.href : "/electricity-vs-gasoline"}
+                    title={buildShare().text}
+                    summary={`${ev.name} vs ${gas.name}`}
+                    formType="calculator-share"
+                    variant="label"
+                    label="Share this result"
+                    stopNav={false}
+                    className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-2 text-sm font-semibold text-primary shadow-sm hover:bg-white/90 transition-colors"
+                  />
                   <ShareResultDialog
                     shareUrl={typeof window !== "undefined" ? window.location.href : ""}
                     vehicleSummary={`${ev.name} vs ${gas.name}`}

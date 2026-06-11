@@ -93,24 +93,14 @@ const Events = () => {
     setAlertDone(true);
   };
 
-  // Register stays visible in both states; the secondary actions (Details,
-  // calendar, share) are revealed once the card is expanded.
+  // Secondary actions (More info, calendar, share) — revealed once expanded.
   const ActionRow = ({ e, expanded = true }: { e: EventItem; expanded?: boolean }) => (
     <div className="flex flex-wrap items-center gap-2">
-      {e.registerUrl ? (
-        <a href={e.registerUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 gradient-primary text-primary-foreground font-semibold text-sm px-5 py-2.5 rounded-xl hover:opacity-90 transition">
-          <Ticket className="w-4 h-4" /> Register
-        </a>
-      ) : (
-        <Link to="/contact-us" className="inline-flex items-center gap-2 gradient-primary text-primary-foreground font-semibold text-sm px-5 py-2.5 rounded-xl hover:opacity-90 transition">
-          <Ticket className="w-4 h-4" /> Register
-        </Link>
-      )}
       {expanded && (
         <>
           {e.slug && (
-            <Link to={`/events/${e.slug}`} className="inline-flex items-center gap-2 border border-border text-foreground font-semibold text-sm px-4 py-2.5 rounded-xl hover:border-primary/40 hover:text-primary transition">
-              Details
+            <Link to={`/events/${e.slug}`} className="inline-flex items-center gap-2 gradient-primary text-primary-foreground font-semibold text-sm px-5 py-2.5 rounded-xl hover:opacity-90 transition">
+              More Info <ArrowRight className="w-4 h-4" />
             </Link>
           )}
           <a href={gcalLink(e)} target="_blank" rel="noopener noreferrer" aria-label="Set a reminder" title="Add to calendar / set reminder"
@@ -119,6 +109,9 @@ const Events = () => {
             url={eventShareUrl(e)}
             title={e.title}
             summary={eventShareSummary(e)}
+            description={e.description}
+            image={e.image}
+            meta={`${e.type} · ${eventShareSummary(e)} · ${e.time}`}
             formType="event-share"
             className="grid place-items-center w-9 h-9 rounded-lg border border-border text-muted-foreground hover:text-primary hover:border-primary/40 transition"
           />
@@ -150,6 +143,9 @@ const Events = () => {
         url={eventShareUrl(e)}
         title={e.title}
         summary={eventShareSummary(e)}
+        description={e.description}
+        image={e.image}
+        meta={`${e.type} · ${eventShareSummary(e)} · ${e.time}`}
         formType="event-share"
         className="grid place-items-center w-9 h-9 rounded-lg bg-white/15 text-primary-foreground hover:bg-white/25 transition"
       />
@@ -356,26 +352,32 @@ const Events = () => {
                     className="group relative rounded-3xl border border-border bg-card shadow-card hover:shadow-xl hover:-translate-y-0.5 hover:border-primary/30 transition-all animate-fade-up overflow-hidden"
                     style={{ animationDelay: `${i * 0.05}s` }}
                   >
-                    {/* Clickable header — collapsed shows a preview; click anywhere to reveal full details */}
-                    <button
-                      type="button"
-                      onClick={() => toggleEvent(key)}
-                      aria-expanded={open}
-                      className="w-full flex flex-col sm:flex-row gap-5 sm:gap-7 p-5 sm:p-6 text-left"
-                    >
-                      <div className="relative shrink-0 w-full sm:w-52 h-44 sm:h-auto sm:self-stretch rounded-2xl overflow-hidden bg-muted">
-                        <img
-                          src={e.image}
-                          alt={e.title}
-                          loading="lazy"
-                          className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        />
-                        <span className="absolute inset-0 bg-gradient-to-t from-foreground/35 to-transparent" aria-hidden />
-                        <div className="absolute top-2.5 left-2.5 w-14 rounded-xl bg-white text-center shadow-lg overflow-hidden">
-                          <div className="bg-secondary text-primary-foreground text-[9px] font-bold tracking-wider py-0.5">{e.month}</div>
-                          <div className="text-foreground text-xl font-bold font-display leading-none py-1">{e.day}</div>
-                        </div>
-                      </div>
+                    {/* Header — thumbnail + title link to the event's own page;
+                        the description expands via the "More Info" toggle. */}
+                    <div className="w-full flex flex-col sm:flex-row gap-5 sm:gap-7 p-5 sm:p-6">
+                      {(() => {
+                        const thumbInner = (
+                          <>
+                            <img
+                              src={e.image}
+                              alt={e.title}
+                              loading="lazy"
+                              className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            />
+                            <span className="absolute inset-0 bg-gradient-to-t from-foreground/35 to-transparent" aria-hidden />
+                            <div className="absolute top-2.5 left-2.5 w-14 rounded-xl bg-white text-center shadow-lg overflow-hidden">
+                              <div className="bg-secondary text-primary-foreground text-[9px] font-bold tracking-wider py-0.5">{e.month}</div>
+                              <div className="text-foreground text-xl font-bold font-display leading-none py-1">{e.day}</div>
+                            </div>
+                          </>
+                        );
+                        const thumbCls = "relative shrink-0 w-full sm:w-52 h-44 sm:h-auto sm:self-stretch rounded-2xl overflow-hidden bg-muted block";
+                        return e.slug ? (
+                          <Link to={`/events/${e.slug}`} className={thumbCls} aria-label={`View ${e.title}`}>{thumbInner}</Link>
+                        ) : (
+                          <div className={thumbCls}>{thumbInner}</div>
+                        );
+                      })()}
 
                       <div className="flex-1 min-w-0">
                         <div className="flex flex-wrap items-center gap-2 mb-2">
@@ -385,28 +387,39 @@ const Events = () => {
                             <span className="text-[11px] text-muted-foreground">via {e.source}</span>
                           )}
                         </div>
-                        <div className="flex items-start justify-between gap-3">
-                          <h3 className="text-xl font-bold font-display text-foreground mb-2 group-hover:text-primary transition-colors">{e.title}</h3>
-                          <ChevronDown className={`w-5 h-5 text-muted-foreground shrink-0 mt-1 transition-transform ${open ? "rotate-180 text-primary" : ""}`} />
-                        </div>
+                        {e.slug ? (
+                          <Link to={`/events/${e.slug}`} className="block">
+                            <h3 className="text-xl font-bold font-display text-foreground mb-2 group-hover:text-primary transition-colors">{e.title}</h3>
+                          </Link>
+                        ) : (
+                          <h3 className="text-xl font-bold font-display text-foreground mb-2">{e.title}</h3>
+                        )}
                         <div className="flex flex-wrap gap-x-5 gap-y-1 text-sm text-muted-foreground mb-3">
                           <span className="flex items-center gap-1.5"><Clock className="w-4 h-4 text-secondary" /> {e.time}</span>
                         </div>
                         <p className={`text-sm text-muted-foreground ${open ? "whitespace-pre-line" : ""}`}>
                           {open ? e.description : preview}
                         </p>
-                        {!open && long && (
-                          <span className="mt-1.5 inline-flex items-center gap-1 text-sm font-semibold text-primary">
-                            Read more <ChevronDown className="w-4 h-4" />
-                          </span>
+                        {long && (
+                          <button
+                            type="button"
+                            onClick={() => toggleEvent(key)}
+                            aria-expanded={open}
+                            className="mt-1.5 inline-flex items-center gap-1 text-sm font-semibold text-primary hover:gap-2 transition-all"
+                          >
+                            {open ? "Less" : "More Info"}
+                            <ChevronDown className={`w-4 h-4 transition-transform ${open ? "rotate-180" : ""}`} />
+                          </button>
                         )}
                       </div>
-                    </button>
-
-                    {/* Actions — Register always visible; the rest appear when expanded */}
-                    <div className="px-5 sm:px-6 pb-5 sm:pb-6 sm:pl-[236px]">
-                      <ActionRow e={e} expanded={open} />
                     </div>
+
+                    {/* Actions — revealed when expanded */}
+                    {open && (
+                      <div className="px-5 sm:px-6 pb-5 sm:pb-6 sm:pl-[236px]">
+                        <ActionRow e={e} expanded={open} />
+                      </div>
+                    )}
                   </article>
                 );
               })}

@@ -73,11 +73,16 @@ export function openEmailCompose({ subject, body, to = "", fromEmail }: ComposeO
   const bd = encodeURIComponent(body);
   const t = encodeURIComponent(to);
 
-  const url = webmailComposeUrl(domain, su, bd, t);
-  if (url) {
-    const w = window.open(url, "_blank", "noopener,noreferrer");
-    if (w) return; // opened a webmail tab — done
-    // popup blocked → fall through to the mail-client handoff below
-  }
-  window.location.href = `mailto:${to}?subject=${su}&body=${bd}`;
+  // Use the sender's known webmail provider; otherwise fall back to Gmail's
+  // universal compose window. Gmail's composer works for ANY signed-in Google
+  // account (including Google Workspace custom domains) and — unlike `mailto:`
+  // — reliably opens even on machines with no desktop mail client registered.
+  const url =
+    webmailComposeUrl(domain, su, bd, t) ??
+    `https://mail.google.com/mail/?view=cm&fs=1&to=${t}&su=${su}&body=${bd}`;
+
+  // NOTE: do NOT pass "noopener" here — Chromium then returns null from
+  // window.open even on success, which previously tripped a dead mailto: fallback.
+  const w = window.open(url, "_blank");
+  if (!w) window.location.href = url; // popup blocked → open in the same tab
 }

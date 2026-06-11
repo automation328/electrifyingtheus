@@ -36,6 +36,7 @@ const navItems: NavItem[] = [
   { label: "Benefits", href: "#benefits", primary: true },
   { label: "Multimodal", href: "#multimodal", primary: true },
   { label: "EV vs Gas Calculator", href: "/electricity-vs-gasoline", primary: true },
+  { label: "Incentives", href: "/rebates-incentives" },
   { label: "News", href: "/news" },
   { label: "Events", href: "/events" },
   { label: "Gallery", href: "/gallery" },
@@ -242,9 +243,10 @@ const Navbar = () => {
               <div className="p-3 flex flex-col flex-1 overflow-y-auto">
                 {navItems.map((item, i) => {
                   const delay = open ? { animationDelay: `${i * 40}ms` } : undefined;
-                  // Primary items show inline in the desktop bar, so hide them from
-                  // the panel on lg+ (they stay in the panel on smaller screens).
-                  const hideOnDesktop = item.primary ? "lg:hidden" : "";
+                  // On-page anchor sections (#…) also live in the desktop bar, so
+                  // hide them from the panel on lg+ (they stay on smaller screens).
+                  // Route links (Calculator, Incentives, News…) stay in the panel.
+                  const hideOnDesktop = item.href.startsWith("#") ? "lg:hidden" : "";
                   const cls = `block w-full text-left pl-5 pr-4 py-2.5 rounded-lg text-foreground font-medium hover:bg-muted hover:text-primary transition-colors ${hideOnDesktop} ${open ? "nav-item" : ""}`;
                   return item.dialog ? (
                     <button
@@ -270,7 +272,7 @@ const Navbar = () => {
                 })}
                 <a
                   href="/find-a-charger"
-                  className={`block mt-auto pt-2 ${open ? "nav-item" : ""}`}
+                  className={`block mt-2 ${open ? "nav-item" : ""}`}
                   style={open ? { animationDelay: `${navItems.length * 40}ms` } : undefined}
                   onClick={closeMenu}
                 >

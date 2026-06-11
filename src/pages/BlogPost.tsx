@@ -121,6 +121,9 @@ const BlogPost = () => {
               url={`/blog/${post.slug}`}
               title={post.title}
               summary={post.category}
+              description={post.excerpt}
+              image={post.image}
+              meta={`${post.category} · ${post.author} · ${post.date}`}
               formType="article-share"
               variant="label"
               label="Share this article"

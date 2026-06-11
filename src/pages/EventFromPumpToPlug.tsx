@@ -75,6 +75,9 @@ const EventFromPumpToPlug = () => {
                   url={event.slug ? `/events/${event.slug}` : "/events"}
                   title={event.title}
                   summary={`${event.location} · ${event.month} ${event.day}, ${event.year}`}
+                  description={event.description}
+                  image={event.image}
+                  meta={`${event.type} · ${event.location} · ${event.month} ${event.day}, ${event.year} · ${event.time}`}
                   formType="event-share"
                   variant="label"
                   label="Share"

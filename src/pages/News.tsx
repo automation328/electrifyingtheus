@@ -141,6 +141,9 @@ const News = () => {
                         url={`/blog/${post.slug}`}
                         title={post.title}
                         summary={post.category}
+                        description={post.excerpt}
+                        image={post.image}
+                        meta={`${post.category} · ${post.date}`}
                         formType="article-share"
                         className={GREEN_SHARE}
                       />
@@ -221,7 +224,7 @@ const News = () => {
                     </div>
                   )}
                   <div className="absolute top-3 right-3">
-                    <ShareGate url={featured.link} title={featured.title} summary={featured.source} formType="article-share" className={GREEN_SHARE} />
+                    <ShareGate url={featured.link} title={featured.title} summary={featured.source} description={featured.excerpt} image={featured.image ?? undefined} meta={`${featured.source} · ${formatDate(featured.pubDate)}`} formType="article-share" className={GREEN_SHARE} />
                   </div>
                 </div>
                 <div className="p-8">
@@ -261,7 +264,7 @@ const News = () => {
                         </div>
                       )}
                       <div className="absolute top-3 right-3">
-                        <ShareGate url={p.link} title={p.title} summary={p.source} formType="article-share" className={GREEN_SHARE} />
+                        <ShareGate url={p.link} title={p.title} summary={p.source} description={p.excerpt} image={p.image ?? undefined} meta={`${p.source} · ${formatDate(p.pubDate)}`} formType="article-share" className={GREEN_SHARE} />
                       </div>
                     </div>
                     <div className="p-6 flex flex-col flex-1">

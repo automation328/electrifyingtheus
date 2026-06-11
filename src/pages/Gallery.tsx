@@ -135,6 +135,8 @@ const Gallery = () => {
                       url="/gallery"
                       title={p.caption || p.alt || "Photo from Electrifying the US"}
                       summary={p.alt}
+                      description={p.caption || p.alt}
+                      image={p.src}
                       formType="photo-share"
                       variant="icon"
                     />
@@ -162,6 +164,8 @@ const Gallery = () => {
                     url="/gallery"
                     title={current.caption || current.alt || "Photo from Electrifying the US"}
                     summary={current.alt}
+                    description={current.caption || current.alt}
+                    image={current.src}
                     formType="photo-share"
                     variant="label"
                     label="Share this photo"
