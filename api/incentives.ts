@@ -48,24 +48,38 @@ export default async function handler(req: any, res: any) {
     limit: "200",
   });
 
-  try {
-    const upstream = await fetch(`${NREL_ENDPOINT}?${params}`);
-    const data = await upstream.json().catch(() => null);
+  // Retry transient upstream failures (slow responses, brief 429/5xx). The
+  // DEMO_KEY is heavily rate-limited and shared across all server traffic on one
+  // egress IP, so set NREL_API_KEY to make this reliable under real load.
+  const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+  let lastStatus = 502;
+  let lastMessage = "Couldn't reach the incentives service.";
 
-    if (!upstream.ok || !data || data.error) {
-      const message = data?.error?.message || `NREL request failed (${upstream.status})`;
-      // Surface a 429 as a 429 so the client knows it's a rate limit, not a bug.
-      res.status(upstream.status === 429 ? 429 : 502).json({ error: message });
-      return;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const upstream = await fetch(`${NREL_ENDPOINT}?${params}`);
+      const data = await upstream.json().catch(() => null);
+
+      if (upstream.ok && data && !data.error) {
+        // Cache hard at the CDN: NREL data changes rarely, and this caching is
+        // what keeps us under the rate limit. 1 day fresh, serve-stale for a
+        // week while revalidating in the background.
+        res.setHeader("Cache-Control", "public, s-maxage=86400, stale-while-revalidate=604800");
+        res.status(200).json({ result: Array.isArray(data.result) ? data.result : [] });
+        return;
+      }
+
+      lastStatus = upstream.status === 429 ? 429 : 502;
+      lastMessage = data?.error?.message || `NREL request failed (${upstream.status})`;
+      // Don't hammer a hard client error; only retry rate limits / 5xx.
+      if (upstream.status >= 400 && upstream.status < 500 && upstream.status !== 429) break;
+    } catch (err) {
+      console.error("NREL proxy error", err);
+      lastStatus = 502;
+      lastMessage = "Couldn't reach the incentives service.";
     }
-
-    // Cache hard at the CDN: NREL data changes rarely, and this caching is what
-    // keeps us under the rate limit. 1 day fresh, serve-stale for a week while
-    // revalidating in the background.
-    res.setHeader("Cache-Control", "public, s-maxage=86400, stale-while-revalidate=604800");
-    res.status(200).json({ result: Array.isArray(data.result) ? data.result : [] });
-  } catch (err) {
-    console.error("NREL proxy error", err);
-    res.status(502).json({ error: "Couldn't reach the incentives service." });
+    if (attempt < 2) await sleep(500 * (attempt + 1));
   }
+
+  res.status(lastStatus).json({ error: lastMessage });
 }
