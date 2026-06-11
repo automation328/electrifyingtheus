@@ -177,6 +177,7 @@ const Careers = () => {
                         title={`${j.title} at ${j.company}`}
                         summary={`${j.company} · ${j.location}`}
                         description={j.description}
+                        image="/og/careers.jpg"
                         meta={`${j.company} · ${j.location} · ${j.type}`}
                         formType="job-share"
                         className="grid place-items-center w-9 h-9 rounded-lg gradient-green text-primary-foreground shadow-sm hover:opacity-90 transition-opacity"
@@ -267,6 +268,7 @@ const Careers = () => {
                         title={`${j.title} at ${j.company}`}
                         summary={`${j.company} · ${j.location}`}
                         description={j.description}
+                        image="/og/careers.jpg"
                         meta={`${j.company} · ${j.location} · ${j.type}`}
                         formType="job-share"
                         className="grid place-items-center w-10 h-10 rounded-lg gradient-green text-primary-foreground shadow-sm hover:opacity-90 transition-opacity"

@@ -229,9 +229,12 @@ const RebatesIncentives = () => {
                               Learn More and Apply Here <ExternalLink className="w-3.5 h-3.5" />
                             </a>
                             <ShareGate
-                              url={it.link}
+                              url="/rebates-incentives"
                               title={it.name}
                               summary={[it.jurisdiction, it.amount].filter(Boolean).join(" · ")}
+                              description={it.desc}
+                              image="/og/incentives.jpg"
+                              meta={[it.jurisdiction, it.amount].filter(Boolean).join(" · ")}
                               formType="incentive-share"
                               variant="label"
                               label="Share"

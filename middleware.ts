@@ -13,7 +13,16 @@ import { next } from "@vercel/edge";
 import { OG_ENTRIES } from "./og-data";
 
 export const config = {
-  matcher: ["/blog/:path*", "/events/:path*", "/electricity-vs-gasoline"],
+  matcher: [
+    "/blog/:path*",
+    "/events",
+    "/events/:path*",
+    "/electricity-vs-gasoline",
+    "/news",
+    "/careers",
+    "/gallery",
+    "/rebates-incentives",
+  ],
 };
 
 const CRAWLER =

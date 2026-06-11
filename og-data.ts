@@ -63,4 +63,41 @@ export const OG_ENTRIES: OgEntry[] = [
       "A free one-hour webinar on how switching from gas to electric saves drivers thousands — on fuel, maintenance, and incentives. June 25, 2026 · Online.",
     image: "/og/events-from-pump-to-plug.jpg",
   },
+
+  // Section landing pages (shared from cards that link to the section).
+  {
+    path: "/news",
+    title: "E-Mobility News & Guides — Electrifying the US",
+    description:
+      "The latest on electric vehicles, charging, and the clean-transport transition — plus guides and explainers on going electric.",
+    image: "/og/news.jpg",
+  },
+  {
+    path: "/events",
+    title: "EV Events — Ride & Drives, Webinars & Expos",
+    description:
+      "Experience e-mobility in person and online. Find ride & drives, webinars, and expos near you.",
+    image: "/og/events.jpg",
+  },
+  {
+    path: "/careers",
+    title: "Careers in E-Mobility — Electrifying the US",
+    description:
+      "Explore clean-energy and EV careers — the transition is creating hundreds of thousands of jobs and pathways into them.",
+    image: "/og/careers.jpg",
+  },
+  {
+    path: "/gallery",
+    title: "Gallery — Moments in Motion",
+    description:
+      "Photos and videos from our ride & drives, webinars, expos, and community events across the country.",
+    image: "/og/gallery.jpg",
+  },
+  {
+    path: "/rebates-incentives",
+    title: "EV Rebates & Incentives — Find What You Qualify For",
+    description:
+      "Federal, state, and utility programs that lower the cost of going electric. See the incentives available in your area.",
+    image: "/og/incentives.jpg",
+  },
 ];
