@@ -14,7 +14,8 @@ Prereq: run supabase/rag-kb.sql once in the Supabase SQL editor.
 """
 import json, os, re, sys, time, urllib.request, urllib.error, zipfile, html
 
-GEMINI_MODEL = "text-embedding-004"
+GEMINI_MODEL = "gemini-embedding-001"
+EMBED_DIM = 768
 EMBED_URL = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:embedContent"
 MAX_CHARS = 1600          # ~400 tokens/chunk
 OVERLAP = 200
@@ -82,8 +83,9 @@ def post(url, payload, headers):
 def embed(text, key):
     for attempt in range(4):
         try:
-            r = post(f"{EMBED_URL}?key={key}",
-                     {"content": {"parts": [{"text": text}]}}, {})
+            r = post(EMBED_URL,
+                     {"content": {"parts": [{"text": text}]}, "outputDimensionality": EMBED_DIM},
+                     {"x-goog-api-key": key})
             return r["embedding"]["values"]
         except urllib.error.HTTPError as e:
             if e.code in (429, 500, 503) and attempt < 3:
