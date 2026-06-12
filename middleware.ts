@@ -14,15 +14,20 @@ import { OG_ENTRIES } from "./og-data";
 
 export const config = {
   matcher: [
-    "/blog/:path*",
-    "/events",
-    "/events/:path*",
-    "/electricity-vs-gasoline",
-    "/news",
-    "/careers",
-    "/gallery",
-    "/rebates-incentives",
+    // Every page route (excludes /api, static assets, and any file with an
+    // extension) so the home page and all other pages get a working OG card.
+    "/((?!api/|assets/|og/|fonts/|.*\\.).*)",
   ],
+};
+
+// Site-wide default OG — used for the home page and any route without a more
+// specific entry. Image is served origin-relative so it 200s on whatever host
+// the link was shared from (subdomain, vercel.app, or the apex later).
+const SITE_DEFAULT = {
+  title: "Electrifying the US — EV vs Gas Calculator & Zero-Emission Mobility",
+  description:
+    "See how much you'd save switching to an EV — real U.S. energy prices, state by state. Plus charging, incentives, events, and multimodal e-mobility.",
+  image: "/og-image.jpg",
 };
 
 const CRAWLER =
@@ -108,7 +113,15 @@ export default function middleware(request: Request) {
     }
   }
 
-  if (!meta) return next();
+  // Home page + any other page: branded site default (host-correct image).
+  if (!meta) {
+    meta = {
+      title: SITE_DEFAULT.title,
+      description: SITE_DEFAULT.description,
+      image: origin + SITE_DEFAULT.image,
+      url: origin + path,
+    };
+  }
 
   const html = `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
