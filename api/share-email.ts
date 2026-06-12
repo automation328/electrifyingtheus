@@ -1,7 +1,7 @@
 // Sends a branded, site-styled HTML share email (with an inline thumbnail) via
-// Resend. Used by the ShareGate "Email" option — the visitor enters their name
-// + email at the gate, and we email them the shareable with full details and
-// the image rendered inline (not just a link).
+// Resend. Used by the share dialogs — the visitor (sender) enters their name +
+// email, picks a recipient, and we email the shareable with full details and
+// the image rendered inline (not just a link). Self-sends are also fine.
 //
 // Env (server-only):
 //   RESEND_API_KEY   Resend API key (re_…). Required to actually send.
@@ -58,9 +58,10 @@ async function verifyRecaptcha(token: string): Promise<boolean> {
 }
 
 function buildHtml(opts: {
-  title: string; description?: string; meta?: string; imageUrl?: string; url: string; greetName?: string;
+  title: string; description?: string; meta?: string; imageUrl?: string; url: string;
+  greetName?: string; sharedBy?: string;
 }): string {
-  const { title, description, meta, imageUrl, url, greetName } = opts;
+  const { title, description, meta, imageUrl, url, greetName, sharedBy } = opts;
   const hero = imageUrl
     ? `<tr><td style="padding:0">
          <a href="${esc(url)}" target="_blank" style="text-decoration:none">
@@ -109,6 +110,7 @@ function buildHtml(opts: {
         <!-- Footer -->
         <tr><td style="padding:24px 28px 28px">
           <hr style="border:none;border-top:1px solid ${BRAND.line};margin:0 0 16px" />
+          ${sharedBy ? `<p style="margin:0 0 8px;font:600 13px/1.6 Arial,Helvetica,sans-serif;color:${BRAND.ink}">${esc(sharedBy)} shared this with you.</p>` : ""}
           <p style="margin:0 0 6px;font:400 12px/1.6 Arial,Helvetica,sans-serif;color:${BRAND.muted}">
             Shared from <a href="${SITE}" style="color:${BRAND.blue};text-decoration:none">ElectrifyingTheUS.com</a> —
             your guide to electric vehicles, charging, and going electric.
@@ -137,7 +139,7 @@ export default async function handler(req: any, res: any) {
 
   const body = typeof req.body === "string" ? safeJson(req.body) : (req.body ?? {});
   const {
-    to = "", senderEmail = "", senderName = "",
+    to = "", recipientName = "", senderEmail = "", senderName = "",
     title = "", description = "", meta = "", imageUrl = "", url = "",
     recaptchaToken = "",
   } = body as Record<string, string>;
@@ -147,14 +149,32 @@ export default async function handler(req: any, res: any) {
   }
 
   const isEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((v || "").trim());
-  // Open-relay guard: only ever email the gate's own address back to itself.
-  if (!isEmail(to) || to.trim().toLowerCase() !== senderEmail.trim().toLowerCase()) {
-    res.status(400).json({ error: "A valid recipient email is required" }); return;
+  // Send-to-friend is allowed; the sender's address is still required so every
+  // send is attributable (that + reCAPTCHA is the anti-abuse stance).
+  if (!isEmail(to) || !isEmail(senderEmail)) {
+    res.status(400).json({ error: "A valid recipient and sender email are required" }); return;
   }
   if (!title || !url) { res.status(400).json({ error: "Missing share content" }); return; }
 
-  const html = buildHtml({ title, description, meta, imageUrl, url, greetName: senderName });
-  const text = buildText({ title, description, meta, url });
+  // Length caps + scheme checks keep the payload sane.
+  const cap = (s: string, n: number) => String(s ?? "").slice(0, n);
+  const safeTitle = cap(title, 200);
+  const safeDescription = cap(description, 600);
+  const safeMeta = cap(meta, 200);
+  const safeUrl = cap(url, 2048);
+  const safeImage = cap(imageUrl, 2048);
+  if (!/^https?:\/\//i.test(safeUrl)) { res.status(400).json({ error: "Invalid link" }); return; }
+  const img = /^https?:\/\//i.test(safeImage) ? safeImage : "";
+
+  const isSelfSend = to.trim().toLowerCase() === senderEmail.trim().toLowerCase();
+  const sharedBy = !isSelfSend && senderName ? `${cap(senderName, 80)} (${senderEmail.trim()})` : "";
+  const greetName = cap(recipientName, 80) || (isSelfSend ? cap(senderName, 80) : "");
+
+  const html = buildHtml({
+    title: safeTitle, description: safeDescription, meta: safeMeta,
+    imageUrl: img, url: safeUrl, greetName, sharedBy,
+  });
+  const text = buildText({ title: safeTitle, description: safeDescription, meta: safeMeta, url: safeUrl });
 
   try {
     const r = await fetch(RESEND_ENDPOINT, {
@@ -163,7 +183,7 @@ export default async function handler(req: any, res: any) {
       body: JSON.stringify({
         from: process.env.RESEND_FROM || DEFAULT_FROM,
         to: [to.trim()],
-        subject: title,
+        subject: safeTitle,
         html,
         text,
       }),

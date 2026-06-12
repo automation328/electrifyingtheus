@@ -865,10 +865,12 @@ const ElectricityVsGasoline = () => {
                   />
                   <ShareResultDialog
                     shareUrl={typeof window !== "undefined" ? window.location.href : ""}
-                    vehicleSummary={`${ev.name} vs ${gas.name}`}
-                    savingsSummary={evWinsFuel
+                    contentTitle={`${ev.name} vs ${gas.name}`}
+                    summary={evWinsFuel
                       ? `${currency(Math.abs(calc.res.horizonTotalSaved))} saved over ${ownershipYears} years on fuel`
                       : undefined}
+                    dialogTitle="Send this result"
+                    dialogDescription={`Email or text the ${ev.name} vs ${gas.name} comparison — it reopens exactly as you see it.`}
                     trigger={
                       <button
                         type="button"

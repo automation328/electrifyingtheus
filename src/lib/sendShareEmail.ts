@@ -8,8 +8,11 @@
 import { getRecaptchaToken } from "@/lib/recaptcha";
 
 export interface ShareEmailPayload {
-  /** Recipient — must match senderEmail (the gate address); we email it back to itself. */
+  /** Recipient address — a friend's email, or the sender's own for self-sends. */
   to: string;
+  /** Recipient's first name (used for the greeting). */
+  recipientName?: string;
+  /** Sender — required so every send is attributable. */
   senderEmail: string;
   senderName?: string;
   title: string;

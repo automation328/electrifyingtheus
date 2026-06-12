@@ -18,7 +18,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { submitLead, type LeadFormType } from "@/lib/submitLead";
 import { rememberLeadEmail } from "@/lib/emailCompose";
-import { sendShareEmail } from "@/lib/sendShareEmail";
+import ShareResultDialog from "@/components/forms/ShareResultDialog";
 import { toast } from "sonner";
 
 const isEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
@@ -73,7 +73,9 @@ const ShareGate = ({
   const [firstName, setFirstName] = useState("");
   const [email, setEmail] = useState("");
   const [sending, setSending] = useState(false);
-  const [emailSending, setEmailSending] = useState(false);
+  // "Send this" dialog (Email / Text a friend) — same flow as the calculator.
+  const [sendOpen, setSendOpen] = useState(false);
+  const [sendChannel, setSendChannel] = useState<"email" | "sms">("email");
 
   const toAbsolute = (u: string) =>
     u.startsWith("http") ? u : (typeof window !== "undefined" ? window.location.origin + u : u);
@@ -120,37 +122,15 @@ const ShareGate = ({
     setCaptured(true);
   };
 
-  const shareTo = async (network: "facebook" | "linkedin" | "whatsapp" | "email" | "sms" | "instagram") => {
-    if (network === "email") {
-      // Send a branded, site-styled HTML email (inline thumbnail + details) to
-      // the gate address via Resend — far nicer than a plain mailto: compose.
-      const addr = email.trim();
-      if (!isEmail(addr)) { toast.error("Enter your email above first."); return; }
-      setEmailSending(true);
-      const ok = await sendShareEmail({
-        to: addr,
-        senderEmail: addr,
-        senderName: firstName.trim() || undefined,
-        title,
-        description: description || summary,
-        meta,
-        imageUrl: absoluteImage || undefined,
-        url: absoluteUrl,
-      });
-      setEmailSending(false);
-      if (ok) {
-        toast.success("Sent!", { description: `We emailed “${title}” to ${addr}.` });
-      } else {
-        toast.error("Couldn't send the email", { description: "Please try again in a moment." });
-      }
-      return;
-    }
-    if (network === "sms") {
-      // Open the device SMS composer with the message prefilled. `?&body=` is the
-      // form that works across both iOS and Android.
-      window.location.href = `sms:?&body=${encodeURIComponent(shareBody)}`;
-      return;
-    }
+  // Email & SMS open the "Send this" dialog (sender + recipient, server-side
+  // send) — the exact same flow as the calculator's "Email / Text result".
+  const openSend = (channel: "email" | "sms") => {
+    setSendChannel(channel);
+    setOpen(false);
+    setSendOpen(true);
+  };
+
+  const shareTo = async (network: "facebook" | "linkedin" | "whatsapp" | "instagram") => {
     if (network === "instagram") {
       // Instagram has no web link-share endpoint — copy the link so the visitor
       // can paste it into a Story, DM, or bio, then open Instagram.
@@ -261,10 +241,8 @@ const ShareGate = ({
                 </DialogDescription>
               </DialogHeader>
               <div className="grid grid-cols-1 gap-1 pt-1">
-                <button type="button" onClick={() => shareTo("email")} disabled={emailSending} className={row}>
-                  {emailSending
-                    ? <><Loader2 className="w-4 h-4 animate-spin" /> Sending…</>
-                    : <><Mail className="w-4 h-4 text-muted-foreground" /> Email</>}
+                <button type="button" onClick={() => openSend("email")} className={row}>
+                  <Mail className="w-4 h-4 text-muted-foreground" /> Email
                 </button>
                 <button type="button" onClick={() => shareTo("linkedin")} className={row}>
                   <Linkedin className="w-4 h-4" style={{ color: "#0A66C2" }} /> LinkedIn
@@ -278,7 +256,7 @@ const ShareGate = ({
                 <button type="button" onClick={() => shareTo("whatsapp")} className={row}>
                   <MessageCircle className="w-4 h-4" style={{ color: "#25D366" }} /> WhatsApp
                 </button>
-                <button type="button" onClick={() => shareTo("sms")} className={row}>
+                <button type="button" onClick={() => openSend("sms")} className={row}>
                   <MessageSquare className="w-4 h-4" style={{ color: "#16a34a" }} /> Text message (SMS)
                 </button>
                 {canNativeShare && (
@@ -304,6 +282,26 @@ const ShareGate = ({
           </details>
         </DialogContent>
       </Dialog>
+
+      {/* Email / Text a friend — same sender+recipient flow as the calculator's
+          "Email / Text result"; the gate's name + email prefill the sender. */}
+      <ShareResultDialog
+        open={sendOpen}
+        onOpenChange={setSendOpen}
+        presetChannel={sendChannel}
+        formType={formType}
+        shareUrl={absoluteUrl}
+        contentTitle={title}
+        summary={summary}
+        senderNameDefault={firstName.trim() || undefined}
+        senderEmailDefault={email.trim() || undefined}
+        emailContent={{
+          title,
+          description: description || summary,
+          meta,
+          imageUrl: absoluteImage || undefined,
+        }}
+      />
     </>
   );
 };

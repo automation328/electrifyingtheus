@@ -1,12 +1,15 @@
-// Email / Text-a-result share popup for the EV vs Gas calculator.
+// "Send this" share popup — Email / Text a shareable to a friend (or yourself).
+// Originally built for the EV vs Gas calculator; now generic so every page's
+// share menu offers the exact same flow.
 //
 // Captures BOTH the sender ("from") and recipient ("to") contact details and
-// upserts them into GoHighLevel via the secure /api/lead proxy with a
-// `calculator-share` tag. The recipient contact carries the result link
-// (stored on contact.website) so a GHL workflow on that tag fires the actual
-// email/SMS — no email/SMS provider keys live in this app.
+// upserts them into GoHighLevel via the secure /api/lead proxy with the
+// surface-specific share tag. The recipient contact carries the share link so
+// a GHL workflow on that tag can fire email/SMS. For the email channel we also
+// send the branded HTML email directly via /api/share-email (Resend), so the
+// recipient gets a designed email with the thumbnail inline.
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Send, Mail, MessageSquare, Loader2, Check } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger,
@@ -15,34 +18,77 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { submitLead } from "@/lib/submitLead";
+import { submitLead, type LeadFormType } from "@/lib/submitLead";
+import { sendShareEmail } from "@/lib/sendShareEmail";
 import { toast } from "sonner";
 
 type Channel = "email" | "sms";
 
 interface ShareResultDialogProps {
-  /** The shareable result link (the calculator URL already encodes full state). */
+  /** The shareable link (absolute, or relative — resolved against the origin). */
   shareUrl: string;
-  /** e.g. "Tesla Model 3 vs Toyota Camry" — for context in GHL + the note. */
-  vehicleSummary: string;
-  /** e.g. "$9,000 saved over 5 years on fuel" (optional). */
-  savingsSummary?: string;
-  /** The element that opens the dialog. */
-  trigger: React.ReactNode;
+  /** What's being shared — named in the dialog + saved to GHL. */
+  contentTitle: string;
+  /** Optional extra context (e.g. "$9,000 saved over 5 years") saved to GHL. */
+  summary?: string;
+  /** Surface-specific lead tag. Defaults to the calculator's. */
+  formType?: LeadFormType;
+  /** Trigger element. Omit when controlling `open` externally (see below). */
+  trigger?: React.ReactNode;
+  /** Controlled open state — used by ShareGate's Email / SMS options. */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  /** Preselect the channel each time the dialog opens. */
+  presetChannel?: Channel;
+  /** Prefill the sender fields (e.g. from the share gate). */
+  senderNameDefault?: string;
+  senderEmailDefault?: string;
+  /** When set, the email channel also delivers the branded HTML email. */
+  emailContent?: { title: string; description?: string; meta?: string; imageUrl?: string };
+  /** Dialog headline + sub-line (defaults are generic). */
+  dialogTitle?: string;
+  dialogDescription?: string;
 }
 
 const isEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
 const isPhone = (v: string) => v.replace(/\D/g, "").length >= 10;
 
-const ShareResultDialog = ({ shareUrl, vehicleSummary, savingsSummary, trigger }: ShareResultDialogProps) => {
-  const [open, setOpen] = useState(false);
-  const [channel, setChannel] = useState<Channel>("email");
+const ShareResultDialog = ({
+  shareUrl, contentTitle, summary, formType = "calculator-share", trigger,
+  open: openProp, onOpenChange, presetChannel, senderNameDefault, senderEmailDefault,
+  emailContent, dialogTitle = "Send this", dialogDescription,
+}: ShareResultDialogProps) => {
+  const [openState, setOpenState] = useState(false);
+  const controlled = openProp !== undefined;
+  const open = controlled ? openProp : openState;
+  const setOpen = (o: boolean) => {
+    if (!controlled) setOpenState(o);
+    onOpenChange?.(o);
+  };
+
+  const [channel, setChannel] = useState<Channel>(presetChannel ?? "email");
   const [senderName, setSenderName] = useState("");
   const [senderContact, setSenderContact] = useState("");
   const [recipientName, setRecipientName] = useState("");
   const [recipientContact, setRecipientContact] = useState("");
   const [sending, setSending] = useState(false);
   const [done, setDone] = useState(false);
+
+  const absoluteUrl = shareUrl.startsWith("http")
+    ? shareUrl
+    : (typeof window !== "undefined" ? window.location.origin + shareUrl : shareUrl);
+
+  // Each open: apply the preset channel and prefill empty sender fields from
+  // the gate, so the visitor doesn't retype what they just entered.
+  useEffect(() => {
+    if (!open) return;
+    if (presetChannel) setChannel(presetChannel);
+    if (senderNameDefault) setSenderName((v) => v || senderNameDefault);
+    if (senderEmailDefault && (presetChannel ?? "email") === "email") {
+      setSenderContact((v) => v || senderEmailDefault);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   const valid = channel === "email"
     ? isEmail(senderContact) && isEmail(recipientContact)
@@ -59,7 +105,8 @@ const ShareResultDialog = ({ shareUrl, vehicleSummary, savingsSummary, trigger }
     if (!valid || sending) return;
     setSending(true);
 
-    const ok = await submitLead("calculator-share", {
+    // CRM capture + GHL workflow trigger (same shape as the calculator share).
+    const leadOk = await submitLead(formType, {
       // Recipient → standard GHL contact fields (the messaged party).
       firstName: recipientName,
       email: channel === "email" ? recipientContact : "",
@@ -69,17 +116,33 @@ const ShareResultDialog = ({ shareUrl, vehicleSummary, savingsSummary, trigger }
       senderEmail: channel === "email" ? senderContact : "",
       senderPhone: channel === "sms" ? senderContact : "",
       shareChannel: channel,
-      shareUrl,
-      vehicleSummary,
-      savingsSummary: savingsSummary ?? "",
+      shareUrl: absoluteUrl,
+      vehicleSummary: contentTitle,
+      savingsSummary: summary ?? "",
     });
 
+    // Branded HTML email straight to the recipient (email channel only).
+    let emailOk = false;
+    if (channel === "email" && emailContent) {
+      emailOk = await sendShareEmail({
+        to: recipientContact.trim(),
+        recipientName: recipientName.trim() || undefined,
+        senderEmail: senderContact.trim(),
+        senderName: senderName.trim() || undefined,
+        title: emailContent.title,
+        description: emailContent.description,
+        meta: emailContent.meta,
+        imageUrl: emailContent.imageUrl,
+        url: absoluteUrl,
+      });
+    }
+
     setSending(false);
-    if (ok) {
+    if (leadOk || emailOk) {
       setDone(true);
       toast.success(
-        channel === "email" ? "Result on its way by email" : "Result on its way by text",
-        { description: `We'll send ${recipientName || "your friend"} the ${vehicleSummary} comparison.` },
+        channel === "email" ? "On its way by email" : "On its way by text",
+        { description: `We'll send ${recipientName || "your friend"} "${contentTitle}".` },
       );
       setTimeout(() => { setOpen(false); reset(); }, 1400);
     } else {
@@ -92,14 +155,14 @@ const ShareResultDialog = ({ shareUrl, vehicleSummary, savingsSummary, trigger }
 
   return (
     <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) reset(); }}>
-      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
       <DialogContent className="sm:max-w-md rounded-3xl bg-white">
         <DialogHeader>
-          <DialogTitle className="font-charge text-2xl flex items-center gap-2">
-            <Send className="w-5 h-5 text-primary" /> Send this result
+          <DialogTitle className="font-display text-2xl flex items-center gap-2">
+            <Send className="w-5 h-5 text-primary" /> {dialogTitle}
           </DialogTitle>
           <DialogDescription>
-            Email or text the {vehicleSummary} comparison — it reopens exactly as you see it.
+            {dialogDescription ?? <>Email or text <span className="font-medium text-foreground">{contentTitle}</span> — straight to their inbox or phone.</>}
           </DialogDescription>
         </DialogHeader>
 
@@ -158,7 +221,7 @@ const ShareResultDialog = ({ shareUrl, vehicleSummary, savingsSummary, trigger }
           <Button type="submit" variant="hero" className="w-full rounded-xl" disabled={!valid || sending || done}>
             {done ? (<><Check className="w-4 h-4" /> Sent</>)
               : sending ? (<><Loader2 className="w-4 h-4 animate-spin" /> Sending…</>)
-              : (<><Send className="w-4 h-4" /> {channel === "email" ? "Email the result" : "Text the result"}</>)}
+              : (<><Send className="w-4 h-4" /> {channel === "email" ? "Email it" : "Text it"}</>)}
           </Button>
         </form>
       </DialogContent>
