@@ -5,7 +5,7 @@
 // safe no-op until feeds are added.
 
 import { useQuery } from "@tanstack/react-query";
-import { type EventItem } from "@/data/events";
+import { slugify, type EventItem } from "@/data/events";
 import evCharging from "@/assets/ev-charging.jpg";
 import evFamily from "@/assets/ev-family.jpg";
 import workforce from "@/assets/workforce.jpg";
@@ -39,8 +39,12 @@ const mapToEventItem = (e: FeedEvent, index: number): EventItem => {
       }).format(d)
     : "All day";
   const location = e.location?.trim() || "See event details";
+  const month = MONTH_ABBR[d.getUTCMonth()];
+  // Stable slug (title + date) so each feed event gets its own /events/{slug}
+  // page that resolves the same event on reload.
+  const slug = `${slugify(e.title)}-${month.toLowerCase()}-${d.getUTCDate()}-${d.getUTCFullYear()}`;
   return {
-    month: MONTH_ABBR[d.getUTCMonth()],
+    month,
     day: String(d.getUTCDate()),
     year: d.getUTCFullYear(),
     title: e.title,
@@ -50,6 +54,7 @@ const mapToEventItem = (e: FeedEvent, index: number): EventItem => {
     time,
     description: (e.description ?? "").slice(0, 1200) || "EV event in the U.S. — see the organizer's page for full details.",
     image: IMAGE_POOL[index % IMAGE_POOL.length],
+    slug,
     registerUrl: e.url,
     external: true,
     source: e.source,

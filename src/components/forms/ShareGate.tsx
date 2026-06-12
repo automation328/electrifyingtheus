@@ -136,7 +136,7 @@ const ShareGate = ({
       // can paste it into a Story, DM, or bio, then open Instagram.
       try {
         await navigator.clipboard.writeText(absoluteUrl);
-        toast.success("Link copied", { description: "Paste it into your Instagram story, DM, or bio." });
+        toast.success("Link copied", { description: "Paste into your Story link sticker, bio, or DM." });
       } catch { /* clipboard blocked — still open Instagram */ }
       window.open("https://www.instagram.com/", "_blank", "noopener,noreferrer");
       return;

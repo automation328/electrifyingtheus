@@ -7,6 +7,7 @@ import Footer from "@/components/Footer";
 import ShareGate from "@/components/forms/ShareGate";
 import { gcalLink, eventDate, type EventItem } from "@/data/events";
 import { useEvents } from "@/hooks/use-content";
+import { useExternalEvents } from "@/hooks/use-external-events";
 
 const weekday = (e: EventItem) => {
   try { return eventDate(e).toLocaleDateString("en-US", { weekday: "long" }); }
@@ -24,11 +25,14 @@ const Shell = ({ children }: { children: React.ReactNode }) => (
 const EventDetail = () => {
   const { slug } = useParams<{ slug: string }>();
   const { events, loading } = useEvents();
-  const event = events.find((e) => e.slug === slug);
+  const { events: externalEvents, loading: extLoading } = useExternalEvents();
+  // ETU/Supabase events first, then the aggregated US-wide feed (external).
+  const event =
+    events.find((e) => e.slug === slug) ?? externalEvents.find((e) => e.slug === slug);
 
   if (!event) {
-    // Supabase events resolve async — show a loader before deciding "not found".
-    if (loading) {
+    // Supabase + feed events resolve async — show a loader before "not found".
+    if (loading || extLoading) {
       return (
         <Shell>
           <div className="flex items-center justify-center py-24 text-muted-foreground">
@@ -90,19 +94,8 @@ const EventDetail = () => {
 
             <p className="text-muted-foreground leading-relaxed mb-6 whitespace-pre-line">{event.description}</p>
 
-            {/* CTAs */}
+            {/* CTAs — Add to calendar, Share, then Register */}
             <div className="flex flex-wrap gap-3 mb-6">
-              {hasReg ? (
-                <a href={event.registerUrl} target="_blank" rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 gradient-primary text-primary-foreground font-semibold px-6 py-3 rounded-xl shadow-card hover:opacity-90 transition">
-                  <Ticket className="w-5 h-5" /> Register
-                </a>
-              ) : (
-                <Link to="/contact-us"
-                  className="inline-flex items-center gap-2 gradient-primary text-primary-foreground font-semibold px-6 py-3 rounded-xl shadow-card hover:opacity-90 transition">
-                  <Ticket className="w-5 h-5" /> Register
-                </Link>
-              )}
               <a href={gcalLink(event)} target="_blank" rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 bg-card border border-border text-foreground font-semibold px-6 py-3 rounded-xl hover:border-primary/40 hover:text-primary transition">
                 <CalendarPlus className="w-5 h-5" /> Add to calendar
@@ -119,6 +112,17 @@ const EventDetail = () => {
                 label="Share"
                 className="inline-flex items-center gap-2 bg-card border border-border text-foreground font-semibold px-6 py-3 rounded-xl hover:border-primary/40 hover:text-primary transition"
               />
+              {hasReg ? (
+                <a href={event.registerUrl} target="_blank" rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 gradient-primary text-primary-foreground font-semibold px-6 py-3 rounded-xl shadow-card hover:opacity-90 transition">
+                  <Ticket className="w-5 h-5" /> Register
+                </a>
+              ) : (
+                <Link to="/contact-us"
+                  className="inline-flex items-center gap-2 gradient-primary text-primary-foreground font-semibold px-6 py-3 rounded-xl shadow-card hover:opacity-90 transition">
+                  <Ticket className="w-5 h-5" /> Register
+                </Link>
+              )}
             </div>
 
             {event.external && event.source && (

@@ -45,6 +45,17 @@ export const isUpcoming = (e: EventItem): boolean => {
 /** Sort comparator: soonest first. */
 export const byDateAsc = (a: EventItem, b: EventItem) => eventDate(a).getTime() - eventDate(b).getTime();
 
+/** URL-safe slug from arbitrary text (≤60 chars). */
+export const slugify = (s: string): string =>
+  s.toLowerCase()
+    .normalize("NFKD")
+    .replace(/[^a-z0-9\s-]/g, "")
+    .trim()
+    .replace(/[\s_-]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 60)
+    .replace(/-+$/g, "");
+
 export const EVENTS: EventItem[] = [
   {
     month: "JUN", day: "25", year: 2026,
