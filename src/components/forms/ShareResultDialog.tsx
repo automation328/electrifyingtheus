@@ -138,7 +138,11 @@ const ShareResultDialog = ({
     }
 
     setSending(false);
-    if (leadOk || emailOk) {
+    // Email channel only counts as sent if the server actually accepted the
+    // email (a CRM-capture success is NOT delivery). When there's no email to
+    // send (sms, or no emailContent), fall back to the lead-capture result.
+    const ok = channel === "email" && emailContent ? emailOk : leadOk;
+    if (ok) {
       setDone(true);
       toast.success(
         channel === "email" ? "On its way by email" : "On its way by text",

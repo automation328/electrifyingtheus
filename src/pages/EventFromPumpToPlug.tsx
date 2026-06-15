@@ -6,6 +6,7 @@ import {
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ShareGate from "@/components/forms/ShareGate";
+import EventActionGate from "@/components/forms/EventActionGate";
 import { EVENTS, gcalLink } from "@/data/events";
 import flyer from "@/assets/event-pump-to-plug.jpg";
 
@@ -61,12 +62,18 @@ const EventFromPumpToPlug = () => {
 
               <p className="text-muted-foreground leading-relaxed mb-6">{event.description}</p>
 
-              {/* CTAs — Add to calendar, Share, then Register */}
+              {/* CTAs — Add to calendar, Share, then Register. Each captures the
+                  visitor's first name + email before proceeding. */}
               <div className="flex flex-wrap gap-3 mb-6">
-                <a href={gcalLink(event)} target="_blank" rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 bg-card border border-border text-foreground font-semibold px-6 py-3 rounded-xl hover:border-primary/40 hover:text-primary transition">
-                  <CalendarPlus className="w-5 h-5" /> Add to calendar
-                </a>
+                <EventActionGate
+                  href={gcalLink(event)}
+                  formType="event-calendar"
+                  title={event.title}
+                  summary={`${event.location} · ${event.month} ${event.day}, ${event.year}`}
+                  label="Add to calendar"
+                  icon={<CalendarPlus className="w-5 h-5" />}
+                  className="inline-flex items-center gap-2 bg-card border border-border text-foreground font-semibold px-6 py-3 rounded-xl hover:border-primary/40 hover:text-primary transition"
+                />
                 <ShareGate
                   url={event.slug ? `/events/${event.slug}` : "/events"}
                   title={event.title}
@@ -79,10 +86,15 @@ const EventFromPumpToPlug = () => {
                   label="Share"
                   className="inline-flex items-center gap-2 bg-card border border-border text-foreground font-semibold px-6 py-3 rounded-xl hover:border-primary/40 hover:text-primary transition"
                 />
-                <a href={registerUrl} target="_blank" rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 gradient-primary text-primary-foreground font-semibold px-6 py-3 rounded-xl shadow-card hover:opacity-90 transition">
-                  <Ticket className="w-5 h-5" /> Register
-                </a>
+                <EventActionGate
+                  href={registerUrl}
+                  formType="event-register"
+                  title={event.title}
+                  summary={`${event.location} · ${event.month} ${event.day}, ${event.year}`}
+                  label="Register"
+                  icon={<Ticket className="w-5 h-5" />}
+                  className="inline-flex items-center gap-2 gradient-primary text-primary-foreground font-semibold px-6 py-3 rounded-xl shadow-card hover:opacity-90 transition"
+                />
               </div>
 
               <p className="text-xs text-muted-foreground">
@@ -116,10 +128,15 @@ const EventFromPumpToPlug = () => {
             <p className="text-primary-foreground/90 mb-6 max-w-xl mx-auto">
               Free to attend · {event.time}. Register now and we'll send you the link.
             </p>
-            <a href={registerUrl} target="_blank" rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 bg-primary-foreground text-primary font-bold px-7 py-3.5 rounded-2xl hover:opacity-90 transition">
-              <Ticket className="w-5 h-5" /> Register at bit.ly/SaveWithEVs
-            </a>
+            <EventActionGate
+              href={registerUrl}
+              formType="event-register"
+              title={event.title}
+              summary={`${event.location} · ${event.month} ${event.day}, ${event.year}`}
+              label="Register at bit.ly/SaveWithEVs"
+              icon={<Ticket className="w-5 h-5" />}
+              className="inline-flex items-center gap-2 bg-primary-foreground text-primary font-bold px-7 py-3.5 rounded-2xl hover:opacity-90 transition"
+            />
           </div>
         </div>
       </main>

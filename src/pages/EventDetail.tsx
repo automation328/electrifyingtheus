@@ -5,6 +5,7 @@ import {
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ShareGate from "@/components/forms/ShareGate";
+import EventActionGate from "@/components/forms/EventActionGate";
 import { gcalLink, eventDate, type EventItem } from "@/data/events";
 import { useEvents } from "@/hooks/use-content";
 import { useExternalEvents } from "@/hooks/use-external-events";
@@ -94,12 +95,18 @@ const EventDetail = () => {
 
             <p className="text-muted-foreground leading-relaxed mb-6 whitespace-pre-line">{event.description}</p>
 
-            {/* CTAs — Add to calendar, Share, then Register */}
+            {/* CTAs — Add to calendar, Share, then Register. Each captures the
+                visitor's first name + email before proceeding. */}
             <div className="flex flex-wrap gap-3 mb-6">
-              <a href={gcalLink(event)} target="_blank" rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 bg-card border border-border text-foreground font-semibold px-6 py-3 rounded-xl hover:border-primary/40 hover:text-primary transition">
-                <CalendarPlus className="w-5 h-5" /> Add to calendar
-              </a>
+              <EventActionGate
+                href={gcalLink(event)}
+                formType="event-calendar"
+                title={event.title}
+                summary={`${event.location} · ${event.month} ${event.day}, ${event.year}`}
+                label="Add to calendar"
+                icon={<CalendarPlus className="w-5 h-5" />}
+                className="inline-flex items-center gap-2 bg-card border border-border text-foreground font-semibold px-6 py-3 rounded-xl hover:border-primary/40 hover:text-primary transition"
+              />
               <ShareGate
                 url={`/events/${event.slug}`}
                 title={event.title}
@@ -113,10 +120,15 @@ const EventDetail = () => {
                 className="inline-flex items-center gap-2 bg-card border border-border text-foreground font-semibold px-6 py-3 rounded-xl hover:border-primary/40 hover:text-primary transition"
               />
               {hasReg ? (
-                <a href={event.registerUrl} target="_blank" rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 gradient-primary text-primary-foreground font-semibold px-6 py-3 rounded-xl shadow-card hover:opacity-90 transition">
-                  <Ticket className="w-5 h-5" /> Register
-                </a>
+                <EventActionGate
+                  href={event.registerUrl!}
+                  formType="event-register"
+                  title={event.title}
+                  summary={`${event.location} · ${event.month} ${event.day}, ${event.year}`}
+                  label="Register"
+                  icon={<Ticket className="w-5 h-5" />}
+                  className="inline-flex items-center gap-2 gradient-primary text-primary-foreground font-semibold px-6 py-3 rounded-xl shadow-card hover:opacity-90 transition"
+                />
               ) : (
                 <Link to="/contact-us"
                   className="inline-flex items-center gap-2 gradient-primary text-primary-foreground font-semibold px-6 py-3 rounded-xl shadow-card hover:opacity-90 transition">
@@ -138,10 +150,15 @@ const EventDetail = () => {
             {event.time} · {event.location}. Register and we'll make sure you have the details.
           </p>
           {hasReg ? (
-            <a href={event.registerUrl} target="_blank" rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 bg-primary-foreground text-primary font-bold px-7 py-3.5 rounded-2xl hover:opacity-90 transition">
-              <Ticket className="w-5 h-5" /> Register now
-            </a>
+            <EventActionGate
+              href={event.registerUrl!}
+              formType="event-register"
+              title={event.title}
+              summary={`${event.location} · ${event.month} ${event.day}, ${event.year}`}
+              label="Register now"
+              icon={<Ticket className="w-5 h-5" />}
+              className="inline-flex items-center gap-2 bg-primary-foreground text-primary font-bold px-7 py-3.5 rounded-2xl hover:opacity-90 transition"
+            />
           ) : (
             <Link to="/contact-us"
               className="inline-flex items-center gap-2 bg-primary-foreground text-primary font-bold px-7 py-3.5 rounded-2xl hover:opacity-90 transition">

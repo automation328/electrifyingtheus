@@ -32,6 +32,8 @@ const FORM_TAGS: Record<string, string[]> = {
   "article-share":   ["website-lead", "content-share", "article-share", "source:article-share"],
   "incentive-share": ["website-lead", "content-share", "incentive-share", "source:incentive-share"],
   "event-share":     ["website-lead", "content-share", "event-share", "source:event-share"],
+  "event-register":  ["website-lead", "event-register", "source:event-register"],
+  "event-calendar":  ["website-lead", "event-calendar", "source:event-calendar"],
   "job-share":       ["website-lead", "content-share", "job-share", "source:job-share"],
 };
 
@@ -51,6 +53,8 @@ const SOURCE_LABEL: Record<string, string> = {
   "article-share": "Blog / News share",
   "incentive-share": "Incentive share",
   "event-share": "Event share (email)",
+  "event-register": "Event Register click",
+  "event-calendar": "Event Add-to-calendar click",
   "job-share": "Job share (email)",
 };
 

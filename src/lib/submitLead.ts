@@ -23,6 +23,8 @@ export type LeadFormType =
   | "article-share"
   | "incentive-share"
   | "event-share"
+  | "event-register"
+  | "event-calendar"
   | "job-share";
 
 export async function submitLead(
