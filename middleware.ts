@@ -81,9 +81,75 @@ function calculatorMeta(url: URL, origin: string): Meta {
   };
 }
 
+// Self-contained password-gate page (no external assets — static assets are
+// public, so the gate must stand alone). Posts to /api/gate-login, which sets
+// the cookie this middleware checks, logs the IP, and Slack-notifies.
+function gateHtml(): string {
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Electrifying the US — Private preview</title>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100vh;display:grid;place-items:center;font-family:Segoe UI,system-ui,Arial,sans-serif;
+       background:linear-gradient(135deg,#0b5fd4,#1f9650);color:#fff;padding:24px}
+  .card{width:100%;max-width:380px;background:rgba(255,255,255,.10);backdrop-filter:blur(10px);
+        border:1px solid rgba(255,255,255,.22);border-radius:22px;padding:32px 28px;box-shadow:0 18px 50px rgba(0,0,0,.25)}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:19px;margin-bottom:18px}
+  .bolt{width:38px;height:38px;border-radius:11px;background:#fff;display:grid;place-items:center;color:#0b5fd4;font-size:20px}
+  h1{font-size:20px;margin:0 0 6px}
+  p{margin:0 0 20px;font-size:13px;color:rgba(255,255,255,.82)}
+  input{width:100%;padding:13px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.3);
+        background:rgba(255,255,255,.92);color:#16202c;font-size:15px;outline:none}
+  input:focus{border-color:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.25)}
+  button{width:100%;margin-top:12px;padding:13px;border:0;border-radius:12px;background:#fff;color:#0b5fd4;
+         font-weight:800;font-size:15px;cursor:pointer}
+  button:disabled{opacity:.6;cursor:default}
+  .err{min-height:18px;margin-top:10px;font-size:13px;font-weight:600;color:#ffd7d7}
+</style></head>
+<body>
+  <form class="card" id="f" autocomplete="off">
+    <div class="brand"><span class="bolt">&#9889;</span> Electrifying the US</div>
+    <h1>Private preview</h1>
+    <p>This site is password protected. Enter the password to continue.</p>
+    <input id="p" type="password" placeholder="Password" autofocus aria-label="Password" />
+    <button id="b" type="submit">Enter</button>
+    <div class="err" id="e"></div>
+  </form>
+  <script>
+    var f=document.getElementById('f'),p=document.getElementById('p'),b=document.getElementById('b'),e=document.getElementById('e');
+    f.addEventListener('submit',async function(ev){
+      ev.preventDefault();e.textContent='';b.disabled=true;b.textContent='Checking…';
+      try{
+        var r=await fetch('/api/gate-login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:p.value})});
+        if(r.ok){location.reload();return;}
+        e.textContent='Incorrect password. Try again.';
+      }catch(_){e.textContent='Something went wrong. Try again.';}
+      b.disabled=false;b.textContent='Enter';p.value='';p.focus();
+    });
+  </script>
+</body></html>`;
+}
+
 export default function middleware(request: Request) {
   const ua = request.headers.get("user-agent") || "";
-  if (!CRAWLER.test(ua)) return next();
+
+  // Password gate — humans (non-crawlers) must carry the gate cookie. Crawlers
+  // fall through to the OG logic below so social/link previews still render.
+  if (!CRAWLER.test(ua)) {
+    const token = process.env.GATE_TOKEN;
+    if (token) {
+      const cookie = request.headers.get("cookie") || "";
+      const ok = cookie.split(/; */).some((c) => c === `etu_gate=${token}`);
+      if (!ok) {
+        return new Response(gateHtml(), {
+          status: 401,
+          headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" },
+        });
+      }
+    }
+    return next();
+  }
 
   const url = new URL(request.url);
   const origin = url.origin;
