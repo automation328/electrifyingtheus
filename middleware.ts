@@ -116,6 +116,10 @@ function gateHtml(): string {
     <input id="p" type="password" placeholder="Password" autocomplete="current-password" aria-label="Password" />
     <button id="b" type="submit">Sign in</button>
     <div class="err" id="e"></div>
+    <p style="margin:16px 0 0;font-size:11px;line-height:1.55;color:rgba(255,255,255,.72)">
+      Confidential pre-launch preview. Your login is personal to you — do not share it,
+      and do not share any information from this site before launch. Sign-ins are logged.
+    </p>
   </form>
   <script>
     var f=document.getElementById('f'),m=document.getElementById('m'),p=document.getElementById('p'),b=document.getElementById('b'),e=document.getElementById('e');

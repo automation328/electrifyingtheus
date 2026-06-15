@@ -457,6 +457,745 @@ export const vehicles: VehicleData[] = [
     depreciationRate: 0.14, category: "Truck",
     bodyStyle: "truck", sizeClass: 4, seats: 5, drivetrain: "4WD",
   },
+
+  // ───────── Expanded brand coverage (EVs) ─────────
+  // Volvo
+  {
+    id: "volvo-ex30", name: "Volvo EX30", type: "ev", msrp: 44900,
+    mpge: 104, kwhPer100mi: 32, maintenanceCostPerMile: 0.064, insuranceAnnual: 1950,
+    depreciationRate: 0.19, category: "SUV",
+    bodyStyle: "suv-compact", sizeClass: 1, seats: 5, drivetrain: "RWD", rangeMi: 253, luxury: true,
+  },
+  {
+    id: "volvo-ex40", name: "Volvo EX40", type: "ev", msrp: 53600,
+    mpge: 92, kwhPer100mi: 37, maintenanceCostPerMile: 0.068, insuranceAnnual: 2050,
+    depreciationRate: 0.2, category: "SUV",
+    bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "AWD", rangeMi: 254, luxury: true,
+  },
+  {
+    id: "volvo-ex90", name: "Volvo EX90", type: "ev", msrp: 79995,
+    mpge: 81, kwhPer100mi: 42, maintenanceCostPerMile: 0.075, insuranceAnnual: 2500,
+    depreciationRate: 0.21, category: "SUV",
+    bodyStyle: "suv-large", sizeClass: 4, seats: 7, drivetrain: "AWD", rangeMi: 310, luxury: true,
+  },
+  {
+    id: "volvo-c40", name: "Volvo C40 Recharge", type: "ev", msrp: 53900,
+    mpge: 87, kwhPer100mi: 39, maintenanceCostPerMile: 0.068, insuranceAnnual: 2050,
+    depreciationRate: 0.2, category: "SUV",
+    bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "AWD", rangeMi: 257, luxury: true,
+  },
+  // Subaru
+  {
+    id: "subaru-solterra", name: "Subaru Solterra", type: "ev", msrp: 38495,
+    mpge: 104, kwhPer100mi: 32, maintenanceCostPerMile: 0.06, insuranceAnnual: 1850,
+    depreciationRate: 0.19, category: "SUV",
+    bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "AWD", rangeMi: 227,
+  },
+  // Mini
+  {
+    id: "mini-cooper-se", name: "Mini Cooper SE", type: "ev", msrp: 31895,
+    mpge: 100, kwhPer100mi: 34, maintenanceCostPerMile: 0.062, insuranceAnnual: 1780,
+    depreciationRate: 0.2, category: "Sedan",
+    bodyStyle: "hatchback", sizeClass: 1, seats: 4, drivetrain: "FWD", rangeMi: 200,
+  },
+  {
+    id: "mini-countryman-electric", name: "Mini Countryman Electric", type: "ev", msrp: 45200,
+    mpge: 92, kwhPer100mi: 37, maintenanceCostPerMile: 0.065, insuranceAnnual: 1950,
+    depreciationRate: 0.2, category: "SUV",
+    bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "AWD", rangeMi: 212,
+  },
+  // Jaguar
+  {
+    id: "jaguar-i-pace", name: "Jaguar I-PACE", type: "ev", msrp: 72475,
+    mpge: 76, kwhPer100mi: 44, maintenanceCostPerMile: 0.075, insuranceAnnual: 2450,
+    depreciationRate: 0.23, category: "SUV",
+    bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "AWD", rangeMi: 246, luxury: true,
+  },
+  // Porsche
+  {
+    id: "porsche-taycan", name: "Porsche Taycan", type: "ev", msrp: 99400,
+    mpge: 84, kwhPer100mi: 40, maintenanceCostPerMile: 0.078, insuranceAnnual: 2800,
+    depreciationRate: 0.22, category: "Sedan",
+    bodyStyle: "sedan", sizeClass: 3, seats: 4, drivetrain: "RWD", rangeMi: 246, luxury: true, performance: true,
+  },
+  {
+    id: "porsche-macan-electric", name: "Porsche Macan Electric", type: "ev", msrp: 75300,
+    mpge: 87, kwhPer100mi: 39, maintenanceCostPerMile: 0.076, insuranceAnnual: 2650,
+    depreciationRate: 0.21, category: "SUV",
+    bodyStyle: "suv-compact", sizeClass: 3, seats: 5, drivetrain: "AWD", rangeMi: 308, luxury: true, performance: true,
+  },
+  // Lexus
+  {
+    id: "lexus-rz-450e", name: "Lexus RZ 450e", type: "ev", msrp: 55000,
+    mpge: 95, kwhPer100mi: 36, maintenanceCostPerMile: 0.066, insuranceAnnual: 2150,
+    depreciationRate: 0.19, category: "SUV",
+    bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "AWD", rangeMi: 220, luxury: true,
+  },
+  // VinFast
+  {
+    id: "vinfast-vf8", name: "VinFast VF 8", type: "ev", msrp: 41000,
+    mpge: 86, kwhPer100mi: 39, maintenanceCostPerMile: 0.064, insuranceAnnual: 1950,
+    depreciationRate: 0.23, category: "SUV",
+    bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "AWD", rangeMi: 264,
+  },
+  {
+    id: "vinfast-vf9", name: "VinFast VF 9", type: "ev", msrp: 57000,
+    mpge: 74, kwhPer100mi: 46, maintenanceCostPerMile: 0.07, insuranceAnnual: 2200,
+    depreciationRate: 0.24, category: "SUV",
+    bodyStyle: "suv-large", sizeClass: 4, seats: 7, drivetrain: "AWD", rangeMi: 330,
+  },
+  // Jeep
+  {
+    id: "jeep-wagoneer-s", name: "Jeep Wagoneer S", type: "ev", msrp: 71995,
+    mpge: 78, kwhPer100mi: 43, maintenanceCostPerMile: 0.07, insuranceAnnual: 2350,
+    depreciationRate: 0.2, category: "SUV",
+    bodyStyle: "suv-mid", sizeClass: 3, seats: 5, drivetrain: "AWD", rangeMi: 303,
+  },
+  // Dodge
+  {
+    id: "dodge-charger-daytona-ev", name: "Dodge Charger Daytona EV", type: "ev", msrp: 59595,
+    mpge: 74, kwhPer100mi: 46, maintenanceCostPerMile: 0.072, insuranceAnnual: 2450,
+    depreciationRate: 0.21, category: "Coupe",
+    bodyStyle: "coupe", sizeClass: 3, seats: 5, drivetrain: "AWD", rangeMi: 308, performance: true,
+  },
+  // Fiat
+  {
+    id: "fiat-500e", name: "Fiat 500e", type: "ev", msrp: 32500,
+    mpge: 102, kwhPer100mi: 33, maintenanceCostPerMile: 0.061, insuranceAnnual: 1700,
+    depreciationRate: 0.21, category: "Sedan",
+    bodyStyle: "hatchback", sizeClass: 1, seats: 4, drivetrain: "FWD", rangeMi: 149,
+  },
+  // New EV models for existing makes
+  {
+    id: "chevy-blazer-ev", name: "Chevrolet Blazer EV", type: "ev", msrp: 44600,
+    mpge: 104, kwhPer100mi: 32, maintenanceCostPerMile: 0.062, insuranceAnnual: 1950,
+    depreciationRate: 0.19, category: "SUV",
+    bodyStyle: "suv-mid", sizeClass: 3, seats: 5, drivetrain: "RWD", rangeMi: 320,
+  },
+  {
+    id: "bmw-i7", name: "BMW i7 xDrive60", type: "ev", msrp: 105700,
+    mpge: 87, kwhPer100mi: 39, maintenanceCostPerMile: 0.082, insuranceAnnual: 2850,
+    depreciationRate: 0.23, category: "Sedan",
+    bodyStyle: "sedan", sizeClass: 4, seats: 5, drivetrain: "AWD", rangeMi: 308, luxury: true,
+  },
+  {
+    id: "mercedes-eqb", name: "Mercedes-Benz EQB", type: "ev", msrp: 54100,
+    mpge: 98, kwhPer100mi: 35, maintenanceCostPerMile: 0.072, insuranceAnnual: 2200,
+    depreciationRate: 0.21, category: "SUV",
+    bodyStyle: "suv-compact", sizeClass: 2, seats: 7, drivetrain: "AWD", rangeMi: 227, luxury: true,
+  },
+  {
+    id: "hyundai-ioniq-9", name: "Hyundai IONIQ 9", type: "ev", msrp: 58955,
+    mpge: 86, kwhPer100mi: 39, maintenanceCostPerMile: 0.06, insuranceAnnual: 2150,
+    depreciationRate: 0.18, category: "SUV",
+    bodyStyle: "suv-large", sizeClass: 4, seats: 7, drivetrain: "AWD", rangeMi: 335,
+  },
+  {
+    id: "lucid-gravity", name: "Lucid Gravity", type: "ev", msrp: 94900,
+    mpge: 90, kwhPer100mi: 37, maintenanceCostPerMile: 0.076, insuranceAnnual: 2750,
+    depreciationRate: 0.23, category: "SUV",
+    bodyStyle: "suv-large", sizeClass: 4, seats: 7, drivetrain: "AWD", rangeMi: 450, luxury: true,
+  },
+  {
+    id: "cadillac-vistiq", name: "Cadillac VISTIQ", type: "ev", msrp: 78790,
+    mpge: 79, kwhPer100mi: 43, maintenanceCostPerMile: 0.072, insuranceAnnual: 2500,
+    depreciationRate: 0.21, category: "SUV",
+    bodyStyle: "suv-large", sizeClass: 4, seats: 7, drivetrain: "AWD", rangeMi: 305, luxury: true,
+  },
+
+  // ───────── Expanded brand coverage (gas) ─────────
+  // Volkswagen
+  {
+    id: "vw-jetta", name: "Volkswagen Jetta", type: "gas", msrp: 22495,
+    mpg: 35, maintenanceCostPerMile: 0.084, insuranceAnnual: 1520,
+    depreciationRate: 0.13, category: "Sedan",
+    bodyStyle: "sedan", sizeClass: 2, seats: 5, drivetrain: "FWD",
+  },
+  {
+    id: "vw-tiguan", name: "Volkswagen Tiguan", type: "gas", msrp: 29495,
+    mpg: 26, maintenanceCostPerMile: 0.09, insuranceAnnual: 1680,
+    depreciationRate: 0.15, category: "SUV",
+    bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "AWD",
+  },
+  {
+    id: "vw-atlas", name: "Volkswagen Atlas", type: "gas", msrp: 38200,
+    mpg: 23, maintenanceCostPerMile: 0.098, insuranceAnnual: 1820,
+    depreciationRate: 0.15, category: "SUV",
+    bodyStyle: "suv-large", sizeClass: 4, seats: 7, drivetrain: "AWD",
+  },
+  // Kia
+  {
+    id: "kia-k4", name: "Kia K4", type: "gas", msrp: 21900,
+    mpg: 36, maintenanceCostPerMile: 0.082, insuranceAnnual: 1500,
+    depreciationRate: 0.13, category: "Sedan",
+    bodyStyle: "sedan", sizeClass: 2, seats: 5, drivetrain: "FWD",
+  },
+  {
+    id: "kia-sportage", name: "Kia Sportage", type: "gas", msrp: 28115,
+    mpg: 28, maintenanceCostPerMile: 0.086, insuranceAnnual: 1680,
+    depreciationRate: 0.14, category: "SUV",
+    bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "AWD",
+  },
+  {
+    id: "kia-telluride", name: "Kia Telluride", type: "gas", msrp: 38390,
+    mpg: 23, maintenanceCostPerMile: 0.096, insuranceAnnual: 1850,
+    depreciationRate: 0.13, category: "SUV",
+    bodyStyle: "suv-large", sizeClass: 4, seats: 8, drivetrain: "AWD",
+  },
+  // Jeep
+  {
+    id: "jeep-grand-cherokee", name: "Jeep Grand Cherokee", type: "gas", msrp: 38095,
+    mpg: 22, maintenanceCostPerMile: 0.1, insuranceAnnual: 1850,
+    depreciationRate: 0.15, category: "SUV",
+    bodyStyle: "suv-mid", sizeClass: 3, seats: 5, drivetrain: "4WD",
+  },
+  {
+    id: "jeep-wrangler", name: "Jeep Wrangler", type: "gas", msrp: 33695,
+    mpg: 22, maintenanceCostPerMile: 0.105, insuranceAnnual: 1820,
+    depreciationRate: 0.12, category: "SUV",
+    bodyStyle: "suv-mid", sizeClass: 3, seats: 5, drivetrain: "4WD",
+  },
+  {
+    id: "jeep-compass", name: "Jeep Compass", type: "gas", msrp: 27495,
+    mpg: 27, maintenanceCostPerMile: 0.092, insuranceAnnual: 1650,
+    depreciationRate: 0.16, category: "SUV",
+    bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "AWD",
+  },
+  // Ram
+  {
+    id: "ram-1500", name: "Ram 1500", type: "gas", msrp: 40275,
+    mpg: 22, maintenanceCostPerMile: 0.102, insuranceAnnual: 1920,
+    depreciationRate: 0.15, category: "Truck",
+    bodyStyle: "truck", sizeClass: 4, seats: 5, drivetrain: "4WD",
+  },
+  // GMC
+  {
+    id: "gmc-sierra-1500", name: "GMC Sierra 1500", type: "gas", msrp: 39500,
+    mpg: 21, maintenanceCostPerMile: 0.102, insuranceAnnual: 1940,
+    depreciationRate: 0.15, category: "Truck",
+    bodyStyle: "truck", sizeClass: 4, seats: 5, drivetrain: "4WD",
+  },
+  {
+    id: "gmc-yukon", name: "GMC Yukon", type: "gas", msrp: 60200,
+    mpg: 18, maintenanceCostPerMile: 0.11, insuranceAnnual: 2100,
+    depreciationRate: 0.16, category: "SUV",
+    bodyStyle: "suv-large", sizeClass: 4, seats: 8, drivetrain: "4WD",
+  },
+  {
+    id: "gmc-acadia", name: "GMC Acadia", type: "gas", msrp: 43395,
+    mpg: 23, maintenanceCostPerMile: 0.096, insuranceAnnual: 1850,
+    depreciationRate: 0.15, category: "SUV",
+    bodyStyle: "suv-large", sizeClass: 4, seats: 7, drivetrain: "AWD",
+  },
+  // Dodge
+  {
+    id: "dodge-durango", name: "Dodge Durango", type: "gas", msrp: 41995,
+    mpg: 21, maintenanceCostPerMile: 0.102, insuranceAnnual: 1900,
+    depreciationRate: 0.15, category: "SUV",
+    bodyStyle: "suv-large", sizeClass: 4, seats: 7, drivetrain: "AWD",
+  },
+  {
+    id: "dodge-hornet", name: "Dodge Hornet", type: "gas", msrp: 31400,
+    mpg: 27, maintenanceCostPerMile: 0.09, insuranceAnnual: 1720,
+    depreciationRate: 0.16, category: "SUV",
+    bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "AWD",
+  },
+  // Chrysler
+  {
+    id: "chrysler-pacifica", name: "Chrysler Pacifica", type: "gas", msrp: 40425,
+    mpg: 22, maintenanceCostPerMile: 0.098, insuranceAnnual: 1820,
+    depreciationRate: 0.15, category: "Minivan",
+    bodyStyle: "minivan", sizeClass: 4, seats: 8, drivetrain: "FWD",
+  },
+  // Lexus
+  {
+    id: "lexus-es-350", name: "Lexus ES 350", type: "gas", msrp: 43190,
+    mpg: 26, maintenanceCostPerMile: 0.095, insuranceAnnual: 1900,
+    depreciationRate: 0.14, category: "Sedan",
+    bodyStyle: "sedan", sizeClass: 3, seats: 5, drivetrain: "FWD", luxury: true,
+  },
+  {
+    id: "lexus-rx-350", name: "Lexus RX 350", type: "gas", msrp: 49050,
+    mpg: 24, maintenanceCostPerMile: 0.098, insuranceAnnual: 1980,
+    depreciationRate: 0.14, category: "SUV",
+    bodyStyle: "suv-mid", sizeClass: 3, seats: 5, drivetrain: "AWD", luxury: true,
+  },
+  {
+    id: "lexus-nx-350", name: "Lexus NX 350", type: "gas", msrp: 43385,
+    mpg: 25, maintenanceCostPerMile: 0.094, insuranceAnnual: 1900,
+    depreciationRate: 0.14, category: "SUV",
+    bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "AWD", luxury: true,
+  },
+  // Mercedes-Benz
+  {
+    id: "mercedes-c-300", name: "Mercedes-Benz C 300", type: "gas", msrp: 47150,
+    mpg: 28, maintenanceCostPerMile: 0.12, insuranceAnnual: 2150,
+    depreciationRate: 0.17, category: "Sedan",
+    bodyStyle: "sedan", sizeClass: 3, seats: 5, drivetrain: "RWD", luxury: true,
+  },
+  {
+    id: "mercedes-glc-300", name: "Mercedes-Benz GLC 300", type: "gas", msrp: 49250,
+    mpg: 25, maintenanceCostPerMile: 0.12, insuranceAnnual: 2200,
+    depreciationRate: 0.17, category: "SUV",
+    bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "AWD", luxury: true,
+  },
+  // Audi
+  {
+    id: "audi-a4", name: "Audi A4", type: "gas", msrp: 43500,
+    mpg: 28, maintenanceCostPerMile: 0.115, insuranceAnnual: 2050,
+    depreciationRate: 0.17, category: "Sedan",
+    bodyStyle: "sedan", sizeClass: 2, seats: 5, drivetrain: "AWD", luxury: true,
+  },
+  {
+    id: "audi-q5", name: "Audi Q5", type: "gas", msrp: 46300,
+    mpg: 25, maintenanceCostPerMile: 0.115, insuranceAnnual: 2100,
+    depreciationRate: 0.17, category: "SUV",
+    bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "AWD", luxury: true,
+  },
+  // Acura
+  {
+    id: "acura-integra", name: "Acura Integra", type: "gas", msrp: 33000,
+    mpg: 33, maintenanceCostPerMile: 0.09, insuranceAnnual: 1720,
+    depreciationRate: 0.14, category: "Sedan",
+    bodyStyle: "sedan", sizeClass: 2, seats: 5, drivetrain: "FWD", luxury: true,
+  },
+  {
+    id: "acura-mdx", name: "Acura MDX", type: "gas", msrp: 51200,
+    mpg: 22, maintenanceCostPerMile: 0.1, insuranceAnnual: 1980,
+    depreciationRate: 0.15, category: "SUV",
+    bodyStyle: "suv-large", sizeClass: 4, seats: 7, drivetrain: "AWD", luxury: true,
+  },
+  {
+    id: "acura-rdx", name: "Acura RDX", type: "gas", msrp: 45650,
+    mpg: 24, maintenanceCostPerMile: 0.098, insuranceAnnual: 1900,
+    depreciationRate: 0.15, category: "SUV",
+    bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "AWD", luxury: true,
+  },
+  // Infiniti
+  {
+    id: "infiniti-qx60", name: "Infiniti QX60", type: "gas", msrp: 50000,
+    mpg: 22, maintenanceCostPerMile: 0.1, insuranceAnnual: 1950,
+    depreciationRate: 0.16, category: "SUV",
+    bodyStyle: "suv-large", sizeClass: 4, seats: 7, drivetrain: "AWD", luxury: true,
+  },
+  {
+    id: "infiniti-q50", name: "Infiniti Q50", type: "gas", msrp: 43150,
+    mpg: 23, maintenanceCostPerMile: 0.1, insuranceAnnual: 1920,
+    depreciationRate: 0.17, category: "Sedan",
+    bodyStyle: "sedan", sizeClass: 3, seats: 5, drivetrain: "RWD", luxury: true,
+  },
+  // Cadillac
+  {
+    id: "cadillac-escalade", name: "Cadillac Escalade", type: "gas", msrp: 87595,
+    mpg: 16, maintenanceCostPerMile: 0.12, insuranceAnnual: 2400,
+    depreciationRate: 0.17, category: "SUV",
+    bodyStyle: "suv-large", sizeClass: 4, seats: 7, drivetrain: "4WD", luxury: true,
+  },
+  {
+    id: "cadillac-xt5", name: "Cadillac XT5", type: "gas", msrp: 46390,
+    mpg: 23, maintenanceCostPerMile: 0.105, insuranceAnnual: 1980,
+    depreciationRate: 0.16, category: "SUV",
+    bodyStyle: "suv-mid", sizeClass: 3, seats: 5, drivetrain: "AWD", luxury: true,
+  },
+  // Buick
+  {
+    id: "buick-encore-gx", name: "Buick Encore GX", type: "gas", msrp: 26895,
+    mpg: 29, maintenanceCostPerMile: 0.09, insuranceAnnual: 1620,
+    depreciationRate: 0.16, category: "SUV",
+    bodyStyle: "suv-compact", sizeClass: 1, seats: 5, drivetrain: "AWD", luxury: true,
+  },
+  {
+    id: "buick-enclave", name: "Buick Enclave", type: "gas", msrp: 46000,
+    mpg: 22, maintenanceCostPerMile: 0.098, insuranceAnnual: 1850,
+    depreciationRate: 0.16, category: "SUV",
+    bodyStyle: "suv-large", sizeClass: 4, seats: 7, drivetrain: "AWD", luxury: true,
+  },
+  // Volvo
+  {
+    id: "volvo-xc60", name: "Volvo XC60", type: "gas", msrp: 46850,
+    mpg: 25, maintenanceCostPerMile: 0.105, insuranceAnnual: 1980,
+    depreciationRate: 0.17, category: "SUV",
+    bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "AWD", luxury: true,
+  },
+  {
+    id: "volvo-xc90", name: "Volvo XC90", type: "gas", msrp: 58450,
+    mpg: 23, maintenanceCostPerMile: 0.11, insuranceAnnual: 2100,
+    depreciationRate: 0.17, category: "SUV",
+    bodyStyle: "suv-large", sizeClass: 4, seats: 7, drivetrain: "AWD", luxury: true,
+  },
+  // Genesis
+  {
+    id: "genesis-g70", name: "Genesis G70", type: "gas", msrp: 42100,
+    mpg: 25, maintenanceCostPerMile: 0.1, insuranceAnnual: 1920,
+    depreciationRate: 0.17, category: "Sedan",
+    bodyStyle: "sedan", sizeClass: 2, seats: 5, drivetrain: "AWD", luxury: true,
+  },
+  {
+    id: "genesis-gv80", name: "Genesis GV80", type: "gas", msrp: 58050,
+    mpg: 22, maintenanceCostPerMile: 0.105, insuranceAnnual: 2050,
+    depreciationRate: 0.17, category: "SUV",
+    bodyStyle: "suv-large", sizeClass: 4, seats: 5, drivetrain: "AWD", luxury: true,
+  },
+  // Lincoln
+  {
+    id: "lincoln-nautilus", name: "Lincoln Nautilus", type: "gas", msrp: 51810,
+    mpg: 23, maintenanceCostPerMile: 0.105, insuranceAnnual: 1980,
+    depreciationRate: 0.17, category: "SUV",
+    bodyStyle: "suv-mid", sizeClass: 3, seats: 5, drivetrain: "AWD", luxury: true,
+  },
+  {
+    id: "lincoln-navigator", name: "Lincoln Navigator", type: "gas", msrp: 84000,
+    mpg: 17, maintenanceCostPerMile: 0.12, insuranceAnnual: 2350,
+    depreciationRate: 0.17, category: "SUV",
+    bodyStyle: "suv-large", sizeClass: 4, seats: 7, drivetrain: "4WD", luxury: true,
+  },
+  // Mitsubishi
+  {
+    id: "mitsubishi-outlander", name: "Mitsubishi Outlander", type: "gas", msrp: 30245,
+    mpg: 28, maintenanceCostPerMile: 0.088, insuranceAnnual: 1650,
+    depreciationRate: 0.16, category: "SUV",
+    bodyStyle: "suv-compact", sizeClass: 2, seats: 7, drivetrain: "AWD",
+  },
+  // Porsche
+  {
+    id: "porsche-cayenne", name: "Porsche Cayenne", type: "gas", msrp: 79200,
+    mpg: 19, maintenanceCostPerMile: 0.13, insuranceAnnual: 2600,
+    depreciationRate: 0.18, category: "SUV",
+    bodyStyle: "suv-mid", sizeClass: 3, seats: 5, drivetrain: "AWD", luxury: true,
+  },
+  {
+    id: "porsche-911-carrera", name: "Porsche 911 Carrera", type: "gas", msrp: 122095,
+    mpg: 20, maintenanceCostPerMile: 0.14, insuranceAnnual: 2900,
+    depreciationRate: 0.16, category: "Coupe",
+    bodyStyle: "coupe", sizeClass: 2, seats: 4, drivetrain: "RWD", luxury: true, performance: true,
+  },
+  // Land Rover
+  {
+    id: "land-rover-defender", name: "Land Rover Defender", type: "gas", msrp: 56900,
+    mpg: 19, maintenanceCostPerMile: 0.13, insuranceAnnual: 2200,
+    depreciationRate: 0.18, category: "SUV",
+    bodyStyle: "suv-mid", sizeClass: 3, seats: 5, drivetrain: "4WD", luxury: true,
+  },
+  {
+    id: "land-rover-range-rover-sport", name: "Land Rover Range Rover Sport", type: "gas", msrp: 84350,
+    mpg: 19, maintenanceCostPerMile: 0.135, insuranceAnnual: 2500,
+    depreciationRate: 0.18, category: "SUV",
+    bodyStyle: "suv-large", sizeClass: 4, seats: 5, drivetrain: "4WD", luxury: true,
+  },
+  // Jaguar
+  {
+    id: "jaguar-f-pace", name: "Jaguar F-PACE", type: "gas", msrp: 55200,
+    mpg: 23, maintenanceCostPerMile: 0.125, insuranceAnnual: 2150,
+    depreciationRate: 0.18, category: "SUV",
+    bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "AWD", luxury: true,
+  },
+  // Mazda
+  {
+    id: "mazda-mazda3", name: "Mazda Mazda3", type: "gas", msrp: 24170,
+    mpg: 33, maintenanceCostPerMile: 0.084, insuranceAnnual: 1560,
+    depreciationRate: 0.13, category: "Sedan",
+    bodyStyle: "sedan", sizeClass: 2, seats: 5, drivetrain: "FWD",
+  },
+  {
+    id: "mazda-cx-50", name: "Mazda CX-50", type: "gas", msrp: 31000,
+    mpg: 28, maintenanceCostPerMile: 0.088, insuranceAnnual: 1700,
+    depreciationRate: 0.14, category: "SUV",
+    bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "AWD",
+  },
+  {
+    id: "mazda-cx-90", name: "Mazda CX-90", type: "gas", msrp: 39700,
+    mpg: 25, maintenanceCostPerMile: 0.092, insuranceAnnual: 1820,
+    depreciationRate: 0.15, category: "SUV",
+    bodyStyle: "suv-large", sizeClass: 4, seats: 7, drivetrain: "AWD",
+  },
+  // Subaru
+  {
+    id: "subaru-forester", name: "Subaru Forester", type: "gas", msrp: 29695,
+    mpg: 29, maintenanceCostPerMile: 0.088, insuranceAnnual: 1660,
+    depreciationRate: 0.13, category: "SUV",
+    bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "AWD",
+  },
+  {
+    id: "subaru-crosstrek", name: "Subaru Crosstrek", type: "gas", msrp: 26840,
+    mpg: 29, maintenanceCostPerMile: 0.086, insuranceAnnual: 1600,
+    depreciationRate: 0.13, category: "SUV",
+    bodyStyle: "suv-compact", sizeClass: 1, seats: 5, drivetrain: "AWD",
+  },
+  {
+    id: "subaru-impreza", name: "Subaru Impreza", type: "gas", msrp: 24220,
+    mpg: 31, maintenanceCostPerMile: 0.084, insuranceAnnual: 1560,
+    depreciationRate: 0.13, category: "Sedan",
+    bodyStyle: "hatchback", sizeClass: 2, seats: 5, drivetrain: "AWD",
+  },
+  // Hyundai
+  {
+    id: "hyundai-elantra", name: "Hyundai Elantra", type: "gas", msrp: 22125,
+    mpg: 36, maintenanceCostPerMile: 0.082, insuranceAnnual: 1520,
+    depreciationRate: 0.14, category: "Sedan",
+    bodyStyle: "sedan", sizeClass: 2, seats: 5, drivetrain: "FWD",
+  },
+  {
+    id: "hyundai-santa-fe", name: "Hyundai Santa Fe", type: "gas", msrp: 34300,
+    mpg: 25, maintenanceCostPerMile: 0.09, insuranceAnnual: 1750,
+    depreciationRate: 0.15, category: "SUV",
+    bodyStyle: "suv-mid", sizeClass: 3, seats: 7, drivetrain: "AWD",
+  },
+  {
+    id: "hyundai-palisade", name: "Hyundai Palisade", type: "gas", msrp: 37800,
+    mpg: 22, maintenanceCostPerMile: 0.094, insuranceAnnual: 1820,
+    depreciationRate: 0.14, category: "SUV",
+    bodyStyle: "suv-large", sizeClass: 4, seats: 8, drivetrain: "AWD",
+  },
+  // Toyota
+  {
+    id: "toyota-tundra", name: "Toyota Tundra", type: "gas", msrp: 40090,
+    mpg: 20, maintenanceCostPerMile: 0.098, insuranceAnnual: 1900,
+    depreciationRate: 0.13, category: "Truck",
+    bodyStyle: "truck", sizeClass: 4, seats: 5, drivetrain: "4WD",
+  },
+  {
+    id: "toyota-4runner", name: "Toyota 4Runner", type: "gas", msrp: 42220,
+    mpg: 20, maintenanceCostPerMile: 0.095, insuranceAnnual: 1820,
+    depreciationRate: 0.12, category: "SUV",
+    bodyStyle: "suv-mid", sizeClass: 3, seats: 5, drivetrain: "4WD",
+  },
+  {
+    id: "toyota-sienna", name: "Toyota Sienna", type: "gas", msrp: 39185,
+    mpg: 36, maintenanceCostPerMile: 0.09, insuranceAnnual: 1780,
+    depreciationRate: 0.13, category: "Minivan",
+    bodyStyle: "minivan", sizeClass: 4, seats: 8, drivetrain: "FWD",
+  },
+  {
+    id: "toyota-corolla-cross", name: "Toyota Corolla Cross", type: "gas", msrp: 24935,
+    mpg: 32, maintenanceCostPerMile: 0.084, insuranceAnnual: 1580,
+    depreciationRate: 0.13, category: "SUV",
+    bodyStyle: "suv-compact", sizeClass: 1, seats: 5, drivetrain: "AWD",
+  },
+  // Honda
+  {
+    id: "honda-pilot", name: "Honda Pilot", type: "gas", msrp: 40200,
+    mpg: 22, maintenanceCostPerMile: 0.096, insuranceAnnual: 1820,
+    depreciationRate: 0.13, category: "SUV",
+    bodyStyle: "suv-large", sizeClass: 4, seats: 8, drivetrain: "AWD",
+  },
+  {
+    id: "honda-hr-v", name: "Honda HR-V", type: "gas", msrp: 25400,
+    mpg: 28, maintenanceCostPerMile: 0.086, insuranceAnnual: 1620,
+    depreciationRate: 0.14, category: "SUV",
+    bodyStyle: "suv-compact", sizeClass: 1, seats: 5, drivetrain: "AWD",
+  },
+  {
+    id: "honda-ridgeline", name: "Honda Ridgeline", type: "gas", msrp: 40850,
+    mpg: 21, maintenanceCostPerMile: 0.095, insuranceAnnual: 1820,
+    depreciationRate: 0.13, category: "Truck",
+    bodyStyle: "truck", sizeClass: 3, seats: 5, drivetrain: "AWD",
+  },
+  // Ford
+  {
+    id: "ford-escape", name: "Ford Escape", type: "gas", msrp: 29495,
+    mpg: 28, maintenanceCostPerMile: 0.09, insuranceAnnual: 1680,
+    depreciationRate: 0.15, category: "SUV",
+    bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "AWD",
+  },
+  {
+    id: "ford-bronco", name: "Ford Bronco", type: "gas", msrp: 39130,
+    mpg: 20, maintenanceCostPerMile: 0.1, insuranceAnnual: 1850,
+    depreciationRate: 0.13, category: "SUV",
+    bodyStyle: "suv-mid", sizeClass: 3, seats: 5, drivetrain: "4WD",
+  },
+  {
+    id: "ford-maverick", name: "Ford Maverick", type: "gas", msrp: 28145,
+    mpg: 26, maintenanceCostPerMile: 0.09, insuranceAnnual: 1700,
+    depreciationRate: 0.13, category: "Truck",
+    bodyStyle: "truck", sizeClass: 2, seats: 5, drivetrain: "FWD",
+  },
+  // Nissan
+  {
+    id: "nissan-rogue", name: "Nissan Rogue", type: "gas", msrp: 28850,
+    mpg: 30, maintenanceCostPerMile: 0.088, insuranceAnnual: 1680,
+    depreciationRate: 0.16, category: "SUV",
+    bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "AWD",
+  },
+  {
+    id: "nissan-pathfinder", name: "Nissan Pathfinder", type: "gas", msrp: 36600,
+    mpg: 23, maintenanceCostPerMile: 0.096, insuranceAnnual: 1820,
+    depreciationRate: 0.16, category: "SUV",
+    bodyStyle: "suv-large", sizeClass: 4, seats: 7, drivetrain: "4WD",
+  },
+  {
+    id: "nissan-frontier", name: "Nissan Frontier", type: "gas", msrp: 31290,
+    mpg: 21, maintenanceCostPerMile: 0.095, insuranceAnnual: 1800,
+    depreciationRate: 0.14, category: "Truck",
+    bodyStyle: "truck", sizeClass: 3, seats: 5, drivetrain: "4WD",
+  },
+  // Chevrolet
+  {
+    id: "chevy-malibu", name: "Chevrolet Malibu", type: "gas", msrp: 26095,
+    mpg: 32, maintenanceCostPerMile: 0.086, insuranceAnnual: 1580,
+    depreciationRate: 0.16, category: "Sedan",
+    bodyStyle: "sedan", sizeClass: 3, seats: 5, drivetrain: "FWD",
+  },
+  {
+    id: "chevy-traverse", name: "Chevrolet Traverse", type: "gas", msrp: 39995,
+    mpg: 22, maintenanceCostPerMile: 0.096, insuranceAnnual: 1820,
+    depreciationRate: 0.16, category: "SUV",
+    bodyStyle: "suv-large", sizeClass: 4, seats: 8, drivetrain: "AWD",
+  },
+  {
+    id: "chevy-tahoe", name: "Chevrolet Tahoe", type: "gas", msrp: 58200,
+    mpg: 18, maintenanceCostPerMile: 0.108, insuranceAnnual: 2050,
+    depreciationRate: 0.16, category: "SUV",
+    bodyStyle: "suv-large", sizeClass: 4, seats: 8, drivetrain: "4WD",
+  },
+  {
+    id: "chevy-trailblazer", name: "Chevrolet Trailblazer", type: "gas", msrp: 24395,
+    mpg: 30, maintenanceCostPerMile: 0.086, insuranceAnnual: 1600,
+    depreciationRate: 0.16, category: "SUV",
+    bodyStyle: "suv-compact", sizeClass: 1, seats: 5, drivetrain: "AWD",
+  },
+  // BMW
+  {
+    id: "bmw-330i", name: "BMW 330i", type: "gas", msrp: 45950,
+    mpg: 30, maintenanceCostPerMile: 0.118, insuranceAnnual: 2100,
+    depreciationRate: 0.17, category: "Sedan",
+    bodyStyle: "sedan", sizeClass: 2, seats: 5, drivetrain: "RWD", luxury: true,
+  },
+  {
+    id: "bmw-x3", name: "BMW X3 xDrive30i", type: "gas", msrp: 50000,
+    mpg: 26, maintenanceCostPerMile: 0.12, insuranceAnnual: 2150,
+    depreciationRate: 0.17, category: "SUV",
+    bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "AWD", luxury: true,
+  },
+
+  // ───────── Premium / exotic makes (PlugStar parity) ─────────
+  // Gas
+  {
+    id: "alfa-romeo-giulia", name: "Alfa Romeo Giulia", type: "gas", msrp: 45000,
+    mpg: 27, maintenanceCostPerMile: 0.11, insuranceAnnual: 2050,
+    depreciationRate: 0.18, category: "Sedan",
+    bodyStyle: "sedan", sizeClass: 3, seats: 5, drivetrain: "AWD", luxury: true,
+  },
+  {
+    id: "alfa-romeo-stelvio", name: "Alfa Romeo Stelvio", type: "gas", msrp: 48000,
+    mpg: 25, maintenanceCostPerMile: 0.115, insuranceAnnual: 2150,
+    depreciationRate: 0.18, category: "SUV",
+    bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "AWD", luxury: true,
+  },
+  {
+    id: "bentley-bentayga", name: "Bentley Bentayga", type: "gas", msrp: 205000,
+    mpg: 18, maintenanceCostPerMile: 0.16, insuranceAnnual: 4200,
+    depreciationRate: 0.2, category: "SUV",
+    bodyStyle: "suv-large", sizeClass: 4, seats: 5, drivetrain: "AWD", luxury: true,
+  },
+  {
+    id: "bentley-continental-gt", name: "Bentley Continental GT", type: "gas", msrp: 250000,
+    mpg: 17, maintenanceCostPerMile: 0.16, insuranceAnnual: 4500,
+    depreciationRate: 0.2, category: "Coupe",
+    bodyStyle: "coupe", sizeClass: 3, seats: 4, drivetrain: "AWD", luxury: true, performance: true,
+  },
+  {
+    id: "ferrari-roma", name: "Ferrari Roma", type: "gas", msrp: 247000,
+    mpg: 19, maintenanceCostPerMile: 0.18, insuranceAnnual: 5000,
+    depreciationRate: 0.18, category: "Coupe",
+    bodyStyle: "coupe", sizeClass: 3, seats: 4, drivetrain: "RWD", luxury: true, performance: true,
+  },
+  {
+    id: "ferrari-purosangue", name: "Ferrari Purosangue", type: "gas", msrp: 400000,
+    mpg: 14, maintenanceCostPerMile: 0.2, insuranceAnnual: 6000,
+    depreciationRate: 0.2, category: "SUV",
+    bodyStyle: "suv-mid", sizeClass: 3, seats: 4, drivetrain: "AWD", luxury: true, performance: true,
+  },
+  {
+    id: "maserati-grecale", name: "Maserati Grecale", type: "gas", msrp: 78000,
+    mpg: 23, maintenanceCostPerMile: 0.13, insuranceAnnual: 2500,
+    depreciationRate: 0.19, category: "SUV",
+    bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "AWD", luxury: true,
+  },
+  {
+    id: "maserati-ghibli", name: "Maserati Ghibli", type: "gas", msrp: 80000,
+    mpg: 20, maintenanceCostPerMile: 0.14, insuranceAnnual: 2600,
+    depreciationRate: 0.19, category: "Sedan",
+    bodyStyle: "sedan", sizeClass: 3, seats: 5, drivetrain: "AWD", luxury: true, performance: true,
+  },
+  {
+    id: "lamborghini-urus", name: "Lamborghini Urus", type: "gas", msrp: 240000,
+    mpg: 14, maintenanceCostPerMile: 0.18, insuranceAnnual: 5000,
+    depreciationRate: 0.2, category: "SUV",
+    bodyStyle: "suv-mid", sizeClass: 3, seats: 5, drivetrain: "AWD", luxury: true, performance: true,
+  },
+  {
+    id: "lamborghini-revuelto", name: "Lamborghini Revuelto", type: "gas", msrp: 600000,
+    mpg: 13, maintenanceCostPerMile: 0.2, insuranceAnnual: 7000,
+    depreciationRate: 0.18, category: "Coupe",
+    bodyStyle: "coupe", sizeClass: 2, seats: 2, drivetrain: "AWD", luxury: true, performance: true,
+  },
+  {
+    id: "mclaren-artura", name: "McLaren Artura", type: "gas", msrp: 252000,
+    mpg: 21, maintenanceCostPerMile: 0.17, insuranceAnnual: 5000,
+    depreciationRate: 0.18, category: "Coupe",
+    bodyStyle: "coupe", sizeClass: 2, seats: 2, drivetrain: "RWD", luxury: true, performance: true,
+  },
+  {
+    id: "mclaren-gt", name: "McLaren GT", type: "gas", msrp: 210000,
+    mpg: 18, maintenanceCostPerMile: 0.17, insuranceAnnual: 4800,
+    depreciationRate: 0.18, category: "Coupe",
+    bodyStyle: "coupe", sizeClass: 2, seats: 2, drivetrain: "RWD", luxury: true, performance: true,
+  },
+  {
+    id: "aston-martin-vantage", name: "Aston Martin Vantage", type: "gas", msrp: 191000,
+    mpg: 18, maintenanceCostPerMile: 0.16, insuranceAnnual: 4000,
+    depreciationRate: 0.18, category: "Coupe",
+    bodyStyle: "coupe", sizeClass: 3, seats: 2, drivetrain: "RWD", luxury: true, performance: true,
+  },
+  {
+    id: "aston-martin-dbx", name: "Aston Martin DBX", type: "gas", msrp: 245000,
+    mpg: 16, maintenanceCostPerMile: 0.17, insuranceAnnual: 4200,
+    depreciationRate: 0.19, category: "SUV",
+    bodyStyle: "suv-mid", sizeClass: 3, seats: 5, drivetrain: "AWD", luxury: true,
+  },
+  {
+    id: "rolls-royce-ghost", name: "Rolls-Royce Ghost", type: "gas", msrp: 350000,
+    mpg: 14, maintenanceCostPerMile: 0.2, insuranceAnnual: 6000,
+    depreciationRate: 0.2, category: "Sedan",
+    bodyStyle: "sedan", sizeClass: 4, seats: 5, drivetrain: "AWD", luxury: true,
+  },
+  {
+    id: "rolls-royce-cullinan", name: "Rolls-Royce Cullinan", type: "gas", msrp: 400000,
+    mpg: 14, maintenanceCostPerMile: 0.2, insuranceAnnual: 6500,
+    depreciationRate: 0.2, category: "SUV",
+    bodyStyle: "suv-large", sizeClass: 4, seats: 5, drivetrain: "AWD", luxury: true,
+  },
+  {
+    id: "lotus-emira", name: "Lotus Emira", type: "gas", msrp: 100000,
+    mpg: 22, maintenanceCostPerMile: 0.14, insuranceAnnual: 2800,
+    depreciationRate: 0.18, category: "Coupe",
+    bodyStyle: "coupe", sizeClass: 2, seats: 2, drivetrain: "RWD", luxury: true, performance: true,
+  },
+  // EV variants of the exotic makes (so they appear on the EV side too)
+  {
+    id: "lotus-eletre", name: "Lotus Eletre", type: "ev", msrp: 107000,
+    mpge: 78, kwhPer100mi: 43, maintenanceCostPerMile: 0.075, insuranceAnnual: 2800,
+    depreciationRate: 0.21, category: "SUV",
+    bodyStyle: "suv-large", sizeClass: 4, seats: 5, drivetrain: "AWD", rangeMi: 265, luxury: true, performance: true,
+  },
+  {
+    id: "lotus-emeya", name: "Lotus Emeya", type: "ev", msrp: 100000,
+    mpge: 80, kwhPer100mi: 42, maintenanceCostPerMile: 0.075, insuranceAnnual: 2800,
+    depreciationRate: 0.21, category: "Sedan",
+    bodyStyle: "sedan", sizeClass: 3, seats: 5, drivetrain: "AWD", rangeMi: 270, luxury: true, performance: true,
+  },
+  {
+    id: "rolls-royce-spectre", name: "Rolls-Royce Spectre", type: "ev", msrp: 420000,
+    mpge: 72, kwhPer100mi: 47, maintenanceCostPerMile: 0.09, insuranceAnnual: 6500,
+    depreciationRate: 0.21, category: "Coupe",
+    bodyStyle: "coupe", sizeClass: 4, seats: 4, drivetrain: "AWD", rangeMi: 291, luxury: true,
+  },
+  {
+    id: "maserati-granturismo-folgore", name: "Maserati GranTurismo Folgore", type: "ev", msrp: 200000,
+    mpge: 75, kwhPer100mi: 45, maintenanceCostPerMile: 0.085, insuranceAnnual: 3000,
+    depreciationRate: 0.2, category: "Coupe",
+    bodyStyle: "coupe", sizeClass: 3, seats: 4, drivetrain: "AWD", rangeMi: 280, luxury: true, performance: true,
+  },
 ];
 
 // Vehicle photos (Wikimedia Commons, hot-link safe). Keyed by id and attached

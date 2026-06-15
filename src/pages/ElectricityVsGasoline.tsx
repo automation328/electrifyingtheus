@@ -61,8 +61,13 @@ const gasVehicles = getVehiclesByType("gas");
 const evVehicles = getVehiclesByType("ev");
 
 // Plugstar-style Make → Model pickers. Make is the leading token of the name
-// ("Tesla Model 3" → make "Tesla", model "Model 3").
-const makeOf = (name: string) => name.split(" ")[0];
+// ("Tesla Model 3" → make "Tesla", model "Model 3"), except for the handful of
+// brands whose name is two words ("Land Rover Defender" → make "Land Rover").
+const MULTIWORD_MAKES = ["Land Rover", "Alfa Romeo", "Aston Martin"];
+const makeOf = (name: string) => {
+  const m = MULTIWORD_MAKES.find((mk) => name === mk || name.startsWith(mk + " "));
+  return m ?? name.split(" ")[0];
+};
 const modelOf = (name: string) => name.slice(makeOf(name).length).trim();
 const gasMakes = [...new Set(gasVehicles.map((v) => makeOf(v.name)))].sort();
 const evMakes = [...new Set(evVehicles.map((v) => makeOf(v.name)))].sort();
