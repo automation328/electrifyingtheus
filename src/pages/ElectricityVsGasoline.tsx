@@ -9,9 +9,6 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-import {
-  Accordion, AccordionContent, AccordionItem, AccordionTrigger,
-} from "@/components/ui/accordion";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Input } from "@/components/ui/input";
@@ -1254,35 +1251,6 @@ const ElectricityVsGasoline = () => {
                 </ResponsiveContainer>
               </div>
             </div>
-          </div>
-        </section>
-
-        {/* ───────────────── METHODOLOGY ───────────────── */}
-        <section className="pb-16">
-          <div className="container px-4 max-w-3xl">
-            <Accordion type="single" collapsible className="rounded-2xl border border-border bg-card px-5">
-              <AccordionItem value="methodology" className="border-none">
-                <AccordionTrigger className="text-foreground font-semibold">How we calculated this</AccordionTrigger>
-                <AccordionContent className="text-muted-foreground space-y-3 text-sm">
-                  <p>Every formula is public. Displayed numbers are rounded; the math uses unrounded inputs.</p>
-                  <ul className="list-disc pl-5 space-y-1">
-                    <li><strong>Gas fuel</strong> = (annual miles ÷ MPG) × gas price</li>
-                    <li><strong>EV energy</strong> = miles × (33.7 ÷ MPGe) × blended kWh price × (1 + charging loss)</li>
-                    <li><strong>Blended kWh</strong> = home share × home rate + public share × public rate
-                      ({Math.round(homeShareFor(homeCharging) * 100)}/{Math.round((1 - homeShareFor(homeCharging)) * 100)} with your current home-charging answer)</li>
-                    <li><strong>Charging loss</strong> of {Math.round(chargingLoss * 100)}% accounts for wall-to-wheel energy lost while charging</li>
-                    <li><strong>Dollar-driving</strong> = ${dollarAmount} ÷ cost per mile, for each car</li>
-                  </ul>
-                  <p>
-                    State electricity and gasoline prices are representative statewide averages used to preset the
-                    inputs, not live market prices, which is why this estimate carries <strong>medium confidence</strong>.
-                    Figures exclude purchase incentives, financing interest, and resale value — see the{" "}
-                    <Link to="/calculator" className="text-primary underline">full TCO Calculator</Link> for those.
-                    The federal $7,500 EV tax credit has ended and is not applied here. Not financial advice.
-                  </p>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
           </div>
         </section>
 

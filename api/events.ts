@@ -64,8 +64,12 @@ async function enrich(e: NormEvent): Promise<void> {
       if (!r.ok) return;
       const m = (await r.text()).match(/^Title:\s*(.+)$/m);
       if (m) {
-        const real = cleanFeedTitle(m[1]);
+        // Page title is "Real Title • City, ST • Date".
+        const segs = m[1].split(/\s*•\s*/);
+        const real = cleanFeedTitle(segs[0]);
         if (real.length > 2) e.title = real;
+        // 2nd segment ("City, ST") is a better venue than the bare state.
+        if (segs[1] && /,\s*[A-Z]{2}\b/.test(segs[1])) e.location = segs[1].replace(/\s+/g, " ").trim();
       }
       return;
     }
