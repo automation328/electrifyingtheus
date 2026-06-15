@@ -17,6 +17,54 @@ interface NormEvent {
   description?: string;
   url?: string;
   source?: string;
+  image?: string;
+}
+
+// ── Detail-page enrichment ───────────────────────────────────────────────────
+// Calendar feeds (esp. Drive Electric Month) list events by CITY, so the ICS
+// SUMMARY is just "Lawrence Township". The real event name + featured image live
+// on each event's page as og:title / og:image. We fetch those (browser UA — the
+// sources 403 generic agents) and override. Best-effort + per-request timeout;
+// the whole /api/events response is CDN-cached, so this runs ~once/hour.
+const ENRICH_UA =
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
+
+function metaContent(html: string, prop: string): string | undefined {
+  const a = html.match(new RegExp(`<meta[^>]+(?:property|name)=["']${prop}["'][^>]*?content=["']([^"']+)["']`, "i"));
+  if (a) return a[1];
+  const b = html.match(new RegExp(`<meta[^>]+content=["']([^"']+)["'][^>]*?(?:property|name)=["']${prop}["']`, "i"));
+  return b ? b[1] : undefined;
+}
+
+const decodeEntities = (s: string) =>
+  s.replace(/&bull;|&#8226;/g, "•").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&")
+    .replace(/&#0?39;|&rsquo;|&apos;/g, "'").replace(/&quot;/g, '"').replace(/\s+/g, " ").trim();
+
+async function enrich(e: NormEvent): Promise<void> {
+  if (!e.url || !/^https?:\/\//.test(e.url)) return;
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 6000);
+  try {
+    const res = await fetch(e.url, { signal: ctrl.signal, headers: { "User-Agent": ENRICH_UA, Accept: "text/html" } });
+    if (!res.ok) return;
+    const html = await res.text();
+    const ogTitle = metaContent(html, "og:title") || html.match(/<title>([^<]+)<\/title>/i)?.[1];
+    if (ogTitle) {
+      // "Real Title • City, ST • Date" → just the title (before the first bullet).
+      const real = decodeEntities(ogTitle).split(/\s*•\s*/)[0].trim();
+      if (real.length > 2) e.title = real;
+    }
+    const ogImg = metaContent(html, "og:image");
+    // Use the source's featured image, but skip the generic Drive Electric banner
+    // (every DEM event shares it) so those keep varied fallback photos instead.
+    if (ogImg && /^https?:\/\//.test(ogImg) && !/ndem-social|social-\d{4}|placeholder|default-/i.test(ogImg)) {
+      e.image = ogImg.trim();
+    }
+  } catch {
+    /* blocked / slow / offline — keep the feed's original title + fallback image */
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 // ── ICS parsing ──────────────────────────────────────────────────────────────
@@ -152,6 +200,10 @@ export default async function handler(req: any, res: any) {
       .filter((e) => { const k = `${e.title}|${e.startISO}`; if (seen.has(k)) return false; seen.add(k); return true; })
       .sort((a, b) => Date.parse(a.startISO) - Date.parse(b.startISO))
       .slice(0, 60);
+
+    // Enrich with the real event title + featured image from each event's page
+    // (parallel, best-effort). Cached below, so this only runs on a cache miss.
+    await Promise.all(events.map(enrich));
 
     // Cache hard at the CDN — calendars change slowly. 1h fresh, serve-stale 6h.
     res.setHeader("Cache-Control", "public, s-maxage=3600, stale-while-revalidate=21600");

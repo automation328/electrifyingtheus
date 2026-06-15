@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import {
-  MapPin, Clock, ArrowRight, Ticket, MessageSquare,
+  MapPin, Clock, ArrowRight, MessageSquare,
   CalendarPlus, BellRing, Search, Star, CheckCircle2, Sparkles, Megaphone,
   ChevronLeft, ChevronRight, ChevronDown,
 } from "lucide-react";
@@ -120,23 +120,12 @@ const Events = () => {
     </div>
   );
 
-  // Action row for the colored featured cards — white Register + translucent share icons.
+  // Action row for the colored featured cards — white "More info" + translucent share icons.
   const FeaturedActions = ({ e }: { e: EventItem }) => (
     <div className="mt-auto flex items-center gap-2">
-      {e.registerUrl ? (
-        <a href={e.registerUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 bg-white text-foreground font-bold text-sm px-5 py-2.5 rounded-xl hover:bg-white/90 transition">
-          <Ticket className="w-4 h-4" /> Register
-        </a>
-      ) : (
-        <Link to="/contact-us" className="inline-flex items-center gap-2 bg-white text-foreground font-bold text-sm px-5 py-2.5 rounded-xl hover:bg-white/90 transition">
-          <Ticket className="w-4 h-4" /> Register
-        </Link>
-      )}
-      {e.slug && (
-        <Link to={`/events/${e.slug}`} className="inline-flex items-center gap-2 bg-white/15 text-primary-foreground font-semibold text-sm px-4 py-2.5 rounded-xl hover:bg-white/25 transition">
-          Details
-        </Link>
-      )}
+      <Link to={e.slug ? `/events/${e.slug}` : "/events"} className="inline-flex items-center gap-2 bg-white text-foreground font-bold text-sm px-5 py-2.5 rounded-xl hover:bg-white/90 transition">
+        More info <ArrowRight className="w-4 h-4" />
+      </Link>
       <a href={gcalLink(e)} target="_blank" rel="noopener noreferrer" aria-label="Set a reminder" title="Add to calendar / set reminder"
         className="grid place-items-center w-9 h-9 rounded-lg bg-white/15 text-primary-foreground hover:bg-white/25 transition"><CalendarPlus className="w-4 h-4" /></a>
       <ShareGate

@@ -26,6 +26,8 @@ interface FeedEvent {
   description?: string;
   url?: string;
   source?: string;
+  /** Featured image scraped from the source event page (og:image), when available. */
+  image?: string;
 }
 
 const MONTH_ABBR = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
@@ -53,7 +55,9 @@ const mapToEventItem = (e: FeedEvent, index: number): EventItem => {
     region: location,
     time,
     description: (e.description ?? "").slice(0, 1200) || "EV event in the U.S. — see the organizer's page for full details.",
-    image: IMAGE_POOL[index % IMAGE_POOL.length],
+    // Featured image from the source event page when we have one; otherwise cycle
+    // the generic EV photo pool for visual variety.
+    image: e.image || IMAGE_POOL[index % IMAGE_POOL.length],
     slug,
     registerUrl: e.url,
     external: true,
