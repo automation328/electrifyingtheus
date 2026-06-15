@@ -52,12 +52,23 @@ function cleanFeedTitle(og: string): string {
 async function enrich(e: NormEvent): Promise<void> {
   if (!e.url || !/^https?:\/\//.test(e.url)) return;
   // Drive Electric Month/Earth Month block datacenter IPs (403 from serverless),
-  // so enriching them here is futile — their titles are fixed in the n8n scraper
-  // (which runs from an allowed IP). Skip to avoid pointless 6s timeouts.
-  if (/driveelectric(?:month|earthmonth)\.org/i.test(e.url)) return;
+  // so read them through r.jina.ai (a reader proxy that isn't blocked); its
+  // output starts with "Title: <real page title>". Everything else is fetched
+  // directly for og:title + og:image.
+  const isDem = /driveelectric(?:month|earthmonth)\.org/i.test(e.url);
   const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), 6000);
+  const timer = setTimeout(() => ctrl.abort(), isDem ? 12000 : 6000);
   try {
+    if (isDem) {
+      const r = await fetch(`https://r.jina.ai/${e.url}`, { signal: ctrl.signal, headers: { Accept: "text/plain" } });
+      if (!r.ok) return;
+      const m = (await r.text()).match(/^Title:\s*(.+)$/m);
+      if (m) {
+        const real = cleanFeedTitle(m[1]);
+        if (real.length > 2) e.title = real;
+      }
+      return;
+    }
     const res = await fetch(e.url, { signal: ctrl.signal, headers: { "User-Agent": ENRICH_UA, Accept: "text/html" } });
     if (!res.ok) return;
     const html = await res.text();
