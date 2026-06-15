@@ -40,8 +40,21 @@ const decodeEntities = (s: string) =>
   s.replace(/&bull;|&#8226;/g, "•").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&")
     .replace(/&#0?39;|&rsquo;|&apos;/g, "'").replace(/&quot;/g, '"').replace(/\s+/g, " ").trim();
 
+// Strip the "• City, ST • Date" / ", Fri, Jun 26, 2026 | Meetup" tails that
+// sources append to og:title, leaving just the event name.
+function cleanFeedTitle(og: string): string {
+  let t = decodeEntities(og).split(/\s*[•|]\s*/)[0];                       // cut at • or |
+  t = t.replace(/,\s*(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun)[a-z]*,.*$/i, "");    // ", Fri, …"
+  t = t.replace(/,\s*(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+\d.*$/i, ""); // ", Jun 26 …"
+  return t.trim();
+}
+
 async function enrich(e: NormEvent): Promise<void> {
   if (!e.url || !/^https?:\/\//.test(e.url)) return;
+  // Drive Electric Month/Earth Month block datacenter IPs (403 from serverless),
+  // so enriching them here is futile — their titles are fixed in the n8n scraper
+  // (which runs from an allowed IP). Skip to avoid pointless 6s timeouts.
+  if (/driveelectric(?:month|earthmonth)\.org/i.test(e.url)) return;
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), 6000);
   try {
@@ -50,8 +63,7 @@ async function enrich(e: NormEvent): Promise<void> {
     const html = await res.text();
     const ogTitle = metaContent(html, "og:title") || html.match(/<title>([^<]+)<\/title>/i)?.[1];
     if (ogTitle) {
-      // "Real Title • City, ST • Date" → just the title (before the first bullet).
-      const real = decodeEntities(ogTitle).split(/\s*•\s*/)[0].trim();
+      const real = cleanFeedTitle(ogTitle);
       if (real.length > 2) e.title = real;
     }
     const ogImg = metaContent(html, "og:image");
