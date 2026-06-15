@@ -11,11 +11,14 @@
 
 create table if not exists gate_logins (
   ip          text primary key,
+  email       text,
   first_seen  timestamptz default now(),
   last_seen   timestamptz default now(),
   hits        int         default 1,
   user_agent  text
 );
+-- If the table already existed without it, add the email column.
+alter table gate_logins add column if not exists email text;
 
 alter table gate_logins enable row level security;
 -- (no policies on purpose — direct anon access is denied; only the
@@ -23,7 +26,7 @@ alter table gate_logins enable row level security;
 
 -- Records a successful gate sign-in. Returns TRUE when this IP is brand new
 -- (first time it has ever signed in), FALSE when it is a returning IP.
-create or replace function record_gate_login(p_ip text, p_ua text)
+create or replace function record_gate_login(p_ip text, p_ua text, p_email text default null)
 returns boolean
 language plpgsql
 security definer
@@ -34,11 +37,12 @@ declare
 begin
   select not exists (select 1 from gate_logins where ip = p_ip) into is_new;
 
-  insert into gate_logins (ip, user_agent)
-  values (p_ip, p_ua)
+  insert into gate_logins (ip, email, user_agent)
+  values (p_ip, p_email, p_ua)
   on conflict (ip) do update
     set last_seen   = now(),
         hits        = gate_logins.hits + 1,
+        email       = excluded.email,
         user_agent  = excluded.user_agent;
 
   return is_new;
@@ -46,4 +50,4 @@ end;
 $$;
 
 -- The site's anon role may CALL the function (but still cannot read the table).
-grant execute on function record_gate_login(text, text) to anon;
+grant execute on function record_gate_login(text, text, text) to anon;

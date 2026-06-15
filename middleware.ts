@@ -111,21 +111,22 @@ function gateHtml(): string {
   <form class="card" id="f" autocomplete="off">
     <div class="brand"><span class="bolt">&#9889;</span> Electrifying the US</div>
     <h1>Private preview</h1>
-    <p>This site is password protected. Enter the password to continue.</p>
-    <input id="p" type="password" placeholder="Password" autofocus aria-label="Password" />
-    <button id="b" type="submit">Enter</button>
+    <p>This site is private. Sign in with your email and password to continue.</p>
+    <input id="m" type="email" placeholder="Email" autofocus autocomplete="username" aria-label="Email" style="margin-bottom:10px" />
+    <input id="p" type="password" placeholder="Password" autocomplete="current-password" aria-label="Password" />
+    <button id="b" type="submit">Sign in</button>
     <div class="err" id="e"></div>
   </form>
   <script>
-    var f=document.getElementById('f'),p=document.getElementById('p'),b=document.getElementById('b'),e=document.getElementById('e');
+    var f=document.getElementById('f'),m=document.getElementById('m'),p=document.getElementById('p'),b=document.getElementById('b'),e=document.getElementById('e');
     f.addEventListener('submit',async function(ev){
       ev.preventDefault();e.textContent='';b.disabled=true;b.textContent='Checking…';
       try{
-        var r=await fetch('/api/gate-login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:p.value})});
+        var r=await fetch('/api/gate-login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:m.value,password:p.value})});
         if(r.ok){location.reload();return;}
-        e.textContent='Incorrect password. Try again.';
+        e.textContent='Incorrect email or password. Try again.';
       }catch(_){e.textContent='Something went wrong. Try again.';}
-      b.disabled=false;b.textContent='Enter';p.value='';p.focus();
+      b.disabled=false;b.textContent='Sign in';p.value='';p.focus();
     });
   </script>
 </body></html>`;

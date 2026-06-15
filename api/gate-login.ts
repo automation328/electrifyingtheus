@@ -4,6 +4,7 @@
 // Slack notification — flagging brand-new IPs.
 //
 // Env (server-only):
+//   SITE_EMAIL             The allowed sign-in email (single, for now).
 //   SITE_PASSWORD          The shared password.
 //   GATE_TOKEN             Long random string; the cookie value middleware checks.
 //   SLACK_WEBHOOK_URL      Incoming webhook for sign-in notifications (optional).
@@ -26,7 +27,7 @@ function clientIp(req: { headers: Record<string, string | string[] | undefined> 
 
 // Records the IP via the SECURITY DEFINER RPC; returns whether it's a new IP.
 // Best-effort — never throws into the request path.
-async function recordIp(ip: string, ua: string): Promise<boolean | null> {
+async function recordIp(ip: string, ua: string, email: string): Promise<boolean | null> {
   const url = process.env.VITE_SUPABASE_URL;
   const key = process.env.VITE_SUPABASE_ANON_KEY;
   if (!url || !key) return null;
@@ -34,7 +35,7 @@ async function recordIp(ip: string, ua: string): Promise<boolean | null> {
     const r = await fetch(`${url.replace(/\/$/, "")}/rest/v1/rpc/record_gate_login`, {
       method: "POST",
       headers: { "Content-Type": "application/json", apikey: key, Authorization: `Bearer ${key}` },
-      body: JSON.stringify({ p_ip: ip, p_ua: ua }),
+      body: JSON.stringify({ p_ip: ip, p_ua: ua, p_email: email }),
     });
     if (!r.ok) return null;
     const data = await r.json().catch(() => null);
@@ -44,7 +45,7 @@ async function recordIp(ip: string, ua: string): Promise<boolean | null> {
   }
 }
 
-async function notifySlack(ip: string, ua: string, isNew: boolean | null): Promise<void> {
+async function notifySlack(email: string, ip: string, ua: string, isNew: boolean | null): Promise<void> {
   const hook = process.env.SLACK_WEBHOOK_URL;
   if (!hook) return;
   const when = new Intl.DateTimeFormat("en-US", {
@@ -53,6 +54,7 @@ async function notifySlack(ip: string, ua: string, isNew: boolean | null): Promi
   const tag = isNew === true ? "🆕 *NEW IP*" : isNew === false ? "Returning IP" : "IP";
   const lines = [
     `🔐 *Site sign-in* — test.electrifyingtheus.com`,
+    `👤 ${email}`,
     `${tag}: \`${ip}\``,
     `🕑 ${when} ET`,
     ua ? `🖥️ ${ua.slice(0, 180)}` : "",
@@ -70,25 +72,29 @@ async function notifySlack(ip: string, ua: string, isNew: boolean | null): Promi
 export default async function handler(req: any, res: any) {
   if (req.method !== "POST") { res.status(405).json({ error: "Method not allowed" }); return; }
 
-  const expected = process.env.SITE_PASSWORD;
+  const expectedPw = process.env.SITE_PASSWORD;
+  const expectedEmail = process.env.SITE_EMAIL;
   const token = process.env.GATE_TOKEN;
-  if (!expected || !token) { res.status(500).json({ error: "Gate not configured" }); return; }
+  if (!expectedPw || !expectedEmail || !token) { res.status(500).json({ error: "Gate not configured" }); return; }
 
   const body = typeof req.body === "string" ? safeJson(req.body) : (req.body ?? {});
+  const email = String((body as Record<string, unknown>).email ?? "").trim();
   const password = String((body as Record<string, unknown>).password ?? "");
 
-  // Constant-time-ish compare (length + char) — fine for a single shared secret.
-  if (password.length !== expected.length || password !== expected) {
-    res.status(401).json({ error: "Incorrect password" });
+  // Single allowed email (case-insensitive) + shared password.
+  const emailOk = email.toLowerCase() === expectedEmail.trim().toLowerCase();
+  const pwOk = password.length === expectedPw.length && password === expectedPw;
+  if (!emailOk || !pwOk) {
+    res.status(401).json({ error: "Incorrect email or password" });
     return;
   }
 
   const ip = clientIp(req);
   const ua = String(req.headers["user-agent"] || "");
 
-  // Record + notify in the background-ish (await so it completes on serverless).
-  const isNew = await recordIp(ip, ua);
-  await notifySlack(ip, ua, isNew);
+  // Record + notify (await so it completes before the serverless invocation ends).
+  const isNew = await recordIp(ip, ua, email);
+  await notifySlack(email, ip, ua, isNew);
 
   res.setHeader(
     "Set-Cookie",
