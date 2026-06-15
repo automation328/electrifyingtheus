@@ -127,11 +127,11 @@ const EventDetail = () => {
                   summary={`${event.location} · ${event.month} ${event.day}, ${event.year}`}
                   label="Register"
                   icon={<Ticket className="w-5 h-5" />}
-                  className="inline-flex items-center gap-2 gradient-primary text-primary-foreground font-semibold px-6 py-3 rounded-xl shadow-card hover:opacity-90 transition"
+                  className="inline-flex items-center gap-2 gradient-primary text-primary-foreground font-semibold px-6 py-3 rounded-xl shadow-card hover:opacity-90 transition sm:ml-auto"
                 />
               ) : (
                 <Link to="/contact-us"
-                  className="inline-flex items-center gap-2 gradient-primary text-primary-foreground font-semibold px-6 py-3 rounded-xl shadow-card hover:opacity-90 transition">
+                  className="inline-flex items-center gap-2 gradient-primary text-primary-foreground font-semibold px-6 py-3 rounded-xl shadow-card hover:opacity-90 transition sm:ml-auto">
                   <Ticket className="w-5 h-5" /> Register
                 </Link>
               )}

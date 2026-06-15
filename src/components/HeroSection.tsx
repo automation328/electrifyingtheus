@@ -220,17 +220,14 @@ const BrandSlide = ({ active }: { active: boolean }) => (
 
 const EventSlide = ({ event, plain }: { event: EventItem; plain?: boolean }) => {
   // Bare slide: the flyer image carries all the copy — show only the button.
+  // Routes to the event's own page (not the external register link).
   if (plain) {
     const btn = (
       <Button variant="green" size="lg" className="text-base px-8 py-6 rounded-2xl shadow-2xl">
-        Register <ArrowRight className="w-4 h-4 ml-1" />
+        More info <ArrowRight className="w-4 h-4 ml-1" />
       </Button>
     );
-    return event.registerUrl ? (
-      <a href={event.registerUrl} target="_blank" rel="noopener noreferrer">{btn}</a>
-    ) : (
-      <Link to={event.slug ? `/events/${event.slug}` : "/events"}>{btn}</Link>
-    );
+    return <Link to={event.slug ? `/events/${event.slug}` : "/events"}>{btn}</Link>;
   }
 
   return (

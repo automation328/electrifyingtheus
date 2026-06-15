@@ -96,7 +96,7 @@ const FeaturedEventsSection = () => {
                     <span className="flex items-center gap-1.5"><Clock className="w-4 h-4" /> {e.time}</span>
                   </div>
                   <span className="mt-auto inline-flex items-center justify-center gap-1.5 rounded-xl bg-white text-foreground text-sm font-bold py-2.5 transition-colors group-hover:bg-white/90">
-                    Register <ArrowRight className="w-4 h-4" />
+                    More info <ArrowRight className="w-4 h-4" />
                   </span>
                 </div>
               </Link>

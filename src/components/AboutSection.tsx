@@ -14,7 +14,7 @@ const partners = ["Utilities", "Automakers", "Community Orgs", "Labor Unions"];
 
 const AboutSection = () => {
   return (
-    <section id="about" className="relative overflow-hidden py-20 md:py-28">
+    <section id="about" className="relative overflow-hidden pt-6 md:pt-10 pb-20 md:pb-28">
       {/* Soft brand glow */}
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
         <div className="absolute -left-24 top-8 h-72 w-72 rounded-full blur-3xl" style={{ background: "hsl(var(--primary) / 0.06)" }} />

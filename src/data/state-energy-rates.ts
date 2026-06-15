@@ -66,9 +66,11 @@ export const STATE_ENERGY_RATES: Record<string, StateEnergyRate> = {
 };
 
 /** National-average fallbacks used for class comparisons. */
+// Kept in line with the per-state tables above (means: ~16.6¢/kWh, ~$3.38/gal)
+// so the "U.S. average" figures match the state map and calculator fallbacks.
 export const NATIONAL_AVG = {
-  electricityCentsPerKwh: 16.0,
-  gasPricePerGallon: 4.44,
+  electricityCentsPerKwh: 16.5,
+  gasPricePerGallon: 3.38,
 };
 
 export const STATE_CODES = Object.keys(STATE_ENERGY_RATES).sort((a, b) =>
