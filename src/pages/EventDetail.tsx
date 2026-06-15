@@ -136,10 +136,6 @@ const EventDetail = () => {
                 </Link>
               )}
             </div>
-
-            {event.external && event.source && (
-              <p className="text-xs text-muted-foreground">Listing via {event.source}</p>
-            )}
           </div>
         </div>
 
