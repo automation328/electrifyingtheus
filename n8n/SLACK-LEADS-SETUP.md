@@ -52,13 +52,6 @@ VITE_N8N_WEBHOOK_URL="https://n8n-9odn.srv1570441.hstgr.cloud/webhook/evan-chat"
 
 (Production path is `/webhook/evan-chat`; test path is `/webhook-test/evan-chat`.)
 
-## Already-live reference copy
-
-A working copy was built on the connected instance:
-`https://automation.sgen.com/workflow/cdRDgixivTJynBo7`
-(webhook `https://automation.sgen.com/webhook/evan-chat`, Slack cred "Sgen Automation" attached).
-That instance is **not** the Hostinger one — use it only as a reference, or repoint the site there.
-
 ## Alternative — add Slack to the existing agent (no new webhook)
 
 If you'd rather keep using `p7VVAh6DWMlo667A` for answers, just add a **Slack → message → post**

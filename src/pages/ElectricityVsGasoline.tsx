@@ -34,6 +34,7 @@ import { recommendEvs, type MatchLabel } from "@/lib/ev-match";
 import { incentiveHeadline } from "@/data/incentives";
 import { parseCalcState, serializeCalcState, type CalcState } from "@/lib/evg-url";
 import { zipToState } from "@/lib/zip-to-state";
+import { getLeadIdentity, hasLeadIdentity } from "@/lib/leadIdentity";
 import {
   SOURCES, CONFIDENCE_COPY, overallConfidence, type SourceMeta, type Confidence,
 } from "@/data/sources";
@@ -230,6 +231,25 @@ const ElectricityVsGasoline = () => {
   const matches = useMemo(() => (gasSel ? recommendEvs(gas, vehicles) : []), [gasSel, gas]);
   const [showResults, setShowResults] = useState(false);
 
+  // After the lead form is submitted (or the numbers re-run), smoothly bring the
+  // results into view. `scrollTick` lets a re-run re-trigger the scroll even when
+  // `showResults` is already true. The 88px offset clears the fixed navbar.
+  const resultsRef = useRef<HTMLDivElement>(null);
+  const [scrollTick, setScrollTick] = useState(0);
+  useEffect(() => {
+    if (!showResults || !bothSelected) return;
+    let raf2 = 0;
+    const raf1 = requestAnimationFrame(() => {
+      raf2 = requestAnimationFrame(() => {
+        const el = resultsRef.current;
+        if (!el) return;
+        const top = el.getBoundingClientRect().top + window.scrollY - 88;
+        window.scrollTo({ top, behavior: "smooth" });
+      });
+    });
+    return () => { cancelAnimationFrame(raf1); cancelAnimationFrame(raf2); };
+  }, [showResults, bothSelected, scrollTick]);
+
   // Lead gate — first visit asks for a name + email before revealing results.
   // Once captured we remember it (localStorage) so re-running the numbers later
   // doesn't re-prompt the same visitor.
@@ -237,16 +257,19 @@ const ElectricityVsGasoline = () => {
   // Gate is remembered for the browser session only — closing the browser
   // re-asks on the next visit (sessionStorage, not localStorage).
   const [unlocked, setUnlocked] = useState(() => {
-    try { return sessionStorage.getItem("evg_unlocked") === "1"; } catch { return false; }
+    try { if (sessionStorage.getItem("evg_unlocked") === "1") return true; } catch { /* ignore */ }
+    // Already identified at any earlier gate (a share / event action) → don't re-ask.
+    return hasLeadIdentity();
   });
   const [leadName, setLeadName] = useState(() => {
-    try { return sessionStorage.getItem("evg_name") ?? ""; } catch { return ""; }
+    try { const n = sessionStorage.getItem("evg_name"); if (n) return n; } catch { /* ignore */ }
+    return getLeadIdentity()?.firstName ?? "";
   });
 
   // Calculate → reveal results, gating behind the lead form on first use.
   const requestResults = () => {
     if (!bothSelected) return;
-    if (unlocked) { setShowResults(true); return; }
+    if (unlocked) { setShowResults(true); setScrollTick((n) => n + 1); return; }
     setGateOpen(true);
   };
 
@@ -258,6 +281,7 @@ const ElectricityVsGasoline = () => {
     if (firstName) setLeadName(firstName);
     setUnlocked(true);
     setShowResults(true);
+    setScrollTick((n) => n + 1);
   };
 
   // Live per-state gas prices (AAA via n8n proxy, localStorage-cached). Falls
@@ -389,6 +413,9 @@ const ElectricityVsGasoline = () => {
 
   const animatedAnnual = useCountUp(Math.abs(calc.res.annualSavings));
   const animatedTotal = useCountUp(Math.abs(calc.res.horizonTotalSaved));
+  // Range bars count their miles up as the inputs change ($25/$50/$100, car, state).
+  const animatedGasRange = useCountUp(calc.res.gasRangeOnDollar, 700);
+  const animatedEvRange = useCountUp(calc.res.evRangeOnDollar, 700);
   const evWinsFuel = calc.res.annualSavings >= 0;
 
   // Confidence — statewide averages give Medium; curated EPA vehicle data is High.
@@ -741,7 +768,7 @@ const ElectricityVsGasoline = () => {
             {showResults && bothSelected && (
             <>
             {/* Thank-you intro — personalized with the captured first name. */}
-            <div className="mb-6 rounded-3xl border border-secondary/30 bg-secondary/5 p-5 md:p-6 flex items-start gap-3">
+            <div ref={resultsRef} className="mb-6 rounded-3xl border border-secondary/30 bg-secondary/5 p-5 md:p-6 flex items-start gap-3 scroll-mt-24">
               <span className="grid place-items-center w-10 h-10 rounded-2xl bg-secondary/10 text-secondary shrink-0">
                 <Sparkles className="w-5 h-5" />
               </span>
@@ -933,25 +960,42 @@ const ElectricityVsGasoline = () => {
 
             {/* Dollar-driving hero — the share-worthy number (§3) */}
             <div className="relative overflow-hidden rounded-3xl border border-border bg-card p-6 md:p-8 mb-6 shadow-card">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
-                <div className="flex items-center gap-2">
-                  <span className="font-charge text-xl text-foreground">On</span>
-                  <ToggleGroup
-                    type="single" value={String(dollarAmount)}
-                    onValueChange={(v) => v && setDollarAmount(Number(v))}
-                    className="rounded-xl border border-border bg-background p-1 gap-1"
-                  >
-                    {DOLLAR_OPTIONS.map((d) => (
-                      <ToggleGroupItem key={d} value={String(d)} className="rounded-lg px-3 font-charge data-[state=on]:bg-foreground data-[state=on]:text-background">
-                        ${d}
-                      </ToggleGroupItem>
-                    ))}
-                  </ToggleGroup>
-                  <span className="font-charge text-xl text-foreground">of fuel…</span>
+              <div className="mb-6">
+                <div className="flex items-center justify-between gap-3 mb-3">
+                  <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">
+                    <CircleDollarSign className="w-3.5 h-3.5" /> Same money · more miles
+                  </span>
+                  <span className="text-xs text-muted-foreground flex items-center gap-1">
+                    Energy prices <SourceChip src={SOURCES.gas} />
+                  </span>
                 </div>
-                <span className="text-xs text-muted-foreground flex items-center gap-1">
-                  Energy prices <SourceChip src={SOURCES.gas} />
-                </span>
+
+                <p className="font-charge text-xl md:text-2xl text-foreground mb-4">
+                  How far does each car go on…
+                </p>
+
+                {/* Dollar selector — the emphasis. Big segmented pills; the chosen
+                    amount fills with the brand gradient and lifts slightly. */}
+                <ToggleGroup
+                  type="single" value={String(dollarAmount)}
+                  onValueChange={(v) => v && setDollarAmount(Number(v))}
+                  className="grid grid-cols-3 gap-2.5 sm:flex sm:gap-3"
+                >
+                  {DOLLAR_OPTIONS.map((d) => (
+                    <ToggleGroupItem
+                      key={d}
+                      value={String(d)}
+                      aria-label={`$${d} of fuel`}
+                      className="group relative h-16 sm:h-20 sm:min-w-[120px] rounded-2xl border-2 border-border bg-background font-charge leading-none text-foreground transition-all duration-200 hover:border-primary/40
+                        data-[state=on]:border-transparent data-[state=on]:gradient-hero data-[state=on]:text-primary-foreground data-[state=on]:shadow-elevated data-[state=on]:scale-[1.04]"
+                    >
+                      <span className="flex flex-col items-center justify-center">
+                        <span className="text-3xl sm:text-4xl tabular-nums">${d}</span>
+                        <span className="mt-1 text-[10px] font-semibold uppercase tracking-[0.14em] opacity-70 group-data-[state=on]:opacity-90">of fuel</span>
+                      </span>
+                    </ToggleGroupItem>
+                  ))}
+                </ToggleGroup>
               </div>
 
               <div className="space-y-5">
@@ -959,24 +1003,24 @@ const ElectricityVsGasoline = () => {
                 <div>
                   <div className="flex items-baseline justify-between mb-1.5">
                     <span className="flex items-center gap-2 text-sm font-medium text-foreground">
-                      <Fuel className="w-4 h-4" style={{ color: GAS_COLOR }} /> {gas.name}
+                      <Fuel className="evg-bar-icon w-4 h-4" style={{ color: GAS_COLOR }} /> {gas.name}
                     </span>
-                    <span className="font-charge text-2xl text-foreground tabular-nums">{miles(calc.res.gasRangeOnDollar)}</span>
+                    <span className="font-charge text-2xl text-foreground tabular-nums">{miles(animatedGasRange)}</span>
                   </div>
                   <div className="h-4 rounded-full bg-muted overflow-hidden">
-                    <div className="h-full rounded-full transition-[width] duration-700 ease-out" style={{ width: `${(calc.res.gasRangeOnDollar / calc.maxRange) * 100}%`, background: GAS_COLOR }} />
+                    <div className="evg-bar-fill h-full rounded-full transition-[width] duration-700 ease-out" style={{ width: `${(calc.res.gasRangeOnDollar / calc.maxRange) * 100}%`, background: GAS_COLOR }} />
                   </div>
                 </div>
                 {/* EV bar */}
                 <div>
                   <div className="flex items-baseline justify-between mb-1.5">
                     <span className="flex items-center gap-2 text-sm font-medium text-foreground">
-                      <Zap className="w-4 h-4" style={{ color: EV_COLOR }} /> {ev.name}
+                      <Zap className="evg-bar-icon w-4 h-4" style={{ color: EV_COLOR }} /> {ev.name}
                     </span>
-                    <span className="font-charge text-2xl text-foreground tabular-nums">{miles(calc.res.evRangeOnDollar)}</span>
+                    <span className="font-charge text-2xl text-foreground tabular-nums">{miles(animatedEvRange)}</span>
                   </div>
                   <div className="h-4 rounded-full bg-muted overflow-hidden">
-                    <div className="h-full rounded-full transition-[width] duration-700 ease-out" style={{ width: `${(calc.res.evRangeOnDollar / calc.maxRange) * 100}%`, background: EV_COLOR }} />
+                    <div className="evg-bar-fill h-full rounded-full transition-[width] duration-700 ease-out" style={{ width: `${(calc.res.evRangeOnDollar / calc.maxRange) * 100}%`, background: EV_COLOR }} />
                   </div>
                 </div>
               </div>
@@ -1183,7 +1227,7 @@ const ElectricityVsGasoline = () => {
               {[
                 { icon: TrendingDown, value: "~60%", label: "Cheaper to fuel per mile vs. gas", accent: "gradient-primary" },
                 { icon: Gauge, value: "283 mi", label: "Average EV range on a full charge", accent: "gradient-green" },
-                { icon: MapPin, value: "240K+", label: "Public charging ports nationwide", accent: "gradient-hero" },
+                { icon: MapPin, value: "250K+", label: "Public charging ports nationwide", accent: "gradient-hero" },
               ].map((s) => (
                 <div key={s.label} className="group relative overflow-hidden rounded-3xl bg-card border border-border p-7 shadow-card transition-all hover:shadow-xl hover:-translate-y-1">
                   <div className={`absolute top-0 left-0 right-0 h-1 ${s.accent}`} aria-hidden />

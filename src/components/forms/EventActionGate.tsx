@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { submitLead, type LeadFormType } from "@/lib/submitLead";
 import { rememberLeadEmail } from "@/lib/emailCompose";
+import { getLeadIdentity, saveLeadIdentity } from "@/lib/leadIdentity";
 
 const isEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
 
@@ -46,6 +47,31 @@ const EventActionGate = ({
   const valid = firstName.trim().length > 0 && isEmail(email);
   const isRegister = formType === "event-register";
 
+  const note = `${label} — "${title}"${summary ? ` (${summary})` : ""}`;
+
+  // Open the destination in a new tab. Called synchronously inside the click
+  // handler so the browser doesn't treat it as a blocked popup.
+  const proceed = () => window.open(href, "_blank", "noopener,noreferrer");
+
+  // Click → if the visitor already gave their name + email at any earlier gate,
+  // log this action against them in the background and go straight through.
+  // Otherwise, open the capture dialog first.
+  const handleClick = () => {
+    const id = getLeadIdentity();
+    if (id) {
+      void submitLead(formType, {
+        firstName: id.firstName,
+        email: id.email,
+        subject: title,
+        message: note,
+      });
+      rememberLeadEmail(id.email);
+      proceed();
+      return;
+    }
+    setOpen(true);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!valid || sending) return;
@@ -54,18 +80,19 @@ const EventActionGate = ({
       firstName: firstName.trim(),
       email: email.trim(),
       subject: title,
-      message: `${label} — "${title}"${summary ? ` (${summary})` : ""}`,
+      message: note,
     });
     rememberLeadEmail(email.trim());
+    saveLeadIdentity({ firstName: firstName.trim(), email: email.trim() });
     setSending(false);
     setOpen(false);
     // Proceed to the destination (registration page / Google Calendar).
-    window.open(href, "_blank", "noopener,noreferrer");
+    proceed();
   };
 
   return (
     <>
-      <button type="button" onClick={() => setOpen(true)} className={className}>
+      <button type="button" onClick={handleClick} className={className}>
         {icon}{label}
       </button>
 

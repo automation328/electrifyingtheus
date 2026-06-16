@@ -126,7 +126,7 @@ const EventFromPumpToPlug = () => {
           <div className="mt-8 rounded-3xl gradient-hero p-8 md:p-10 text-center text-primary-foreground">
             <h2 className="text-2xl md:text-3xl font-bold font-display mb-3">Save your seat</h2>
             <p className="text-primary-foreground/90 mb-6 max-w-xl mx-auto">
-              Free to attend · {event.time}. Register now and we'll send you the link.
+              {event.time}. Register now and we'll send you the link.
             </p>
             <EventActionGate
               href={registerUrl}

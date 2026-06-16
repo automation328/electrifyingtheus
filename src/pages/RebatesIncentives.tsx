@@ -17,7 +17,8 @@ import {
   Accordion, AccordionContent, AccordionItem, AccordionTrigger,
 } from "@/components/ui/accordion";
 import {
-  type CatKey, type Incentive, incentivesFor, stateFromZip, STATE_NAMES,
+  type CatKey, type Incentive, incentivesFor, utilityIncentivesFor, afdcUtilityUrl,
+  stateFromZip, STATE_NAMES,
 } from "@/data/incentives";
 
 const CATEGORIES: { key: CatKey; title: string; icon: LucideIcon; color: string }[] = [
@@ -266,6 +267,89 @@ const RebatesIncentives = () => {
                 </section>
               );
             })}
+
+            {/* Utility Company Incentives — curated flagship programs + live AFDC
+                deep-link (AFDC's "Utility/Private Incentives" sector). */}
+            {(() => {
+              const utilProgs = utilityIncentivesFor(loc.state);
+              return (
+                <section className="animate-fade-up">
+                  <div className="flex items-center gap-3 mb-5">
+                    <span className="inline-flex items-center justify-center w-11 h-11 rounded-xl bg-gradient-to-br from-secondary to-blue-500">
+                      <Zap className="text-primary-foreground" size={20} />
+                    </span>
+                    <h2 className="text-2xl font-bold font-display text-foreground">Utility Company Incentives</h2>
+                  </div>
+
+                  {utilProgs.length > 0 ? (
+                    <div className="grid md:grid-cols-2 gap-4">
+                      {utilProgs.map((it, i) => (
+                        <article
+                          key={i}
+                          className="rounded-2xl border border-border bg-card shadow-card p-5 flex flex-col hover:shadow-xl hover:-translate-y-0.5 transition-all"
+                        >
+                          <div className="mb-1">
+                            <h3 className="font-bold font-display text-foreground leading-snug">{it.name}</h3>
+                            <p className="text-xs text-muted-foreground">— {it.jurisdiction}</p>
+                          </div>
+                          {(it.amount || it.income || it.used) && (
+                            <div className="flex flex-wrap items-center gap-2 mt-2 mb-1">
+                              {it.amount && <span className="text-lg font-bold text-gradient-primary">{it.amount}</span>}
+                              {it.income && (
+                                <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-secondary/10 text-secondary">Income Requirement</span>
+                              )}
+                              {it.used && (
+                                <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary">Used Car Eligible</span>
+                              )}
+                            </div>
+                          )}
+                          <hr className="border-border/70 my-3" />
+                          <p className="text-sm text-muted-foreground leading-relaxed flex-1">{it.desc}</p>
+                          <div className="mt-3 flex items-center justify-between gap-3">
+                            <a href={it.link} target="_blank" rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:gap-2.5 transition-all">
+                              Learn More and Apply Here <ExternalLink className="w-3.5 h-3.5" />
+                            </a>
+                            <ShareGate
+                              url="/rebates-incentives"
+                              title={it.name}
+                              summary={[it.jurisdiction, it.amount].filter(Boolean).join(" · ")}
+                              description={it.desc}
+                              image="/og/incentives.jpg"
+                              meta={[it.jurisdiction, it.amount].filter(Boolean).join(" · ")}
+                              formType="incentive-share"
+                              variant="label"
+                              label="Share"
+                            />
+                          </div>
+                        </article>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground px-1">
+                      Your electric utility may offer EV charger rebates, off-peak charging credits, or special
+                      EV rate plans. See the current utility programs for {loc.name} below.
+                    </p>
+                  )}
+
+                  <div className="mt-4 rounded-2xl border border-dashed border-secondary/40 bg-secondary/5 p-5 flex flex-col sm:flex-row sm:items-center gap-4">
+                    <span className="w-11 h-11 rounded-2xl bg-secondary/10 flex items-center justify-center shrink-0">
+                      <Zap className="w-5 h-5 text-secondary" />
+                    </span>
+                    <div className="flex-1">
+                      <h3 className="font-bold font-display text-foreground">All utility &amp; private incentives in {loc.name}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Live, currently-active utility programs from the U.S. DOE Alternative Fuels Data Center.
+                      </p>
+                    </div>
+                    <a href={afdcUtilityUrl(loc.state)} target="_blank" rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 gradient-primary text-primary-foreground text-sm font-semibold px-5 py-2.5 rounded-xl hover:opacity-90 transition-opacity shrink-0">
+                      See utility programs <ArrowRight className="w-4 h-4" />
+                    </a>
+                  </div>
+                </section>
+              );
+            })()}
 
             <div>
               <a

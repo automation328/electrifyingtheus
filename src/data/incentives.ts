@@ -243,6 +243,119 @@ export const incentivesFor = (state: string, key: CatKey): Incentive[] => [
   ...(FEDERAL[key] ?? []),
 ];
 
+// ── Utility / Private incentives ─────────────────────────────────────────────
+// The DOE AFDC "Utility/Private Incentives" sector (implementing_sector=U) is no
+// longer served by a reachable AFDC API — the canonical developer.nrel.gov host
+// is decommissioned, and the live api.data.gov mirror carries no sector field.
+// So these flagship utility EV programs are curated by state, and we deep-link to
+// AFDC's live, sector-categorized state page for the complete, current list.
+export const UTILITY_INCENTIVES: Record<string, Incentive[]> = {
+  CA: [
+    { name: "PG&E Empower EV", jurisdiction: "Pacific Gas & Electric Incentive", amount: "Up to $4,000", income: true,
+      desc: "Income-eligible PG&E customers can receive up to $2,500 for a Level 2 charger and up to $2,000 toward a panel upgrade to support home charging.",
+      link: "https://www.pge.com/en/clean-energy/electric-vehicles.html" },
+    { name: "SCE Pre-Owned EV Rebate", jurisdiction: "Southern California Edison Incentive", amount: "$1,000 – $4,000", used: true, income: true,
+      desc: "Rebate for buying or leasing a used EV — $1,000 for most customers, up to $4,000 for income-qualified households in SCE territory.",
+      link: "https://www.sce.com/rebates-and-savings/electric-vehicles" },
+    { name: "SDG&E EV-TOU Charging Rates", jurisdiction: "San Diego Gas & Electric Incentive",
+      desc: "Special time-of-use rate plans that lower the cost of charging your EV overnight, plus 'Power Your Drive' make-ready support for home and multifamily charging.",
+      link: "https://www.sdge.com/residential/electric-vehicles" },
+  ],
+  NY: [
+    { name: "Con Edison SmartCharge New York", jurisdiction: "Con Edison Incentive", amount: "Up to ~$150/yr",
+      desc: "Earn rewards for charging your EV during off-peak hours and on summer event days in Con Edison territory — enrolled automatically via a connected charger or telematics.",
+      link: "https://www.coned.com/en/save-money/rebates-incentives-tax-credits" },
+    { name: "PSEG Long Island EV Make-Ready & Rewards", jurisdiction: "PSEG Long Island Incentive",
+      desc: "Off-peak charging rewards and make-ready support to reduce the cost of installing home and workplace Level 2 charging on Long Island.",
+      link: "https://www.psegliny.com/saveenergyandmoney/electricvehicles" },
+  ],
+  TX: [
+    { name: "Austin Energy Home Charging Rebate", jurisdiction: "Austin Energy Incentive", amount: "$300",
+      desc: "$300 rebate toward a qualifying Level 2 home charger, plus the EV360 flat-rate plan that bundles unlimited off-peak home and public charging.",
+      link: "https://austinenergy.com/green-power/plug-in-austin/charging-tools-and-rebates" },
+    { name: "CPS Energy EV Charging Rebate", jurisdiction: "CPS Energy (San Antonio) Incentive", amount: "Up to $250",
+      desc: "Rebate for San Antonio customers who install a qualifying smart Level 2 charger and enroll in managed off-peak charging.",
+      link: "https://www.cpsenergy.com/en/residential/savenow/electric-vehicles.html" },
+  ],
+  CO: [
+    { name: "Xcel Energy Income-Qualified EV Rebate", jurisdiction: "Xcel Energy Incentive", amount: "Up to $5,500", income: true, used: true,
+      desc: "Up to $5,500 for income-qualified Colorado customers buying a new or used EV (up to $3,000 standard), stackable with state and federal benefits.",
+      link: "https://co.my.xcelenergy.com/s/residential/ev" },
+    { name: "Xcel Energy EV Accelerate At Home", jurisdiction: "Xcel Energy Incentive",
+      desc: "Managed Level 2 home charging for a low monthly fee — Xcel installs and maintains the charger and optimizes charging to off-peak hours.",
+      link: "https://co.my.xcelenergy.com/s/residential/ev" },
+  ],
+  FL: [
+    { name: "Duke Energy Off-Peak EV Charging Credit", jurisdiction: "Duke Energy Florida Incentive",
+      desc: "Bill credits for charging your EV during off-peak hours through Duke Energy Florida's residential EV charging program.",
+      link: "https://www.duke-energy.com/home/products/electric-vehicles" },
+    { name: "OUC Home Charging Rebate", jurisdiction: "Orlando Utilities Commission Incentive", amount: "Up to $200",
+      desc: "Rebate for OUC customers who purchase and install a qualifying Level 2 home charger.",
+      link: "https://www.ouc.com/residential/electric-vehicles" },
+  ],
+  NJ: [
+    { name: "PSE&G Residential EV Charging Program", jurisdiction: "PSE&G Incentive", amount: "Up to $1,500",
+      desc: "Up to $1,500 toward a smart Level 2 charger and wiring, plus off-peak charging credits for New Jersey PSE&G customers.",
+      link: "https://nj.pseg.com/saveenergyandmoney/electricvehicles" },
+  ],
+  MA: [
+    { name: "Eversource & National Grid ConnectedSolutions EV", jurisdiction: "Massachusetts Utility Incentive",
+      desc: "Make-ready support and off-peak charging rewards for residential and multifamily Level 2 charging across Eversource and National Grid territory.",
+      link: "https://www.eversource.com/content/residential/save-money-energy/explore-alternatives/electric-vehicles" },
+  ],
+  WA: [
+    { name: "Puget Sound Energy / Seattle City Light Charger Rebate", jurisdiction: "Washington Utility Incentive", amount: "Up to $1,000", income: true,
+      desc: "Rebates of up to $1,000 (higher for income-qualified customers) toward a qualifying Level 2 home charger from participating Washington utilities.",
+      link: "https://www.pse.com/en/pages/electric-cars" },
+  ],
+  MI: [
+    { name: "DTE Charging Forward", jurisdiction: "DTE Energy Incentive", amount: "$500",
+      desc: "$500 rebate for a qualifying Level 2 home charger plus a discounted off-peak EV charging rate for DTE customers.",
+      link: "https://www.dteenergy.com/us/en/residential/service-request/electric-vehicles.html" },
+    { name: "Consumers Energy PowerMIDrive", jurisdiction: "Consumers Energy Incentive", amount: "$500",
+      desc: "Up to $500 rebate for a Level 2 home charger and access to off-peak EV charging rates for Consumers Energy customers.",
+      link: "https://www.consumersenergy.com/residential/programs-and-services/electric-vehicles" },
+  ],
+  IL: [
+    { name: "ComEd Residential EV Charging Rebate", jurisdiction: "ComEd Incentive",
+      desc: "Charging credits and make-ready support for northern Illinois ComEd customers who charge during off-peak hours.",
+      link: "https://www.comed.com/ways-to-save/for-your-home/electric-vehicles" },
+  ],
+  GA: [
+    { name: "Georgia Power Plug-In EV Rate", jurisdiction: "Georgia Power Incentive",
+      desc: "A nights-and-weekends time-of-use rate that sharply lowers the cost of charging your EV at home during off-peak hours.",
+      link: "https://www.georgiapower.com/residential/billing-and-rate-plans/pricing-and-rate-plans/electric-vehicles.html" },
+  ],
+  MD: [
+    { name: "BGE / Pepco / Delmarva EVsmart", jurisdiction: "Maryland Utility Incentive", amount: "Up to $300",
+      desc: "Up to $300 rebate toward a smart Level 2 home charger plus off-peak charging rewards across Maryland's major utilities.",
+      link: "https://www.bge.com/SmartEnergy/InnovationTechnology/Pages/ElectricVehicles.aspx" },
+  ],
+  OR: [
+    { name: "Portland General Electric Smart Charging", jurisdiction: "PGE Incentive", amount: "Up to $500",
+      desc: "Rebate toward a smart Level 2 charger and enrollment rewards for managed off-peak charging for PGE customers.",
+      link: "https://portlandgeneral.com/about/info/electric-vehicles" },
+  ],
+  CT: [
+    { name: "Eversource & UI EV Charging Rewards", jurisdiction: "Connecticut Utility Incentive", amount: "Up to $500",
+      desc: "Upfront and ongoing rewards (up to $500) for installing a smart Level 2 charger and charging off-peak through Connecticut's utilities.",
+      link: "https://www.eversource.com/content/residential/save-money-energy/explore-alternatives/electric-vehicles" },
+  ],
+  MN: [
+    { name: "Xcel Energy Optimize Your Charge", jurisdiction: "Xcel Energy Incentive",
+      desc: "Bill credits for charging your EV during off-peak hours, plus EV charger rebates for participating Minnesota Xcel Energy customers.",
+      link: "https://mn.my.xcelenergy.com/s/residential/ev" },
+  ],
+};
+
+/** Curated flagship utility EV programs for a state (empty when none are curated). */
+export const utilityIncentivesFor = (state: string): Incentive[] =>
+  UTILITY_INCENTIVES[state] ?? [];
+
+/** Deep-link to AFDC's live, sector-categorized incentives page for a state. */
+export const afdcUtilityUrl = (state: string): string =>
+  `https://afdc.energy.gov/laws/state?state=${encodeURIComponent(state)}`;
+
 const ALL_CATS: CatKey[] = ["vehicle", "charging", "electricity", "perks"];
 
 /** Largest dollar figure referenced in an amount string (e.g. "$1,350 - $2,000" → 2000). */

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import evanPortrait from "@/assets/evan.jpg";
 
 import { type Lead, EMPTY_LEAD, isValidEmail } from "@/lib/lead";
+import { withChatCta } from "@/lib/chatCta";
 
 type Message = { role: "user" | "assistant"; content: string };
 
@@ -338,7 +339,7 @@ const AgentChatSection = () => {
 
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: reply.trim() || `Thanks! I didn't catch a response that time — could you rephrase?${CONTACT_HINT}` },
+        { role: "assistant", content: reply.trim() ? withChatCta(reply.trim()) : `Thanks! I didn't catch a response that time — could you rephrase?${CONTACT_HINT}` },
       ]);
     } catch {
       setMessages((prev) => [

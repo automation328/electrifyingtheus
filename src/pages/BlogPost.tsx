@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { ArrowLeft, ArrowRight, Calendar, User, Clock } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -37,6 +38,24 @@ const markdownComponents = {
     ) : (
       <a href={href} target="_blank" rel="noopener noreferrer" className="text-primary underline font-medium">{children}</a>
     ),
+  // GitHub-flavored markdown tables (enabled via remark-gfm).
+  table: ({ children }: { children?: React.ReactNode }) => (
+    <div className="my-6 overflow-x-auto rounded-2xl border border-border">
+      <table className="w-full text-sm md:text-base border-collapse">{children}</table>
+    </div>
+  ),
+  thead: ({ children }: { children?: React.ReactNode }) => (
+    <thead className="bg-muted/60">{children}</thead>
+  ),
+  th: ({ children }: { children?: React.ReactNode }) => (
+    <th className="text-left font-semibold text-foreground px-4 py-3 border-b border-border">{children}</th>
+  ),
+  td: ({ children }: { children?: React.ReactNode }) => (
+    <td className="text-muted-foreground px-4 py-3 border-b border-border align-top">{children}</td>
+  ),
+  tr: ({ children }: { children?: React.ReactNode }) => (
+    <tr className="last:[&>td]:border-b-0">{children}</tr>
+  ),
 };
 
 const BlogPost = () => {
@@ -138,7 +157,7 @@ const BlogPost = () => {
 
           {/* Body */}
           <div className="text-base md:text-lg">
-            <ReactMarkdown components={markdownComponents}>{post.content}</ReactMarkdown>
+            <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>{post.content}</ReactMarkdown>
           </div>
         </article>
 

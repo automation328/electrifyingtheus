@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { submitLead } from "@/lib/submitLead";
 import { rememberLeadEmail } from "@/lib/emailCompose";
+import { saveLeadIdentity } from "@/lib/leadIdentity";
 
 const isEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
 
@@ -49,6 +50,7 @@ const CalculatorGateDialog = ({ open, onOpenChange, onUnlock, vehicleSummary, st
       city: stateName ?? "",
     });
     rememberLeadEmail(email.trim());
+    saveLeadIdentity({ firstName: firstName.trim(), email: email.trim() });
     setSending(false);
     // Hand the name up so the page can show the "Thank you, {name}!" intro, then
     // close the dialog to reveal the results beneath it.

@@ -156,6 +156,41 @@
   50% { transform: translateY(-10px); }
 }
 
+/* Hero "EV vs Gas Calculator" CTA — pulsing green glow + a light shimmer sweep
+   so the calculator (our key conversion action) draws the eye on the photo bg. */
+.btn-cta-pulse {
+  position: relative;
+  overflow: hidden;
+  animation: ctaGlow 2.6s ease-in-out infinite;
+}
+.btn-cta-pulse::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(110deg, transparent 38%, hsla(0, 0%, 100%, 0.45) 50%, transparent 62%);
+  background-size: 250% 100%;
+  background-position: 250% 0;
+  animation: ctaShimmer 3.4s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes ctaGlow {
+  0%, 100% { box-shadow: 0 0 0 0 hsla(145, 60%, 50%, 0), 0 0 14px 0 hsla(145, 60%, 50%, 0.25); }
+  50%      { box-shadow: 0 0 0 5px hsla(145, 60%, 50%, 0), 0 0 30px 5px hsla(145, 60%, 50%, 0.6); }
+}
+@keyframes ctaShimmer {
+  0%        { background-position: 250% 0; }
+  55%, 100% { background-position: -150% 0; }
+}
+.cta-icon-bob { animation: ctaBob 2.6s ease-in-out infinite; transform-origin: center; }
+@keyframes ctaBob {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50%      { transform: translateY(-2px) rotate(-8deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .btn-cta-pulse, .btn-cta-pulse::after, .cta-icon-bob { animation: none; }
+}
+
 html {
   scroll-behavior: smooth;
 }
@@ -305,8 +340,23 @@ html[data-theme="glass"] .gradient-hero {
 @keyframes evgPulse { 0%, 100% { opacity: 0.45; } 50% { opacity: 1; } }
 .evg-pulse { animation: evgPulse 2.2s ease-in-out infinite; }
 
+/* "$ of fuel" range bars — a flowing sheen sweeps across each fill (energy in
+   motion), a soft pulse rings the leading tip, and the icon gently pulses. */
+.evg-bar-fill { position: relative; overflow: hidden; }
+.evg-bar-fill::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit;
+  background: linear-gradient(100deg, transparent 32%, hsl(0 0% 100% / 0.55) 50%, transparent 68%);
+  background-size: 220% 100%;
+  animation: evgBarSheen 2.2s linear infinite;
+  pointer-events: none;
+}
+@keyframes evgBarSheen { from { background-position: 160% 0; } to { background-position: -160% 0; } }
+
+.evg-bar-icon { animation: evgPulse 2.2s ease-in-out infinite; }
+
 @media (prefers-reduced-motion: reduce) {
-  .evg-seam, .evg-seam::after, .evg-ribbon, .evg-pulse { animation: none; }
+  .evg-seam, .evg-seam::after, .evg-ribbon, .evg-pulse,
+  .evg-bar-fill::after, .evg-bar-icon { animation: none; }
   .evg-rise { opacity: 1; animation: none; }
 }
 

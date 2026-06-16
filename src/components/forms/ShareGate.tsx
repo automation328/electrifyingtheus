@@ -3,8 +3,9 @@
 // The lead is upserted into GoHighLevel (+ Slack alert) via the secure /api/lead
 // proxy with a surface-specific tag (photo / article / incentive share).
 //
-// Once captured, the gate is remembered for the browser session (sessionStorage)
-// so the visitor isn't re-asked on every subsequent share.
+// Once captured anywhere on the site (this share, the calculator unlock, or an
+// event action), the visitor's name + email are remembered (see lib/leadIdentity)
+// so the gate is skipped and they go straight to the share options next time.
 
 import { useState } from "react";
 import {
@@ -18,6 +19,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { submitLead, type LeadFormType } from "@/lib/submitLead";
 import { rememberLeadEmail } from "@/lib/emailCompose";
+import { getLeadIdentity, saveLeadIdentity } from "@/lib/leadIdentity";
 import ShareResultDialog from "@/components/forms/ShareResultDialog";
 import { toast } from "sonner";
 
@@ -62,8 +64,6 @@ interface ShareGateProps {
   stopNav?: boolean;
 }
 
-const SESSION_KEY = "share_unlocked";
-
 const ShareGate = ({
   url, title, formType, summary, description, image, meta,
   variant = "icon", label = "Share", className, stopNav = true,
@@ -99,9 +99,17 @@ const ShareGate = ({
 
   const openShare = (e: React.MouseEvent) => {
     if (stopNav) { e.preventDefault(); e.stopPropagation(); }
-    // Always re-ask for first name + email before every share — never skip the
-    // gate, even if this visitor shared earlier in the session.
-    setCaptured(false);
+    // If the visitor already identified themselves at any earlier gate (calculator,
+    // a previous share, an event action), skip straight to the share options and
+    // reuse their saved name + email. Otherwise show the name/email form first.
+    const id = getLeadIdentity();
+    if (id) {
+      setFirstName(id.firstName);
+      setEmail(id.email);
+      setCaptured(true);
+    } else {
+      setCaptured(false);
+    }
     setOpen(true);
   };
 
@@ -117,6 +125,7 @@ const ShareGate = ({
       shareUrl: absoluteUrl,
     });
     rememberLeadEmail(email.trim());
+    saveLeadIdentity({ firstName: firstName.trim(), email: email.trim() });
     setSending(false);
     // Reveal the share options (non-blocking — proceeds even if the POST hiccups).
     setCaptured(true);

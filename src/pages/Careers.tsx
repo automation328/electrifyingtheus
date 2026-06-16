@@ -11,6 +11,7 @@ import { JOBS, type Job } from "@/data/careers";
 import { useExternalJobs } from "@/hooks/use-external-jobs";
 import { usePostedJobs } from "@/hooks/use-content";
 import { submitLead } from "@/lib/submitLead";
+import { getLeadIdentity, saveLeadIdentity } from "@/lib/leadIdentity";
 import EmailShareButton from "@/components/forms/EmailShareButton";
 import ShareGate from "@/components/forms/ShareGate";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -76,7 +77,21 @@ const Careers = () => {
   const applyTo = (j: Job) =>
     j.applyUrl ?? `https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(`${j.title} ${j.company}`)}`;
 
-  const openApply = (j: Job) => { setApplyForm({ firstName: "", email: "" }); setApplyErr(""); setApplyJob(j); };
+  const openApply = (j: Job) => {
+    // Already identified at an earlier gate (calculator, share, event, prior apply)?
+    // Log the application in the background and go straight to the employer's site —
+    // don't re-ask for a name + email we already have.
+    const id = getLeadIdentity();
+    if (id) {
+      submitLead("job-apply", {
+        firstName: id.firstName, email: id.email,
+        jobTitle: j.title, company: j.company, location: j.location, jobType: j.type,
+      });
+      window.open(applyTo(j), "_blank", "noopener,noreferrer");
+      return;
+    }
+    setApplyForm({ firstName: "", email: "" }); setApplyErr(""); setApplyJob(j);
+  };
 
   const submitApply = (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,6 +102,7 @@ const Careers = () => {
       firstName: applyForm.firstName, email: applyForm.email,
       jobTitle: j.title, company: j.company, location: j.location, jobType: j.type,
     });
+    saveLeadIdentity({ firstName: applyForm.firstName.trim(), email: applyForm.email.trim() });
     setApplyJob(null);
     window.open(applyTo(j), "_blank", "noopener,noreferrer");
   };

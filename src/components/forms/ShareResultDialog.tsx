@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { submitLead, type LeadFormType } from "@/lib/submitLead";
 import { sendShareEmail } from "@/lib/sendShareEmail";
+import { getLeadIdentity, saveLeadIdentity } from "@/lib/leadIdentity";
 import { toast } from "sonner";
 
 type Channel = "email" | "sms";
@@ -78,14 +79,19 @@ const ShareResultDialog = ({
     ? shareUrl
     : (typeof window !== "undefined" ? window.location.origin + shareUrl : shareUrl);
 
-  // Each open: apply the preset channel and prefill empty sender fields from
-  // the gate, so the visitor doesn't retype what they just entered.
+  // Each open: apply the preset channel and prefill empty sender fields. Prefer
+  // the explicit gate defaults; otherwise fall back to the visitor's saved
+  // identity (captured at any earlier gate) so they never retype their own name
+  // + email when sending.
   useEffect(() => {
     if (!open) return;
     if (presetChannel) setChannel(presetChannel);
-    if (senderNameDefault) setSenderName((v) => v || senderNameDefault);
-    if (senderEmailDefault && (presetChannel ?? "email") === "email") {
-      setSenderContact((v) => v || senderEmailDefault);
+    const id = getLeadIdentity();
+    const nameDefault = senderNameDefault || id?.firstName;
+    const emailDefault = senderEmailDefault || id?.email;
+    if (nameDefault) setSenderName((v) => v || nameDefault);
+    if (emailDefault && (presetChannel ?? "email") === "email") {
+      setSenderContact((v) => v || emailDefault);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
@@ -135,6 +141,12 @@ const ShareResultDialog = ({
         imageUrl: emailContent.imageUrl,
         url: absoluteUrl,
       });
+    }
+
+    // Remember the sender so later gates/shares don't re-ask (email channel only —
+    // the SMS "from" field is a phone number, not an identity email).
+    if (channel === "email" && isEmail(senderContact)) {
+      saveLeadIdentity({ firstName: senderName.trim(), email: senderContact.trim() });
     }
 
     setSending(false);

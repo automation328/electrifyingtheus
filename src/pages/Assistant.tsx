@@ -6,6 +6,7 @@ import Footer from "@/components/Footer";
 import ReactMarkdown from "react-markdown";
 import OpenAI from "openai";
 import { type Lead, EMPTY_LEAD, isValidEmail } from "@/lib/lead";
+import { withChatCta } from "@/lib/chatCta";
 
 type Message = { role: "user" | "assistant"; content: string };
 
@@ -209,6 +210,11 @@ const Assistant = () => {
           });
         }
 
+        // Ensure the answer ends with a calculator/incentives call-to-action.
+        if (assistantSoFar.trim()) {
+          const finalText = withChatCta(assistantSoFar);
+          setMessages((prev) => prev.map((m, i) => (i === prev.length - 1 && m.role === "assistant" ? { ...m, content: finalText } : m)));
+        }
         setLoading(false);
         return;
       }
@@ -282,6 +288,12 @@ const Assistant = () => {
             if (content) upsert(content);
           } catch { /* ignore malformed SSE line */ }
         }
+      }
+
+      // Ensure the answer ends with a calculator/incentives call-to-action.
+      if (assistantSoFar.trim()) {
+        const finalText = withChatCta(assistantSoFar);
+        setMessages((prev) => prev.map((m, i) => (i === prev.length - 1 && m.role === "assistant" ? { ...m, content: finalText } : m)));
       }
     } catch (err) {
       const detail =

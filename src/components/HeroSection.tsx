@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   ChevronDown, ChevronLeft, ChevronRight,
-  MapPin, Clock, CalendarDays, ArrowRight, Newspaper, Briefcase, Building2,
+  MapPin, Clock, CalendarDays, ArrowRight, Newspaper, Briefcase, Building2, Calculator,
 } from "lucide-react";
 import heroBg from "@/assets/hero-bg.jpg";
 import logo from "@/assets/hero-logo.png";
@@ -205,7 +205,8 @@ const BrandSlide = ({ active }: { active: boolean }) => (
         </Button>
       </a>
       <Link to="/electricity-vs-gasoline">
-        <Button variant="heroOutline" size="lg" className="text-base px-8 py-6 rounded-2xl">
+        <Button variant="heroOutline" size="lg" className="btn-cta-pulse text-base px-8 py-6 rounded-2xl bg-primary-foreground/5">
+          <Calculator className="cta-icon-bob" />
           EV vs Gas Calculator
         </Button>
       </Link>

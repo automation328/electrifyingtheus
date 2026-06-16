@@ -14,10 +14,10 @@ export interface OgEntry {
 
 export const OG_ENTRIES: OgEntry[] = [
   {
-    path: "/blog/why-2026-is-the-tipping-point",
-    title: "Why 2026 Is the Tipping Point for EV Adoption in America",
+    path: "/blog/2026-ev-tipping-point-electric-vehicle-adoption-america",
+    title: "Why 2026 Is the Tipping Point for Electric Vehicle Adoption in America",
     description:
-      "With more than 8 million EVs on U.S. roads, falling battery costs, and a fast-growing charging network, the shift to electric is moving from early adopters to the mainstream.",
+      "2026 is the tipping point for electric vehicle adoption in America—why most drivers now save by going EV.",
     image: "/og/why-2026-is-the-tipping-point.jpg",
   },
   {

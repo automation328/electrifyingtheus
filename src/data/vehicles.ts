@@ -199,6 +199,12 @@ export const vehicles: VehicleData[] = [
     bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "AWD", rangeMi: 302, luxury: true,
   },
   {
+    id: "cadillac-escalade-iq", name: "Cadillac ESCALADE IQ", type: "ev", msrp: 129990,
+    mpge: 78, kwhPer100mi: 43, maintenanceCostPerMile: 0.075, insuranceAnnual: 3200,
+    depreciationRate: 0.24, category: "SUV",
+    bodyStyle: "suv-large", sizeClass: 4, seats: 7, drivetrain: "AWD", rangeMi: 460, luxury: true,
+  },
+  {
     id: "chevy-bolt-ev", name: "Chevrolet Bolt EV", type: "ev", msrp: 27600,
     mpge: 120, kwhPer100mi: 28, maintenanceCostPerMile: 0.057, insuranceAnnual: 1700,
     depreciationRate: 0.18, category: "Sedan",
@@ -1235,6 +1241,7 @@ const VEHICLE_IMAGES: Record<string, string> = {
   "bmw-ix-xdrive40": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/2022_BMW_iX_xDrive_40_CRI_12_2021_2727.jpg/330px-2022_BMW_iX_xDrive_40_CRI_12_2021_2727.jpg",
   "cadillac-lyriq": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/2023_Cadillac_Lyriq_in_Satin_Steel_Metallic%2C_front_left.jpg/330px-2023_Cadillac_Lyriq_in_Satin_Steel_Metallic%2C_front_left.jpg",
   "cadillac-optiq": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/Cadillac_Optiq_%28IQ_Aoge%29_01_China_2024-04-23.jpg/330px-Cadillac_Optiq_%28IQ_Aoge%29_01_China_2024-04-23.jpg",
+  "cadillac-escalade-iq": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c6/2026_Cadillac_Escalade_IQ_1000E4%2C_Front_left%2C_03-01-2026.jpg/330px-2026_Cadillac_Escalade_IQ_1000E4%2C_Front_left%2C_03-01-2026.jpg",
   "chevy-bolt-ev": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/2022_Chevrolet_Bolt_EV_2LT%2C_NYC_official_fleet_1.2.23.jpg/330px-2022_Chevrolet_Bolt_EV_2LT%2C_NYC_official_fleet_1.2.23.jpg",
   "nissan-leaf": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/38/0_Nissan_Leaf_%28ZE1%29_2.jpg/330px-0_Nissan_Leaf_%28ZE1%29_2.jpg",
   "genesis-g80-electrified": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Genesis_G80_IAA_2021_1X7A0229.jpg/330px-Genesis_G80_IAA_2021_1X7A0229.jpg",
