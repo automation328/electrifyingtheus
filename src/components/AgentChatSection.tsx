@@ -19,10 +19,11 @@ type Message = { role: "user" | "assistant"; content: string };
 // webhook and renders the reply. Set the Production webhook URL in .env.local:
 //   VITE_N8N_WEBHOOK_URL="https://<your-n8n-host>/webhook/<id>/chat"
 // Without it, the section runs in a friendly demo mode.
-// Strip any leading BOM / stray whitespace from the env value — a corrupt env var
-// would otherwise make the URL relative and every request 404/405 in the browser.
-const N8N_WEBHOOK_URL = (import.meta as { env?: Record<string, string> }).env
-  ?.VITE_N8N_WEBHOOK_URL?.replace(/^﻿/, "").trim();
+// Strip any non-printable characters (e.g. a BOM that got injected into the env
+// var) — otherwise the URL isn't a valid absolute URL, the browser treats it as
+// relative, and every request 404/405s. Keep only printable ASCII, then trim.
+const RAW_N8N_WEBHOOK_URL = (import.meta as { env?: Record<string, string> }).env?.VITE_N8N_WEBHOOK_URL ?? "";
+const N8N_WEBHOOK_URL = RAW_N8N_WEBHOOK_URL.replace(/[^\x20-\x7E]/g, "").trim() || undefined;
 
 // One stable session id per browser tab so the agent can keep conversation memory.
 const sessionId =
