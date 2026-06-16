@@ -10,7 +10,7 @@
 // the generic site card.
 
 import { next } from "@vercel/edge";
-import { OG_ENTRIES } from "./og-data";
+import { OG_ENTRIES } from "./og-data.js";
 
 export const config = {
   matcher: [
