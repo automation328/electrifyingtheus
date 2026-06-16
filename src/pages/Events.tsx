@@ -372,9 +372,6 @@ const Events = () => {
                         <div className="flex flex-wrap items-center gap-2 mb-2">
                           <span className="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold">{e.type}</span>
                           <LocationChip e={e} />
-                          {e.external && e.source && (
-                            <span className="text-[11px] text-muted-foreground">via {e.source}</span>
-                          )}
                         </div>
                         {e.slug ? (
                           <Link to={`/events/${e.slug}`} className="block">

@@ -232,6 +232,12 @@ export default async function handler(req: any, res: any) {
     // (parallel, best-effort). Cached below, so this only runs on a cache miss.
     await Promise.all(events.map(enrich));
 
+    // Show each event's real public source (its own page host, e.g.
+    // driveelectricmonth.org) — never the internal feed/proxy host.
+    for (const e of events) {
+      if (e.url) { try { e.source = hostOf(e.url); } catch { /* keep */ } }
+    }
+
     // Cache hard at the CDN — calendars change slowly. 1h fresh, serve-stale 6h.
     res.setHeader("Cache-Control", "public, s-maxage=3600, stale-while-revalidate=21600");
     res.status(200).json({ events });
