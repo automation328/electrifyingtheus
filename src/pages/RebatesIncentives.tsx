@@ -20,6 +20,15 @@ import {
   type CatKey, type Incentive, incentivesFor, utilityIncentivesFor, afdcUtilityUrl,
   stateFromZip, STATE_NAMES,
 } from "@/data/incentives";
+import { INCENTIVES_DISCLAIMER } from "@/lib/disclaimers";
+
+// Split the disclaimer into its two clauses (intro + the all-caps liability
+// clause) so each gets its own hierarchy in the callout. The liability clause's
+// leading sentence is bolded.
+const [DISC_INTRO, DISC_LIABILITY = ""] = INCENTIVES_DISCLAIMER.split("\n\n");
+const DISC_LEAD_END = DISC_LIABILITY.indexOf(". ");
+const DISC_LEAD = DISC_LEAD_END >= 0 ? DISC_LIABILITY.slice(0, DISC_LEAD_END + 1) : "";
+const DISC_REST = DISC_LEAD_END >= 0 ? DISC_LIABILITY.slice(DISC_LEAD_END + 1).trim() : DISC_LIABILITY;
 
 const CATEGORIES: { key: CatKey; title: string; icon: LucideIcon; color: string }[] = [
   { key: "vehicle", title: "Vehicle Tax Credits and Rebates", icon: DollarSign, color: "from-primary to-primary/80" },
@@ -104,10 +113,12 @@ const RebatesIncentives = () => {
 
         {/* ZIP finder */}
         <div className="container px-4 max-w-5xl mt-10">
-          <div className="glass-card rounded-3xl p-6 md:p-8 animate-fade-up" style={{ animationDelay: "0.2s" }}>
-            <div className="flex items-center gap-2 mb-4">
-              <span className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center">
-                <Search className="w-5 h-5 text-primary" />
+          <div className="relative overflow-hidden rounded-3xl border border-border bg-card shadow-card animate-fade-up" style={{ animationDelay: "0.2s" }}>
+            <div className="h-1.5 w-full gradient-hero" aria-hidden />
+            <div className="p-6 md:p-8">
+            <div className="flex items-center gap-3 mb-5">
+              <span className="grid place-items-center w-10 h-10 rounded-xl gradient-hero shadow-md shrink-0">
+                <Search className="w-5 h-5 text-primary-foreground" />
               </span>
               <div>
                 {loc ? (
@@ -123,7 +134,7 @@ const RebatesIncentives = () => {
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
               <Input
                 type="text"
                 inputMode="numeric"
@@ -135,17 +146,27 @@ const RebatesIncentives = () => {
                 className="sm:max-w-xs h-12 text-base"
                 aria-label="ZIP code"
               />
-              <Button onClick={lookup} size="lg" className="gradient-primary text-primary-foreground h-12">
-                <Search className="w-4 h-4 mr-1" /> View
+              <Button onClick={lookup} size="lg" className="btn-cta-pulse gradient-primary text-primary-foreground h-12">
+                <Search className="cta-icon-bob w-4 h-4 mr-1" /> View
               </Button>
             </div>
 
             {error && <p className="text-sm text-destructive mt-3">{error}</p>}
 
-            <p className="flex items-start gap-2 text-xs text-muted-foreground mt-4">
-              <Info className="w-4 h-4 shrink-0 mt-0.5 text-primary" />
-              Conditions apply for each incentive, and depending on specific requirements, you may or may not be eligible.
+            {/* Disclaimer — subtle, always open (matches the calculator card). */}
+            <p className="text-[11px] leading-relaxed text-muted-foreground mt-6 pt-4 border-t border-border flex items-start gap-2">
+              <Info className="w-3.5 h-3.5 shrink-0 mt-0.5 text-muted-foreground" />
+              <span>
+                <strong className="text-foreground">Estimates only — not financial advice.</strong> {DISC_INTRO}
+              </span>
             </p>
+            <p className="text-[11px] leading-relaxed text-muted-foreground mt-3 pt-3 border-t border-border flex items-start gap-2">
+              <Info className="w-3.5 h-3.5 shrink-0 mt-0.5 text-muted-foreground" />
+              <span>
+                <strong className="text-foreground">{DISC_LEAD}</strong> {DISC_REST}
+              </span>
+            </p>
+            </div>
           </div>
         </div>
 
@@ -239,6 +260,7 @@ const RebatesIncentives = () => {
                               formType="incentive-share"
                               variant="label"
                               label="Share"
+                              disclaimer={INCENTIVES_DISCLAIMER}
                             />
                           </div>
                         </article>
@@ -320,6 +342,7 @@ const RebatesIncentives = () => {
                               formType="incentive-share"
                               variant="label"
                               label="Share"
+                              disclaimer={INCENTIVES_DISCLAIMER}
                             />
                           </div>
                         </article>
@@ -429,6 +452,7 @@ const RebatesIncentives = () => {
             </div>
           </div>
         </div>
+
       </main>
       <Footer />
     </div>

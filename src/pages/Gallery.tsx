@@ -46,7 +46,7 @@ const Gallery = () => {
           <div className="container relative z-10 px-4 max-w-5xl">
             <div className="text-center max-w-2xl mx-auto">
               <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-secondary/10 text-secondary text-sm font-semibold mb-4 animate-fade-up">
-                <Camera className="w-3.5 h-3.5" /> Gallery
+                <Camera className="w-3.5 h-3.5" /> Media, Photos, and Videos
               </span>
               <h1 className="text-4xl md:text-6xl font-bold font-display text-foreground mb-4 animate-fade-up" style={{ animationDelay: "0.08s" }}>
                 Moments in <span className="text-gradient-primary">Motion</span>

@@ -17,14 +17,6 @@ export interface Incentive {
 
 // Federal / nationwide programs — merged into every ZIP's results.
 export const FEDERAL: Partial<Record<CatKey, Incentive[]>> = {
-  vehicle: [{
-    name: "Federal Auto-Loan Interest Deduction",
-    jurisdiction: "Federal Incentive",
-    amount: "Up to $10,000/yr",
-    income: true,
-    desc: "Deduct interest paid on a loan for a U.S.-assembled vehicle (2025–2028). No itemizing required; phases out above $100,000 (single) / $200,000 (joint) modified AGI. Replaces the retired $7,500 purchase credit.",
-    link: "https://www.cleanenergycu.org/resources/blog/obbba-ev-tax-deduction-2026-guide/",
-  }],
   charging: [{
     name: "Alternative Fuel Vehicle Refueling Property Credit",
     jurisdiction: "Federal Incentive",

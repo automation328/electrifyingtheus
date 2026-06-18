@@ -81,6 +81,13 @@ async function enrich(e: NormEvent): Promise<void> {
       const real = cleanFeedTitle(ogTitle);
       if (real.length > 2) e.title = real;
     }
+    // Pull the real event blurb (og:description → meta description) so the card +
+    // detail page show the full description instead of the feed's stub/fallback.
+    const ogDesc = metaContent(html, "og:description") || metaContent(html, "description");
+    if (ogDesc) {
+      const d = decodeEntities(ogDesc);
+      if (d.length > 20 && d.length > (e.description?.length ?? 0)) e.description = d;
+    }
     const ogImg = metaContent(html, "og:image");
     // Use the source's featured image, but skip the generic Drive Electric banner
     // (every DEM event shares it) so those keep varied fallback photos instead.

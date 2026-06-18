@@ -22,6 +22,9 @@ export interface ShareEmailPayload {
   imageUrl?: string;
   /** Absolute page URL the "Read more" button links to. */
   url: string;
+  /** Optional legal disclaimer rendered in the email footer (replaces the
+   *  generic informational line). */
+  disclaimer?: string;
 }
 
 export async function sendShareEmail(payload: ShareEmailPayload): Promise<boolean> {

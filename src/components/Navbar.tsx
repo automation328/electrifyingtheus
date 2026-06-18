@@ -39,8 +39,9 @@ const navItems: NavItem[] = [
   { label: "Incentives", href: "/rebates-incentives" },
   { label: "News", href: "/news" },
   { label: "Events", href: "/events" },
-  { label: "Gallery", href: "/gallery" },
-  { label: "Careers", href: "/careers" },
+  { label: "Media, Photos, and Videos", href: "/gallery" },
+  // Careers hidden from nav at rollout (route + page still live; re-add to show).
+  // { label: "Careers", href: "/careers" },
   { label: "Contact", href: "/contact-us", dialog: true },
 ];
 

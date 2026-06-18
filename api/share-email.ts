@@ -12,6 +12,8 @@
 const RESEND_ENDPOINT = "https://api.resend.com/emails";
 const DEFAULT_FROM = "Electrifying the US <onboarding@resend.dev>";
 const SITE = "https://electrifyingtheus.vercel.app";
+// Site logo served from /public (static → reachable without the password gate).
+const LOGO_URL = `${SITE}/email-logo.png`;
 
 const BRAND = {
   blue: "#0b5fd4",
@@ -59,9 +61,9 @@ async function verifyRecaptcha(token: string): Promise<boolean> {
 
 function buildHtml(opts: {
   title: string; description?: string; meta?: string; imageUrl?: string; url: string;
-  greetName?: string; sharedBy?: string;
+  greetName?: string; sharedBy?: string; disclaimer?: string;
 }): string {
-  const { title, description, meta, imageUrl, url, greetName, sharedBy } = opts;
+  const { title, description, meta, imageUrl, url, greetName, sharedBy, disclaimer } = opts;
   const hero = imageUrl
     ? `<tr><td style="padding:0">
          <a href="${esc(url)}" target="_blank" style="text-decoration:none">
@@ -73,9 +75,18 @@ function buildHtml(opts: {
   const greeting = greetName
     ? `<p style="margin:0 0 14px;font:600 15px/1.5 Arial,Helvetica,sans-serif;color:${BRAND.ink}">Hi ${esc(greetName)},</p>`
     : "";
-  const metaRow = meta
-    ? `<p style="margin:0 0 10px;font:700 12px/1.4 Arial,Helvetica,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:${BRAND.blue}">${esc(meta)}</p>`
+  // When the headline contains "about " (the calculator's "saves about …" line),
+  // inline the savings figure (meta) in GREEN right after "about", leaving the rest
+  // — e.g. the "$1,135/year" — in the headline's normal black. Other shares keep
+  // meta as a separate green eyebrow above the title.
+  const aboutIdx = meta ? title.indexOf("about ") : -1;
+  const inlineMeta = aboutIdx !== -1;
+  const metaRow = (meta && !inlineMeta)
+    ? `<p style="margin:0 0 10px;font:800 22px/1.2 Arial,Helvetica,sans-serif;letter-spacing:-.01em;color:${BRAND.green}">${esc(meta)}</p>`
     : "";
+  const headlineHtml = inlineMeta
+    ? `${esc(title.slice(0, aboutIdx + 6))}<span style="color:${BRAND.green}">${esc(meta)}</span> — ${esc(title.slice(aboutIdx + 6))}`
+    : esc(title);
   const desc = description
     ? `<p style="margin:0 0 24px;font:400 15px/1.65 Arial,Helvetica,sans-serif;color:${BRAND.muted}">${esc(description)}</p>`
     : "";
@@ -89,16 +100,21 @@ function buildHtml(opts: {
     <tr><td align="center">
       <table role="presentation" width="600" cellpadding="0" cellspacing="0"
              style="width:600px;max-width:600px;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 8px 30px rgba(11,95,212,.10)">
-        <!-- Header -->
-        <tr><td style="background:${BRAND.blueDeep};background:linear-gradient(135deg,${BRAND.blue},${BRAND.green});padding:18px 28px">
-          <span style="font:800 18px/1 Arial,Helvetica,sans-serif;color:#ffffff;letter-spacing:-.01em">⚡ Electrifying the US</span>
+        <!-- Header — gradient accent strip + the real site logo and wordmark -->
+        <tr><td style="background:${BRAND.blueDeep};background:linear-gradient(135deg,${BRAND.blue},${BRAND.green});height:6px;line-height:6px;font-size:0">&nbsp;</td></tr>
+        <tr><td style="background:#ffffff;padding:16px 28px;text-align:center;border-bottom:1px solid ${BRAND.line}">
+          <a href="${SITE}" target="_blank" style="text-decoration:none;display:inline-block">
+            <img src="${LOGO_URL}" width="56" height="56" alt="ElectrifyingTheUS.com"
+                 style="display:inline-block;width:56px;height:56px;border:0;vertical-align:middle" />
+            <span style="font:800 20px/1 Arial,Helvetica,sans-serif;color:${BRAND.blue};letter-spacing:-.01em;vertical-align:middle;margin-left:10px">ElectrifyingTheUS.com</span>
+          </a>
         </td></tr>
         ${hero}
         <!-- Body -->
         <tr><td style="padding:28px 28px 8px">
           ${greeting}
           ${metaRow}
-          <h1 style="margin:0 0 14px;font:800 24px/1.25 Arial,Helvetica,sans-serif;color:${BRAND.ink}">${esc(title)}</h1>
+          <h1 style="margin:0 0 14px;font:800 24px/1.25 Arial,Helvetica,sans-serif;color:${BRAND.ink}">${headlineHtml}</h1>
           ${desc}
           <table role="presentation" cellpadding="0" cellspacing="0"><tr><td
              style="border-radius:12px;background:${BRAND.blue}">
@@ -111,13 +127,17 @@ function buildHtml(opts: {
         <tr><td style="padding:24px 28px 28px">
           <hr style="border:none;border-top:1px solid ${BRAND.line};margin:0 0 16px" />
           ${sharedBy ? `<p style="margin:0 0 8px;font:600 13px/1.6 Arial,Helvetica,sans-serif;color:${BRAND.ink}">${esc(sharedBy)} shared this with you.</p>` : ""}
-          <p style="margin:0 0 6px;font:400 12px/1.6 Arial,Helvetica,sans-serif;color:${BRAND.muted}">
+          ${disclaimer
+            ? disclaimer.split(/\n{2,}/).map((p) =>
+                `<p style="margin:0 0 8px;font:400 11px/1.55 Arial,Helvetica,sans-serif;color:#9aa7b4">${esc(p.trim())}</p>`,
+              ).join("")
+            : `<p style="margin:0 0 6px;font:400 12px/1.6 Arial,Helvetica,sans-serif;color:${BRAND.muted}">
             Shared from <a href="${SITE}" style="color:${BRAND.blue};text-decoration:none">ElectrifyingTheUS.com</a> —
             your guide to electric vehicles, charging, and going electric.
           </p>
           <p style="margin:0;font:400 11px/1.5 Arial,Helvetica,sans-serif;color:#9aa7b4">
             You received this because you chose to share this content. Informational only; not financial, legal, or tax advice.
-          </p>
+          </p>`}
         </td></tr>
       </table>
     </td></tr>
@@ -141,7 +161,7 @@ export default async function handler(req: any, res: any) {
   const {
     to = "", recipientName = "", senderEmail = "", senderName = "",
     title = "", description = "", meta = "", imageUrl = "", url = "",
-    recaptchaToken = "",
+    disclaimer = "", recaptchaToken = "",
   } = body as Record<string, string>;
 
   if (!(await verifyRecaptcha(recaptchaToken))) {
@@ -161,6 +181,7 @@ export default async function handler(req: any, res: any) {
   const safeTitle = cap(title, 200);
   const safeDescription = cap(description, 600);
   const safeMeta = cap(meta, 200);
+  const safeDisclaimer = cap(disclaimer, 1200);
   const safeUrl = cap(url, 2048);
   const safeImage = cap(imageUrl, 2048);
   if (!/^https?:\/\//i.test(safeUrl)) { res.status(400).json({ error: "Invalid link" }); return; }
@@ -172,7 +193,7 @@ export default async function handler(req: any, res: any) {
 
   const html = buildHtml({
     title: safeTitle, description: safeDescription, meta: safeMeta,
-    imageUrl: img, url: safeUrl, greetName, sharedBy,
+    imageUrl: img, url: safeUrl, greetName, sharedBy, disclaimer: safeDisclaimer,
   });
   const text = buildText({ title: safeTitle, description: safeDescription, meta: safeMeta, url: safeUrl });
 

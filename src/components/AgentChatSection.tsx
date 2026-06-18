@@ -527,7 +527,11 @@ const AgentChatSection = () => {
                           Get my answer →
                         </button>
                         <p className="text-[11px] text-[hsl(var(--term-muted))] px-1 leading-relaxed">
-                          We use this only to personalize your answers and follow up. No spam.
+                          By using this tool, you agree to our{" "}
+                          <Link to="/terms" className="underline hover:text-[hsl(var(--term-cyan))]">Terms of Use</Link>{" "}
+                          and{" "}
+                          <Link to="/privacy-policy" className="underline hover:text-[hsl(var(--term-cyan))]">Privacy Policy</Link>.
+                          Results are estimates only and should not be relied upon as financial or professional advice.
                         </p>
                       </form>
                     )}

@@ -67,6 +67,13 @@ const Events = () => {
     );
   }, [query, allUpcoming]);
 
+  // Paginate the list: show a handful, then "View more events" loads 10 more.
+  const PAGE_START = 6;
+  const PAGE_STEP = 10;
+  const [visibleCount, setVisibleCount] = useState(PAGE_START);
+  useEffect(() => { setVisibleCount(PAGE_START); }, [query]);
+  const visibleEvents = filtered.slice(0, visibleCount);
+
   const featured = events.filter((e) => e.featured && isUpcoming(e));
 
   // Featured shows 2 cards at a time; arrows page through the rest.
@@ -185,14 +192,21 @@ const Events = () => {
 
         {/* Search + alerts by area/ZIP */}
         <div id="alerts" className="container px-4 max-w-5xl mt-12 scroll-mt-28">
-          <div className="rounded-3xl border border-border bg-card p-6 md:p-7 shadow-card">
+          <div className="relative overflow-hidden rounded-3xl border border-border bg-card shadow-card">
+            <div className="h-1.5 w-full gradient-hero" aria-hidden />
+            <div className="p-6 md:p-7">
             <div className="grid lg:grid-cols-2 gap-6">
               {/* Find events near you */}
               <div>
-                <h2 className="font-display font-bold text-foreground text-lg mb-1 flex items-center gap-2">
-                  <Search className="w-4 h-4 text-primary" /> Find events near you
-                </h2>
-                <p className="text-muted-foreground text-sm mb-4">Search by ZIP code, city, or area.</p>
+                <div className="flex items-center gap-3 mb-4">
+                  <span className="grid place-items-center w-10 h-10 rounded-xl gradient-hero shadow-md shrink-0">
+                    <Search className="w-5 h-5 text-primary-foreground" />
+                  </span>
+                  <div>
+                    <h2 className="font-display font-bold text-foreground text-lg leading-tight">Find events near you</h2>
+                    <p className="text-muted-foreground text-sm">Search by ZIP code, city, or area.</p>
+                  </div>
+                </div>
                 <div className="relative">
                   <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
                   <input
@@ -208,10 +222,15 @@ const Events = () => {
 
               {/* Alerts signup */}
               <div className="lg:border-l lg:border-border lg:pl-6">
-                <h2 className="font-display font-bold text-foreground text-lg mb-1 flex items-center gap-2">
-                  <BellRing className="w-4 h-4 text-primary" /> Get alerts for your area
-                </h2>
-                <p className="text-muted-foreground text-sm mb-4">We'll email you when events come to your region.</p>
+                <div className="flex items-center gap-3 mb-4">
+                  <span className="grid place-items-center w-10 h-10 rounded-xl gradient-hero shadow-md shrink-0">
+                    <BellRing className="w-5 h-5 text-primary-foreground" />
+                  </span>
+                  <div>
+                    <h2 className="font-display font-bold text-foreground text-lg leading-tight">Get alerts for your area</h2>
+                    <p className="text-muted-foreground text-sm">We'll email you when events come to your region.</p>
+                  </div>
+                </div>
                 {alertDone ? (
                   <p className="inline-flex items-center gap-2 text-secondary font-semibold text-sm">
                     <CheckCircle2 className="w-5 h-5" /> You're set{alertArea ? ` for ${alertArea}` : ""} — we'll be in touch.
@@ -240,6 +259,7 @@ const Events = () => {
                 )}
                 {alertErr && <p className="text-sm text-red-500 mt-2">{alertErr}</p>}
               </div>
+            </div>
             </div>
           </div>
         </div>
@@ -330,7 +350,7 @@ const Events = () => {
             </div>
           ) : (
             <div className="space-y-5">
-              {filtered.map((e, i) => {
+              {visibleEvents.map((e, i) => {
                 const key = `${e.title}-${i}`;
                 const open = expandedEvents.has(key);
                 const long = e.description.length > 180;
@@ -409,6 +429,21 @@ const Events = () => {
                   </article>
                 );
               })}
+
+              {visibleCount < filtered.length && (
+                <div className="flex flex-col items-center gap-2 pt-3">
+                  <button
+                    type="button"
+                    onClick={() => setVisibleCount((c) => c + PAGE_STEP)}
+                    className="inline-flex items-center gap-2 rounded-full gradient-primary text-primary-foreground font-semibold text-sm px-6 py-3 shadow-card hover:opacity-90 transition"
+                  >
+                    View more events <ChevronDown className="w-4 h-4" />
+                  </button>
+                  <span className="text-xs text-muted-foreground">
+                    Showing {visibleEvents.length} of {filtered.length}
+                  </span>
+                </div>
+              )}
             </div>
           )}
         </div>

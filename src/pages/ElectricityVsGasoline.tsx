@@ -24,6 +24,7 @@ import ShareResultDialog from "@/components/forms/ShareResultDialog";
 import ShareGate from "@/components/forms/ShareGate";
 import CalculatorGateDialog from "@/components/forms/CalculatorGateDialog";
 import { openEmailCompose } from "@/lib/emailCompose";
+import { CALCULATOR_DISCLAIMER } from "@/lib/disclaimers";
 import Footer from "@/components/Footer";
 import UsElectricityMap from "@/components/UsElectricityMap";
 import { vehicles, getVehiclesByType } from "@/data/vehicles";
@@ -886,10 +887,15 @@ const ElectricityVsGasoline = () => {
                     url={ogShareUrl()}
                     title={buildShare().text}
                     summary={`${ev.name} vs ${gas.name}`}
+                    meta={evWinsFuel
+                      ? `${currency(Math.abs(calc.res.horizonTotalSaved))} saved over ${ownershipYears} years on fuel`
+                      : undefined}
+                    description={`${ev.name} vs ${gas.name} — compared on real U.S. energy prices.`}
                     formType="calculator-share"
                     variant="label"
                     label="Share this result"
                     stopNav={false}
+                    disclaimer={CALCULATOR_DISCLAIMER}
                     className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-2 text-sm font-semibold text-primary shadow-sm hover:bg-white/90 transition-colors"
                   />
                   <ShareResultDialog
@@ -900,6 +906,7 @@ const ElectricityVsGasoline = () => {
                       : undefined}
                     dialogTitle="Send this result"
                     dialogDescription={`Email or text the ${ev.name} vs ${gas.name} comparison — it reopens exactly as you see it.`}
+                    disclaimer={CALCULATOR_DISCLAIMER}
                     trigger={
                       <button
                         type="button"

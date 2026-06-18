@@ -23,19 +23,35 @@ function safeJson(s: string): unknown {
 
 interface GateUser { email: string; password: string; name?: string; }
 
-// Reviewer list: GATE_USERS JSON, else the single SITE_EMAIL/SITE_PASSWORD pair.
+// Parse one GATE_USERS-shaped JSON env var into a reviewer list (ignores junk).
+function parseUserList(raw: string | undefined): GateUser[] {
+  if (!raw) return [];
+  const parsed = safeJson(raw);
+  if (!Array.isArray(parsed)) return [];
+  return parsed
+    .filter((u): u is GateUser => !!u && typeof u.email === "string" && typeof u.password === "string")
+    .map((u) => ({ email: u.email, password: u.password, name: u.name }));
+}
+
+// Reviewer list — MERGED from every source so adding logins never disables the
+// others: GATE_USERS (primary list) + GATE_USERS_EXTRA (additive, for new people
+// without touching the sensitive GATE_USERS value) + the single SITE_EMAIL /
+// SITE_PASSWORD pair. De-duped by email (first occurrence wins).
 function gateUsers(): GateUser[] {
-  const raw = process.env.GATE_USERS;
-  if (raw) {
-    const parsed = safeJson(raw);
-    if (Array.isArray(parsed)) {
-      return parsed
-        .filter((u): u is GateUser => !!u && typeof u.email === "string" && typeof u.password === "string")
-        .map((u) => ({ email: u.email, password: u.password, name: u.name }));
-    }
-  }
+  const list: GateUser[] = [
+    ...parseUserList(process.env.GATE_USERS),
+    ...parseUserList(process.env.GATE_USERS_EXTRA),
+  ];
   const e = process.env.SITE_EMAIL, p = process.env.SITE_PASSWORD;
-  return e && p ? [{ email: e, password: p }] : [];
+  if (e && p) list.push({ email: e, password: p });
+
+  const seen = new Set<string>();
+  return list.filter((u) => {
+    const k = u.email.trim().toLowerCase();
+    if (!k || seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
 }
 
 function clientIp(req: { headers: Record<string, string | string[] | undefined> }): string {

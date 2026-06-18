@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import {
   CalendarDays, Clock, MapPin, ArrowLeft, Ticket, CalendarPlus,
-  Video, CheckCircle2, DollarSign, Plug, BadgeCheck,
+  Video, CheckCircle2, DollarSign, Plug, BadgeCheck, Megaphone,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -95,6 +95,14 @@ const EventFromPumpToPlug = () => {
                   icon={<Ticket className="w-5 h-5" />}
                   className="inline-flex items-center gap-2 gradient-primary text-primary-foreground font-semibold px-5 py-3 rounded-xl shadow-card hover:opacity-90 transition"
                 />
+                <Link to="/list-your-event"
+                  className="inline-flex items-center gap-2 bg-green-600 text-white font-semibold px-5 py-3 rounded-xl shadow-card hover:bg-green-700 transition">
+                  <Megaphone className="w-5 h-5" /> List Your Event
+                </Link>
+                <Link to="/events"
+                  className="inline-flex items-center gap-2 bg-card border border-border text-foreground font-semibold px-5 py-3 rounded-xl hover:border-primary/40 hover:text-primary transition">
+                  <CalendarDays className="w-5 h-5" /> View more events
+                </Link>
               </div>
 
               <p className="text-xs text-muted-foreground">

@@ -1,6 +1,6 @@
 import { Link, useParams } from "react-router-dom";
 import {
-  CalendarDays, Clock, MapPin, ArrowLeft, Ticket, CalendarPlus, Tag, Loader2,
+  CalendarDays, Clock, MapPin, ArrowLeft, Ticket, CalendarPlus, Tag, Loader2, Megaphone,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -135,6 +135,14 @@ const EventDetail = () => {
                   <Ticket className="w-5 h-5" /> Register
                 </Link>
               )}
+              <Link to="/list-your-event"
+                className="inline-flex items-center gap-2 bg-green-600 text-white font-semibold px-5 py-3 rounded-xl shadow-card hover:bg-green-700 transition">
+                <Megaphone className="w-5 h-5" /> List Your Event
+              </Link>
+              <Link to="/events"
+                className="inline-flex items-center gap-2 bg-card border border-border text-foreground font-semibold px-5 py-3 rounded-xl hover:border-primary/40 hover:text-primary transition">
+                <CalendarDays className="w-5 h-5" /> View more events
+              </Link>
             </div>
           </div>
         </div>

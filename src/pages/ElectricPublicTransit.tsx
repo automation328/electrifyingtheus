@@ -67,7 +67,7 @@ const ElectricPublicTransit = () => (
     badge="Beyond Cars · Transit"
     kicker="Multimodal · Field Brief"
     title="Electric"
-    highlight="Public Transit"
+    highlight="Public Transit Bus"
     intro="With more than $2 billion in annual federal funding for low- and no-emission vehicles, transit authorities in all 50 states are replacing diesel fleets with quiet, zero-tailpipe electric buses — cleaning the air along the busiest corridors where the most people breathe."
     heroImage={electricTransitBus}
     icon={Bus}

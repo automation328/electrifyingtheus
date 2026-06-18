@@ -37,7 +37,7 @@ const XLogo = ({ className }: { className?: string }) => (
 
 type ShareFormType = Extract<
   LeadFormType,
-  "photo-share" | "article-share" | "incentive-share" | "event-share" | "job-share" | "calculator-share"
+  "photo-share" | "article-share" | "incentive-share" | "event-share" | "job-share" | "calculator-share" | "charger-share"
 >;
 
 interface ShareGateProps {
@@ -62,11 +62,14 @@ interface ShareGateProps {
   className?: string;
   /** Stop the click from bubbling to a parent <Link>/<a> card. Default true. */
   stopNav?: boolean;
+  /** Extra surface-specific legal disclaimer shown above the standard one (e.g.
+   *  the calculator estimate disclaimer). Also forwarded to the send dialog. */
+  disclaimer?: string;
 }
 
 const ShareGate = ({
   url, title, formType, summary, description, image, meta,
-  variant = "icon", label = "Share", className, stopNav = true,
+  variant = "icon", label = "Share", className, stopNav = true, disclaimer,
 }: ShareGateProps) => {
   const [open, setOpen] = useState(false);
   const [captured, setCaptured] = useState(false);
@@ -141,13 +144,31 @@ const ShareGate = ({
 
   const shareTo = async (network: "facebook" | "linkedin" | "whatsapp" | "instagram") => {
     if (network === "instagram") {
-      // Instagram has no web link-share endpoint — copy the link so the visitor
-      // can paste it into a Story, DM, or bio, then open Instagram.
+      // Instagram has no web link-share endpoint, so we can't prefill a post.
+      // On a PHONE, the native share sheet actually lists Instagram (and can
+      // attach the image), so route there. On desktop the OS share sheet has no
+      // Instagram target — using it just drops the visitor into a generic picker
+      // — so skip it and open instagram.com + copy the link instead.
+      const isMobile =
+        typeof navigator !== "undefined" && /android|iphone|ipad|ipod|mobile/i.test(navigator.userAgent);
+      if (isMobile && canNativeShare) {
+        try {
+          await navigator.share({ title, text: title, url: absoluteUrl });
+          return;
+        } catch { /* dismissed or unsupported target — fall through to copy + open */ }
+      }
+      // Open Instagram SYNCHRONOUSLY, inside the click gesture and BEFORE any
+      // await — opening it after `await clipboard.writeText` makes the browser
+      // treat it as a non-user-initiated popup and the blocker kills the tab.
+      const win = window.open("https://www.instagram.com/", "_blank", "noopener,noreferrer");
       try {
         await navigator.clipboard.writeText(absoluteUrl);
-        toast.success("Link copied", { description: "Paste into your Story link sticker, bio, or DM." });
-      } catch { /* clipboard blocked — still open Instagram */ }
-      window.open("https://www.instagram.com/", "_blank", "noopener,noreferrer");
+        toast.success("Link copied — opening Instagram", { description: "Paste it into a Story link sticker, your bio, or a DM." });
+      } catch { /* clipboard blocked */ }
+      if (!win) {
+        // Popup still blocked (rare) — at least the link is on the clipboard.
+        toast.message("Open Instagram to share", { description: "We copied your link — paste it into a Story, bio, or DM." });
+      }
       return;
     }
     const u = encodeURIComponent(absoluteUrl);
@@ -285,6 +306,11 @@ const ShareGate = ({
             <summary className="cursor-pointer select-none text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/80 hover:text-muted-foreground">
               Disclaimer
             </summary>
+            {disclaimer && (
+              <p className="mt-1.5 text-[10px] leading-relaxed text-muted-foreground whitespace-pre-line">
+                {disclaimer}
+              </p>
+            )}
             <p className="mt-1.5 text-[10px] leading-relaxed text-muted-foreground">
               {SHARE_DISCLAIMER}
             </p>
@@ -304,6 +330,7 @@ const ShareGate = ({
         summary={summary}
         senderNameDefault={firstName.trim() || undefined}
         senderEmailDefault={email.trim() || undefined}
+        disclaimer={disclaimer}
         emailContent={{
           title,
           description: description || summary,

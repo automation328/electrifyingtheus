@@ -48,7 +48,7 @@ const modes = [
   },
   {
     icon: Bus,
-    title: "Electric Public Transit",
+    title: "Electric Public Transit Bus",
     desc: "$2B+ in annual federal funding for low/no-emission vehicles. Transit authorities in all 50 states replacing diesel fleets.",
     path: "/electric-public-transit",
     image: electricTransitBus,

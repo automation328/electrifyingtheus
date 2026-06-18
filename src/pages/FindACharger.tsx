@@ -3,6 +3,19 @@ import { MapPin, Search, ExternalLink, Plug, Zap, Gauge, Locate } from "lucide-r
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
+import ShareGate from "@/components/forms/ShareGate";
+
+// A shared link reopens the page on the same location: /find-a-charger?zip=30301
+const initialZipFromUrl = (): string => {
+  if (typeof window === "undefined") return "";
+  return (new URLSearchParams(window.location.search).get("zip") || "").replace(/\D/g, "").slice(0, 5);
+};
+
+// Direct Google Maps search link for the same result (good for pasting anywhere).
+const mapsLink = (q: string) =>
+  `https://www.google.com/maps/search/${encodeURIComponent(
+    q.trim() ? `EV charging stations near ${q.trim()}` : "EV charging stations near me",
+  )}`;
 
 // Official DOE / AFDC Alternative Fueling Station Locator (authoritative source).
 const AFDC_URL = "https://afdc.energy.gov/fuels/electricity-locations#/find/nearest?fuel=ELEC";
@@ -19,13 +32,16 @@ const CONNECTORS = [
 ];
 
 const FindACharger = () => {
-  const [zip, setZip] = useState("");
-  const [query, setQuery] = useState(""); // the applied search term that drives the map
+  const urlZip = initialZipFromUrl();
+  const [zip, setZip] = useState(urlZip);
+  const [query, setQuery] = useState(urlZip); // the applied search term that drives the map
   const [detected, setDetected] = useState(false);
-  const [detecting, setDetecting] = useState(true);
+  const [detecting, setDetecting] = useState(!urlZip);
 
-  // Auto-detect the visitor's ZIP from their IP and center the map there.
+  // Auto-detect the visitor's ZIP from their IP and center the map there — unless
+  // a ZIP arrived in the URL (a shared link), which always wins.
   useEffect(() => {
+    if (urlZip) return;
     let cancelled = false;
     (async () => {
       try {
@@ -46,13 +62,27 @@ const FindACharger = () => {
       }
     })();
     return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setQuery(zip.trim());
+    const z = zip.trim();
+    setQuery(z);
     setDetected(false);
+    // Reflect the specific result in the URL so it can be shared / reopened.
+    if (typeof window !== "undefined") {
+      const u = new URL(window.location.href);
+      if (z) u.searchParams.set("zip", z); else u.searchParams.delete("zip");
+      window.history.replaceState({}, "", u.toString());
+    }
   };
+
+  // Shareable link + Google Maps deep link for the currently shown location.
+  const shareUrl = `/find-a-charger${query ? `?zip=${encodeURIComponent(query)}` : ""}`;
+  const shareTitle = query
+    ? `EV charging stations near ${query} — Electrifying the US`
+    : "Find EV charging stations near you — Electrifying the US";
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -105,6 +135,31 @@ const FindACharger = () => {
 
         {/* Map */}
         <div className="container px-4 max-w-5xl mt-10">
+          {/* Result toolbar — share THIS location's map, or open it in Google Maps. */}
+          <div className="mb-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
+            <p className="text-sm text-muted-foreground flex items-center gap-1.5">
+              <MapPin className="w-4 h-4 text-primary shrink-0" />
+              {query
+                ? <>Showing chargers near <span className="font-semibold text-foreground">{query}</span></>
+                : "Showing chargers near you"}
+            </p>
+            <div className="flex items-center gap-2">
+              <a href={mapsLink(query)} target="_blank" rel="noopener noreferrer"
+                 className="inline-flex items-center gap-1.5 rounded-full bg-card border border-border px-3 py-1.5 text-xs font-semibold text-foreground hover:border-primary/40 hover:text-primary transition">
+                <ExternalLink className="w-3.5 h-3.5" /> Open in Google Maps
+              </a>
+              <ShareGate
+                url={shareUrl}
+                title={shareTitle}
+                summary={query ? `EV charging near ${query}` : "EV charging near me"}
+                description="See public EV charging stations on the Electrifying the US charging map — this link reopens the map at the same location."
+                formType="charger-share"
+                variant="label"
+                label="Share this map"
+                stopNav={false}
+              />
+            </div>
+          </div>
           <div className="rounded-3xl overflow-hidden border border-border shadow-elevated bg-muted">
             <iframe
               title="EV charging stations map"

@@ -49,6 +49,8 @@ interface ShareResultDialogProps {
   /** Dialog headline + sub-line (defaults are generic). */
   dialogTitle?: string;
   dialogDescription?: string;
+  /** Optional surface-specific legal disclaimer shown as fine print. */
+  disclaimer?: string;
 }
 
 const isEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
@@ -57,7 +59,7 @@ const isPhone = (v: string) => v.replace(/\D/g, "").length >= 10;
 const ShareResultDialog = ({
   shareUrl, contentTitle, summary, formType = "calculator-share", trigger,
   open: openProp, onOpenChange, presetChannel, senderNameDefault, senderEmailDefault,
-  emailContent, dialogTitle = "Send this", dialogDescription,
+  emailContent, dialogTitle = "Send this", dialogDescription, disclaimer,
 }: ShareResultDialogProps) => {
   const [openState, setOpenState] = useState(false);
   const controlled = openProp !== undefined;
@@ -140,6 +142,7 @@ const ShareResultDialog = ({
         meta: emailContent.meta,
         imageUrl: emailContent.imageUrl,
         url: absoluteUrl,
+        disclaimer,
       });
     }
 
@@ -157,10 +160,15 @@ const ShareResultDialog = ({
     if (ok) {
       setDone(true);
       toast.success(
-        channel === "email" ? "On its way by email" : "On its way by text",
-        { description: `We'll send ${recipientName || "your friend"} "${contentTitle}".` },
+        channel === "email" ? "Sent by email" : "Sent by text",
+        {
+          description: `${contentTitle} is on its way to ${recipientContact.trim() || recipientName || "your friend"}.`,
+          duration: 6000,
+        },
       );
-      setTimeout(() => { setOpen(false); reset(); }, 1400);
+      // Hold the "Sent ✓" state long enough that a successful send is unmistakable
+      // (a 1.4s flash read as "nothing happened" to some visitors).
+      setTimeout(() => { setOpen(false); reset(); }, 2600);
     } else {
       toast.error("Couldn't send right now", { description: "Please try again in a moment." });
     }
@@ -169,10 +177,20 @@ const ShareResultDialog = ({
   const contactType = channel === "email" ? "email" : "tel";
   const contactPlaceholder = channel === "email" ? "name@example.com" : "(555) 123-4567";
 
+  // While the visitor is mid-compose (typing a recipient) or a send is in flight,
+  // an accidental click/tap outside — or Escape — must NOT nuke the dialog and
+  // discard what they typed. They can still dismiss with the Close (X) button.
+  const composing = !done && (recipientName.trim() !== "" || recipientContact.trim() !== "");
+  const lockClose = sending || composing;
+
   return (
     <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) reset(); }}>
       {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
-      <DialogContent className="sm:max-w-md rounded-3xl bg-white">
+      <DialogContent
+        className="sm:max-w-md rounded-3xl bg-white"
+        onInteractOutside={(e) => { if (lockClose) e.preventDefault(); }}
+        onEscapeKeyDown={(e) => { if (sending) e.preventDefault(); }}
+      >
         <DialogHeader>
           <DialogTitle className="font-display text-2xl flex items-center gap-2">
             <Send className="w-5 h-5 text-primary" /> {dialogTitle}
@@ -233,6 +251,17 @@ const ShareResultDialog = ({
             By sending, you confirm you have permission to contact this person. If sending by text,
             standard message &amp; data rates may apply. One message per share; reply STOP to opt out.
           </p>
+
+          {disclaimer && (
+            <details className="group">
+              <summary className="cursor-pointer select-none text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/80 hover:text-muted-foreground">
+                Disclaimer
+              </summary>
+              <p className="mt-1.5 text-[10px] leading-relaxed text-muted-foreground whitespace-pre-line">
+                {disclaimer}
+              </p>
+            </details>
+          )}
 
           <Button type="submit" variant="hero" className="w-full rounded-xl" disabled={!valid || sending || done}>
             {done ? (<><Check className="w-4 h-4" /> Sent</>)

@@ -35,6 +35,7 @@ const FORM_TAGS: Record<string, string[]> = {
   "event-register":  ["website-lead", "event-register", "source:event-register"],
   "event-calendar":  ["website-lead", "event-calendar", "source:event-calendar"],
   "job-share":       ["website-lead", "content-share", "job-share", "source:job-share"],
+  "charger-share":   ["website-lead", "content-share", "charger-share", "source:charger-share"],
 };
 
 const SOURCE_LABEL: Record<string, string> = {
@@ -56,6 +57,7 @@ const SOURCE_LABEL: Record<string, string> = {
   "event-register": "Event Register click",
   "event-calendar": "Event Add-to-calendar click",
   "job-share": "Job share (email)",
+  "charger-share": "Charging map share",
 };
 
 const safeJson = (s: string) => { try { return JSON.parse(s); } catch { return {}; } };
