@@ -83,8 +83,8 @@ const Footer = () => {
           <div className="lg:col-span-7">
             <img src={logo} alt="Electrifying the US" className="h-16 w-auto mb-5" />
             <p className="text-white/70 text-sm max-w-sm leading-relaxed mb-5">
-              Transforming how America moves toward a zero-emission and clean-energy future —
-              from EVs and e-bikes to electric buses, eVTOLs, and beyond.
+              2026 is the tipping point for electric vehicle adoption in America—why most
+              drivers now save by going EV.
             </p>
             <a
               href="mailto:info@electrifyingtheus.com"

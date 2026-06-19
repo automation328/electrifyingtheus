@@ -4,6 +4,11 @@ import statsBg from "@/assets/stats-bg.jpg";
 import { useGasPrices } from "@/hooks/use-gas-prices";
 import { NATIONAL_AVG, STATE_ENERGY_RATES } from "@/data/state-energy-rates";
 
+// Same currency formatter the EV vs Gas calculator uses, so the shared national
+// gas figure renders identically on both pages (no .toFixed vs Intl cent drift).
+const usd2 = (n: number) =>
+  new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
+
 const stats = [
   {
     icon: DollarSign,
@@ -82,8 +87,8 @@ const StatsSection = () => {
             // The Fuel Price card pulls the live national + CA-high figures so it
             // stays consistent with the EV vs Gas calculator.
             const isFuel = stat.category === "Fuel Price";
-            const value = isFuel ? `$${national.toFixed(2)}` : stat.value;
-            const sub = isFuel ? `avg · up to $${caHigh.toFixed(2)} / gal` : stat.sub;
+            const value = isFuel ? usd2(national) : stat.value;
+            const sub = isFuel ? `avg · up to ${usd2(caHigh)} / gal` : stat.sub;
             return (
             <div
               key={i}

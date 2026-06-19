@@ -150,7 +150,7 @@ const sections: LegalSection[] = [
   },
 ];
 
-const smsTerms: LegalAppendix = {
+export const smsTerms: LegalAppendix = {
   heading: "SMS & Text Messaging Terms of Service",
   effectiveDate: "June 15, 2026  |  ElectrifyingTheUS.com  |  EVHybridNoire / EVN and its Affiliates",
   preamble: [
@@ -314,7 +314,7 @@ const PrivacyPolicy = () => (
     effectiveDate="June 15, 2026"
     preamble={preamble}
     sections={sections}
-    appendix={smsTerms}
+    appendices={[smsTerms]}
   />
 );
 

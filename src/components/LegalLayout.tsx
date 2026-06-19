@@ -38,8 +38,8 @@ interface LegalLayoutProps {
   sections: LegalSection[];
   /** Paragraphs shown above the numbered sections (un-numbered). */
   preamble?: string[];
-  /** A second, separately-numbered document block appended after the main one. */
-  appendix?: LegalAppendix;
+  /** Separately-numbered document blocks appended after the main one. */
+  appendices?: LegalAppendix[];
   icon?: LucideIcon;
 }
 
@@ -87,7 +87,7 @@ const Sections = ({ sections }: { sections: LegalSection[] }) => (
 );
 
 const LegalLayout = ({
-  badge, title, highlight, intro, effectiveDate, sections, preamble, appendix,
+  badge, title, highlight, intro, effectiveDate, sections, preamble, appendices,
   icon: Icon = ShieldCheck,
 }: LegalLayoutProps) => {
   useEffect(() => {
@@ -123,21 +123,21 @@ const LegalLayout = ({
 
           <Sections sections={sections} />
 
-          {appendix && (
-            <>
+          {appendices && appendices.map((apx, ai) => (
+            <div key={`apx-${ai}`} className="space-y-8">
               <hr className="border-border" />
               <div>
-                <h2 className="text-2xl font-bold font-display text-foreground mb-2">{appendix.heading}</h2>
-                {appendix.effectiveDate && (
-                  <p className="text-xs text-muted-foreground mb-4">Effective date: {appendix.effectiveDate}</p>
+                <h2 className="text-2xl font-bold font-display text-foreground mb-2">{apx.heading}</h2>
+                {apx.effectiveDate && (
+                  <p className="text-xs text-muted-foreground mb-4">Effective date: {apx.effectiveDate}</p>
                 )}
               </div>
-              {appendix.preamble && appendix.preamble.map((p, i) => (
-                <p key={`apx-pre-${i}`} className="text-muted-foreground leading-relaxed">{p}</p>
+              {apx.preamble && apx.preamble.map((p, i) => (
+                <p key={`apx-${ai}-pre-${i}`} className="text-muted-foreground leading-relaxed">{p}</p>
               ))}
-              <Sections sections={appendix.sections} />
-            </>
-          )}
+              <Sections sections={apx.sections} />
+            </div>
+          ))}
 
           <div className="rounded-2xl border border-border bg-card p-6 text-sm text-muted-foreground">
             Questions about this policy? Contact us at{" "}

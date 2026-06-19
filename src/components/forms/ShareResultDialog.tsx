@@ -98,9 +98,11 @@ const ShareResultDialog = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
+  // SMS is a native handoff (opens the visitor's own Messages app), so only the
+  // recipient's number is required — the sender's is optional CRM context.
   const valid = channel === "email"
     ? isEmail(senderContact) && isEmail(recipientContact)
-    : isPhone(senderContact) && isPhone(recipientContact);
+    : isPhone(recipientContact);
 
   const reset = () => {
     setSenderName(""); setSenderContact("");
@@ -128,6 +130,24 @@ const ShareResultDialog = ({
       vehicleSummary: contentTitle,
       savingsSummary: summary ?? "",
     });
+
+    // SMS = native handoff: open the visitor's own Messages app prefilled with the
+    // recipient + share text/link. The lead capture above still runs (CRM), but the
+    // text is sent from the visitor's phone — no server SMS needed.
+    if (channel === "sms") {
+      const text = `${contentTitle}${summary ? ` — ${summary}` : ""}\n${absoluteUrl}`;
+      const to = recipientContact.replace(/[^\d+]/g, "");
+      const smsUrl = `sms:${to}?&body=${encodeURIComponent(text)}`;
+      setSending(false);
+      setDone(true);
+      toast.success("Opening Messages", {
+        description: `Your text${recipientName ? ` to ${recipientName}` : ""} is ready to send.`,
+        duration: 5000,
+      });
+      window.location.href = smsUrl;
+      setTimeout(() => { setOpen(false); reset(); }, 2600);
+      return;
+    }
 
     // Branded HTML email straight to the recipient (email channel only).
     let emailOk = false;
@@ -216,20 +236,22 @@ const ShareResultDialog = ({
             </ToggleGroupItem>
           </ToggleGroup>
 
-          {/* From */}
-          <div className="rounded-2xl border border-border p-3 space-y-2.5">
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">From you</p>
-            <div className="grid grid-cols-2 gap-2">
-              <div className="space-y-1">
-                <Label htmlFor="sr-from-name" className="text-xs">Your name</Label>
-                <Input id="sr-from-name" value={senderName} onChange={(e) => setSenderName(e.target.value)} placeholder="Alex" autoComplete="name" />
-              </div>
-              <div className="space-y-1">
-                <Label htmlFor="sr-from-contact" className="text-xs">Your {channel === "email" ? "email" : "mobile"}</Label>
-                <Input id="sr-from-contact" type={contactType} value={senderContact} onChange={(e) => setSenderContact(e.target.value)} placeholder={contactPlaceholder} required />
+          {/* From — email only; SMS sends from the visitor's own phone. */}
+          {channel === "email" && (
+            <div className="rounded-2xl border border-border p-3 space-y-2.5">
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">From you</p>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <Label htmlFor="sr-from-name" className="text-xs">Your name</Label>
+                  <Input id="sr-from-name" value={senderName} onChange={(e) => setSenderName(e.target.value)} placeholder="Alex" autoComplete="name" />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="sr-from-contact" className="text-xs">Your email</Label>
+                  <Input id="sr-from-contact" type="email" value={senderContact} onChange={(e) => setSenderContact(e.target.value)} placeholder="name@example.com" required />
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* To */}
           <div className="rounded-2xl border border-border p-3 space-y-2.5">
@@ -244,6 +266,9 @@ const ShareResultDialog = ({
                 <Input id="sr-to-contact" type={contactType} value={recipientContact} onChange={(e) => setRecipientContact(e.target.value)} placeholder={contactPlaceholder} required />
               </div>
             </div>
+            {channel === "sms" && (
+              <p className="text-[11px] text-muted-foreground mt-1">Opens your Messages app with the text ready to send.</p>
+            )}
           </div>
 
           {/* Standard text-message rates disclaimer (always shown) */}

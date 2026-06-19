@@ -41,10 +41,6 @@ type VFilter = "all" | "income" | "used";
 
 const FAQS = [
   {
-    q: "Is the $7,500 federal EV tax credit still available?",
-    a: "No. Under the One Big Beautiful Bill Act (OBBBA), the $7,500 new and $4,000 used clean-vehicle credits ended for vehicles placed in service after September 30, 2025. The current federal benefit is a deduction of up to $10,000 per year on interest paid for a loan on a U.S.-assembled vehicle (2025–2028).",
-  },
-  {
     q: "Can I combine federal, state, and utility incentives?",
     a: "Usually yes. Federal tax benefits, state rebates, and utility programs are administered separately, so they often stack. Read each program's terms — a few state or utility offers reduce the amount when another incentive is claimed.",
   },
