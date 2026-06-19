@@ -34,13 +34,15 @@ function parseUserList(raw: string | undefined): GateUser[] {
 }
 
 // Reviewer list — MERGED from every source so adding logins never disables the
-// others: GATE_USERS (primary list) + GATE_USERS_EXTRA (additive, for new people
-// without touching the sensitive GATE_USERS value) + the single SITE_EMAIL /
-// SITE_PASSWORD pair. De-duped by email (first occurrence wins).
+// others: GATE_USERS_EXTRA (additive AND override, for new people or to change a
+// password without touching the sensitive GATE_USERS value) + GATE_USERS (primary
+// list) + the single SITE_EMAIL / SITE_PASSWORD pair. De-duped by email (first
+// occurrence wins) — so GATE_USERS_EXTRA is listed FIRST and overrides a clashing
+// email in GATE_USERS.
 function gateUsers(): GateUser[] {
   const list: GateUser[] = [
-    ...parseUserList(process.env.GATE_USERS),
     ...parseUserList(process.env.GATE_USERS_EXTRA),
+    ...parseUserList(process.env.GATE_USERS),
   ];
   const e = process.env.SITE_EMAIL, p = process.env.SITE_PASSWORD;
   if (e && p) list.push({ email: e, password: p });

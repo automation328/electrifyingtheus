@@ -2,8 +2,8 @@ import { useState, useMemo, useEffect, useRef } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import {
-  ComposedChart, Line, Area, ReferenceLine, BarChart, Bar, XAxis, YAxis, CartesianGrid,
-  Tooltip, ResponsiveContainer, Cell,
+  ComposedChart, Line, Area, ReferenceLine, XAxis, YAxis, CartesianGrid,
+  Tooltip, ResponsiveContainer,
 } from "recharts";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import {
   TrendingDown, Gauge, MapPin, BarChart3, Zap, Fuel, Clock, Trophy,
   Info, SlidersHorizontal, ChevronDown, ShieldCheck, House, Sparkles, Award, CircleDollarSign,
-  Share2, Code2, Car, Tag, Facebook, Linkedin, MessageCircle, Mail, Copy, Send,
+  Share2, Code2, Car, CarFront, Caravan, Truck, BusFront, Tag, Facebook, Linkedin, MessageCircle, Mail, Copy, Send,
   Gift, BadgeCheck, ArrowRight, type LucideIcon,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
@@ -43,6 +43,22 @@ import {
 const EV_COLOR = "hsl(145, 55%, 42%)"; // green
 const GAS_COLOR = "#f97316"; // orange
 // The $7,500 federal EV tax credit has ended — no purchase incentive is applied here.
+
+// Vehicle-class comparisons — each picks a real gas car and its class-matched EV
+// counterpart. Drives the left-rail class picker in the "Compare by vehicle class"
+// section (replaces the old Sedan/SUV dropdown).
+type CompareClass =
+  | "compact-sedan" | "midsize-sedan" | "small-suv" | "pickup" | "full-suv";
+
+const CLASS_OPTIONS: {
+  key: CompareClass; label: string; icon: LucideIcon; gas: string; ev: string;
+}[] = [
+  { key: "compact-sedan", label: "Compact Sedan",  icon: Car,      gas: "honda-civic",       ev: "hyundai-ioniq-6" },
+  { key: "midsize-sedan", label: "Mid-Size Sedan", icon: CarFront, gas: "toyota-camry",      ev: "tesla-model-3" },
+  { key: "small-suv",     label: "Small SUV",      icon: Caravan,  gas: "chevy-equinox",     ev: "chevy-equinox-ev" },
+  { key: "pickup",        label: "EV Pick-Up",     icon: Truck,    gas: "ford-f150",         ev: "ford-f150-lightning" },
+  { key: "full-suv",      label: "Full-Size SUV",  icon: BusFront, gas: "toyota-highlander", ev: "kia-ev9" },
+];
 
 const currency = (n: number, frac = 0) =>
   new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: frac, minimumFractionDigits: frac }).format(n);
@@ -204,7 +220,7 @@ const ElectricityVsGasoline = () => {
   const [publicRate, setPublicRate] = useState(initial.publicKwh);
   const [chargingLoss, setChargingLoss] = useState(initial.chargingLoss);
   const [dollarAmount, setDollarAmount] = useState(initial.dollarAmount);
-  const [compareClass, setCompareClass] = useState<"Sedan" | "SUV">("SUV");
+  const [compareClass, setCompareClass] = useState<CompareClass>("midsize-sedan");
 
   const rates = STATE_ENERGY_RATES[stateCode];
   const incentives = useMemo(() => incentiveHeadline(stateCode), [stateCode]);
@@ -428,10 +444,7 @@ const ElectricityVsGasoline = () => {
 
   // Class comparison (national-average prices) — fuel cost per mile.
   const classComparison = useMemo(() => {
-    const pair = {
-      Sedan: { ev: "tesla-model-3", gas: "toyota-camry" },
-      SUV: { ev: "chevy-equinox-ev", gas: "chevy-equinox" },
-    }[compareClass];
+    const pair = CLASS_OPTIONS.find((o) => o.key === compareClass) ?? CLASS_OPTIONS[1];
     const cEv = vehicles.find((v) => v.id === pair.ev)!;
     const cGas = vehicles.find((v) => v.id === pair.gas)!;
     const evPm = calculate({
@@ -441,13 +454,14 @@ const ElectricityVsGasoline = () => {
       gas: { mpgCombined: cGas.mpg }, ev: { mpgeCombined: cEv.mpge, kwhPer100mi: cEv.kwhPer100mi },
       federalCredit: 0, stateRebate: 0, utilityRebate: 0,
     });
+    const gasPm = evPm.gasCostPerMile;
+    const cEvPm = evPm.evCostPerMile;
+    const pctSaved = gasPm > 0 ? Math.round(((gasPm - cEvPm) / gasPm) * 100) : 0;
     return {
-      cEv, cGas, evPm: evPm.evCostPerMile, gasPm: evPm.gasCostPerMile,
+      cEv, cGas, evPm: cEvPm, gasPm,
       annualSavings: evPm.annualSavings,
-      data: [
-        { name: cGas.name, cost: +evPm.gasCostPerMile.toFixed(2), fill: GAS_COLOR },
-        { name: cEv.name, cost: +evPm.evCostPerMile.toFixed(2), fill: EV_COLOR },
-      ],
+      pctSaved,
+      evBarPct: gasPm > 0 ? Math.max(8, Math.round((cEvPm / gasPm) * 100)) : 100,
     };
   }, [compareClass]);
 
@@ -1256,50 +1270,147 @@ const ElectricityVsGasoline = () => {
               <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-primary">03 — Same class, fair fight</span>
               <span className="h-px flex-1 bg-border" />
             </div>
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+            <div className="mb-8">
               <h2 className="font-charge text-3xl md:text-4xl text-foreground">
                 Compare by vehicle class
               </h2>
-              <Select value={compareClass} onValueChange={(v) => setCompareClass(v as "Sedan" | "SUV")}>
-                <SelectTrigger className="evg-field rounded-xl h-11 w-full sm:w-56"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Sedan">Mid-size Sedan</SelectItem>
-                  <SelectItem value="SUV">Compact SUV</SelectItem>
-                </SelectContent>
-              </Select>
+              <p className="text-muted-foreground mt-2">
+                Pick a class to see the gas car and its electric counterpart, head to head.
+              </p>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-8 items-center p-6 md:p-8 rounded-3xl border border-border bg-card">
-              <div>
-                <p className="text-xl md:text-2xl font-display font-semibold text-foreground mb-2">
-                  On average, you'd save{" "}
-                  <span className="evg-ink-ev font-charge">{currency(classComparison.annualSavings)}</span> per year
-                </p>
-                <p className="text-muted-foreground">
-                  with the <strong>{classComparison.cEv.name}</strong> instead of the{" "}
-                  <strong>{classComparison.cGas.name}</strong> (at national-average energy prices, 12,000 mi/yr).
-                </p>
-                <div className="mt-4 text-sm text-muted-foreground">
-                  <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-sm" style={{ background: GAS_COLOR }} /> {classComparison.cGas.name}: {currency(classComparison.gasPm, 2)}/mi</div>
-                  <div className="flex items-center gap-2 mt-1"><span className="w-3 h-3 rounded-sm" style={{ background: EV_COLOR }} /> {classComparison.cEv.name}: {currency(classComparison.evPm, 2)}/mi</div>
-                </div>
+            <div className="grid lg:grid-cols-[15rem_1fr] gap-5 lg:gap-7">
+              {/* Left rail — weight-class selector */}
+              <div
+                className="flex gap-2 overflow-x-auto pb-1 lg:h-full lg:flex-col lg:gap-3 lg:overflow-visible lg:pb-0"
+                role="tablist"
+                aria-label="Vehicle class"
+              >
+                {CLASS_OPTIONS.map((opt) => {
+                  const active = opt.key === compareClass;
+                  return (
+                    <button
+                      key={opt.key}
+                      type="button"
+                      role="tab"
+                      aria-selected={active}
+                      onClick={() => setCompareClass(opt.key)}
+                      className={`relative group flex shrink-0 items-center gap-3 rounded-2xl border px-3.5 py-2.5 text-left transition-colors lg:w-full lg:flex-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${
+                        active
+                          ? "border-primary/30 bg-primary/[0.06] shadow-sm"
+                          : "border-border bg-card hover:border-primary/40 hover:bg-muted/40"
+                      }`}
+                    >
+                      {/* energy rail on the selected class */}
+                      <span
+                        aria-hidden
+                        className={`absolute left-0 top-2.5 bottom-2.5 w-1 rounded-full bg-primary transition-opacity ${active ? "opacity-100" : "opacity-0"}`}
+                      />
+                      <span
+                        className={`grid place-items-center w-10 h-10 rounded-xl transition ${
+                          active
+                            ? "gradient-primary text-primary-foreground shadow-md"
+                            : "bg-muted text-muted-foreground group-hover:text-primary"
+                        }`}
+                      >
+                        <opt.icon className="w-5 h-5" />
+                      </span>
+                      <span
+                        className={`font-display font-semibold text-sm whitespace-nowrap ${
+                          active ? "text-foreground" : "text-muted-foreground group-hover:text-foreground"
+                        }`}
+                      >
+                        {opt.label}
+                      </span>
+                      <ArrowRight
+                        className={`ml-auto hidden lg:block w-4 h-4 text-primary transition-all ${active ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-1"}`}
+                        aria-hidden
+                      />
+                    </button>
+                  );
+                })}
               </div>
-              <div className="h-[260px]">
-                <div className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2">
-                  <BarChart3 className="w-4 h-4" /> Fuel cost per mile
+
+              {/* Right — head-to-head matchup */}
+              <div className="relative overflow-hidden p-6 md:p-8 rounded-3xl border border-border bg-card">
+                {/* gas → electric: the fight, encoded in the trim */}
+                <div
+                  aria-hidden
+                  className="absolute inset-x-0 top-0 h-1"
+                  style={{ background: `linear-gradient(90deg, ${GAS_COLOR} 0%, ${GAS_COLOR} 38%, ${EV_COLOR} 62%, ${EV_COLOR} 100%)` }}
+                />
+
+                {/* Contenders */}
+                <div className="flex items-start justify-between gap-3 pt-1">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-2.5 h-2.5 rounded-full" style={{ background: GAS_COLOR }} />
+                      <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Gas</span>
+                    </div>
+                    <p className="font-display font-semibold text-foreground mt-1 truncate">{classComparison.cGas.name}</p>
+                  </div>
+
+                  <span className="shrink-0 grid place-items-center w-9 h-9 mt-1 rounded-full border border-border bg-muted/50 text-[10px] font-bold tracking-wide text-muted-foreground">
+                    VS
+                  </span>
+
+                  <div className="min-w-0 text-right">
+                    <div className="flex items-center justify-end gap-1.5">
+                      <span className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: EV_COLOR }}>Electric</span>
+                      <span className="w-2.5 h-2.5 rounded-full" style={{ background: EV_COLOR }} />
+                    </div>
+                    <p className="font-display font-semibold text-foreground mt-1 truncate">{classComparison.cEv.name}</p>
+                  </div>
                 </div>
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={classComparison.data} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(214 20% 90%)" />
-                    <XAxis dataKey="name" fontSize={11} tickLine={false} axisLine={false} />
-                    <YAxis fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => `$${v.toFixed(2)}`} />
-                    <Tooltip formatter={(v: number) => `${currency(v, 2)}/mi`} cursor={{ fill: "hsl(210 20% 96%)" }}
-                      contentStyle={{ borderRadius: 12, fontSize: 12, border: "1px solid hsl(214 20% 90%)" }} />
-                    <Bar dataKey="cost" radius={[8, 8, 0, 0]} maxBarSize={90}>
-                      {classComparison.data.map((d, i) => <Cell key={i} fill={d.fill} />)}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
+
+                {/* The verdict */}
+                <div className="mt-7">
+                  <p className="text-sm text-muted-foreground">Going electric saves you</p>
+                  <p className="flex items-baseline gap-2 mt-0.5">
+                    <span className="font-charge text-5xl md:text-6xl leading-none" style={{ color: EV_COLOR }}>
+                      {currency(classComparison.annualSavings)}
+                    </span>
+                    <span className="text-muted-foreground font-medium">/ year on fuel</span>
+                  </p>
+                  <p className="text-muted-foreground mt-2 text-sm max-w-prose">
+                    Driving the <strong className="font-semibold text-foreground">{classComparison.cEv.name}</strong> instead of the{" "}
+                    <strong className="font-semibold text-foreground">{classComparison.cGas.name}</strong> — national-average energy prices, 12,000 mi/yr.
+                  </p>
+                </div>
+
+                {/* Cost-per-mile duel */}
+                <div className="mt-7">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                      <BarChart3 className="w-3.5 h-3.5" /> Fuel cost per mile
+                    </span>
+                    <span
+                      className="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-bold"
+                      style={{ color: EV_COLOR, background: "hsl(145 55% 42% / 0.10)" }}
+                    >
+                      {classComparison.pctSaved}% cheaper
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <span className="w-8 shrink-0 text-[11px] font-semibold uppercase text-muted-foreground">Gas</span>
+                    <div className="flex-1 h-8 rounded-lg bg-muted/40 overflow-hidden">
+                      <div className="h-full rounded-lg" style={{ width: "100%", background: GAS_COLOR }} />
+                    </div>
+                    <span className="w-14 shrink-0 text-right text-sm font-bold tabular-nums text-foreground">{currency(classComparison.gasPm, 2)}</span>
+                  </div>
+
+                  <div className="flex items-center gap-3 mt-2.5">
+                    <span className="w-8 shrink-0 text-[11px] font-semibold uppercase text-muted-foreground">EV</span>
+                    <div className="flex-1 h-8 rounded-lg bg-muted/40 overflow-hidden">
+                      <div
+                        className="h-full rounded-lg transition-[width] duration-500 ease-out motion-reduce:transition-none"
+                        style={{ width: `${classComparison.evBarPct}%`, background: EV_COLOR }}
+                      />
+                    </div>
+                    <span className="w-14 shrink-0 text-right text-sm font-bold tabular-nums" style={{ color: EV_COLOR }}>{currency(classComparison.evPm, 2)}</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
