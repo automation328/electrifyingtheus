@@ -97,7 +97,7 @@ const markdownComponents = {
 
 const Assistant = () => {
   const [messages, setMessages] = useState<Message[]>([
-    { role: "assistant", content: "Hi, I'm EVan, your EV Concierge. My team and I, are currently online, ready to answer your questions about Electric Vehicles, EV Cost Savings, EV Charging and Infrastructure, Rebates & Incentives programs, and more. I've added the top 10 questions below. Enter your first name and email, and let's get started." },
+    { role: "assistant", content: "Hi, I'm EVan, your EV Advisor. My team and I, are currently online, ready to answer your questions about Electric Vehicles, EV Cost Savings, EV Charging and Infrastructure, Rebates & Incentives programs, and more. I've added the top 10 questions below. Enter your first name and email, and let's get started." },
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -338,7 +338,7 @@ const Assistant = () => {
               >
                 <Zap className="w-7 h-7 text-white" fill="currentColor" />
               </span>
-              <span className="text-[11px] tracking-[0.2em] font-semibold text-muted-foreground uppercase">E-Mobility Concierge</span>
+              <span className="text-[11px] tracking-[0.2em] font-semibold text-muted-foreground uppercase">E-Mobility Advisor</span>
               <h1 className="font-display font-bold text-4xl md:text-5xl text-foreground tracking-tight mt-1.5">
                 Talk to EVan
               </h1>
@@ -357,7 +357,7 @@ const Assistant = () => {
                 <span className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ background: "linear-gradient(135deg, hsl(var(--term-cyan)), hsl(var(--term-green)))" }}>
                   <Zap className="w-4 h-4" style={{ color: "hsl(var(--term-bg))" }} fill="currentColor" />
                 </span>
-                <span className={`font-hmi font-semibold tracking-wide ${TXT}`}>E-Mobility Concierge</span>
+                <span className={`font-hmi font-semibold tracking-wide ${TXT}`}>E-Mobility Advisor</span>
               </div>
             </div>
             <div className="term-current shrink-0" aria-hidden />

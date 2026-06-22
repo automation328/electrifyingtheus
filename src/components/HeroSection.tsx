@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   ChevronDown, ChevronLeft, ChevronRight,
-  MapPin, Clock, CalendarDays, ArrowRight, Newspaper, Briefcase, Building2, Calculator,
+  MapPin, Clock, CalendarDays, ArrowRight, Newspaper, Briefcase, Building2, Calculator, MessageCircle,
 } from "lucide-react";
 import heroBg from "@/assets/hero-bg.jpg";
 import logo from "@/assets/hero-logo.png";
@@ -37,7 +37,8 @@ const HeroSection = () => {
   const SLIDES = useMemo<Slide[]>(() => [
     { kind: "brand" },
     ...events.slice(0, 2).map((data): Slide => ({ kind: "event", data })),
-    ...JOBS.filter((j) => j.featured).slice(0, 2).map((data): Slide => ({ kind: "career", data })),
+    // Job/hiring slides hidden for rollout — keep featured events + articles only.
+    // ...JOBS.filter((j) => j.featured).slice(0, 2).map((data): Slide => ({ kind: "career", data })),
     ...posts.slice(0, 2).map((data): Slide => ({ kind: "article", data })),
   ], [events, posts]);
   const count = SLIDES.length;
@@ -199,11 +200,11 @@ const BrandSlide = ({ active }: { active: boolean }) => (
     </p>
 
     <div className={`flex flex-col sm:flex-row gap-4 justify-center ${active ? "animate-fade-up" : ""}`} style={{ animationDelay: "0.4s" }}>
-      <a href="#ev101">
+      <Link to="/assistant">
         <Button variant="hero" size="lg" className="text-base px-8 py-6 rounded-2xl">
-          Explore EV 101
+          <MessageCircle className="w-5 h-5" /> EV Advisor 24/7
         </Button>
-      </a>
+      </Link>
       <Link to="/electricity-vs-gasoline">
         <Button variant="heroOutline" size="lg" className="btn-cta-pulse text-base px-8 py-6 rounded-2xl bg-primary-foreground/5">
           <Calculator className="cta-icon-bob" />

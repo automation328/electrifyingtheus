@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { Plane, Bus, Ship, Bike, Car, GraduationCap, Truck, Bot, PlaneTakeoff } from "lucide-react";
+import multimodalCollage from "@/assets/multimodal-collage.jpg";
 import schoolBus from "@/assets/school-bus.jpg";
 import sustainableAviation from "@/assets/sustainable-aviation.jpg";
 import heavyDuty from "@/assets/heavy-duty.jpg";
@@ -80,7 +81,7 @@ const MultimodalSection = () => {
   return (
     <section id="multimodal" className="py-20 md:py-28 bg-muted/30">
       <div className="container">
-        <div className="text-center mb-16">
+        <div className="text-center">
           <span className="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-semibold mb-4">
             Beyond Cars
           </span>
@@ -92,6 +93,20 @@ const MultimodalSection = () => {
           </p>
         </div>
 
+        {/* Full-width collage — aviation, freight, transit, school buses,
+            charging, drones, autonomy, and maritime in one frame. */}
+        <div className="mt-10 md:mt-14">
+          <img
+            src={multimodalCollage}
+            alt="Electric mobility across modes — aviation, trucking, transit and school buses, EV charging, drone delivery, autonomous pods, and maritime."
+            className="w-full rounded-3xl shadow-xl ring-1 ring-border/50"
+            width={1920}
+            height={1080}
+            loading="lazy"
+          />
+        </div>
+
+        {/* Mode cards hidden for rollout — heading + intro only.
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           {modes.map((mode, i) => (
             <Link
@@ -126,6 +141,7 @@ const MultimodalSection = () => {
             </Link>
           ))}
         </div>
+        */}
       </div>
     </section>
   );

@@ -10,15 +10,10 @@ import { Play, ChevronLeft, ChevronRight, Image as ImageIcon, ArrowRight } from 
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useGallery } from "@/hooks/use-content";
 import { toast } from "sonner";
-// Fallback posters when the gallery has no media yet.
-import workforce from "@/assets/workforce.jpg";
-import evFamily from "@/assets/ev-family.jpg";
-import rideshareFleet from "@/assets/rideshare-fleet.jpg";
-import evCharging from "@/assets/ev-charging.jpg";
+// Fixed feature images + a poster for the video fallback.
+import etu09 from "@/assets/gallery/etu-09.jpg";
+import etu51 from "@/assets/gallery/etu-51.jpg";
 import transitBus from "@/assets/electric-transit-bus.jpg";
-import reducedEmissions from "@/assets/reduced-emissions.jpg";
-import schoolBus from "@/assets/school-bus.jpg";
-import selfDriving from "@/assets/self-driving.jpg";
 
 interface MediaItem {
   type: "video" | "photo";
@@ -29,55 +24,37 @@ interface MediaItem {
   src?: string;
 }
 
-const FALLBACK: MediaItem[] = [
-  { type: "video", name: "Community Leader", role: "Electrifying The US", poster: workforce },
-  { type: "photo", name: "Electric Transit in Action", role: "Ride & Drive", poster: transitBus },
-  { type: "video", name: "EV Owner", role: "Electrifying The US", poster: evFamily },
-  { type: "photo", name: "Cleaner Communities", role: "Zero-Emission", poster: reducedEmissions },
-  { type: "video", name: "Fleet Operator", role: "Electrifying The US", poster: rideshareFleet },
-  { type: "photo", name: "Electric School Buses", role: "Healthier Air", poster: schoolBus },
-  { type: "video", name: "Charging Advocate", role: "Electrifying The US", poster: evCharging },
-  { type: "photo", name: "The Road Ahead", role: "Smart Mobility", poster: selfDriving },
-];
-
-// Interleave two lists (video, photo, video, photo, …), appending any remainder.
-function interleave<T>(a: T[], b: T[]): T[] {
-  const out: T[] = [];
-  const n = Math.max(a.length, b.length);
-  for (let i = 0; i < n; i++) {
-    if (i < a.length) out.push(a[i]);
-    if (i < b.length) out.push(b[i]);
-  }
-  return out;
-}
-
 const VideoTestimonialsSection = () => {
-  const { photos, videos } = useGallery();
+  const { videos } = useGallery();
   const [active, setActive] = useState<MediaItem | null>(null);
   const railRef = useRef<HTMLDivElement>(null);
   const pausedRef = useRef(false);
 
-  // Build the alternating media list from the gallery; fall back to placeholders.
+  // Fixed 4-item rail, alternating photo / video: etu-09 → video → etu-51 →
+  // video. Videos come from the gallery; a missing video still renders a poster
+  // card that prompts "coming soon" on click.
   const media = useMemo<MediaItem[]>(() => {
-    const vids: MediaItem[] = videos.slice(0, 8).map((v) => ({
-      type: "video",
-      name: v.title || "Electrifying The US",
-      role: "Video",
-      poster: v.provider === "youtube" && v.id
-        ? `https://img.youtube.com/vi/${v.id}/hqdefault.jpg`
-        : (v.poster || transitBus),
-      youtubeId: v.provider === "youtube" ? v.id : undefined,
-      src: v.provider === "file" ? v.src : undefined,
-    }));
-    const pics: MediaItem[] = photos.slice(0, 8).map((p) => ({
-      type: "photo",
-      name: p.caption || p.alt || "Electrifying the US",
-      role: "Photo",
-      poster: p.src,
-    }));
-    const mixed = interleave(vids, pics);
-    return mixed.length >= 4 ? mixed.slice(0, 14) : FALLBACK;
-  }, [photos, videos]);
+    const toVideo = (i: number): MediaItem => {
+      const v = videos[i];
+      if (v) {
+        return {
+          type: "video",
+          name: v.title || "Electrifying The US",
+          role: "Video",
+          poster: v.provider === "youtube" && v.id
+            ? `https://img.youtube.com/vi/${v.id}/hqdefault.jpg`
+            : (v.poster || transitBus),
+          youtubeId: v.provider === "youtube" ? v.id : undefined,
+          src: v.provider === "file" ? v.src : undefined,
+        };
+      }
+      return { type: "video", name: "Electrifying The US", role: "Video", poster: transitBus };
+    };
+    const toPhoto = (src: string): MediaItem => ({
+      type: "photo", name: "Electrifying the US", role: "Photo", poster: src,
+    });
+    return [toPhoto(etu09), toVideo(0), toPhoto(etu51), toVideo(1)];
+  }, [videos]);
 
   const open = (m: MediaItem) => {
     if (m.type === "photo") { setActive(m); return; }

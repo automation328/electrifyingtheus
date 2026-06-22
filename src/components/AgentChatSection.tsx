@@ -52,7 +52,7 @@ const extractReply = (data: unknown): string => {
 };
 
 const GREETING =
-  "Hi, I'm EVan, your EV Concierge. My team and I, are currently online, ready to answer your questions about Electric Vehicles, EV Cost Savings, EV Charging and Infrastructure, Rebates & Incentives programs, and more. I've added the top 10 questions below. Enter your first name and email, and let's get started.";
+  "Hi, I'm EVan, your EV Advisor. My team and I, are currently online, ready to answer your questions about Electric Vehicles, EV Cost Savings, EV Charging and Infrastructure, Rebates & Incentives programs, and more. I've added the top 10 questions below. Enter your first name and email, and let's get started.";
 
 // 10 clickable EV questions — drawn from the EVNoire EV Charging 101 knowledge base.
 const SUGGESTED_QUESTIONS = [
@@ -403,7 +403,7 @@ const AgentChatSection = () => {
             <div className="relative rounded-3xl overflow-hidden shadow-xl w-full">
               <img
                 src={evanPortrait}
-                alt="EVan, your Electrifying the US E-Mobility Concierge"
+                alt="EVan, your Electrifying the US E-Mobility Advisor"
                 className="w-full h-full object-cover"
                 loading="lazy"
               />
@@ -423,7 +423,7 @@ const AgentChatSection = () => {
               Ask our team of E-Mobility Experts
             </span>
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold font-display text-foreground mb-4 leading-tight">
-              <span className="bg-gradient-to-r from-secondary to-primary bg-clip-text text-transparent whitespace-nowrap">EVan</span> - Your Electric Vehicle Concierge
+              <span className="bg-gradient-to-r from-secondary to-primary bg-clip-text text-transparent whitespace-nowrap">EVan</span> - Your Electric Vehicle Advisor
             </h2>
             <p className="text-muted-foreground text-lg mb-6 leading-relaxed">
               Here to answer all your EV Questions
@@ -444,7 +444,7 @@ const AgentChatSection = () => {
                       <Zap className="w-4 h-4 text-white" fill="currentColor" />
                     </span>
                     <div>
-                      <div className="font-hmi font-semibold tracking-wide text-[hsl(var(--term-text))] leading-tight">E-Mobility Concierge</div>
+                      <div className="font-hmi font-semibold tracking-wide text-[hsl(var(--term-text))] leading-tight">E-Mobility Advisor</div>
                       <div className="flex items-center gap-1.5 font-term text-[11px] text-[hsl(var(--term-muted))]">
                         <span className="term-live w-2 h-2 rounded-full" style={{ background: "hsl(var(--term-green))" }} /> ONLINE
                       </div>
@@ -598,7 +598,7 @@ const AgentChatSection = () => {
                 <p className="font-semibold text-foreground">Would you like to have EVan or other EV tools on your website?</p>
                 <p className="text-sm text-muted-foreground">
                   Answering EV questions and providing real-time data. Click here to add the
-                  E-Mobility Concierge to your website and engage your visitors.
+                  E-Mobility Advisor to your website and engage your visitors.
                 </p>
               </div>
               <Link to="/contact-us" className="shrink-0">

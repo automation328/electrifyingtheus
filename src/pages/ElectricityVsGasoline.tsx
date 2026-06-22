@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect, useRef, type ComponentType } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import {
@@ -16,9 +16,10 @@ import { Button } from "@/components/ui/button";
 import {
   TrendingDown, Gauge, MapPin, BarChart3, Zap, Fuel, Clock, Trophy,
   Info, SlidersHorizontal, ChevronDown, ShieldCheck, House, Sparkles, Award, CircleDollarSign,
-  Share2, Code2, Car, CarFront, Caravan, Truck, BusFront, Tag, Facebook, Linkedin, MessageCircle, Mail, Copy, Send,
+  Share2, Code2, Car, Tag, Facebook, Linkedin, MessageCircle, Mail, Copy, Send,
   Gift, BadgeCheck, ArrowRight, type LucideIcon,
 } from "lucide-react";
+import { SedanCompact, SedanMid, SuvSmall, SuvFull, Pickup } from "@/components/VehicleIcons";
 import Navbar from "@/components/Navbar";
 import ShareResultDialog from "@/components/forms/ShareResultDialog";
 import ShareGate from "@/components/forms/ShareGate";
@@ -51,13 +52,13 @@ type CompareClass =
   | "compact-sedan" | "midsize-sedan" | "small-suv" | "pickup" | "full-suv";
 
 const CLASS_OPTIONS: {
-  key: CompareClass; label: string; icon: LucideIcon; gas: string; ev: string;
+  key: CompareClass; label: string; icon: ComponentType<{ className?: string }>; gas: string; ev: string;
 }[] = [
-  { key: "compact-sedan", label: "Compact Sedan",  icon: Car,      gas: "honda-civic",       ev: "hyundai-ioniq-6" },
-  { key: "midsize-sedan", label: "Mid-Size Sedan", icon: CarFront, gas: "toyota-camry",      ev: "tesla-model-3" },
-  { key: "small-suv",     label: "Small SUV",      icon: Caravan,  gas: "chevy-equinox",     ev: "chevy-equinox-ev" },
-  { key: "pickup",        label: "EV Pick-Up",     icon: Truck,    gas: "ford-f150",         ev: "ford-f150-lightning" },
-  { key: "full-suv",      label: "Full-Size SUV",  icon: BusFront, gas: "toyota-highlander", ev: "kia-ev9" },
+  { key: "compact-sedan", label: "Compact Sedan",  icon: SedanCompact, gas: "honda-civic",       ev: "hyundai-ioniq-6" },
+  { key: "midsize-sedan", label: "Mid-Size Sedan", icon: SedanMid,     gas: "toyota-camry",      ev: "tesla-model-3" },
+  { key: "small-suv",     label: "Small SUV",      icon: SuvSmall,     gas: "chevy-equinox",     ev: "chevy-equinox-ev" },
+  { key: "pickup",        label: "EV Pick-Up",     icon: Pickup,       gas: "ford-f150",         ev: "ford-f150-lightning" },
+  { key: "full-suv",      label: "Full-Size SUV",  icon: SuvFull,      gas: "toyota-highlander", ev: "kia-ev9" },
 ];
 
 const currency = (n: number, frac = 0) =>
@@ -460,6 +461,8 @@ const ElectricityVsGasoline = () => {
     return {
       cEv, cGas, evPm: cEvPm, gasPm,
       annualSavings: evPm.annualSavings,
+      fiveYearFuelSavings: Math.round(evPm.annualSavings * 5),
+      monthlySavings: Math.round(evPm.annualSavings / 12),
       pctSaved,
       evBarPct: gasPm > 0 ? Math.max(8, Math.round((cEvPm / gasPm) * 100)) : 100,
     };
@@ -1065,7 +1068,7 @@ const ElectricityVsGasoline = () => {
                     Would you like to include this on your website?
                   </h2>
                   <p className="text-primary-foreground/90 max-w-xl mx-auto mb-6">
-                    Add the live EV&nbsp;vs&nbsp;Gas Calculator and EVan, your E-Mobility Concierge, to
+                    Add the live EV&nbsp;vs&nbsp;Gas Calculator and EVan, your E-Mobility Advisor, to
                     your own site — kept in sync with our latest U.S. energy &amp; vehicle data automatically.
                   </p>
                   <Link to="/contact-us">
@@ -1366,11 +1369,15 @@ const ElectricityVsGasoline = () => {
                 {/* The verdict */}
                 <div className="mt-7">
                   <p className="text-sm text-muted-foreground">Going electric saves you</p>
-                  <p className="flex items-baseline gap-2 mt-0.5">
+                  <p className="flex items-baseline gap-2 mt-0.5 flex-wrap">
                     <span className="font-charge text-5xl md:text-6xl leading-none" style={{ color: EV_COLOR }}>
-                      {currency(classComparison.annualSavings)}
+                      {currency(classComparison.fiveYearFuelSavings)}
                     </span>
-                    <span className="text-muted-foreground font-medium">/ year on fuel</span>
+                    <span className="text-muted-foreground font-medium">saved over 5 years on fuel</span>
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-1.5">
+                    ≈ <strong className="font-semibold text-foreground">{currency(classComparison.annualSavings)}</strong>/year ·{" "}
+                    <strong className="font-semibold text-foreground">{currency(classComparison.monthlySavings)}</strong>/month
                   </p>
                   <p className="text-muted-foreground mt-2 text-sm max-w-prose">
                     Driving the <strong className="font-semibold text-foreground">{classComparison.cEv.name}</strong> instead of the{" "}

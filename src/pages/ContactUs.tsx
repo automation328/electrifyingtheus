@@ -24,7 +24,7 @@ const isValidEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
 
 const REASONS: { icon: ComponentType<{ className?: string }>; title: string; text: string }[] = [
   { icon: Handshake, title: "Partner with us", text: "Utilities, automakers, employers, labor, and community groups — let's collaborate." },
-  { icon: Sparkles, title: "Put EVan on your site", text: "Add the E-Mobility Concierge and EV tools to your own website." },
+  { icon: Sparkles, title: "Put EVan on your site", text: "Add the E-Mobility Advisor and EV tools to your own website." },
   { icon: CalendarDays, title: "List an event or job", text: "Get your e-mobility event or open role in front of a national audience." },
 ];
 
@@ -106,7 +106,7 @@ const ContactUs = () => {
 
               <div className="rounded-2xl gradient-hero text-primary-foreground p-5">
                 <p className="font-display font-bold flex items-center gap-2"><MessageSquare className="w-4 h-4" /> Prefer to chat?</p>
-                <p className="text-sm text-primary-foreground/90 mt-1 mb-3">Ask EVan, our E-Mobility Concierge, anything about EVs.</p>
+                <p className="text-sm text-primary-foreground/90 mt-1 mb-3">Ask EVan, our E-Mobility Advisor, anything about EVs.</p>
                 <Link to="/assistant" className="inline-flex items-center gap-2 bg-primary-foreground text-primary font-semibold text-sm px-4 py-2 rounded-lg hover:opacity-90 transition">
                   Talk to EVan <ArrowRight className="w-4 h-4" />
                 </Link>
