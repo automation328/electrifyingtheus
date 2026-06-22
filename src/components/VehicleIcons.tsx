@@ -1,72 +1,81 @@
-// Vehicle-class silhouettes for the EV-vs-gas class picker. Solid glyphs (one
-// fill) so they read crisply at ~20px and stay legible on both the light card
-// and the gradient "active" chip. Each shares the same body bar + wheels so the
-// set looks like one family; only the cabin/bed profile differs by class.
-//
-// Authored as accurate side-view silhouettes (sedan / crossover / full SUV /
-// pickup) — not lucide's bus/box-truck approximations.
+// Vehicle-class icons for the EV-vs-gas class picker. Outline (stroke) glyphs in
+// the lucide house style — thin strokes, rounded joins, open interiors — so they
+// sit beside the rest of the UI's lucide icons and stay crisp at ~20px. Each is a
+// proper side-view silhouette (sedan / crossover / full SUV / pickup), not a bus
+// or box-truck stand-in. Shared wheels + chassis baseline keep the set a family;
+// only the greenhouse/bed profile changes per class.
 
 type IconProps = { className?: string };
 
 const Svg = ({ className, children }: IconProps & { children: React.ReactNode }) => (
-  <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden focusable="false">
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.6"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+    aria-hidden
+    focusable="false"
+  >
     {children}
   </svg>
 );
 
-// Two road wheels, shared by every vehicle.
-const Wheels = ({ left = 7, right = 17 }: { left?: number; right?: number }) => (
+// Two road wheels + the chassis line between them — identical on every vehicle.
+const Chassis = () => (
   <>
-    <circle cx={left} cy="16.6" r="2.15" />
-    <circle cx={right} cy="16.6" r="2.15" />
+    <path d="M9 16.5h6" />
+    <circle cx="7" cy="16.5" r="2" />
+    <circle cx="17" cy="16.5" r="2" />
   </>
 );
 
 // Compact sedan — short three-box, low roof.
 export const SedanCompact = ({ className }: IconProps) => (
   <Svg className={className}>
-    <path d="M3.5 12.4h17a1 1 0 0 1 1 1v1.2a1 1 0 0 1-1 1h-17a1 1 0 0 1-1-1v-1.2a1 1 0 0 1 1-1Z" />
-    <path d="M8 12.4 9.6 9.3a1.3 1.3 0 0 1 1.15-.7h2.5a1.3 1.3 0 0 1 1.15.7L16 12.4Z" />
-    <Wheels left="7" right="16.8" />
+    <path d="M3.6 16.5v-3a.7.7 0 0 1 .7-.7h1.1l1.8-2.9a1.1 1.1 0 0 1 .94-.5h4.9a1.1 1.1 0 0 1 .94.5l1.8 2.9h1.1a.7.7 0 0 1 .7.7v3" />
+    <path d="M5.4 12.8h13.2" />
+    <Chassis />
   </Svg>
 );
 
 // Mid-size sedan — longer body and cabin.
 export const SedanMid = ({ className }: IconProps) => (
   <Svg className={className}>
-    <path d="M2.5 12.2h19a1 1 0 0 1 1 1v1.4a1 1 0 0 1-1 1h-19a1 1 0 0 1-1-1v-1.4a1 1 0 0 1 1-1Z" />
-    <path d="M6.8 12.2 8.7 8.6a1.4 1.4 0 0 1 1.24-.74h4.12a1.4 1.4 0 0 1 1.24.74l1.9 3.6Z" />
-    <Wheels left="7" right="17" />
+    <path d="M2.6 16.5v-3.2a.8.8 0 0 1 .8-.8h1.4l2-3.1a1.2 1.2 0 0 1 1-.55h6.4a1.2 1.2 0 0 1 1 .55l2 3.1h1.4a.8.8 0 0 1 .8.8v3.2" />
+    <path d="M4.8 12.5h14.4" />
+    <Chassis />
   </Svg>
 );
 
-// Small SUV / crossover — taller greenhouse, shorter rear overhang.
+// Small SUV / crossover — taller greenhouse, short overhangs.
 export const SuvSmall = ({ className }: IconProps) => (
   <Svg className={className}>
-    <path d="M2.5 12.4h19a1 1 0 0 1 1 1v1.3a1 1 0 0 1-1 1h-19a1 1 0 0 1-1-1v-1.3a1 1 0 0 1 1-1Z" />
-    <path d="M6.4 12.4 8 7.9a1.2 1.2 0 0 1 1.13-.8h6.4a1.2 1.2 0 0 1 1.1.74l1.8 4.56Z" />
-    <Wheels left="7" right="17" />
+    <path d="M2.7 16.5v-3.1a.8.8 0 0 1 .8-.8h1l1.7-4a1.1 1.1 0 0 1 1.02-.66h7.56a1.1 1.1 0 0 1 1.02.66l1.7 4h1a.8.8 0 0 1 .8.8v3.1" />
+    <path d="M5.2 11.9h13.6" />
+    <Chassis />
   </Svg>
 );
 
-// Full-size SUV — long, boxy, near-vertical pillars (the one that used to look
-// like a bus).
+// Full-size SUV — long, boxy, near-vertical pillars (replaces the old bus look).
 export const SuvFull = ({ className }: IconProps) => (
   <Svg className={className}>
-    <path d="M2.4 12.6h19.2a1 1 0 0 1 1 1v1.2a1 1 0 0 1-1 1H2.4a1 1 0 0 1-1-1v-1.2a1 1 0 0 1 1-1Z" />
-    <path d="M5.2 12.6V8.1a1.1 1.1 0 0 1 1.1-1.1h11.4a1.1 1.1 0 0 1 1.1 1.1v4.5Z" />
-    <Wheels left="6.8" right="17.2" />
+    <path d="M2.6 16.5v-3a.8.8 0 0 1 .8-.8h.9l1.2-5a1 1 0 0 1 .97-.76h11.06a1 1 0 0 1 .97.76l1.2 5h.9a.8.8 0 0 1 .8.8v3" />
+    <path d="M6.7 11.1h10.6" />
+    <Chassis />
   </Svg>
 );
 
 // Electric pickup — tall cab on the left, open bed on the right.
 export const Pickup = ({ className }: IconProps) => (
   <Svg className={className}>
-    <path d="M2.5 12.4h19a1 1 0 0 1 1 1v1.3a1 1 0 0 1-1 1h-19a1 1 0 0 1-1-1v-1.3a1 1 0 0 1 1-1Z" />
+    <path d="M2.6 16.5v-3.2a.8.8 0 0 1 .8-.8h17.2a.8.8 0 0 1 .8.8v3.2" />
     {/* cab */}
-    <path d="M4.6 12.4 6 8.3a1.2 1.2 0 0 1 1.13-.8h3.4a1.2 1.2 0 0 1 1.2 1.2v3.7Z" />
-    {/* bed side wall */}
-    <path d="M12.8 12.4v-1.7a.8.8 0 0 1 .8-.8h6.1a.8.8 0 0 1 .8.8v1.7Z" />
-    <Wheels left="7" right="17.4" />
+    <path d="M5 12.5 6.5 8.6a1.1 1.1 0 0 1 1.03-.7h3.27a1 1 0 0 1 1 1v3.6" />
+    {/* open bed */}
+    <path d="M13 12.5v-1.7h7.2" />
+    <Chassis />
   </Svg>
 );
