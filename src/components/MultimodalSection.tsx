@@ -98,7 +98,7 @@ const MultimodalSection = () => {
         <div className="mt-10 md:mt-14">
           <img
             src={multimodalCollage}
-            alt="Electric mobility across modes — aviation, trucking, transit and school buses, EV charging, drone delivery, autonomous pods, and maritime."
+            alt="Electric mobility lineup — transit bus, electric school bus, semi truck, autonomous shuttle, SUV, and a delivery drone against a city skyline."
             className="w-full rounded-3xl shadow-xl ring-1 ring-border/50"
             width={1920}
             height={1080}
