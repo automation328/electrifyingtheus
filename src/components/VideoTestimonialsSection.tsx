@@ -1,12 +1,12 @@
-// "Americans are excited about Electrifying The US" — an auto-sliding carousel of
-// alternating VIDEOS and PHOTOS pulled from the Media / Gallery (Supabase-backed,
+// "Americans are excited about Electrifying The US" — a static 4-up grid of
+// alternating PHOTOS and VIDEOS pulled from the Media / Gallery (Supabase-backed,
 // with the curated seed as fallback). Video cards open in a lightbox (YouTube id
-// or self-hosted file); photo cards open the image. Below the carousel, a
+// or self-hosted file); photo cards open the image. Below the grid, a
 // "View More photos and videos" button links to the gallery.
 
-import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { Play, ChevronLeft, ChevronRight, Image as ImageIcon, ArrowRight } from "lucide-react";
+import { Play, Image as ImageIcon, ArrowRight } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useGallery } from "@/hooks/use-content";
 import { toast } from "sonner";
@@ -27,8 +27,6 @@ interface MediaItem {
 const VideoTestimonialsSection = () => {
   const { videos } = useGallery();
   const [active, setActive] = useState<MediaItem | null>(null);
-  const railRef = useRef<HTMLDivElement>(null);
-  const pausedRef = useRef(false);
 
   // Fixed 4-item rail, alternating photo / video: etu-09 → video → etu-51 →
   // video. Videos come from the gallery; a missing video still renders a poster
@@ -62,26 +60,6 @@ const VideoTestimonialsSection = () => {
     else toast("Video coming soon", { description: "This testimonial will be added shortly." });
   };
 
-  const scroll = useCallback((dir: -1 | 1) => {
-    const el = railRef.current;
-    if (!el) return;
-    const step = Math.min(el.clientWidth * 0.8, 340);
-    const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 12;
-    const atStart = el.scrollLeft <= 4;
-    if (dir === 1 && atEnd) { el.scrollTo({ left: 0, behavior: "smooth" }); return; }
-    if (dir === -1 && atStart) { el.scrollTo({ left: el.scrollWidth, behavior: "smooth" }); return; }
-    el.scrollBy({ left: dir * step, behavior: "smooth" });
-  }, []);
-
-  // Auto-slide every 3.5s; pause on hover/touch or while a lightbox is open.
-  useEffect(() => {
-    const id = setInterval(() => {
-      if (pausedRef.current || active) return;
-      scroll(1);
-    }, 3500);
-    return () => clearInterval(id);
-  }, [scroll, active]);
-
   return (
     <section className="pt-14 md:pt-20 pb-10 md:pb-14 bg-background">
       <div className="container">
@@ -94,58 +72,34 @@ const VideoTestimonialsSection = () => {
           switch means for their communities.
         </p>
 
-        <div
-          className="relative"
-          onMouseEnter={() => { pausedRef.current = true; }}
-          onMouseLeave={() => { pausedRef.current = false; }}
-          onTouchStart={() => { pausedRef.current = true; }}
-        >
-          {/* Arrows (desktop) */}
-          <button
-            type="button" onClick={() => scroll(-1)} aria-label="Previous"
-            className="hidden md:grid absolute -left-4 top-1/2 -translate-y-1/2 z-10 place-items-center w-11 h-11 rounded-full bg-white text-foreground shadow-elevated border border-border hover:text-primary hover:scale-105 transition"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
-          <button
-            type="button" onClick={() => scroll(1)} aria-label="Next"
-            className="hidden md:grid absolute -right-4 top-1/2 -translate-y-1/2 z-10 place-items-center w-11 h-11 rounded-full bg-white text-foreground shadow-elevated border border-border hover:text-primary hover:scale-105 transition"
-          >
-            <ChevronRight className="w-5 h-5" />
-          </button>
-
-          <div
-            ref={railRef}
-            className="flex gap-5 overflow-x-auto pb-3 snap-x snap-mandatory scroll-smooth [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
-          >
-            {media.map((m, i) => (
-              <button
-                key={`${m.name}-${i}`}
-                type="button"
-                onClick={() => open(m)}
-                className="group relative shrink-0 w-[260px] sm:w-[300px] snap-start rounded-2xl overflow-hidden shadow-card hover:shadow-xl hover:-translate-y-0.5 transition-all text-left"
-              >
-                <div className="relative aspect-video bg-muted">
-                  <img src={m.poster} alt={m.name} loading="lazy" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                  <span className="absolute inset-0 bg-gradient-to-t from-foreground/65 via-foreground/10 to-transparent" aria-hidden />
-                  <span className="absolute inset-0 grid place-items-center">
-                    <span className="grid place-items-center w-14 h-14 rounded-full bg-white/90 text-primary shadow-lg group-hover:bg-white group-hover:scale-110 transition">
-                      {m.type === "video"
-                        ? <Play className="w-6 h-6 ml-0.5" fill="currentColor" />
-                        : <ImageIcon className="w-6 h-6" />}
-                    </span>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          {media.map((m, i) => (
+            <button
+              key={`${m.name}-${i}`}
+              type="button"
+              onClick={() => open(m)}
+              className="group relative w-full rounded-2xl overflow-hidden shadow-card hover:shadow-xl hover:-translate-y-0.5 transition-all text-left"
+            >
+              <div className="relative aspect-video bg-muted">
+                <img src={m.poster} alt={m.name} loading="lazy" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                <span className="absolute inset-0 bg-gradient-to-t from-foreground/65 via-foreground/10 to-transparent" aria-hidden />
+                <span className="absolute inset-0 grid place-items-center">
+                  <span className="grid place-items-center w-14 h-14 rounded-full bg-white/90 text-primary shadow-lg group-hover:bg-white group-hover:scale-110 transition">
+                    {m.type === "video"
+                      ? <Play className="w-6 h-6 ml-0.5" fill="currentColor" />
+                      : <ImageIcon className="w-6 h-6" />}
                   </span>
-                  <span className="absolute top-2.5 right-2.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/90 text-foreground text-[10px] font-bold shadow">
-                    {m.type === "video" ? "▶ Video" : "▣ Photo"}
-                  </span>
-                  <div className="absolute bottom-0 left-0 right-0 p-3 text-white">
-                    <div className="font-bold font-display leading-tight text-sm line-clamp-1">{m.name}</div>
-                    <div className="text-[11px] text-white/85">{m.role} · ElectrifyingTheUS.com</div>
-                  </div>
+                </span>
+                <span className="absolute top-2.5 right-2.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/90 text-foreground text-[10px] font-bold shadow">
+                  {m.type === "video" ? "▶ Video" : "▣ Photo"}
+                </span>
+                <div className="absolute bottom-0 left-0 right-0 p-3 text-white">
+                  <div className="font-bold font-display leading-tight text-sm line-clamp-1">{m.name}</div>
+                  <div className="text-[11px] text-white/85">{m.role} · ElectrifyingTheUS.com</div>
                 </div>
-              </button>
-            ))}
-          </div>
+              </div>
+            </button>
+          ))}
         </div>
 
         {/* View more */}
