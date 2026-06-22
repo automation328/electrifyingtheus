@@ -200,11 +200,11 @@ const BrandSlide = ({ active }: { active: boolean }) => (
     </p>
 
     <div className={`flex flex-col sm:flex-row gap-4 justify-center ${active ? "animate-fade-up" : ""}`} style={{ animationDelay: "0.4s" }}>
-      <Link to="/assistant">
+      <a href="#agent-chat">
         <Button variant="hero" size="lg" className="text-base px-8 py-6 rounded-2xl">
           <MessageCircle className="w-5 h-5" /> EV Advisor 24/7
         </Button>
-      </Link>
+      </a>
       <Link to="/electricity-vs-gasoline">
         <Button variant="heroOutline" size="lg" className="btn-cta-pulse text-base px-8 py-6 rounded-2xl bg-primary-foreground/5">
           <Calculator className="cta-icon-bob" />
