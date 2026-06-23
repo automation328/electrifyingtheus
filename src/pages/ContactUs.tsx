@@ -24,7 +24,7 @@ const isValidEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
 
 const REASONS: { icon: ComponentType<{ className?: string }>; title: string; text: string }[] = [
   { icon: Handshake, title: "Partner with us", text: "Utilities, automakers, employers, labor, and community groups — let's collaborate." },
-  { icon: Sparkles, title: "Put EVan on your site", text: "Add the E-Mobility Advisor and EV tools to your own website." },
+  { icon: Sparkles, title: "Add EV tools to your website", text: "Add the E-Mobility Advisor and EV tools to your own website." },
   { icon: CalendarDays, title: "List an event or job", text: "Get your e-mobility event or open role in front of a national audience." },
 ];
 
