@@ -498,7 +498,7 @@ const AgentChatSection = () => {
                       <form onSubmit={captureLead} className="space-y-3 pt-2">
                         <p className="font-term text-[11px] tracking-[0.25em] uppercase px-1 text-[hsl(var(--term-muted))]">▸ A few quick details</p>
                         <p className="text-sm text-[hsl(var(--term-text))]">
-                          Tell me a bit about you and I'll tailor the answer.
+                          Tell me about yourself, and I'll tailor my answers.
                         </p>
                         <div className="grid sm:grid-cols-2 gap-2.5">
                           <input

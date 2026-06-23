@@ -385,7 +385,7 @@ const Assistant = () => {
                 {showLeadForm && (
                   <form onSubmit={captureLead} className="space-y-3 pt-2">
                     <p className={`text-[11px] tracking-[0.2em] font-semibold uppercase px-1 ${MUTED}`}>▸ A few quick details</p>
-                    <p className={`text-sm ${TXT}`}>Tell me a bit about you and I'll tailor the answer.</p>
+                    <p className={`text-sm ${TXT}`}>Tell me about yourself, and I'll tailor my answers.</p>
                     {(() => {
                       const fc = `w-full rounded-xl border border-black/[0.08] bg-[hsl(var(--term-panel))] px-4 py-3 text-sm outline-none transition-colors focus:border-[hsl(var(--term-cyan)/0.55)] placeholder:text-[hsl(var(--term-muted))] ${TXT}`;
                       return (
