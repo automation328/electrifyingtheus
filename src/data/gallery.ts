@@ -40,8 +40,13 @@ export const GALLERY_PHOTOS: GalleryPhoto[] = Object.keys(photoModules)
   }));
 
 export const GALLERY_VIDEOS: GalleryVideo[] = [
-  // YouTube/Vimeo — replace sample IDs with your real recap videos.
-  { id: "aqz-KE-bpKQ", title: "Event recap (sample — replace)", provider: "youtube" },
+  // Self-hosted testimonial (served from /public/media).
+  {
+    provider: "file",
+    title: "Why I switched to electric",
+    src: "/media/testimonial-1.mp4",
+    poster: "/media/testimonial-1-poster.jpg",
+  },
   { id: "dQw4w9WgXcQ", title: "How EVs save thousands (sample — replace)", provider: "youtube" },
 
   // Self-hosted example — upload an MP4 to a Supabase Storage public bucket and

@@ -129,7 +129,7 @@ const VideoTestimonialsSection = () => {
                   allowFullScreen
                 />
               ) : active?.src ? (
-                <video className="w-full h-full" src={active.src} controls autoPlay />
+                <video className="w-full h-full object-contain bg-black" src={active.src} controls autoPlay playsInline />
               ) : null}
             </div>
           )}
