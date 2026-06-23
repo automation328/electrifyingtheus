@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef, type ComponentType } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import {
@@ -19,7 +19,11 @@ import {
   Share2, Code2, Car, Tag, Facebook, Linkedin, MessageCircle, Mail, Copy, Send,
   Gift, BadgeCheck, ArrowRight, type LucideIcon,
 } from "lucide-react";
-import { SedanCompact, SedanMid, SuvSmall, SuvFull, Pickup } from "@/components/VehicleIcons";
+import iconCompactSedan from "@/assets/vehicle-icons/compact-sedan.png";
+import iconMidsizeSedan from "@/assets/vehicle-icons/midsize-sedan.png";
+import iconSmallSuv from "@/assets/vehicle-icons/small-suv.png";
+import iconFullSuv from "@/assets/vehicle-icons/full-suv.png";
+import iconPickup from "@/assets/vehicle-icons/pickup.png";
 import Navbar from "@/components/Navbar";
 import ShareResultDialog from "@/components/forms/ShareResultDialog";
 import ShareGate from "@/components/forms/ShareGate";
@@ -52,13 +56,13 @@ type CompareClass =
   | "compact-sedan" | "midsize-sedan" | "small-suv" | "pickup" | "full-suv";
 
 const CLASS_OPTIONS: {
-  key: CompareClass; label: string; icon: ComponentType<{ className?: string }>; gas: string; ev: string;
+  key: CompareClass; label: string; iconSrc: string; gas: string; ev: string;
 }[] = [
-  { key: "compact-sedan", label: "Compact Sedan",  icon: SedanCompact, gas: "honda-civic",       ev: "hyundai-ioniq-6" },
-  { key: "midsize-sedan", label: "Mid-Size Sedan", icon: SedanMid,     gas: "toyota-camry",      ev: "tesla-model-3" },
-  { key: "small-suv",     label: "Small SUV",      icon: SuvSmall,     gas: "chevy-equinox",     ev: "chevy-equinox-ev" },
-  { key: "pickup",        label: "EV Pick-Up",     icon: Pickup,       gas: "ford-f150",         ev: "ford-f150-lightning" },
-  { key: "full-suv",      label: "Full-Size SUV",  icon: SuvFull,      gas: "toyota-highlander", ev: "kia-ev9" },
+  { key: "compact-sedan", label: "Compact Sedan",  iconSrc: iconCompactSedan, gas: "honda-civic",       ev: "hyundai-ioniq-6" },
+  { key: "midsize-sedan", label: "Mid-Size Sedan", iconSrc: iconMidsizeSedan, gas: "toyota-camry",      ev: "tesla-model-3" },
+  { key: "small-suv",     label: "Small SUV",      iconSrc: iconSmallSuv,     gas: "chevy-equinox",     ev: "chevy-equinox-ev" },
+  { key: "pickup",        label: "EV Pick-Up",     iconSrc: iconPickup,       gas: "ford-f150",         ev: "ford-f150-lightning" },
+  { key: "full-suv",      label: "Full-Size SUV",  iconSrc: iconFullSuv,      gas: "toyota-highlander", ev: "kia-ev9" },
 ];
 
 const currency = (n: number, frac = 0) =>
@@ -1316,7 +1320,22 @@ const ElectricityVsGasoline = () => {
                             : "bg-muted text-muted-foreground group-hover:text-primary"
                         }`}
                       >
-                        <opt.icon className="w-5 h-5" />
+                        {/* PNG art rendered as a mask so it tints with the chip's
+                            text color (white when active, muted otherwise). */}
+                        <span
+                          aria-hidden
+                          className="w-7 h-7 bg-current"
+                          style={{
+                            WebkitMaskImage: `url(${opt.iconSrc})`,
+                            maskImage: `url(${opt.iconSrc})`,
+                            WebkitMaskRepeat: "no-repeat",
+                            maskRepeat: "no-repeat",
+                            WebkitMaskPosition: "center",
+                            maskPosition: "center",
+                            WebkitMaskSize: "contain",
+                            maskSize: "contain",
+                          }}
+                        />
                       </span>
                       <span
                         className={`font-display font-semibold text-sm whitespace-nowrap ${
