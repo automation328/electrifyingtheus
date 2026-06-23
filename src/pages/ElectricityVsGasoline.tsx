@@ -1314,7 +1314,7 @@ const ElectricityVsGasoline = () => {
                         className={`absolute left-0 top-2.5 bottom-2.5 w-1 rounded-full bg-primary transition-opacity ${active ? "opacity-100" : "opacity-0"}`}
                       />
                       <span
-                        className={`grid place-items-center w-10 h-10 rounded-xl transition ${
+                        className={`grid place-items-center w-11 h-11 rounded-xl transition ${
                           active
                             ? "gradient-primary text-primary-foreground shadow-md"
                             : "bg-muted text-muted-foreground group-hover:text-primary"
@@ -1324,7 +1324,7 @@ const ElectricityVsGasoline = () => {
                             text color (white when active, muted otherwise). */}
                         <span
                           aria-hidden
-                          className="w-7 h-7 bg-current"
+                          className="w-10 h-10 bg-current"
                           style={{
                             WebkitMaskImage: `url(${opt.iconSrc})`,
                             maskImage: `url(${opt.iconSrc})`,
