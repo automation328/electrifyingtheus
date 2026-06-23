@@ -20,7 +20,7 @@ const LEARN = [
 
 const EventFromPumpToPlug = () => {
   const event = EVENTS.find((e) => e.slug === SLUG) ?? EVENTS[0];
-  const registerUrl = event.registerUrl ?? "https://bit.ly/SaveWithEVs";
+  const registerUrl = event.registerUrl ?? "https://us06web.zoom.us/webinar/register/WN_PtzGLoOyQqmDMg8lXpKRlw#/registration";
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -141,7 +141,7 @@ const EventFromPumpToPlug = () => {
               formType="event-register"
               title={event.title}
               summary={`${event.location} · ${event.month} ${event.day}, ${event.year}`}
-              label="Register at bit.ly/SaveWithEVs"
+              label="Register for the webinar"
               icon={<Ticket className="w-5 h-5" />}
               className="inline-flex items-center gap-2 bg-primary-foreground text-primary font-bold px-7 py-3.5 rounded-2xl hover:opacity-90 transition"
             />

@@ -58,18 +58,18 @@ export const slugify = (s: string): string =>
 
 export const EVENTS: EventItem[] = [
   {
-    month: "JUN", day: "25", year: 2026,
+    month: "AUG", day: "6", year: 2026,
     title: "From Pump to Plug: How Electric Vehicles Are Saving Thousands",
     type: "Webinar",
     location: "Online · Live Webinar",
     region: "Online",
-    time: "2:00 – 3:00 PM ET",
+    time: "2:00 – 3:00 PM ET / 11:00 AM – 12:00 PM PT",
     description:
       "A free one-hour webinar on how switching from gas to electric saves drivers thousands — on fuel, maintenance, and incentives. See real cost comparisons and how to find the rebates available in your area. Powered by Electrifying Michigan, Electrifying the US, and Electrifying Virginia.",
     image: pumpToPlug,
     featured: true,
     slug: "from-pump-to-plug",
-    registerUrl: "https://bit.ly/SaveWithEVs",
+    registerUrl: "https://us06web.zoom.us/webinar/register/WN_PtzGLoOyQqmDMg8lXpKRlw#/registration",
   },
 ];
 
