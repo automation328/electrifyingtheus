@@ -1,4 +1,5 @@
 import pumpToPlug from "@/assets/event-pump-to-plug.jpg";
+import { lookupEventTitle } from "./event-titles";
 
 export interface EventItem {
   month: string;
@@ -65,9 +66,12 @@ export const eventCity = (e: EventItem): string => {
   return parts[parts.length - 2] || "";
 };
 
-/** Card title with its city appended ("EV Expo" → "EV Expo - Park Ridge").
+/** Title shown on event cards. A curated entry in EVENT_TITLE_OVERRIDES wins;
+ *  otherwise the event's city is appended ("EV Expo" → "EV Expo - Park Ridge").
  *  No-ops when there's no parseable city or the title already names it. */
 export const eventDisplayTitle = (e: EventItem): string => {
+  const override = lookupEventTitle(e.registerUrl, e.title);
+  if (override) return override;
   const city = eventCity(e);
   if (!city) return e.title;
   if (e.title.toLowerCase().includes(city.toLowerCase())) return e.title;

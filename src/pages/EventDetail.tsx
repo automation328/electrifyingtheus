@@ -6,7 +6,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ShareGate from "@/components/forms/ShareGate";
 import EventActionGate from "@/components/forms/EventActionGate";
-import { gcalLink, eventDate, type EventItem } from "@/data/events";
+import { gcalLink, eventDate, eventDisplayTitle, type EventItem } from "@/data/events";
 import { useEvents } from "@/hooks/use-content";
 import { useExternalEvents } from "@/hooks/use-external-events";
 
@@ -84,7 +84,7 @@ const EventDetail = () => {
             </span>
 
             <h1 className="text-3xl md:text-4xl font-bold font-display text-foreground leading-tight mb-4">
-              {event.title}
+              {eventDisplayTitle(event)}
             </h1>
 
             <div className="flex flex-col gap-2 text-foreground mb-5">
