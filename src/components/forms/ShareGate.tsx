@@ -9,7 +9,7 @@
 
 import { useState } from "react";
 import {
-  Share2, User, Mail, Loader2, Facebook, Linkedin, Instagram, MessageCircle, MessageSquare, Copy, MoreHorizontal,
+  Share2, User, Mail, Loader2, Facebook, Linkedin, MessageCircle, MessageSquare, Copy, MoreHorizontal,
 } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
@@ -142,35 +142,7 @@ const ShareGate = ({
     setSendOpen(true);
   };
 
-  const shareTo = async (network: "facebook" | "linkedin" | "whatsapp" | "instagram") => {
-    if (network === "instagram") {
-      // Instagram has no web link-share endpoint, so we can't prefill a post.
-      // On a PHONE, the native share sheet actually lists Instagram (and can
-      // attach the image), so route there. On desktop the OS share sheet has no
-      // Instagram target — using it just drops the visitor into a generic picker
-      // — so skip it and open instagram.com + copy the link instead.
-      const isMobile =
-        typeof navigator !== "undefined" && /android|iphone|ipad|ipod|mobile/i.test(navigator.userAgent);
-      if (isMobile && canNativeShare) {
-        try {
-          await navigator.share({ title, text: title, url: absoluteUrl });
-          return;
-        } catch { /* dismissed or unsupported target — fall through to copy + open */ }
-      }
-      // Open Instagram SYNCHRONOUSLY, inside the click gesture and BEFORE any
-      // await — opening it after `await clipboard.writeText` makes the browser
-      // treat it as a non-user-initiated popup and the blocker kills the tab.
-      const win = window.open("https://www.instagram.com/", "_blank", "noopener,noreferrer");
-      try {
-        await navigator.clipboard.writeText(absoluteUrl);
-        toast.success("Link copied — opening Instagram", { description: "Paste it into a Story link sticker, your bio, or a DM." });
-      } catch { /* clipboard blocked */ }
-      if (!win) {
-        // Popup still blocked (rare) — at least the link is on the clipboard.
-        toast.message("Open Instagram to share", { description: "We copied your link — paste it into a Story, bio, or DM." });
-      }
-      return;
-    }
+  const shareTo = (network: "facebook" | "linkedin" | "whatsapp") => {
     const u = encodeURIComponent(absoluteUrl);
     const links: Record<"facebook" | "linkedin" | "whatsapp", string> = {
       facebook: `https://www.facebook.com/sharer/sharer.php?u=${u}`,
@@ -279,9 +251,6 @@ const ShareGate = ({
                 </button>
                 <button type="button" onClick={() => shareTo("facebook")} className={row}>
                   <Facebook className="w-4 h-4" style={{ color: "#1877F2" }} /> Facebook
-                </button>
-                <button type="button" onClick={() => shareTo("instagram")} className={row}>
-                  <Instagram className="w-4 h-4" style={{ color: "#E4405F" }} /> Instagram
                 </button>
                 <button type="button" onClick={() => shareTo("whatsapp")} className={row}>
                   <MessageCircle className="w-4 h-4" style={{ color: "#25D366" }} /> WhatsApp

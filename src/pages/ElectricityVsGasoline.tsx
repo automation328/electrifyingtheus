@@ -190,14 +190,15 @@ const ElectricityVsGasoline = () => {
   }, []);
 
   const [stateCode, setStateCode] = useState(initial.stateCode);
-  // No car is preselected — the visitor chooses both. URL deep-links
-  // (?car=…&ev=…) still hydrate the selection when present.
-  const [gasId, setGasId] = useState(searchParams.get("car") ?? "");
-  const [evId, setEvId] = useState(searchParams.get("ev") ?? "");
+  // Pre-seed a Chevrolet Equinox vs Equinox EV sample so the calculator shows a
+  // worked example before the visitor picks their own cars. URL deep-links
+  // (?car=…&ev=…) still take precedence when present.
+  const [gasId, setGasId] = useState(searchParams.get("car") ?? "chevy-equinox");
+  const [evId, setEvId] = useState(searchParams.get("ev") ?? "chevy-equinox-ev");
   // Make selection drives the Model dropdown. Kept in sync with the chosen id
   // (deep links, EV-match cards) via the effects below.
-  const [gasMake, setGasMake] = useState(() => { const v = vehicles.find((x) => x.id === (searchParams.get("car") ?? "")); return v ? makeOf(v.name) : ""; });
-  const [evMake, setEvMake] = useState(() => { const v = vehicles.find((x) => x.id === (searchParams.get("ev") ?? "")); return v ? makeOf(v.name) : ""; });
+  const [gasMake, setGasMake] = useState(() => { const v = vehicles.find((x) => x.id === (searchParams.get("car") ?? "chevy-equinox")); return v ? makeOf(v.name) : ""; });
+  const [evMake, setEvMake] = useState(() => { const v = vehicles.find((x) => x.id === (searchParams.get("ev") ?? "chevy-equinox-ev")); return v ? makeOf(v.name) : ""; });
   const [homeCharging, setHomeCharging] = useState(initial.homeCharging);
 
   // Keep Make in sync whenever the selected vehicle id changes elsewhere.
@@ -761,6 +762,41 @@ const ElectricityVsGasoline = () => {
                 </p>
               </div>
             </div>
+
+            {/* Sample result — a worked Equinox example shown before the visitor
+                runs their own numbers (no share/email; those live in the full
+                gated result below). Hidden once real results are calculated. */}
+            {bothSelected && !showResults && (
+              <div className={`relative overflow-hidden rounded-3xl p-7 md:p-9 text-primary-foreground shadow-elevated mb-6 ${evWinsFuel ? "gradient-green" : "gradient-primary"}`}>
+                <Trophy className="absolute -right-6 -top-6 w-40 h-40 opacity-10" />
+                <div className="relative">
+                  <div className="flex items-center gap-2 text-xs uppercase tracking-[0.18em] opacity-90 mb-2">
+                    <Fuel className="w-3.5 h-3.5" /> Sample · {ev.name} vs {gas.name}
+                  </div>
+                  <div className="flex flex-wrap items-end gap-x-6 gap-y-3">
+                    <div>
+                      <div className="font-charge text-5xl md:text-6xl leading-none">
+                        {evWinsFuel ? "" : "−"}{currency(Math.abs(calc.res.horizonTotalSaved))}
+                      </div>
+                      <div className="text-sm opacity-90 mt-1.5">saved over {ownershipYears} years on fuel</div>
+                    </div>
+                    <div className="flex gap-6 mb-1">
+                      <div>
+                        <div className="font-charge text-2xl leading-none">{currency(Math.abs(calc.res.annualSavings))}</div>
+                        <div className="text-xs opacity-80 mt-1">per year</div>
+                      </div>
+                      <div>
+                        <div className="font-charge text-2xl leading-none">{currency(Math.abs(calc.res.monthlySavings))}</div>
+                        <div className="text-xs opacity-80 mt-1">per month</div>
+                      </div>
+                    </div>
+                  </div>
+                  <p className="mt-5 text-sm opacity-90">
+                    This is a sample comparison. Pick your own cars above, then calculate your exact savings.
+                  </p>
+                </div>
+              </div>
+            )}
 
             <div className="mb-6 flex flex-col items-center gap-2">
               <Button
@@ -1457,6 +1493,7 @@ const ElectricityVsGasoline = () => {
           <p className="text-xs text-muted-foreground">
             Powered by{" "}
             <a href="https://emobilityresearch.com" target="_blank" rel="noopener noreferrer"
+              style={{ fontFamily: "Arial, Helvetica, sans-serif" }}
               className="font-semibold text-foreground hover:text-primary transition-colors">
               EmobilityResearch.com
             </a>

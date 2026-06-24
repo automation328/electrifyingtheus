@@ -47,7 +47,12 @@ export const GALLERY_VIDEOS: GalleryVideo[] = [
     src: "/media/testimonial-1.mp4",
     poster: "/media/testimonial-1-poster.jpg",
   },
-  { id: "dQw4w9WgXcQ", title: "How EVs save thousands (sample — replace)", provider: "youtube" },
+  {
+    provider: "file",
+    title: "Real savings, real drivers",
+    src: "/media/testimonial-2.mp4",
+    poster: "/media/testimonial-2-poster.jpg",
+  },
 
   // Self-hosted example — upload an MP4 to a Supabase Storage public bucket and
   // paste its URL + a poster image. Uncomment to use:

@@ -15,7 +15,7 @@ export interface OgEntry {
 export const OG_ENTRIES: OgEntry[] = [
   {
     path: "/blog/2026-ev-tipping-point-electric-vehicle-adoption-america",
-    title: "Why 2026 Is the Tipping Point for Electric Vehicle Adoption in America",
+    title: "2026 could be the tipping point for electric vehicle adoption in America—why most drivers now save by going EV",
     description:
       "2026 is the tipping point for electric vehicle adoption in America—why most drivers now save by going EV.",
     image: "/og/why-2026-is-the-tipping-point.jpg",
@@ -58,7 +58,7 @@ export const OG_ENTRIES: OgEntry[] = [
   },
   {
     path: "/events/from-pump-to-plug",
-    title: "From Pump to Plug: How Electric Vehicles Are Saving Thousands",
+    title: "Part 2: From The Pump To The Plug - How Electric Vehicles Can Save You Thousands",
     description:
       "A free one-hour webinar on how switching from gas to electric saves drivers thousands — on fuel, maintenance, and incentives. June 25, 2026 · Online.",
     image: "/og/events-from-pump-to-plug.jpg",

@@ -24,7 +24,7 @@ export interface BlogPost {
 export const BLOG_POSTS: BlogPost[] = [
   {
     slug: "2026-ev-tipping-point-electric-vehicle-adoption-america",
-    title: "Why 2026 Is the Tipping Point for Electric Vehicle Adoption in America",
+    title: "2026 could be the tipping point for electric vehicle adoption in America—why most drivers now save by going EV",
     excerpt:
       "2026 is the tipping point for electric vehicle adoption in America—why most drivers now save by going EV.",
     category: "Policy & Trends",

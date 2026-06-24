@@ -483,8 +483,8 @@ const Assistant = () => {
                 <p className="text-[11px] tracking-[0.2em] font-semibold uppercase text-muted-foreground mb-1">For website owners</p>
                 <h2 className="font-display font-bold text-lg md:text-xl text-foreground mb-1.5">Add EV tools to your website</h2>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Want EVan, the EV&nbsp;vs&nbsp;Gas Calculator, or other EV tools on your own site? The team at
-                  EMobilityResearch.com builds the best EV-related tools on the market.
+                  Want EVan, the EV&nbsp;vs&nbsp;Gas Calculator, or other EV tools on your own site? The team at{" "}
+                  <span style={{ fontFamily: "Arial, Helvetica, sans-serif" }}>EMobilityResearch.com</span> builds the best EV-related tools on the market.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-2.5">
                   <a
@@ -498,6 +498,7 @@ const Assistant = () => {
                   </a>
                   <a
                     href="mailto:hello@emobilityresearch.com"
+                    style={{ fontFamily: "Arial, Helvetica, sans-serif" }}
                     className="inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold border border-black/[0.1] text-foreground hover:border-primary/40 transition-colors"
                   >
                     <Mail className="w-4 h-4" /> hello@emobilityresearch.com
@@ -515,6 +516,7 @@ const Assistant = () => {
               href="https://emobilityresearch.com"
               target="_blank"
               rel="noopener noreferrer"
+              style={{ fontFamily: "Arial, Helvetica, sans-serif" }}
               className="font-semibold text-foreground hover:text-primary transition-colors"
             >
               EmobilityResearch.com

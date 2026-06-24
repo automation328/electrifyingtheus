@@ -60,11 +60,6 @@ const TCOCalculatorSection = () => {
       <div className="container relative z-10 px-4">
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto mb-12 md:mb-14">
-          <div className="brief-mono inline-flex items-center gap-2 text-[11px] text-muted-foreground mb-5">
-            <Calculator className="w-3.5 h-3.5" />
-            TCO Calculator
-          </div>
-
           <h2 className="font-charge text-3xl sm:text-4xl md:text-6xl text-foreground leading-[0.95]">
             <span className="flex items-center justify-center gap-3 md:gap-4 flex-wrap">
               <span className="grid place-items-center w-11 h-11 md:w-14 md:h-14 rounded-2xl shrink-0"
@@ -200,6 +195,7 @@ const TCOCalculatorSection = () => {
               href="https://emobilityresearch.com"
               target="_blank"
               rel="noopener noreferrer"
+              style={{ fontFamily: "Arial, Helvetica, sans-serif" }}
               className="font-semibold text-foreground hover:text-primary transition-colors"
             >
               EmobilityResearch.com

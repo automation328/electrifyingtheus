@@ -4,7 +4,7 @@
 // or self-hosted file); photo cards open the image. Below the grid, a
 // "View More photos and videos" button links to the gallery.
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { Link } from "react-router-dom";
 import { Play, Image as ImageIcon, ArrowRight } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -23,6 +23,64 @@ interface MediaItem {
   youtubeId?: string;
   src?: string;
 }
+
+// Square media card. Self-hosted videos preview on hover (muted) and pause +
+// reset on leave; click opens the lightbox with sound.
+const MediaCard = ({ m, onOpen }: { m: MediaItem; onOpen: (m: MediaItem) => void }) => {
+  const vidRef = useRef<HTMLVideoElement>(null);
+  const isFileVideo = m.type === "video" && !!m.src;
+
+  const onEnter = () => {
+    const v = vidRef.current;
+    if (v) v.play().catch(() => {});
+  };
+  const onLeave = () => {
+    const v = vidRef.current;
+    if (v) { v.pause(); v.currentTime = 0; }
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={() => onOpen(m)}
+      onMouseEnter={isFileVideo ? onEnter : undefined}
+      onMouseLeave={isFileVideo ? onLeave : undefined}
+      className="group relative w-full rounded-2xl overflow-hidden shadow-card hover:shadow-xl hover:-translate-y-0.5 transition-all text-left"
+    >
+      <div className="relative aspect-square bg-muted">
+        {isFileVideo ? (
+          <video
+            ref={vidRef}
+            src={m.src}
+            poster={m.poster}
+            muted
+            loop
+            playsInline
+            preload="none"
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+          />
+        ) : (
+          <img src={m.poster} alt={m.name} loading="lazy" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+        )}
+        <span className="absolute inset-0 bg-gradient-to-t from-foreground/65 via-foreground/10 to-transparent" aria-hidden />
+        <span className="absolute inset-0 grid place-items-center transition-opacity group-hover:opacity-0">
+          <span className="grid place-items-center w-14 h-14 rounded-full bg-white/90 text-primary shadow-lg">
+            {m.type === "video"
+              ? <Play className="w-6 h-6 ml-0.5" fill="currentColor" />
+              : <ImageIcon className="w-6 h-6" />}
+          </span>
+        </span>
+        <span className="absolute top-2.5 right-2.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/90 text-foreground text-[10px] font-bold shadow">
+          {m.type === "video" ? "▶ Video" : "▣ Photo"}
+        </span>
+        <div className="absolute bottom-0 left-0 right-0 p-3 text-white">
+          <div className="font-bold font-display leading-tight text-sm line-clamp-1">{m.name}</div>
+          <div className="text-[11px] text-white/85">{m.role} · ElectrifyingTheUS.com</div>
+        </div>
+      </div>
+    </button>
+  );
+};
 
 const VideoTestimonialsSection = () => {
   const { videos } = useGallery();
@@ -74,31 +132,7 @@ const VideoTestimonialsSection = () => {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {media.map((m, i) => (
-            <button
-              key={`${m.name}-${i}`}
-              type="button"
-              onClick={() => open(m)}
-              className="group relative w-full rounded-2xl overflow-hidden shadow-card hover:shadow-xl hover:-translate-y-0.5 transition-all text-left"
-            >
-              <div className="relative aspect-video bg-muted">
-                <img src={m.poster} alt={m.name} loading="lazy" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                <span className="absolute inset-0 bg-gradient-to-t from-foreground/65 via-foreground/10 to-transparent" aria-hidden />
-                <span className="absolute inset-0 grid place-items-center">
-                  <span className="grid place-items-center w-14 h-14 rounded-full bg-white/90 text-primary shadow-lg group-hover:bg-white group-hover:scale-110 transition">
-                    {m.type === "video"
-                      ? <Play className="w-6 h-6 ml-0.5" fill="currentColor" />
-                      : <ImageIcon className="w-6 h-6" />}
-                  </span>
-                </span>
-                <span className="absolute top-2.5 right-2.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/90 text-foreground text-[10px] font-bold shadow">
-                  {m.type === "video" ? "▶ Video" : "▣ Photo"}
-                </span>
-                <div className="absolute bottom-0 left-0 right-0 p-3 text-white">
-                  <div className="font-bold font-display leading-tight text-sm line-clamp-1">{m.name}</div>
-                  <div className="text-[11px] text-white/85">{m.role} · ElectrifyingTheUS.com</div>
-                </div>
-              </div>
-            </button>
+            <MediaCard key={`${m.name}-${i}`} m={m} onOpen={open} />
           ))}
         </div>
 

@@ -586,6 +586,7 @@ const AgentChatSection = () => {
                 href="https://emobilityresearch.com"
                 target="_blank"
                 rel="noopener noreferrer"
+                style={{ fontFamily: "Arial, Helvetica, sans-serif" }}
                 className="font-semibold text-foreground hover:text-primary transition-colors"
               >
                 EmobilityResearch.com

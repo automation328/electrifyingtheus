@@ -59,7 +59,7 @@ export const slugify = (s: string): string =>
 export const EVENTS: EventItem[] = [
   {
     month: "AUG", day: "6", year: 2026,
-    title: "From Pump to Plug: How Electric Vehicles Are Saving Thousands",
+    title: "Part 2: From The Pump To The Plug - How Electric Vehicles Can Save You Thousands",
     type: "Webinar",
     location: "Online · Live Webinar",
     region: "Online",
