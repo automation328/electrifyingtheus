@@ -29,8 +29,9 @@ export const OG_ENTRIES: OgEntry[] = [
   },
   {
     path: "/blog/charging-101-levels",
-    title: "Charging 101: Level 1 vs. Level 2 vs. DC Fast",
-    description: "Which charger fits your life? A plain-English guide to speeds, connectors, and costs.",
+    title: "EV Charging 101: What to Know Before You Buy an EV",
+    description:
+      "A beginner's guide to EV charging for U.S. drivers: home and public charging, charging levels, costs, rebates, and the right setup for you.",
     image: "/og/charging-101-levels.jpg",
   },
   {
