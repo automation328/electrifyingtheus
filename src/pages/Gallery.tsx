@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Images, Film, ChevronLeft, ChevronRight, Camera } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -18,7 +18,16 @@ const TABS: { key: Tab; label: string; icon: typeof Images }[] = [
 const Gallery = () => {
   const [tab, setTab] = useState<Tab>("all");
   const [lightbox, setLightbox] = useState<number | null>(null);
-  const { photos, videos } = useGallery();
+  const { photos: rawPhotos, videos } = useGallery();
+  // Shuffle the photos once per visit (Fisher–Yates) so the wall feels fresh.
+  const photos = useMemo(() => {
+    const a = [...rawPhotos];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }, [rawPhotos]);
   const n = photos.length;
 
   // Keyboard navigation while the lightbox is open (Esc handled by the Dialog).
