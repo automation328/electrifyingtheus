@@ -34,35 +34,35 @@ export const OG_ENTRIES: OgEntry[] = [
     image: "/og/charging-101-levels.jpg",
   },
   {
-    path: "/blog/real-cost-of-going-electric",
+    path: "/blog/real-cost-of-going-electric-ev-savings-breakdown",
     title: "The Real Cost of Going Electric: A Complete EV Savings Breakdown",
     description:
       "How much do you actually save by switching to an EV? Fuel savings, maintenance costs, federal tax credits, and total cost of ownership — with real numbers.",
     image: "/og/real-cost-of-going-electric.jpg",
   },
   {
-    path: "/blog/clean-energy-workforce-opportunities",
+    path: "/blog/ev-clean-energy-workforce-jobs-opportunities",
     title: "Electrifying Communities: Clean Energy Jobs and EV Workforce Opportunities",
     description:
       "Hundreds of thousands of jobs in EV manufacturing, charging infrastructure, and skilled trades — no four-year degree required. Here's how to get in.",
     image: "/og/clean-energy-workforce-opportunities.jpg",
   },
   {
-    path: "/blog/beyond-cars-multimodal-future",
+    path: "/blog/beyond-cars-electric-bikes-buses-multimodal-transportation",
     title: "Beyond Cars: E-Bikes, Electric Buses, and the Multimodal Zero-Emission Future",
     description:
       "The EV revolution isn't just about cars. E-bikes, electric buses, electric trucks, and emerging electric aviation are building a zero-emission transportation system for every community.",
     image: "/og/beyond-cars-multimodal-future.jpg",
   },
   {
-    path: "/blog/evs-in-winter-myths-vs-reality",
+    path: "/blog/ev-cold-weather-winter-range-myths-vs-reality",
     title: "Do EVs Work in Cold Weather? Winter Range Myths vs. Reality",
     description:
       "Yes, EVs work in winter — millions do it every day. How cold weather affects range, what preconditioning is, and 5 smart habits that keep you moving all winter.",
     image: "/og/evs-in-winter-myths-vs-reality.jpg",
   },
   {
-    path: "/blog/cleaner-air-healthier-neighborhoods",
+    path: "/blog/electric-vehicles-air-quality-public-health-benefits",
     title: "Cleaner Air, Healthier Neighborhoods: How Electric Vehicles Improve Public Health",
     description:
       "Every gas car replaced by an EV means less tailpipe pollution. How vehicle emissions affect public health, who is most impacted, and how EVs are improving air quality across America.",

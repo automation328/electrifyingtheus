@@ -239,7 +239,7 @@ The industry is converging on the **NACS** (Tesla-style) standard, while **CCS**
 The takeaway: charge at home for daily driving, and lean on fast charging for longer trips.`,
   },
   {
-    slug: "real-cost-of-going-electric",
+    slug: "real-cost-of-going-electric-ev-savings-breakdown",
     title: "The Real Cost of Going Electric: A Complete EV Savings Breakdown",
     excerpt:
       "How much do you actually save by switching to an EV? This breakdown covers fuel savings, maintenance costs, federal tax credits, and total cost of ownership — with real numbers.",
@@ -341,7 +341,7 @@ The main additional cost is home charger installation, typically $300–$800 tot
 In virtually every U.S. market, electricity is cheaper per mile than gasoline. Hawaii and a few other high-electricity-cost states narrow the gap, but the savings are present nearly everywhere. Use the [fuel cost tool](/electricity-vs-gasoline) to check your specific state.`,
   },
   {
-    slug: "clean-energy-workforce-opportunities",
+    slug: "ev-clean-energy-workforce-jobs-opportunities",
     title: "Electrifying Communities: Clean Energy Jobs and EV Workforce Opportunities",
     excerpt:
       "The electric vehicle transition is creating hundreds of thousands of jobs in manufacturing, charging infrastructure, and skilled trades. No four-year degree required. Here's how to get in.",
@@ -409,7 +409,7 @@ Major EV manufacturing hubs are growing in Michigan, Georgia, Ohio, Kentucky, Te
 Organizations like Electrifying the US, workforce development nonprofits, and community colleges in urban areas are building targeted pathways. Look for programs that offer paid apprenticeships, eliminate upfront training costs, and partner with local employers for direct hiring.`,
   },
   {
-    slug: "beyond-cars-multimodal-future",
+    slug: "beyond-cars-electric-bikes-buses-multimodal-transportation",
     title: "Beyond Cars: E-Bikes, Electric Buses, and the Multimodal Zero-Emission Future",
     excerpt:
       "The EV revolution isn't just about electric cars. E-bikes, electric buses, electric trucks, and emerging electric aviation are building a zero-emission transportation system for every community.",
@@ -466,7 +466,7 @@ eVTOL stands for electric vertical takeoff and landing aircraft — commonly cal
 Bus routes often run through neighborhoods with higher rates of asthma and respiratory illness due to vehicle pollution. Electrifying these routes directly reduces emission exposure for residents and transit riders in historically overburdened communities.`,
   },
   {
-    slug: "evs-in-winter-myths-vs-reality",
+    slug: "ev-cold-weather-winter-range-myths-vs-reality",
     title: "Do EVs Work in Cold Weather? Winter Range Myths vs. Reality",
     excerpt:
       "Yes, EVs work in winter — millions do it every day. Learn how cold weather affects EV range, what preconditioning is, and the 5 smart habits that keep you moving all winter long.",
@@ -538,7 +538,7 @@ Yes. Level 1 and Level 2 home charging work normally in cold weather. DC fast ch
 EVs with heat pump systems (like the Tesla Model Y, Hyundai Ioniq 6, and others) are more efficient in cold weather than those relying solely on resistive heating. Heat pumps extract warmth from outside air and are 2–3x more efficient at a given temperature. It's worth checking whether a vehicle you're considering has a heat pump.`,
   },
   {
-    slug: "cleaner-air-healthier-neighborhoods",
+    slug: "electric-vehicles-air-quality-public-health-benefits",
     title: "Cleaner Air, Healthier Neighborhoods: How Electric Vehicles Improve Public Health",
     excerpt:
       "Every gas car replaced by an EV means less tailpipe pollution in our communities. Learn how vehicle emissions affect public health, who is most impacted, and how EVs are improving air quality across America.",

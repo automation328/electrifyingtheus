@@ -60,6 +60,12 @@ const App = () => (
           <Route path="/electricity-vs-gasoline" element={<ElectricityVsGasoline />} />
           <Route path="/news" element={<News />} />
           <Route path="/blog" element={<Navigate to="/news" replace />} />
+          {/* Legacy blog slugs → current SEO slugs (preserve old links). */}
+          <Route path="/blog/real-cost-of-going-electric" element={<Navigate to="/blog/real-cost-of-going-electric-ev-savings-breakdown" replace />} />
+          <Route path="/blog/clean-energy-workforce-opportunities" element={<Navigate to="/blog/ev-clean-energy-workforce-jobs-opportunities" replace />} />
+          <Route path="/blog/beyond-cars-multimodal-future" element={<Navigate to="/blog/beyond-cars-electric-bikes-buses-multimodal-transportation" replace />} />
+          <Route path="/blog/evs-in-winter-myths-vs-reality" element={<Navigate to="/blog/ev-cold-weather-winter-range-myths-vs-reality" replace />} />
+          <Route path="/blog/cleaner-air-healthier-neighborhoods" element={<Navigate to="/blog/electric-vehicles-air-quality-public-health-benefits" replace />} />
           <Route path="/blog/:slug" element={<BlogPost />} />
           <Route path="/events" element={<Events />} />
           <Route path="/events/from-pump-to-plug" element={<EventFromPumpToPlug />} />
