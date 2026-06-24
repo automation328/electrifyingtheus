@@ -42,7 +42,6 @@ import ContactUs from "./pages/ContactUs.tsx";
 import ThankYou from "./pages/ThankYou.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import ContactWidget from "./components/ContactWidget.tsx";
-import EmbargoNotice from "./components/EmbargoNotice.tsx";
 
 const queryClient = new QueryClient();
 
@@ -102,8 +101,6 @@ const App = () => (
         </Routes>
         {/* Floating contact widget — visible on every page. */}
         <ContactWidget />
-        {/* Pre-launch confidentiality / embargo reminder (once per session). */}
-        <EmbargoNotice />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

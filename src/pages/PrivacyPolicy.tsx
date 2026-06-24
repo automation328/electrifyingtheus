@@ -222,7 +222,7 @@ export const smsTerms: LegalAppendix = {
       list: [
         `Reply HELP to any text message. You will receive an automated response with the program name, a brief description, customer support contact information, and opt-out instructions.`,
         `Email us at info@electrifyingtheus.com.`,
-        `Visit https://test.electrifyingtheus.com for additional information.`,
+        `Visit https://electrifyingtheus.com for additional information.`,
       ],
       footer: [
         `Customer support is available via email Monday through Friday during normal business hours. We aim to respond to all inquiries within two (2) business days.`,
@@ -298,7 +298,7 @@ export const smsTerms: LegalAppendix = {
     {
       heading: "Contact for SMS Support",
       body: [
-        `For all SMS-related questions, opt-out requests, or support: Email: info@electrifyingtheus.com | Website: https://test.electrifyingtheus.com | Response time: Within 2 business days.`,
+        `For all SMS-related questions, opt-out requests, or support: Email: info@electrifyingtheus.com | Website: https://electrifyingtheus.com | Response time: Within 2 business days.`,
       ],
     },
   ],

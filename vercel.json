@@ -2,6 +2,12 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "redirects": [
     {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "www.electrifyingtheus.com" }],
+      "destination": "https://electrifyingtheus.com/:path*",
+      "permanent": true
+    },
+    {
       "source": "/blog/why-2026-is-the-tipping-point",
       "destination": "/blog/2026-ev-tipping-point-electric-vehicle-adoption-america",
       "permanent": true

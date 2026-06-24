@@ -79,7 +79,7 @@ const toolsDisclaimer: LegalAppendix = {
 };
 
 const preamble: string[] = [
-  `These Terms of Use ("Terms") constitute a legally binding agreement between you ("User," "you," or "your") and ElectrifyingTheUS (ETUS), EMobilityResearch (EMR) and EVNoire (EVN), and their respective affiliates, subsidiaries, partners, and licensors (collectively, "ElectrifyingTheUS," "we," "our," or "us") governing your access to and use of the website located at https://test.electrifyingtheus.com and any successor URLs, subdomains, mobile applications, APIs, or digital tools associated therewith (collectively, the "Site" or "Services").`,
+  `These Terms of Use ("Terms") constitute a legally binding agreement between you ("User," "you," or "your") and ElectrifyingTheUS (ETUS), EMobilityResearch (EMR) and EVNoire (EVN), and their respective affiliates, subsidiaries, partners, and licensors (collectively, "ElectrifyingTheUS," "we," "our," or "us") governing your access to and use of the website located at https://electrifyingtheus.com and any successor URLs, subdomains, mobile applications, APIs, or digital tools associated therewith (collectively, the "Site" or "Services").`,
   `By Accessing Or Using The Site In Any Way — Including Interacting With The AI Chatbot, Using Any Calculator, Viewing Rebate Or Incentive Information, Or Opting In To SMS Communications — You Agree To Be Bound By These Terms. If You Do Not Agree, You Must Immediately Cease Use Of The Site.`,
 ];
 
