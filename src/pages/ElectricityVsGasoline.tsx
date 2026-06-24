@@ -640,6 +640,52 @@ const ElectricityVsGasoline = () => {
               Open <em>Adjust assumptions</em> to fine-tune.
             </p>
 
+            {/* Sample preview — a worked Chevrolet Equinox example shown before the
+                visitor runs their own numbers. Clearly badged as a sample (no
+                share/email — those live in the full gated result). Hidden once
+                real results are calculated. */}
+            {bothSelected && !showResults && (
+              <div className="relative mb-8 rounded-3xl border-2 border-dashed border-secondary/50 bg-secondary/5 p-2.5">
+                <div className="absolute -top-3 left-6 z-10">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary text-secondary-foreground text-[11px] font-bold uppercase tracking-wider px-3 py-1 shadow-md">
+                    <Sparkles className="w-3.5 h-3.5" /> Sample preview
+                  </span>
+                </div>
+                <div className={`relative overflow-hidden rounded-[18px] p-6 md:p-8 text-primary-foreground shadow-card ${evWinsFuel ? "gradient-green" : "gradient-primary"}`}>
+                  <Trophy className="absolute -right-6 -top-6 w-40 h-40 opacity-10" />
+                  <div className="relative">
+                    <div className="flex items-center gap-2 text-xs uppercase tracking-[0.18em] opacity-90 mb-2">
+                      <Fuel className="w-3.5 h-3.5" /> Example · {ev.name} vs {gas.name}
+                    </div>
+                    <div className="flex flex-wrap items-end gap-x-6 gap-y-3">
+                      <div>
+                        <div className="font-charge text-5xl md:text-6xl leading-none">
+                          {evWinsFuel ? "" : "−"}{currency(Math.abs(calc.res.horizonTotalSaved))}
+                        </div>
+                        <div className="text-sm opacity-90 mt-1.5">saved over {ownershipYears} years on fuel</div>
+                      </div>
+                      <div className="flex gap-6 mb-1">
+                        <div>
+                          <div className="font-charge text-2xl leading-none">{currency(Math.abs(calc.res.annualSavings))}</div>
+                          <div className="text-xs opacity-80 mt-1">per year</div>
+                        </div>
+                        <div>
+                          <div className="font-charge text-2xl leading-none">{currency(Math.abs(calc.res.monthlySavings))}</div>
+                          <div className="text-xs opacity-80 mt-1">per month</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <p className="px-3 py-2.5 text-xs md:text-sm text-muted-foreground flex items-center gap-2">
+                  <Info className="w-4 h-4 shrink-0 text-secondary" />
+                  Just an example to show how it works. Build your matchup below and hit
+                  <strong className="text-foreground font-semibold">&nbsp;Calculate my savings&nbsp;</strong>
+                  for your own numbers.
+                </p>
+              </div>
+            )}
+
             {/* Primary inputs — your current car, the EV, your state, home charging */}
             <div className="relative overflow-hidden rounded-3xl border border-border bg-card shadow-card mb-6">
               <div className="h-1.5 w-full gradient-hero" aria-hidden />
@@ -762,41 +808,6 @@ const ElectricityVsGasoline = () => {
                 </p>
               </div>
             </div>
-
-            {/* Sample result — a worked Equinox example shown before the visitor
-                runs their own numbers (no share/email; those live in the full
-                gated result below). Hidden once real results are calculated. */}
-            {bothSelected && !showResults && (
-              <div className={`relative overflow-hidden rounded-3xl p-7 md:p-9 text-primary-foreground shadow-elevated mb-6 ${evWinsFuel ? "gradient-green" : "gradient-primary"}`}>
-                <Trophy className="absolute -right-6 -top-6 w-40 h-40 opacity-10" />
-                <div className="relative">
-                  <div className="flex items-center gap-2 text-xs uppercase tracking-[0.18em] opacity-90 mb-2">
-                    <Fuel className="w-3.5 h-3.5" /> Sample · {ev.name} vs {gas.name}
-                  </div>
-                  <div className="flex flex-wrap items-end gap-x-6 gap-y-3">
-                    <div>
-                      <div className="font-charge text-5xl md:text-6xl leading-none">
-                        {evWinsFuel ? "" : "−"}{currency(Math.abs(calc.res.horizonTotalSaved))}
-                      </div>
-                      <div className="text-sm opacity-90 mt-1.5">saved over {ownershipYears} years on fuel</div>
-                    </div>
-                    <div className="flex gap-6 mb-1">
-                      <div>
-                        <div className="font-charge text-2xl leading-none">{currency(Math.abs(calc.res.annualSavings))}</div>
-                        <div className="text-xs opacity-80 mt-1">per year</div>
-                      </div>
-                      <div>
-                        <div className="font-charge text-2xl leading-none">{currency(Math.abs(calc.res.monthlySavings))}</div>
-                        <div className="text-xs opacity-80 mt-1">per month</div>
-                      </div>
-                    </div>
-                  </div>
-                  <p className="mt-5 text-sm opacity-90">
-                    This is a sample comparison. Pick your own cars above, then calculate your exact savings.
-                  </p>
-                </div>
-              </div>
-            )}
 
             <div className="mb-6 flex flex-col items-center gap-2">
               <Button
