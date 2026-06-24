@@ -49,6 +49,18 @@ const sections: ContentSection[] = [
     ],
   },
   {
+    heading: "EV charging is simplifying: one standard (NACS)",
+    body: [
+      "U.S. automakers are increasingly adopting the North American Charging Standard (NACS), which is helping create a more unified EV charging experience across the market. As more brands standardize around the same plug design, drivers can expect simpler access to charging networks and far less confusion about which connector they need.",
+      "In some cases an adapter may still be required during the transition period, especially for older vehicles or when using certain charging stations. But for most new EVs, the industry is moving toward one common charging platform that makes public and home charging easier, more consistent, and more convenient.",
+    ],
+    list: [
+      "One plug for most new EVs — and access to the largest fast-charging network on the continent, including Tesla Superchargers.",
+      "Less guesswork at public stations: fewer connector types to worry about.",
+      "Adapters bridge the gap during the transition, so older CCS vehicles aren't left out.",
+    ],
+  },
+  {
     heading: "Charging at home",
     body: [
       "For most drivers, home is where the vast majority of charging happens. Plug in when you get home, and you wake up to a full battery every morning without ever visiting a station.",
@@ -91,7 +103,7 @@ const EvCharging101 = () => (
     kicker="EV 101 · Field Brief"
     title="EV Charging"
     highlight="101"
-    intro="Charging an EV is simpler than most people expect: plug in at home overnight, top up while you run errands, and fast-charge on road trips. Here is how the levels, plugs, and the growing national network all fit together."
+    intro="One of the first questions people ask about an EV isn't range or price — it's charging. How does it work? Do I need to install something at home? What happens when I'm away? Understanding how EV charging works helps you pick the right vehicle, set up the right home charging, and feel confident on the road. Here's how the levels, plugs, the new NACS standard, and the growing national network all fit together."
     pullQuote="Charging an EV is easier than people think: most of it happens overnight at home while you sleep."
     heroImage={evCharging}
     icon={BatteryCharging}

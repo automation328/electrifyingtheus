@@ -21,6 +21,13 @@ export const OG_ENTRIES: OgEntry[] = [
     image: "/og/why-2026-is-the-tipping-point.jpg",
   },
   {
+    path: "/blog/electric-vehicle-myths-2026",
+    title: "Electric Vehicle Myths in 2026: What's Actually True",
+    description:
+      "Still on the fence about going electric? We debunk the most common EV myths of 2026 so you can make a smarter, more confident vehicle decision.",
+    image: "/og/electric-vehicle-myths-2026.jpg",
+  },
+  {
     path: "/blog/charging-101-levels",
     title: "Charging 101: Level 1 vs. Level 2 vs. DC Fast",
     description: "Which charger fits your life? A plain-English guide to speeds, connectors, and costs.",
@@ -28,32 +35,37 @@ export const OG_ENTRIES: OgEntry[] = [
   },
   {
     path: "/blog/real-cost-of-going-electric",
-    title: "The Real Cost of Going Electric: A Savings Breakdown",
-    description: "Fuel, maintenance, and incentives add up. See where EV owners actually save money.",
+    title: "The Real Cost of Going Electric: A Complete EV Savings Breakdown",
+    description:
+      "How much do you actually save by switching to an EV? Fuel savings, maintenance costs, federal tax credits, and total cost of ownership — with real numbers.",
     image: "/og/real-cost-of-going-electric.jpg",
   },
   {
     path: "/blog/clean-energy-workforce-opportunities",
-    title: "Electrifying Communities: Clean-Energy Workforce Opportunities",
-    description: "The EV transition is creating hundreds of thousands of jobs — and pathways into them.",
+    title: "Electrifying Communities: Clean Energy Jobs and EV Workforce Opportunities",
+    description:
+      "Hundreds of thousands of jobs in EV manufacturing, charging infrastructure, and skilled trades — no four-year degree required. Here's how to get in.",
     image: "/og/clean-energy-workforce-opportunities.jpg",
   },
   {
     path: "/blog/beyond-cars-multimodal-future",
-    title: "Beyond Cars: E-Bikes, Buses & the Multimodal Future",
-    description: "Zero-emission mobility is bigger than cars. Explore the full electric ecosystem.",
+    title: "Beyond Cars: E-Bikes, Electric Buses, and the Multimodal Zero-Emission Future",
+    description:
+      "The EV revolution isn't just about cars. E-bikes, electric buses, electric trucks, and emerging electric aviation are building a zero-emission transportation system for every community.",
     image: "/og/beyond-cars-multimodal-future.jpg",
   },
   {
     path: "/blog/evs-in-winter-myths-vs-reality",
-    title: "EVs in Winter: Myths vs. Reality",
-    description: "Cold weather affects range — but preconditioning and planning keep you moving.",
+    title: "Do EVs Work in Cold Weather? Winter Range Myths vs. Reality",
+    description:
+      "Yes, EVs work in winter — millions do it every day. How cold weather affects range, what preconditioning is, and 5 smart habits that keep you moving all winter.",
     image: "/og/evs-in-winter-myths-vs-reality.jpg",
   },
   {
     path: "/blog/cleaner-air-healthier-neighborhoods",
-    title: "Cleaner Air, Healthier Neighborhoods",
-    description: "How replacing tailpipes with plugs improves public health where we live.",
+    title: "Cleaner Air, Healthier Neighborhoods: How Electric Vehicles Improve Public Health",
+    description:
+      "Every gas car replaced by an EV means less tailpipe pollution. How vehicle emissions affect public health, who is most impacted, and how EVs are improving air quality across America.",
     image: "/og/cleaner-air-healthier-neighborhoods.jpg",
   },
   {
