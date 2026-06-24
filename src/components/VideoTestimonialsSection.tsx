@@ -12,7 +12,7 @@ import { useGallery } from "@/hooks/use-content";
 import { toast } from "sonner";
 // Fixed feature images + a poster for the video fallback.
 import etu09 from "@/assets/gallery/etu-09.jpg";
-import etu51 from "@/assets/gallery/etu-51.jpg";
+import evShowcase from "@/assets/gallery/media-ev-showcase.jpg";
 import transitBus from "@/assets/electric-transit-bus.jpg";
 
 interface MediaItem {
@@ -116,7 +116,7 @@ const VideoTestimonialsSection = () => {
     const toPhoto = (src: string): MediaItem => ({
       type: "photo", name: "Electrifying the US", role: "Photo", poster: src,
     });
-    return [toPhoto(etu09), toVideo(0), toPhoto(etu51), toVideo(1)];
+    return [toPhoto(etu09), toVideo(0), toPhoto(evShowcase), toVideo(1)];
   }, [videos]);
 
   const open = (m: MediaItem) => {

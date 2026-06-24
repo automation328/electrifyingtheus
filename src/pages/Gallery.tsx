@@ -19,7 +19,11 @@ const Gallery = () => {
   const [tab, setTab] = useState<Tab>("all");
   const [lightbox, setLightbox] = useState<number | null>(null);
   const { photos: rawPhotos, videos } = useGallery();
-  // Shuffle the photos once per visit (Fisher–Yates) so the wall feels fresh.
+  // Shuffle the photos once per photo set (Fisher–Yates) so the wall feels fresh.
+  // Key on the photo srcs, not the array identity: useGallery returns a fresh
+  // array every render, so depending on `rawPhotos` would reshuffle on every
+  // state change — making a clicked thumbnail open a different image.
+  const photoKey = rawPhotos.map((p) => p.src).join("|");
   const photos = useMemo(() => {
     const a = [...rawPhotos];
     for (let i = a.length - 1; i > 0; i--) {
@@ -27,7 +31,8 @@ const Gallery = () => {
       [a[i], a[j]] = [a[j], a[i]];
     }
     return a;
-  }, [rawPhotos]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [photoKey]);
   const n = photos.length;
 
   // Keyboard navigation while the lightbox is open (Esc handled by the Dialog).
