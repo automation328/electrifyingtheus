@@ -24,19 +24,26 @@ interface MediaItem {
   src?: string;
 }
 
-// Square media card. Self-hosted videos preview on hover (muted) and pause +
-// reset on leave; click opens the lightbox with sound.
+// Square media card. Self-hosted videos preview on hover with sound, and pause +
+// reset (and re-mute) on leave; click opens the lightbox with sound.
 const MediaCard = ({ m, onOpen }: { m: MediaItem; onOpen: (m: MediaItem) => void }) => {
   const vidRef = useRef<HTMLVideoElement>(null);
   const isFileVideo = m.type === "video" && !!m.src;
 
   const onEnter = () => {
     const v = vidRef.current;
-    if (v) v.play().catch(() => {});
+    if (!v) return;
+    v.muted = false;
+    v.play().catch(() => {
+      // Some browsers block audible autoplay until the user interacts with the
+      // page — fall back to a muted preview so the clip still plays on hover.
+      v.muted = true;
+      v.play().catch(() => {});
+    });
   };
   const onLeave = () => {
     const v = vidRef.current;
-    if (v) { v.pause(); v.currentTime = 0; }
+    if (v) { v.pause(); v.currentTime = 0; v.muted = true; }
   };
 
   return (

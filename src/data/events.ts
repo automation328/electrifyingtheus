@@ -45,6 +45,35 @@ export const isUpcoming = (e: EventItem): boolean => {
 /** Sort comparator: soonest first. */
 export const byDateAsc = (a: EventItem, b: EventItem) => eventDate(a).getTime() - eventDate(b).getTime();
 
+/** "Thursday, AUG 6, 2026" — long weekday + the stored MON/day/year (matches the
+ *  event detail page). */
+export const eventFullDate = (e: EventItem): string => {
+  let weekday = "";
+  try { weekday = eventDate(e).toLocaleDateString("en-US", { weekday: "long" }); } catch { /* keep blank */ }
+  return `${weekday ? `${weekday}, ` : ""}${e.month} ${e.day}, ${e.year}`;
+};
+
+/** Short city/area parsed from an event's location, for appending to card titles.
+ *  "…, Park Ridge, IL 60068" → "Park Ridge" (the second-to-last comma segment is
+ *  reliably the city in US/CA addresses). Returns "" for online/virtual events,
+ *  "See event details", or single-segment locations. */
+export const eventCity = (e: EventItem): string => {
+  const loc = (e.location || "").trim();
+  if (!loc || /see event details/i.test(loc) || /online|webinar|virtual/i.test(loc)) return "";
+  const parts = loc.split(",").map((s) => s.trim()).filter(Boolean);
+  if (parts.length < 2) return "";
+  return parts[parts.length - 2] || "";
+};
+
+/** Card title with its city appended ("EV Expo" → "EV Expo - Park Ridge").
+ *  No-ops when there's no parseable city or the title already names it. */
+export const eventDisplayTitle = (e: EventItem): string => {
+  const city = eventCity(e);
+  if (!city) return e.title;
+  if (e.title.toLowerCase().includes(city.toLowerCase())) return e.title;
+  return `${e.title} - ${city}`;
+};
+
 /** URL-safe slug from arbitrary text (≤60 chars). */
 export const slugify = (s: string): string =>
   s.toLowerCase()

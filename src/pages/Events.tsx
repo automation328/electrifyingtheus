@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import {
-  MapPin, Clock, ArrowRight, MessageSquare,
+  MapPin, Clock, CalendarDays, ArrowRight, MessageSquare,
   CalendarPlus, BellRing, Search, Star, CheckCircle2, Sparkles, Megaphone,
   ChevronLeft, ChevronRight, ChevronDown,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { gcalLink, isUpcoming, byDateAsc, type EventItem } from "@/data/events";
+import { gcalLink, isUpcoming, byDateAsc, eventFullDate, eventDisplayTitle, type EventItem } from "@/data/events";
 import { useEvents } from "@/hooks/use-content";
 import { useExternalEvents } from "@/hooks/use-external-events";
 import { submitLead } from "@/lib/submitLead";
@@ -146,15 +146,6 @@ const Events = () => {
         className="grid place-items-center w-9 h-9 rounded-lg bg-white/15 text-primary-foreground hover:bg-white/25 transition"
       />
     </div>
-  );
-
-  // Prominent location chip.
-  const LocationChip = ({ e, dark }: { e: EventItem; dark?: boolean }) => (
-    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${
-      dark ? "bg-primary-foreground/15 text-primary-foreground" : "bg-secondary/10 text-secondary"
-    }`}>
-      <MapPin className="w-3.5 h-3.5" /> {e.location}
-    </span>
   );
 
   return (
@@ -322,7 +313,7 @@ const Events = () => {
                     {/* Gradient body */}
                     <div className={`${body} text-primary-foreground p-6 flex flex-col flex-1`}>
                       <span className="inline-block self-start px-2.5 py-0.5 rounded-full bg-white/20 text-[11px] font-semibold mb-2.5">{e.type}</span>
-                      <h3 className="text-lg font-bold font-display leading-snug mb-3">{e.title}</h3>
+                      <h3 className="text-lg font-bold font-display leading-snug mb-3">{eventDisplayTitle(e)}</h3>
                       <div className="flex flex-wrap items-center gap-2 mb-3">
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 text-xs font-semibold"><MapPin className="w-3.5 h-3.5" /> {e.location}</span>
                         <span className="inline-flex items-center gap-1.5 text-xs text-primary-foreground/90"><Clock className="w-3.5 h-3.5" /> {e.time}</span>
@@ -391,16 +382,16 @@ const Events = () => {
                       <div className="flex-1 min-w-0">
                         <div className="flex flex-wrap items-center gap-2 mb-2">
                           <span className="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold">{e.type}</span>
-                          <LocationChip e={e} />
                         </div>
                         {e.slug ? (
                           <Link to={`/events/${e.slug}`} className="block">
-                            <h3 className="text-xl font-bold font-display text-foreground mb-2 group-hover:text-primary transition-colors">{e.title}</h3>
+                            <h3 className="text-xl font-bold font-display text-foreground mb-2 group-hover:text-primary transition-colors">{eventDisplayTitle(e)}</h3>
                           </Link>
                         ) : (
-                          <h3 className="text-xl font-bold font-display text-foreground mb-2">{e.title}</h3>
+                          <h3 className="text-xl font-bold font-display text-foreground mb-2">{eventDisplayTitle(e)}</h3>
                         )}
                         <div className="flex flex-wrap gap-x-5 gap-y-1 text-sm text-muted-foreground mb-3">
+                          <span className="flex items-center gap-1.5"><CalendarDays className="w-4 h-4 text-secondary" /> {eventFullDate(e)}</span>
                           <span className="flex items-center gap-1.5"><Clock className="w-4 h-4 text-secondary" /> {e.time}</span>
                         </div>
                         <p className={`text-sm text-muted-foreground ${open ? "whitespace-pre-line" : ""}`}>
