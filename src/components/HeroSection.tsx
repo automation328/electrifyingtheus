@@ -36,7 +36,7 @@ const HeroSection = () => {
   // featured careers, and featured articles. Each slide shows its own image.
   const SLIDES = useMemo<Slide[]>(() => [
     { kind: "brand" },
-    ...events.slice(0, 2).map((data): Slide => ({ kind: "event", data })),
+    ...events.filter((e) => !e.heroHidden).slice(0, 2).map((data): Slide => ({ kind: "event", data })),
     // Job/hiring slides hidden for rollout — keep featured events + articles only.
     // ...JOBS.filter((j) => j.featured).slice(0, 2).map((data): Slide => ({ kind: "career", data })),
     ...posts.slice(0, 2).map((data): Slide => ({ kind: "article", data })),

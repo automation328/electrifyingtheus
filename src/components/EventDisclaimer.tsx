@@ -1,21 +1,32 @@
 // Per-event disclaimers shown on every (third-party) event detail page, as two
-// collapsible accordion cards (collapsed by default):
-//  1. Third-Party Event Notice
+// collapsible accordion cards with an icon badge per section:
+//  1. Third-Party Event Notice (open by default)
 //  2. Event Calendar / Listings — full text + corrections mailto + Terms of Use link
 
 import { Link } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ShieldAlert, CalendarDays } from "lucide-react";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import { EVENT_THIRD_PARTY_NOTICE, EVENT_CALENDAR_DISCLAIMER } from "@/lib/disclaimers";
 
 const cardCls = "rounded-2xl border border-border bg-card shadow-card px-5 md:px-6";
-const triggerCls = "font-semibold text-foreground hover:no-underline";
+const triggerCls = "py-4 font-semibold text-foreground hover:no-underline";
+
+const TriggerLabel = ({ icon: Icon, badge, title }: { icon: typeof ShieldAlert; badge: string; title: string }) => (
+  <span className="flex items-center gap-3 text-left">
+    <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl ${badge}`}>
+      <Icon className="h-[18px] w-[18px]" />
+    </span>
+    {title}
+  </span>
+);
 
 const EventDisclaimer = ({ className = "" }: { className?: string }) => (
   <Accordion type="multiple" defaultValue={["third-party"]} className={`space-y-4 ${className}`}>
     {/* Third-Party Event Notice */}
     <AccordionItem value="third-party" className={cardCls}>
-      <AccordionTrigger className={triggerCls}>Third-Party Event Notice</AccordionTrigger>
+      <AccordionTrigger className={triggerCls}>
+        <TriggerLabel icon={ShieldAlert} badge="bg-amber-100 text-amber-600" title="Third-Party Event Notice" />
+      </AccordionTrigger>
       <AccordionContent className="text-sm leading-relaxed text-muted-foreground">
         {EVENT_THIRD_PARTY_NOTICE}
       </AccordionContent>
@@ -23,7 +34,9 @@ const EventDisclaimer = ({ className = "" }: { className?: string }) => (
 
     {/* Event Calendar / Listings */}
     <AccordionItem value="calendar" className={cardCls}>
-      <AccordionTrigger className={triggerCls}>Event Calendar / Listings</AccordionTrigger>
+      <AccordionTrigger className={triggerCls}>
+        <TriggerLabel icon={CalendarDays} badge="bg-primary/10 text-primary" title="Event Calendar / Listings" />
+      </AccordionTrigger>
       <AccordionContent>
         <div className="space-y-2.5 text-sm leading-relaxed text-muted-foreground">
           {EVENT_CALENDAR_DISCLAIMER.map((para, i) => (

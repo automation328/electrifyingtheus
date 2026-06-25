@@ -24,6 +24,9 @@ export interface EventItem {
   external?: boolean;
   /** Feed hostname for external events (shown as a small source label). */
   source?: string;
+  /** When true, the event is excluded from the homepage hero carousel (it can
+   *  still appear in the Events list / Featured section). */
+  heroHidden?: boolean;
 }
 
 const MONTH_NUM: Record<string, number> = {
@@ -102,6 +105,7 @@ export const EVENTS: EventItem[] = [
       "North America's largest outdoor vehicle demonstration festival — over one million square feet at the Rose Bowl. Test drive and ride a huge range of vehicles: cars, trucks, motorcycles, e-bikes, ATVs, UTVs, e-scooters, e-skateboards, and autonomous vehicles, across dedicated demo courses. Plus live Freestyle Motocross, a Kids Zone with go-karts and electric rides, custom vehicle showcases, robotics and aerial-mobility exhibits, solar and energy displays, food trucks, and live music. June 27–28, 2026 · 10:00 AM – 5:00 PM.",
     image: demoDaysLa,
     featured: true,
+    heroHidden: true,
     slug: "demo-days-los-angeles",
     registerUrl: "https://demodaysfestival.com/products/los-angeles",
   },
