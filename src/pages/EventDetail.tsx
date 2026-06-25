@@ -6,6 +6,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ShareGate from "@/components/forms/ShareGate";
 import EventActionGate from "@/components/forms/EventActionGate";
+import EventDisclaimer from "@/components/EventDisclaimer";
 import { gcalLink, eventDate, eventDisplayTitle, type EventItem } from "@/data/events";
 import { useEvents } from "@/hooks/use-content";
 import { useExternalEvents } from "@/hooks/use-external-events";
@@ -170,6 +171,9 @@ const EventDetail = () => {
             </Link>
           )}
         </div>
+
+        {/* Third-party event notice */}
+        <EventDisclaimer className="mt-8" />
       </div>
     </Shell>
   );
