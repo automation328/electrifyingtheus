@@ -34,11 +34,11 @@ const navItems: NavItem[] = [
   { label: "EV Dashboard", href: "#dashboard", primary: true },
   { label: "EV 101", href: "#ev101", primary: true },
   { label: "Benefits", href: "#benefits", primary: true },
-  { label: "Multimodal", href: "#multimodal", primary: true },
+  { label: "Events", href: "/events", primary: true },
   { label: "EV vs Gas Calculator", href: "/electricity-vs-gasoline", primary: true },
   { label: "Incentives", href: "/rebates-incentives" },
   { label: "News", href: "/news" },
-  { label: "Events", href: "/events" },
+  { label: "Multimodal", href: "#multimodal" },
   { label: "Photos and Videos", href: "/gallery" },
   // Careers hidden from nav at rollout (route + page still live; re-add to show).
   // { label: "Careers", href: "/careers" },
