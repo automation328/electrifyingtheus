@@ -54,6 +54,19 @@ const extractReply = (data: unknown): string => {
   return "";
 };
 
+// Repair UTF-8-read-as-CP1252 artifacts (e.g. "â€"" -> "—") that can slip in from
+// upstream responses, so dashes/quotes/ellipses render correctly in chat.
+const fixMojibake = (s: string): string =>
+  s
+    .replace(/â€”/g, "—") // — em dash
+    .replace(/â€“/g, "–") // – en dash
+    .replace(/â€™/g, "’") // ' right single quote
+    .replace(/â€˜/g, "‘") // ' left single quote
+    .replace(/â€œ/g, "“") // " left double quote
+    .replace(/â€¦/g, "…") // … ellipsis
+    .replace(/Â°/g, "°")       // ° degree
+    .replace(/Â /g, " ");      // nbsp
+
 const GREETING =
   "Hi, I'm EVan, your EV Advisor. My team and I, are currently online, ready to answer your questions about Electric Vehicles, EV Cost Savings, EV Charging and Infrastructure, Rebates & Incentives programs, and more. I've added the top 10 questions below. Enter your first name and email, and let's get started.";
 
@@ -363,10 +376,11 @@ const AgentChatSection = () => {
       } catch {
         reply = raw;
       }
+      const clean = fixMojibake(reply).trim();
 
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: reply.trim() ? withChatCta(reply.trim()) : `Thanks! I didn't catch a response that time — could you rephrase?${CONTACT_HINT}` },
+        { role: "assistant", content: clean ? withChatCta(clean) : `Thanks! I didn't catch a response that time — could you rephrase?${CONTACT_HINT}` },
       ]);
     } catch {
       setMessages((prev) => [
