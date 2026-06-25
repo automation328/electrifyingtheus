@@ -172,6 +172,29 @@ For daily driving, most EV owners charge to about **80%**, and only to 100% for 
 
 **Note:** The average American drives less than **35 miles per day**. If your EV has a 300-mile range, you likely won't need to charge every single day. It's less a technical adjustment and more a simple shift in habit — one that most EV owners say quickly becomes second nature.`;
 
+const LONGEST_RANGE_ANSWER = `The longest-range electric vehicle currently sold in the U.S. is the Lucid Air Grand Touring, which achieves an EPA-estimated 512 miles on a single charge. Several other long-range models across various body styles easily clear the 400-mile threshold. [1, 2]
+
+For context, the average American drives about **37 miles per day**, well within the range of nearly every EV available.
+
+### Longest-Range EVs by Category
+
+**Luxury Sedans**
+- Lucid Air Grand Touring: Up to 512 miles.
+- Tesla Model S: Up to 410 miles. [1]
+
+**SUVs & Crossovers**
+- Lucid Gravity Grand Touring: Up to 450 miles (Luxury SUV).
+- Rivian R1S (Dual Max): Up to 410 miles (Family/Adventure SUV).
+- Cadillac Escalade IQ/IQL: Up to 465 miles. [1]
+
+**Trucks & Pickups**
+- Chevrolet Silverado EV: Up to 493 miles.
+- Rivian R1T (Dual Max): Up to 420 miles. [1]
+
+**Everyday Sedans**
+- Hyundai Ioniq 6 (SE Long Range RWD): Up to 361 miles.
+- Tesla Model 3 (Long Range): Up to 363 miles.`;
+
 const CANNED_ANSWERS: Record<string, string> = {
   [normalizeQ(SUGGESTED_QUESTIONS[0])]: TOP_5_AFFORDABLE_EVS,
   [normalizeQ(SUGGESTED_QUESTIONS[1])]: EV_RANGE_ANSWER,
@@ -188,6 +211,10 @@ const cannedAnswerFor = (text: string, firstName?: string): string | null => {
   // Looser matches so typed variants still hit the curated answers.
   if (key.includes("ev") && (key.includes("affordable") || key.includes("cheapest"))) {
     return personalize(TOP_5_AFFORDABLE_EVS);
+  }
+  // "Longest range" is its own curated answer — check before the general range one.
+  if (key.includes("longest") || key.includes("mostrange") || key.includes("highestrange") || key.includes("farthest") || key.includes("furthest")) {
+    return personalize(LONGEST_RANGE_ANSWER);
   }
   if (key.includes("howfar") || key.includes("howmanymiles") || (key.includes("range") && key.includes("ev"))) {
     return personalize(EV_RANGE_ANSWER);

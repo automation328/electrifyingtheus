@@ -1,4 +1,5 @@
 import pumpToPlug from "@/assets/event-pump-to-plug.jpg";
+import demoDaysLa from "@/assets/event-demo-days-la.jpg";
 import { lookupEventTitle } from "./event-titles";
 
 export interface EventItem {
@@ -90,6 +91,20 @@ export const slugify = (s: string): string =>
     .replace(/-+$/g, "");
 
 export const EVENTS: EventItem[] = [
+  {
+    month: "JUN", day: "27", year: 2026,
+    title: "Demo Days Los Angeles",
+    type: "Festival",
+    location: "Rose Bowl Stadium, 1001 Rose Bowl Dr, Pasadena, CA 91103",
+    region: "Pasadena, CA",
+    time: "Sat–Sun, 10:00 AM – 5:00 PM PT",
+    description:
+      "North America's largest outdoor vehicle demonstration festival — over one million square feet at the Rose Bowl. Test drive and ride a huge range of vehicles: cars, trucks, motorcycles, e-bikes, ATVs, UTVs, e-scooters, e-skateboards, and autonomous vehicles, across dedicated demo courses. Plus live Freestyle Motocross, a Kids Zone with go-karts and electric rides, custom vehicle showcases, robotics and aerial-mobility exhibits, solar and energy displays, food trucks, and live music. June 27–28, 2026 · 10:00 AM – 5:00 PM.",
+    image: demoDaysLa,
+    featured: true,
+    slug: "demo-days-los-angeles",
+    registerUrl: "https://demodaysfestival.com/products/los-angeles",
+  },
   {
     month: "AUG", day: "6", year: 2026,
     title: "Part 2: From The Pump To The Plug - How Electric Vehicles Can Save You Thousands",

@@ -70,6 +70,13 @@ export const OG_ENTRIES: OgEntry[] = [
     image: "/og/cleaner-air-healthier-neighborhoods.jpg",
   },
   {
+    path: "/events/demo-days-los-angeles",
+    title: "Demo Days Los Angeles — Test Drive the Future at the Rose Bowl",
+    description:
+      "North America's largest outdoor vehicle demo festival. Test drive EVs, e-bikes, e-scooters, autonomous vehicles, and more. June 27–28, 2026 · Rose Bowl, Pasadena, CA.",
+    image: "/og/demo-days-los-angeles.jpg",
+  },
+  {
     path: "/events/from-pump-to-plug",
     title: "Part 2: From The Pump To The Plug - How Electric Vehicles Can Save You Thousands",
     description:
