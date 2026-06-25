@@ -148,8 +148,11 @@ const EventDetail = () => {
           </div>
         </div>
 
+        {/* Event disclaimers — above the register band */}
+        <EventDisclaimer className="mt-10" />
+
         {/* Register band */}
-        <div className="mt-10 rounded-3xl gradient-hero p-8 md:p-10 text-center text-primary-foreground">
+        <div className="mt-8 rounded-3xl gradient-hero p-8 md:p-10 text-center text-primary-foreground">
           <h2 className="text-2xl md:text-3xl font-bold font-display mb-3">Save your spot</h2>
           <p className="text-primary-foreground/90 mb-6 max-w-xl mx-auto">
             {event.time} · {event.location}. Register and we'll make sure you have the details.
@@ -171,9 +174,6 @@ const EventDetail = () => {
             </Link>
           )}
         </div>
-
-        {/* Event disclaimers — full width, below the register band */}
-        <EventDisclaimer className="mt-8" />
       </div>
     </Shell>
   );

@@ -12,7 +12,7 @@ const cardCls = "rounded-2xl border border-border bg-card shadow-card px-5 md:px
 const triggerCls = "font-semibold text-foreground hover:no-underline";
 
 const EventDisclaimer = ({ className = "" }: { className?: string }) => (
-  <Accordion type="multiple" className={`space-y-4 ${className}`}>
+  <Accordion type="multiple" defaultValue={["third-party"]} className={`space-y-4 ${className}`}>
     {/* Third-Party Event Notice */}
     <AccordionItem value="third-party" className={cardCls}>
       <AccordionTrigger className={triggerCls}>Third-Party Event Notice</AccordionTrigger>
