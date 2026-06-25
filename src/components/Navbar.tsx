@@ -27,14 +27,16 @@ type Spotlight = {
 // the floating ContactWidget) instead of navigating. `href` stays as a fallback.
 // `primary: true` items also show inline in the desktop nav bar; on desktop they
 // are hidden from the burger panel (the panel then holds only the rest).
-type NavItem = { label: string; href: string; dialog?: boolean; primary?: boolean };
+// `barOnly: true` items show ONLY in the desktop bar — never in the burger panel
+// (so they don't appear in the mobile menu at all).
+type NavItem = { label: string; href: string; dialog?: boolean; primary?: boolean; barOnly?: boolean };
 
 const navItems: NavItem[] = [
   { label: "About", href: "#about", primary: true },
   { label: "EV Dashboard", href: "#dashboard", primary: true },
   { label: "EV 101", href: "#ev101", primary: true },
   { label: "Benefits", href: "#benefits", primary: true },
-  { label: "Events", href: "/events", primary: true },
+  { label: "Events", href: "/events", primary: true, barOnly: true },
   { label: "EV vs Gas Calculator", href: "/electricity-vs-gasoline", primary: true },
   { label: "Incentives", href: "/rebates-incentives" },
   { label: "News", href: "/news" },
@@ -242,7 +244,7 @@ const Navbar = () => {
             <div className={`glass shadow-elevated rounded-2xl overflow-hidden flex flex-col w-full ${open ? "nav-panel-in" : "nav-panel-out"}`}>
               <div className="nav-current" />
               <div className="p-3 flex flex-col flex-1 overflow-y-auto">
-                {navItems.map((item, i) => {
+                {navItems.filter((item) => !item.barOnly).map((item, i) => {
                   const delay = open ? { animationDelay: `${i * 40}ms` } : undefined;
                   // On-page anchor sections (#…) also live in the desktop bar, so
                   // hide them from the panel on lg+ (they stay on smaller screens).
