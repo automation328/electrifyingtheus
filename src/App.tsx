@@ -42,6 +42,7 @@ import ContactUs from "./pages/ContactUs.tsx";
 import ThankYou from "./pages/ThankYou.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import ContactWidget from "./components/ContactWidget.tsx";
+import VisitorTracker from "./components/VisitorTracker.tsx";
 
 const queryClient = new QueryClient();
 
@@ -101,6 +102,8 @@ const App = () => (
         </Routes>
         {/* Floating contact widget — visible on every page. */}
         <ContactWidget />
+        {/* Logs each visit (IP + geo) to Slack — fires once per session. */}
+        <VisitorTracker />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
