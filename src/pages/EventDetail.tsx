@@ -76,9 +76,6 @@ const EventDetail = () => {
               <div className="bg-secondary text-primary-foreground text-[11px] font-bold tracking-wider py-1">{event.month}</div>
               <div className="text-foreground text-3xl font-bold font-display leading-none py-2">{event.day}</div>
             </div>
-
-            {/* Third-party event notice — under the poster */}
-            <EventDisclaimer className="mt-6" />
           </div>
 
           {/* Details */}
@@ -174,6 +171,9 @@ const EventDetail = () => {
             </Link>
           )}
         </div>
+
+        {/* Event disclaimers — full width, below the register band */}
+        <EventDisclaimer className="mt-8" />
       </div>
     </Shell>
   );
