@@ -1292,7 +1292,7 @@ const ElectricityVsGasoline = () => {
           <div className="container px-4 max-w-5xl">
             <div className="text-center max-w-2xl mx-auto mb-12">
               <h2 className="font-charge text-3xl md:text-4xl text-foreground">
-                The fight isn't close, coast to coast
+                Follow The Data, The Numbers Speak For Themselves
               </h2>
               <p className="text-muted-foreground mt-3">
                 Wherever you plug in, the numbers line up the same way — electricity beats gasoline on cost, range, and access.
