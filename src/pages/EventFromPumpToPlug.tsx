@@ -7,7 +7,6 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ShareGate from "@/components/forms/ShareGate";
 import EventActionGate from "@/components/forms/EventActionGate";
-import EventDisclaimer from "@/components/EventDisclaimer";
 import { EVENTS, gcalLink } from "@/data/events";
 import flyer from "@/assets/event-pump-to-plug.jpg";
 
@@ -147,9 +146,6 @@ const EventFromPumpToPlug = () => {
               className="inline-flex items-center gap-2 bg-primary-foreground text-primary font-bold px-7 py-3.5 rounded-2xl hover:opacity-90 transition"
             />
           </div>
-
-          {/* Third-party event notice */}
-          <EventDisclaimer className="mt-8" />
         </div>
       </main>
       <Footer />
