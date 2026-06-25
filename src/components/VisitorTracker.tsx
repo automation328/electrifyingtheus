@@ -3,6 +3,7 @@
 // nothing; fire-and-forget so it never affects the page.
 
 import { useEffect } from "react";
+import { getLeadIdentity } from "@/lib/leadIdentity";
 
 const VisitorTracker = () => {
   useEffect(() => {
@@ -15,9 +16,15 @@ const VisitorTracker = () => {
     }
 
     try {
+      // Attach the visitor's saved identity (from any earlier gate) so the Slack
+      // alert names returning, already-identified visitors. Anonymous visitors
+      // send blanks.
+      const id = getLeadIdentity();
       const payload = JSON.stringify({
         path: window.location.pathname + window.location.search,
         referrer: document.referrer || "",
+        firstName: id?.firstName || "",
+        email: id?.email || "",
       });
       void fetch("/api/track", {
         method: "POST",

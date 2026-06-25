@@ -51,6 +51,11 @@ export default async function handler(req: any, res: any) {
   const b = body && typeof body === "object" ? body : {};
   const path = String(b.path ?? "").slice(0, 200);
   const referrer = String(b.referrer ?? "").slice(0, 300);
+  // Identity the visitor gave at an earlier gate (calculator, chat, share,
+  // event) — sent by the client from localStorage; blank for anonymous visitors.
+  const firstName = String(b.firstName ?? "").slice(0, 80).trim();
+  const email = String(b.email ?? "").slice(0, 160).trim();
+  const known = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
   const ip = clientIp(req);
   const city = safeDecode(header(req, "x-vercel-ip-city"));
@@ -63,7 +68,8 @@ export default async function handler(req: any, res: any) {
   }).format(new Date());
 
   const lines = [
-    "👀 *New visitor* — electrifyingtheus.com",
+    known ? "🙋 *Known visitor* — electrifyingtheus.com" : "👀 *New visitor* — electrifyingtheus.com",
+    known ? `👤 ${firstName || "(no name given)"} · ${email}` : "",
     `📍 IP: \`${ip}\``,
     `🌎 ${loc}`,
     path ? `📄 Page: ${path}` : "",
