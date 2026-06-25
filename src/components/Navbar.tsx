@@ -246,10 +246,11 @@ const Navbar = () => {
               <div className="p-3 flex flex-col flex-1 overflow-y-auto">
                 {navItems.filter((item) => !item.barOnly).map((item, i) => {
                   const delay = open ? { animationDelay: `${i * 40}ms` } : undefined;
-                  // On-page anchor sections (#…) also live in the desktop bar, so
-                  // hide them from the panel on lg+ (they stay on smaller screens).
-                  // Route links (Calculator, Incentives, News…) stay in the panel.
-                  const hideOnDesktop = item.href.startsWith("#") ? "lg:hidden" : "";
+                  // Anchor sections that ALSO sit in the desktop bar (the primary
+                  // ones) are redundant in the panel on lg+, so hide them there
+                  // (they stay on smaller screens). A non-primary anchor like
+                  // Multimodal isn't in the bar, so it must remain in the panel.
+                  const hideOnDesktop = item.href.startsWith("#") && item.primary ? "lg:hidden" : "";
                   const cls = `block w-full text-left pl-5 pr-4 py-2.5 rounded-lg text-foreground font-medium hover:bg-muted hover:text-primary transition-colors ${hideOnDesktop} ${open ? "nav-item" : ""}`;
                   return item.dialog ? (
                     <button
