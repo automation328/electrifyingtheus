@@ -7,11 +7,14 @@ import ReactMarkdown from "react-markdown";
 import OpenAI from "openai";
 import { type Lead, EMPTY_LEAD, isValidEmail } from "@/lib/lead";
 import { withChatCta } from "@/lib/chatCta";
+import { getLeadIdentity, saveLeadIdentity } from "@/lib/leadIdentity";
 
 type Message = { role: "user" | "assistant"; content: string };
 
-// Lead details are collected before the first query is answered. Held in memory
-// only (not persisted) so every visit asks again before the first answer.
+// Lead details are collected before the first query is answered, then remembered
+// site-wide via lib/leadIdentity: a visitor who already identified themselves at
+// any gate skips this form, and a name + email entered here is reused elsewhere —
+// so each person is asked once.
 
 // ── Temporary in-browser OpenAI ──────────────────────────────────────────────
 // Reads the key from VITE_OPENAI_API_KEY (.env.local). `dangerouslyAllowBrowser`
@@ -96,12 +99,21 @@ const markdownComponents = {
 };
 
 const Assistant = () => {
-  const [messages, setMessages] = useState<Message[]>([
-    { role: "assistant", content: "Hi, I'm EVan, your EV Advisor. My team and I, are currently online, ready to answer your questions about Electric Vehicles, EV Cost Savings, EV Charging and Infrastructure, Rebates & Incentives programs, and more. I've added the top 10 questions below. Enter your first name and email, and let's get started." },
+  // Seed identity from any earlier gate so a known visitor skips the lead form.
+  const [lead, setLead] = useState<Lead | null>(() => {
+    const id = getLeadIdentity();
+    return id ? { fullName: id.firstName, email: id.email } : null;
+  });
+  const [messages, setMessages] = useState<Message[]>(() => [
+    {
+      role: "assistant",
+      content: lead
+        ? `Hi ${lead.fullName}, I'm EVan, your EV Advisor. My team and I are online and ready to answer your questions about Electric Vehicles, EV Cost Savings, EV Charging and Infrastructure, Rebates & Incentives programs, and more. Pick one of the top 10 questions below, or just ask me anything.`
+        : "Hi, I'm EVan, your EV Advisor. My team and I, are currently online, ready to answer your questions about Electric Vehicles, EV Cost Savings, EV Charging and Infrastructure, Rebates & Incentives programs, and more. I've added the top 10 questions below. Enter your first name and email, and let's get started.",
+    },
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [lead, setLead] = useState<Lead | null>(null);
   const [leadForm, setLeadForm] = useState<Lead>(EMPTY_LEAD);
   const [leadError, setLeadError] = useState("");
   // A question the visitor asked/clicked before giving details — answered the
@@ -130,6 +142,9 @@ const Assistant = () => {
     // Greet the visitor by first name before answering their held question.
     const firstName = fullName.split(/\s+/)[0];
     setMessages((prev) => [...prev, { role: "assistant", content: `Thank you, ${firstName}! Let me pull that up for you.` }]);
+
+    // Remember the visitor site-wide so no other gate re-asks for their details.
+    saveLeadIdentity({ firstName, email });
 
     const held = pending;
     setPending(null);

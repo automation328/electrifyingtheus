@@ -8,11 +8,14 @@ import evanPortrait from "@/assets/evan.jpg";
 
 import { type Lead, EMPTY_LEAD, isValidEmail } from "@/lib/lead";
 import { withChatCta } from "@/lib/chatCta";
+import { getLeadIdentity, saveLeadIdentity } from "@/lib/leadIdentity";
 
 type Message = { role: "user" | "assistant"; content: string };
 
-// Lead details are collected before the first query is answered. Held in memory
-// only (not persisted) so every visit asks again before the first answer.
+// Lead details are collected before the first query is answered, then remembered
+// site-wide via lib/leadIdentity: a visitor who already gave their first name +
+// email at ANY gate (calculator, share, event) skips this form, and a name +
+// email entered here is reused by every other gate — so each person is asked once.
 
 // ── n8n AI agent connection ──────────────────────────────────────────────────
 // The chat POSTs each customer message to your n8n Chat Trigger / AI Agent
@@ -53,6 +56,11 @@ const extractReply = (data: unknown): string => {
 
 const GREETING =
   "Hi, I'm EVan, your EV Advisor. My team and I, are currently online, ready to answer your questions about Electric Vehicles, EV Cost Savings, EV Charging and Infrastructure, Rebates & Incentives programs, and more. I've added the top 10 questions below. Enter your first name and email, and let's get started.";
+
+// Greeting for a visitor we already know (identity captured at any earlier gate),
+// so we greet by name and never re-ask for their details.
+const GREETING_KNOWN = (firstName: string) =>
+  `Hi${firstName ? ` ${firstName}` : ""}, I'm EVan, your EV Advisor. My team and I are online and ready to answer your questions about Electric Vehicles, EV Cost Savings, EV Charging and Infrastructure, Rebates & Incentives programs, and more. Pick one of the top 10 questions below, or just ask me anything.`;
 
 // 10 clickable EV questions — drawn from the EVNoire EV Charging 101 knowledge base.
 const SUGGESTED_QUESTIONS = [
@@ -229,12 +237,21 @@ const pushChatLeadToGHL = (lead: Lead) => {
 };
 
 const AgentChatSection = () => {
-  const [messages, setMessages] = useState<Message[]>([{ role: "assistant", content: GREETING }]);
+  // Seed identity from any earlier gate so a known visitor skips the lead form
+  // entirely and is greeted by name.
+  const [lead, setLead] = useState<Lead | null>(() => {
+    const id = getLeadIdentity();
+    return id ? { fullName: id.firstName, email: id.email } : null;
+  });
+  const [messages, setMessages] = useState<Message[]>(() => [
+    { role: "assistant", content: lead ? GREETING_KNOWN(lead.fullName) : GREETING },
+  ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [lead, setLead] = useState<Lead | null>(null);
   const [leadForm, setLeadForm] = useState<Lead>(EMPTY_LEAD);
   const [leadError, setLeadError] = useState("");
+  // Push the chat lead to GHL only once, when the visitor actually starts chatting.
+  const chatLeadPushedRef = useRef(false);
   // The question a visitor asked before giving their details — answered the
   // moment the lead is captured.
   const [pending, setPending] = useState<string | null>(null);
@@ -289,6 +306,12 @@ const AgentChatSection = () => {
   // Actually deliver a question to the n8n agent and render the reply. The
   // lead is passed in explicitly so it works on the same tick it's captured.
   const doSend = async (text: string, leadInfo: Lead) => {
+    // Upsert the chat lead to GHL once, when the visitor actually starts chatting
+    // (covers both freshly-captured and identity-seeded visitors).
+    if (!chatLeadPushedRef.current) {
+      pushChatLeadToGHL(leadInfo);
+      chatLeadPushedRef.current = true;
+    }
     setMessages((prev) => [...prev, { role: "user", content: text }]);
     setInput("");
     setLoading(true);
@@ -384,10 +407,10 @@ const AgentChatSection = () => {
     const firstName = fullName.split(/\s+/)[0];
     setMessages((prev) => [...prev, { role: "assistant", content: `Thank you, ${firstName}! Let me pull that up for you.` }]);
 
-    // Upsert the lead into GoHighLevel immediately (tagged `chatbot-lead`). The
-    // full transcript is attached as a note — and the single Slack alert fires —
-    // when the visitor leaves (see the transcript-flush effect above).
-    pushChatLeadToGHL(captured);
+    // Remember the visitor site-wide so no other gate (calculator, share, event)
+    // ever asks for their name + email again. The GHL upsert fires from doSend
+    // when the held question is sent below.
+    saveLeadIdentity({ firstName, email });
 
     const q = pending;
     setPending(null);
