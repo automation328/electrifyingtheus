@@ -35,6 +35,10 @@ export interface ContentLinkCard {
   title: string;
   desc: string;
   to: string;
+  /** Optional card background classes (e.g. "bg-blue-50"). */
+  bgCls?: string;
+  /** Optional icon-badge classes (e.g. "bg-blue-500 text-white"). */
+  iconCls?: string;
 }
 
 interface ContentPageLayoutProps {
@@ -336,22 +340,28 @@ const ContentPageLayout = ({
 
         {/* ── Link cards (navigation to key pages) ───────────────────── */}
         {linkCards && linkCards.length > 0 && (
-          <section className="container px-4 max-w-6xl mt-16 md:mt-20">
+          <section className="container px-4 max-w-6xl mt-16 md:mt-20 mb-20 md:mb-28">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
-              {linkCards.map((c, i) => (
-                <Link
-                  key={i}
-                  to={c.to}
-                  className="brief-reveal group rounded-2xl border border-border bg-card p-6 shadow-card hover:-translate-y-0.5 hover:shadow-xl transition-all"
-                  style={{ transitionDelay: `${i * 70}ms` }}
-                >
-                  <span className="grid w-11 h-11 place-items-center rounded-xl bg-primary text-primary-foreground mb-4">
-                    <c.icon className="w-5 h-5" />
-                  </span>
-                  <h3 className="font-bold text-foreground mb-1 group-hover:text-primary transition-colors">{c.title}</h3>
-                  <p className="text-sm text-muted-foreground leading-snug">{c.desc}</p>
-                </Link>
-              ))}
+              {linkCards.map((c, i) => {
+                const cls = `brief-reveal group rounded-2xl border border-border ${c.bgCls ?? "bg-card"} p-6 shadow-card hover:-translate-y-0.5 hover:shadow-xl transition-all`;
+                const style = { transitionDelay: `${i * 70}ms` };
+                const inner = (
+                  <>
+                    <span className={`grid w-11 h-11 place-items-center rounded-xl mb-4 ${c.iconCls ?? "bg-primary text-primary-foreground"}`}>
+                      <c.icon className="w-5 h-5" />
+                    </span>
+                    <h3 className="font-bold text-foreground mb-1 group-hover:text-primary transition-colors">{c.title}</h3>
+                    <p className="text-sm text-muted-foreground leading-snug">{c.desc}</p>
+                  </>
+                );
+                // Hash / external targets use a real <a> (full nav) so a cross-page
+                // anchor like /#agent-chat reliably scrolls to the section.
+                return c.to.startsWith("/#") || c.to.startsWith("http") ? (
+                  <a key={i} href={c.to} className={cls} style={style}>{inner}</a>
+                ) : (
+                  <Link key={i} to={c.to} className={cls} style={style}>{inner}</Link>
+                );
+              })}
             </div>
           </section>
         )}
