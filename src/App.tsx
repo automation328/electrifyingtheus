@@ -44,6 +44,7 @@ import ThankYou from "./pages/ThankYou.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import ContactWidget from "./components/ContactWidget.tsx";
 import VisitorTracker from "./components/VisitorTracker.tsx";
+import GoogleAnalytics from "./components/GoogleAnalytics.tsx";
 
 const queryClient = new QueryClient();
 
@@ -54,6 +55,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <ScrollToTop />
+        <GoogleAnalytics />
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/calculator" element={<Calculator />} />
