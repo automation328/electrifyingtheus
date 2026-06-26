@@ -44,9 +44,9 @@ const sources: ContentSource[] = [
 
 const SaveWithEvsWebinar = () => (
   <ContentPageLayout
-    badge="Webinar Series · Part 1"
-    kicker="Webinar Series · Part 1"
-    title="From The Pump To The Plug:"
+    badge="Webinar Replay"
+    kicker="Webinar Replay"
+    title="Webinar Series Part 1: From The Pump To The Plug:"
     highlight="How Electric Vehicles Are Saving"
     intro="Watch Part 1 of our From the Pump to the Plug webinar series — a clear, no-hype look at how everyday drivers are already saving money by going electric, from fuel and maintenance to the incentives that lower the cost of the switch."
     pullQuote="For most drivers, the switch to electric pays for itself in everyday savings."
