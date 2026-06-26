@@ -29,11 +29,12 @@ const sections: ContentSection[] = [
   },
 ];
 
+// Brand blue↔green gradients (same as the Featured event cards), alternating.
 const linkCards: ContentLinkCard[] = [
-  { icon: MessageCircle, title: "Ask EVan", desc: "Your EV Advisor — instant answers on EVs, charging, and savings, 24/7.", to: "/#agent-chat", bgCls: "bg-gradient-to-br from-blue-500 to-blue-700" },
-  { icon: Calculator, title: "EV vs Gas Calculator", desc: "Compare any EV against the car you drive today on real U.S. costs.", to: "/electricity-vs-gasoline", bgCls: "bg-gradient-to-br from-emerald-500 to-emerald-700" },
-  { icon: BadgeCheck, title: "Rebates & Incentives", desc: "Find the federal, state, and utility programs you qualify for.", to: "/rebates-incentives", bgCls: "bg-gradient-to-br from-amber-500 to-orange-600" },
-  { icon: Plug, title: "Find a Charger", desc: "Locate charging stations near you and along your route.", to: "/find-a-charger", bgCls: "bg-gradient-to-br from-sky-500 to-cyan-600" },
+  { icon: MessageCircle, title: "Ask EVan", desc: "Your EV Advisor — instant answers on EVs, charging, and savings, 24/7.", to: "/#agent-chat", bgCls: "gradient-hero" },
+  { icon: Calculator, title: "EV vs Gas Calculator", desc: "Compare any EV against the car you drive today on real U.S. costs.", to: "/electricity-vs-gasoline", bgCls: "gradient-hero-rev" },
+  { icon: BadgeCheck, title: "Rebates & Incentives", desc: "Find the federal, state, and utility programs you qualify for.", to: "/rebates-incentives", bgCls: "gradient-hero" },
+  { icon: Plug, title: "Find a Charger", desc: "Locate charging stations near you and along your route.", to: "/find-a-charger", bgCls: "gradient-hero-rev" },
 ];
 
 const SaveWithEvsWebinar = () => (
