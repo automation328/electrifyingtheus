@@ -1,17 +1,11 @@
 import { PlayCircle } from "lucide-react";
-import ContentPageLayout, { type ContentSection, type ContentStat, type ContentSource } from "@/components/ContentPageLayout";
+import ContentPageLayout, { type ContentSection, type ContentSource } from "@/components/ContentPageLayout";
 import webinarHero from "@/assets/multimodal-collage.jpg";
 
 const video = {
   youtubeId: "WaIWh8wY_tI",
   title: "Webinar Series Part 1: From The Pump To The Plug",
 };
-
-const stats: ContentStat[] = [
-  { value: "~60%", label: "Cheaper per mile to charge than to buy gasoline, at U.S. average prices" },
-  { value: "$0", label: "Oil changes — EVs skip them, with fewer moving parts to service" },
-  { value: "200K+", label: "Public charging ports across the U.S. and growing every quarter" },
-];
 
 const sections: ContentSection[] = [
   {
@@ -52,8 +46,8 @@ const SaveWithEvsWebinar = () => (
     pullQuote="For most drivers, the switch to electric pays for itself in everyday savings."
     heroImage={webinarHero}
     icon={PlayCircle}
-    stats={stats}
-    statsCta={{ label: "Run your own numbers", to: "/electricity-vs-gasoline" }}
+    compactTitle
+    extraCta={{ label: "Register for Part 2", to: "/events/from-pump-to-plug" }}
     video={video}
     sections={sections}
     sources={sources}

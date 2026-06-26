@@ -46,11 +46,15 @@ interface ContentPageLayoutProps {
   video?: ContentVideo;
   /** Optional CTA button shown directly under the stats row. */
   statsCta?: { label: string; to: string };
+  /** Render the hero title at a smaller size (for long, multi-line titles). */
+  compactTitle?: boolean;
+  /** Optional primary CTA shown in the bottom CTA band (e.g. a related page). */
+  extraCta?: { label: string; to: string };
 }
 
 const ContentPageLayout = ({
   badge, title, highlight, intro, heroImage, icon: Icon,
-  stats, sections, sources, kicker, pullQuote, gallery, video, statsCta,
+  stats, sections, sources, kicker, pullQuote, gallery, video, statsCta, compactTitle, extraCta,
 }: ContentPageLayoutProps) => {
   const [playing, setPlaying] = useState(false);
 
@@ -112,7 +116,11 @@ const ContentPageLayout = ({
               </div>
 
               <h1
-                className="font-brief text-5xl sm:text-6xl md:text-7xl lg:text-8xl text-foreground mb-5 animate-fade-up"
+                className={`font-brief text-foreground mb-5 animate-fade-up ${
+                  compactTitle
+                    ? "text-3xl sm:text-4xl md:text-5xl lg:text-6xl"
+                    : "text-5xl sm:text-6xl md:text-7xl lg:text-8xl"
+                }`}
                 style={{ animationDelay: "0.08s" }}
               >
                 {title}{" "}
@@ -326,8 +334,19 @@ const ContentPageLayout = ({
                 See what you'd save with an EV, or explore the incentives available in your area.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                {extraCta && (
+                  <Link to={extraCta.to}>
+                    <button className="inline-flex items-center gap-1.5 bg-primary-foreground text-primary font-semibold px-6 py-3 rounded-xl hover:opacity-90 transition-opacity">
+                      {extraCta.label} <ArrowRight className="w-5 h-5" />
+                    </button>
+                  </Link>
+                )}
                 <Link to="/electricity-vs-gasoline">
-                  <button className="inline-flex items-center gap-1.5 bg-primary-foreground text-primary font-semibold px-6 py-3 rounded-xl hover:opacity-90 transition-opacity">
+                  <button className={`inline-flex items-center gap-1.5 font-semibold px-6 py-3 rounded-xl transition ${
+                    extraCta
+                      ? "border border-primary-foreground/40 text-primary-foreground hover:bg-primary-foreground/10"
+                      : "bg-primary-foreground text-primary hover:opacity-90"
+                  }`}>
                     Open the cost calculator <ArrowRight className="w-5 h-5" />
                   </button>
                 </Link>
