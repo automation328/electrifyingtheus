@@ -76,29 +76,9 @@ const EventDetail = () => {
               <div className="bg-secondary text-primary-foreground text-[11px] font-bold tracking-wider py-1">{event.month}</div>
               <div className="text-foreground text-3xl font-bold font-display leading-none py-2">{event.day}</div>
             </div>
-          </div>
 
-          {/* Details */}
-          <div className="animate-fade-up" style={{ animationDelay: "0.08s" }}>
-            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-secondary/10 text-secondary text-sm font-semibold mb-4">
-              <Tag className="w-4 h-4" /> {event.type}
-            </span>
-
-            <h1 className="text-3xl md:text-4xl font-bold font-display text-foreground leading-tight mb-4">
-              {eventDisplayTitle(event)}
-            </h1>
-
-            <div className="flex flex-col gap-2 text-foreground mb-5">
-              <span className="flex items-center gap-2.5"><CalendarDays className="w-5 h-5 text-primary shrink-0" /> {day ? `${day}, ` : ""}{event.month} {event.day}, {event.year}</span>
-              <span className="flex items-center gap-2.5"><Clock className="w-5 h-5 text-primary shrink-0" /> {event.time}</span>
-              <span className="flex items-center gap-2.5"><MapPin className="w-5 h-5 text-primary shrink-0" /> {event.location}</span>
-            </div>
-
-            <p className="text-muted-foreground leading-relaxed mb-6 whitespace-pre-line">{event.description}</p>
-
-            {/* CTAs — Add to calendar, Share, then Register. Each captures the
-                visitor's first name + email before proceeding. */}
-            <div className="flex flex-wrap items-center gap-2.5 mb-6">
+            {/* CTAs — below the image. Each captures the visitor's first name + email. */}
+            <div className="flex flex-wrap items-center gap-2.5 mt-6">
               <EventActionGate
                 href={gcalLink(event)}
                 formType="event-calendar"
@@ -145,6 +125,25 @@ const EventDetail = () => {
                 <CalendarDays className="w-5 h-5" /> View more events
               </Link>
             </div>
+          </div>
+
+          {/* Details */}
+          <div className="animate-fade-up" style={{ animationDelay: "0.08s" }}>
+            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-secondary/10 text-secondary text-sm font-semibold mb-4">
+              <Tag className="w-4 h-4" /> {event.type}
+            </span>
+
+            <h1 className="text-3xl md:text-4xl font-bold font-display text-foreground leading-tight mb-4">
+              {eventDisplayTitle(event)}
+            </h1>
+
+            <div className="flex flex-col gap-2 text-foreground mb-5">
+              <span className="flex items-center gap-2.5"><CalendarDays className="w-5 h-5 text-primary shrink-0" /> {day ? `${day}, ` : ""}{event.month} {event.day}, {event.year}</span>
+              <span className="flex items-center gap-2.5"><Clock className="w-5 h-5 text-primary shrink-0" /> {event.time}</span>
+              <span className="flex items-center gap-2.5"><MapPin className="w-5 h-5 text-primary shrink-0" /> {event.location}</span>
+            </div>
+
+            <p className="text-foreground leading-relaxed whitespace-pre-line">{event.description}</p>
           </div>
         </div>
 

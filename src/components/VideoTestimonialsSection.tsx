@@ -9,6 +9,7 @@ import { Link } from "react-router-dom";
 import { Play, Image as ImageIcon, ArrowRight } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useGallery } from "@/hooks/use-content";
+import LogoWatermark from "@/components/LogoWatermark";
 import { toast } from "sonner";
 // Fixed feature images + a poster for the video fallback.
 import etu09 from "@/assets/gallery/etu-09.jpg";
@@ -80,6 +81,7 @@ const MediaCard = ({ m, onOpen }: { m: MediaItem; onOpen: (m: MediaItem) => void
         <span className="absolute top-2.5 right-2.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/90 text-foreground text-[10px] font-bold shadow">
           {m.type === "video" ? "▶ Video" : "▣ Photo"}
         </span>
+        {m.type === "photo" && <LogoWatermark className="bottom-9 right-2 w-[22%] max-w-[84px]" />}
         <div className="absolute bottom-0 left-0 right-0 p-3 text-white">
           <div className="font-bold font-display leading-tight text-sm line-clamp-1">{m.name}</div>
           <div className="text-[11px] text-white/85">{m.role} · ElectrifyingTheUS.com</div>

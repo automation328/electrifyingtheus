@@ -4,6 +4,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import VideoEmbed from "@/components/VideoEmbed";
 import ShareGate from "@/components/forms/ShareGate";
+import LogoWatermark from "@/components/LogoWatermark";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useGallery } from "@/hooks/use-content";
 
@@ -143,6 +144,7 @@ const Gallery = () => {
                       )}
                     </span>
                   </button>
+                  <LogoWatermark />
                   {/* Per-photo share — gates first name + email, then social / email / SMS */}
                   <div className="absolute right-2 top-2 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
                     <ShareGate
