@@ -42,7 +42,7 @@ const SaveWithEvsWebinar = () => (
     badge="Webinar Replay"
     kicker="Webinar Replay"
     title="Webinar Series Part 1: From The Pump To The Plug:"
-    highlight="How Electric Vehicles Are Saving"
+    highlight="How Electric Vehicles Can Save Thousands"
     intro="Watch Part 1 of our From the Pump to the Plug webinar series — a clear, no-hype look at how everyday drivers are already saving money by going electric, from fuel and maintenance to the incentives that lower the cost of the switch."
     icon={PlayCircle}
     compactTitle

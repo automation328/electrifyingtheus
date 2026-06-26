@@ -71,7 +71,7 @@ export const OG_ENTRIES: OgEntry[] = [
   },
   {
     path: "/save-with-evs-webinar",
-    title: "Webinar Series Part 1: From The Pump To The Plug — How Electric Vehicles Are Saving",
+    title: "Webinar Series Part 1: From The Pump To The Plug — How Electric Vehicles Can Save Thousands",
     description:
       "Watch Part 1 of our From the Pump to the Plug webinar — a plain-English look at how everyday drivers save by going electric: fuel, maintenance, and incentives.",
     image: "/og/save-with-evs-webinar.jpg",
