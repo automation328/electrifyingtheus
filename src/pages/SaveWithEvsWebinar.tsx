@@ -1,6 +1,6 @@
 import { PlayCircle } from "lucide-react";
 import ContentPageLayout, { type ContentSection, type ContentStat, type ContentSource } from "@/components/ContentPageLayout";
-import webinarHero from "@/assets/webinar-part1.jpg";
+import webinarHero from "@/assets/multimodal-collage.jpg";
 
 const video = {
   youtubeId: "WaIWh8wY_tI",
