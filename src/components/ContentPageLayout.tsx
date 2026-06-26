@@ -225,6 +225,17 @@ const ContentPageLayout = ({
                 </button>
               )}
             </div>
+
+            {/* Optional CTA directly under the video (e.g. a related event). */}
+            {extraCta && (
+              <div className="mt-6 flex justify-center brief-reveal">
+                <Link to={extraCta.to}>
+                  <button className="inline-flex items-center gap-2 gradient-primary text-primary-foreground font-semibold px-7 py-3.5 rounded-xl shadow-card hover:opacity-90 transition-opacity">
+                    {extraCta.label} <ArrowRight className="w-5 h-5" />
+                  </button>
+                </Link>
+              </div>
+            )}
           </section>
         )}
 
@@ -334,19 +345,8 @@ const ContentPageLayout = ({
                 See what you'd save with an EV, or explore the incentives available in your area.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                {extraCta && (
-                  <Link to={extraCta.to}>
-                    <button className="inline-flex items-center gap-1.5 bg-primary-foreground text-primary font-semibold px-6 py-3 rounded-xl hover:opacity-90 transition-opacity">
-                      {extraCta.label} <ArrowRight className="w-5 h-5" />
-                    </button>
-                  </Link>
-                )}
                 <Link to="/electricity-vs-gasoline">
-                  <button className={`inline-flex items-center gap-1.5 font-semibold px-6 py-3 rounded-xl transition ${
-                    extraCta
-                      ? "border border-primary-foreground/40 text-primary-foreground hover:bg-primary-foreground/10"
-                      : "bg-primary-foreground text-primary hover:opacity-90"
-                  }`}>
+                  <button className="inline-flex items-center gap-1.5 bg-primary-foreground text-primary font-semibold px-6 py-3 rounded-xl hover:opacity-90 transition-opacity">
                     Open the cost calculator <ArrowRight className="w-5 h-5" />
                   </button>
                 </Link>
