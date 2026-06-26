@@ -18,6 +18,8 @@ export interface BlogPost {
   readTime: string;
   image: string;
   featured?: boolean;
+  /** When true, the post is excluded from listings and its direct URL 404s. */
+  hidden?: boolean;
   /** Markdown body */
   content: string;
 }
@@ -34,6 +36,7 @@ export const BLOG_POSTS: BlogPost[] = [
     readTime: "5 min read",
     image: webinarPart1,
     featured: true,
+    hidden: true,
     content: `> **Key takeaway:** With Brent crude near $96 a barrel and gas prices not projected to fall back to $3 a gallon until at least 2032, the financial case for going electric has never been stronger. A panel of researchers, automakers, and government officials lays out the numbers — and they point one direction: the plug.
 
 ## Introduction: The Cost of Staying at the Pump

@@ -31,8 +31,11 @@ export function usePosts(): { posts: BlogPost[]; loading: boolean } {
     enabled: isSupabaseConfigured,
     staleTime: FIVE_MIN,
   });
-  if (!isSupabaseConfigured) return { posts: BLOG_POSTS, loading: false };
-  return { posts: mergePosts(q.data ?? []), loading: q.isLoading };
+  const base = isSupabaseConfigured ? mergePosts(q.data ?? []) : BLOG_POSTS;
+  // Drop hidden posts everywhere — listings, related, and direct-URL detail
+  // (usePost derives from this), so a hidden slug 404s.
+  const posts = base.filter((p) => !p.hidden);
+  return { posts, loading: isSupabaseConfigured ? q.isLoading : false };
 }
 
 export function usePost(slug: string | undefined): { post: BlogPost | undefined; loading: boolean } {
