@@ -70,6 +70,13 @@ export const OG_ENTRIES: OgEntry[] = [
     image: "/og/cleaner-air-healthier-neighborhoods.jpg",
   },
   {
+    path: "/blog/from-the-pump-to-the-plug-ev-savings-webinar",
+    title: "From the Pump to the Plug: How EVs Can Save You Thousands | Electrifying The US",
+    description:
+      "Experts from Consumer Reports, UC Davis, Cox Automotive, and the Colorado Energy Office break down exactly how much money electric vehicles can save drivers — and why switching to an EV has never made more financial sense.",
+    image: "/og/save-with-evs-webinar.jpg",
+  },
+  {
     path: "/save-with-evs-webinar",
     title: "Webinar Series Part 1: From The Pump To The Plug — How Electric Vehicles Can Save Thousands",
     description:

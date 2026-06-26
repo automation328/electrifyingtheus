@@ -6,6 +6,7 @@ import workforce from "@/assets/workforce.jpg";
 import micromobility from "@/assets/micromobility.jpg";
 import evWinter from "@/assets/ev-winter.jpg";
 import evFamily from "@/assets/ev-family.jpg";
+import webinarPart1 from "@/assets/webinar-part1.jpg";
 
 export interface BlogPost {
   slug: string;
@@ -22,6 +23,76 @@ export interface BlogPost {
 }
 
 export const BLOG_POSTS: BlogPost[] = [
+  {
+    slug: "from-the-pump-to-the-plug-ev-savings-webinar",
+    title: "From The Pump To The Plug: How Electric Vehicles Can Save You Thousands",
+    excerpt:
+      "Experts from Consumer Reports, UC Davis, Cox Automotive, and the Colorado Energy Office break down exactly how much money electric vehicles can save drivers — and why switching has never made more financial sense.",
+    category: "EV Savings",
+    date: "June 25, 2026",
+    author: "Electrifying the US",
+    readTime: "5 min read",
+    image: webinarPart1,
+    featured: true,
+    content: `> **Key takeaway:** With Brent crude near $96 a barrel and gas prices not projected to fall back to $3 a gallon until at least 2032, the financial case for going electric has never been stronger. A panel of researchers, automakers, and government officials lays out the numbers — and they point one direction: the plug.
+
+## Introduction: The Cost of Staying at the Pump
+
+Transportation is no longer just an inconvenience budget item — for millions of American households, it has become one of the most volatile and unpredictable expenses in the family budget. With Brent crude oil currently trading near $96 per barrel and industry analysts projecting that gas prices won't return to $3 per gallon until at least 2032, the financial pressure on drivers who haven't yet made the switch to electric is intensifying with every fill-up.
+
+That's exactly the backdrop for **Webinar Series Part 1: From The Pump To The Plug — How Electric Vehicles Can Save You Thousands**, produced by Electrifying The US and released June 25, 2026. In just over an hour, a panel of some of the most credentialed voices in clean transportation — researchers, automakers, government officials, and real-world EV drivers — laid out a clear, data-backed case for why going electric is no longer just an environmental choice. It is a financial one.
+
+## Who Was in the Room — And Why It Matters
+
+The credibility of this webinar starts with its speakers. Moderated by Terry Travis of EVNoire, the panel brought together experts spanning every angle of the EV savings conversation:
+
+- **Gil Tal** — University of California, Davis (one of the nation's leading EV research centers)
+- **Stephanie Valdez Streaty** — Cox Automotive (the automotive retail industry's data-driven perspective on EV ownership trends)
+- **Rey León** — Mayor of Huron, California (a real-world municipal leader navigating fleet electrification at the local government level)
+- **Mike Salisbury** — Colorado Energy Office (policy and incentive programs that reduce the cost of going electric)
+- **Chris Harto** — Consumer Reports (the trusted independent voice on EV total cost of ownership research)
+- **Dan Land** — Rideshare EV Driver (the real-world perspective of a driver who made the switch and is living the savings)
+
+This mix of academia, industry, government, and lived experience is exactly what makes the webinar's message resonate beyond the abstract. These aren't advocates — they're analysts, operators, and decision-makers who work with EV data and EV drivers every day.
+
+## The Core Finding: Electric Vehicles Are Significantly Cheaper to Own
+
+The central argument of the webinar is backed by years of research, and Consumer Reports has been among the most rigorous in quantifying it: EV drivers typically spend **40–60% less on fuel costs annually** than comparable gasoline vehicle drivers. At current fuel prices, that translates to **$1,500 to $3,000 in annual savings** for the average American driver — savings that compound year over year.
+
+Beyond fuel, the [total cost of ownership](/electricity-vs-gasoline) advantage grows further when maintenance is factored in. Electric vehicles have far fewer moving parts than internal combustion engine vehicles — no oil changes, no transmission fluid, no exhaust system repairs, fewer brake replacements due to regenerative braking. Consumer Reports research has consistently found that EV owners spend roughly **40% less on maintenance and repairs** over the life of the vehicle compared to gas car owners.
+
+## What Policymakers and Communities Are Learning
+
+Mayor Rey León's participation in the webinar speaks to a dimension of EV savings that often goes undiscussed: the impact on working families and smaller communities. Huron, California — a small agricultural city in the San Joaquin Valley — faces some of the harshest air quality conditions in the nation. For Mayor León, EV adoption isn't just about transportation economics; it's about the compounding cost of poor air quality on community health and productivity.
+
+Mike Salisbury of the Colorado Energy Office reinforced a practical point that many drivers overlook: state and federal incentive programs can dramatically reduce the upfront cost barrier to EV ownership. The [federal EV tax credit](/rebates-incentives) of up to **$7,500** for new vehicles, combined with state-level rebates and utility programs, can compress the payback period on an EV purchase to as little as two to three years for average-mileage drivers.
+
+## The Real-World Proof: Dan Land's Story
+
+Perhaps the most persuasive voice in any EV savings conversation isn't a researcher — it's a driver. Dan Land, a rideshare EV driver featured in the webinar, represents tens of thousands of high-mileage American drivers who have made the switch and are tracking their numbers in real time. For rideshare and gig economy drivers, who may log 30,000 to 60,000 miles per year, the fuel and maintenance savings of driving electric aren't theoretical. They show up in the bank account every single week.
+
+## Why This Webinar Matters Right Now
+
+The timing of this webinar couldn't be more relevant. With gas prices projected to remain elevated for years — and EV technology, range, and [charging infrastructure](/find-a-charger) all continuing to improve — the financial calculus for going electric is shifting decisively in favor of the plug.
+
+If you've been on the fence about making the switch, this webinar is one of the clearest, most expert-backed breakdowns of the EV savings argument available. **[Watch Webinar Series Part 1: From The Pump To The Plug](/save-with-evs-webinar)** in full, then **[register for Part 2](/events/from-pump-to-plug)** to go even deeper on the savings.
+
+## Frequently Asked Questions
+
+### How much money can electric vehicles save you per year?
+Most EV owners save between **$1,500 and $3,000 per year** on fuel alone compared to gasoline vehicles. Combined with lower maintenance costs, total annual savings often exceed **$3,000–$4,000** depending on driving habits and local electricity rates.
+
+### Are electric vehicles cheaper to maintain than gas cars?
+Yes. EV owners spend approximately **40% less** on maintenance and repairs over the life of the vehicle compared to internal combustion engine vehicle owners, according to Consumer Reports research. EVs have no oil changes, fewer brake replacements, and significantly fewer mechanical components that require servicing.
+
+### What incentives are available for buying an electric vehicle?
+Federal tax credits of up to **$7,500** are available for new EV purchases that meet eligibility requirements. Many states offer additional rebates, and utilities across the country provide EV rate programs and home charger installation incentives. Check our [Rebates & Incentives page](/rebates-incentives) or contact your state energy office for programs specific to your location.
+
+### Is now a good time to switch to an electric vehicle?
+With gas prices expected to remain elevated through at least 2032 according to oil futures markets, and EV range and charging infrastructure continuing to expand, industry experts broadly agree that the financial case for going electric is stronger today than at any previous point.
+
+**See your own numbers with the [Gas vs. EV Cost Calculator](/electricity-vs-gasoline), and check what you qualify for on our [Rebates & Incentives page](/rebates-incentives).**`,
+  },
   {
     slug: "2026-ev-tipping-point-electric-vehicle-adoption-america",
     title: "2026 could be the tipping point for electric vehicle adoption in America—why most drivers now save by going EV",
