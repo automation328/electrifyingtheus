@@ -343,15 +343,20 @@ const ContentPageLayout = ({
           <section className="container px-4 max-w-6xl mt-16 md:mt-20 mb-20 md:mb-28">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
               {linkCards.map((c, i) => {
-                const cls = `brief-reveal group rounded-2xl border border-border ${c.bgCls ?? "bg-card"} p-6 shadow-card hover:-translate-y-0.5 hover:shadow-xl transition-all`;
+                // Bold gradient card (matches the Featured event cards): coloured
+                // body, white text, white CTA button. `bgCls` carries the gradient.
+                const cls = `brief-reveal group flex flex-col rounded-3xl p-6 text-white shadow-elevated transition-all hover:-translate-y-1 hover:shadow-xl ${c.bgCls ?? "gradient-hero"}`;
                 const style = { transitionDelay: `${i * 70}ms` };
                 const inner = (
                   <>
-                    <span className={`grid w-11 h-11 place-items-center rounded-xl mb-4 ${c.iconCls ?? "bg-primary text-primary-foreground"}`}>
-                      <c.icon className="w-5 h-5" />
+                    <span className="mb-4 inline-grid h-11 w-11 place-items-center rounded-xl bg-white/20">
+                      <c.icon className="h-5 w-5 text-white" />
                     </span>
-                    <h3 className="font-bold text-foreground mb-1 group-hover:text-primary transition-colors">{c.title}</h3>
-                    <p className="text-sm text-muted-foreground leading-snug">{c.desc}</p>
+                    <h3 className="mb-1.5 font-display text-lg font-bold leading-snug">{c.title}</h3>
+                    <p className="mb-5 flex-1 text-sm leading-snug text-white/85">{c.desc}</p>
+                    <span className="inline-flex items-center gap-1.5 self-start rounded-xl bg-white px-4 py-2 text-sm font-semibold text-foreground transition-all group-hover:gap-2.5">
+                      Open <ArrowRight className="h-4 w-4" />
+                    </span>
                   </>
                 );
                 // Hash / external targets use a real <a> (full nav) so a cross-page
