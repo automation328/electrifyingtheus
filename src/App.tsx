@@ -23,6 +23,7 @@ import WorkforceEconomicDevelopment from "./pages/WorkforceEconomicDevelopment.t
 import EvRoadSafety from "./pages/EvRoadSafety.tsx";
 import SteamEducation from "./pages/SteamEducation.tsx";
 import EvCharging101 from "./pages/EvCharging101.tsx";
+import SaveWithEvsWebinar from "./pages/SaveWithEvsWebinar.tsx";
 import EvsInWinter from "./pages/EvsInWinter.tsx";
 import FinancialSavings from "./pages/FinancialSavings.tsx";
 import UsEvPolicies from "./pages/UsEvPolicies.tsx";
@@ -80,6 +81,7 @@ const App = () => (
           <Route path="/ev-road-safety" element={<EvRoadSafety />} />
           <Route path="/steam-education" element={<SteamEducation />} />
           <Route path="/ev-charging-101" element={<EvCharging101 />} />
+          <Route path="/save-with-evs-webinar" element={<SaveWithEvsWebinar />} />
           <Route path="/evs-in-winter" element={<EvsInWinter />} />
           <Route path="/financial-savings" element={<FinancialSavings />} />
           <Route path="/us-ev-policies" element={<UsEvPolicies />} />

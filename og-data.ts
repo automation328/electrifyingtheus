@@ -70,6 +70,13 @@ export const OG_ENTRIES: OgEntry[] = [
     image: "/og/cleaner-air-healthier-neighborhoods.jpg",
   },
   {
+    path: "/save-with-evs-webinar",
+    title: "Webinar Series Part 1: From The Pump To The Plug — How Electric Vehicles Are Saving",
+    description:
+      "Watch Part 1 of our From the Pump to the Plug webinar — a plain-English look at how everyday drivers save by going electric: fuel, maintenance, and incentives.",
+    image: "/og/save-with-evs-webinar.jpg",
+  },
+  {
     path: "/events/demo-days-los-angeles",
     title: "Demo Days Los Angeles — Test Drive the Future at the Rose Bowl",
     description:
