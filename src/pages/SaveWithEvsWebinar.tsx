@@ -1,6 +1,5 @@
-import { PlayCircle } from "lucide-react";
-import ContentPageLayout, { type ContentSection, type ContentSource } from "@/components/ContentPageLayout";
-import webinarHero from "@/assets/multimodal-collage.jpg";
+import { PlayCircle, MessageCircle, Calculator, BadgeCheck, Plug } from "lucide-react";
+import ContentPageLayout, { type ContentSection, type ContentLinkCard } from "@/components/ContentPageLayout";
 
 const video = {
   youtubeId: "WaIWh8wY_tI",
@@ -30,10 +29,11 @@ const sections: ContentSection[] = [
   },
 ];
 
-const sources: ContentSource[] = [
-  { label: "U.S. DOE Alternative Fuels Data Center — Vehicle Cost Calculator", url: "https://afdc.energy.gov/calc/" },
-  { label: "AFDC — Electricity as a Vehicle Fuel (costs & basics)", url: "https://afdc.energy.gov/fuels/electricity" },
-  { label: "AFDC — Electric Vehicle Laws & Incentives", url: "https://afdc.energy.gov/laws" },
+const linkCards: ContentLinkCard[] = [
+  { icon: MessageCircle, title: "Ask EVan", desc: "Your EV Advisor — instant answers on EVs, charging, and savings, 24/7.", to: "/assistant" },
+  { icon: Calculator, title: "EV vs Gas Calculator", desc: "Compare any EV against the car you drive today on real U.S. costs.", to: "/electricity-vs-gasoline" },
+  { icon: BadgeCheck, title: "Rebates & Incentives", desc: "Find the federal, state, and utility programs you qualify for.", to: "/rebates-incentives" },
+  { icon: Plug, title: "Find a Charger", desc: "Locate charging stations near you and along your route.", to: "/find-a-charger" },
 ];
 
 const SaveWithEvsWebinar = () => (
@@ -43,14 +43,14 @@ const SaveWithEvsWebinar = () => (
     title="Webinar Series Part 1: From The Pump To The Plug:"
     highlight="How Electric Vehicles Are Saving"
     intro="Watch Part 1 of our From the Pump to the Plug webinar series — a clear, no-hype look at how everyday drivers are already saving money by going electric, from fuel and maintenance to the incentives that lower the cost of the switch."
-    pullQuote="For most drivers, the switch to electric pays for itself in everyday savings."
-    heroImage={webinarHero}
     icon={PlayCircle}
     compactTitle
+    hideMeta
+    hideCta
     extraCta={{ label: "Register for Part 2", to: "/events/from-pump-to-plug" }}
     video={video}
     sections={sections}
-    sources={sources}
+    linkCards={linkCards}
   />
 );
 

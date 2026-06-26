@@ -30,16 +30,24 @@ export interface ContentVideo {
   title: string;
 }
 
+export interface ContentLinkCard {
+  icon: LucideIcon;
+  title: string;
+  desc: string;
+  to: string;
+}
+
 interface ContentPageLayoutProps {
   badge: string;
   title: string;
   highlight: string;
   intro: string;
-  heroImage: string;
+  /** Hero background image. Omit for a plain (image-less) hero. */
+  heroImage?: string;
   icon: LucideIcon;
   stats?: ContentStat[];
   sections: ContentSection[];
-  sources: ContentSource[];
+  sources?: ContentSource[];
   kicker?: string;
   pullQuote?: string;
   gallery?: ContentShot[];
@@ -50,11 +58,18 @@ interface ContentPageLayoutProps {
   compactTitle?: boolean;
   /** Optional primary CTA shown in the bottom CTA band (e.g. a related page). */
   extraCta?: { label: string; to: string };
+  /** Hide the "badge · N min read · N sources" meta line in the hero. */
+  hideMeta?: boolean;
+  /** Hide the bottom "Ready to make the switch?" CTA band. */
+  hideCta?: boolean;
+  /** Optional grid of clickable navigation cards (icon + title + description). */
+  linkCards?: ContentLinkCard[];
 }
 
 const ContentPageLayout = ({
   badge, title, highlight, intro, heroImage, icon: Icon,
-  stats, sections, sources, kicker, pullQuote, gallery, video, statsCta, compactTitle, extraCta,
+  stats, sections, sources = [], kicker, pullQuote, gallery, video, statsCta, compactTitle, extraCta,
+  hideMeta, hideCta, linkCards,
 }: ContentPageLayoutProps) => {
   const [playing, setPlaying] = useState(false);
 
@@ -96,13 +111,17 @@ const ContentPageLayout = ({
 
       <main className="brief-grain flex-1 relative z-10">
         {/* ── Cinematic hero ─────────────────────────────────────────── */}
-        <header className="relative min-h-[78vh] flex items-end overflow-hidden">
-          <img
-            src={heroImage}
-            alt={title}
-            className="brief-hero-img absolute inset-0 w-full h-full object-cover"
-          />
-          <div className="brief-hero-grade absolute inset-0" aria-hidden />
+        <header className={`relative flex items-end overflow-hidden ${heroImage ? "min-h-[78vh]" : "min-h-0 pt-32"}`}>
+          {heroImage && (
+            <>
+              <img
+                src={heroImage}
+                alt={title}
+                className="brief-hero-img absolute inset-0 w-full h-full object-cover"
+              />
+              <div className="brief-hero-grade absolute inset-0" aria-hidden />
+            </>
+          )}
 
           <div className="container relative z-10 px-4 pb-14 md:pb-20">
             <div className="max-w-3xl">
@@ -138,16 +157,22 @@ const ContentPageLayout = ({
                 {intro}
               </p>
 
-              <div
-                className="flex flex-wrap items-center gap-x-6 gap-y-2 mt-7 brief-mono text-[11px] text-foreground/60 animate-fade-up"
-                style={{ animationDelay: "0.28s" }}
-              >
-                <span>{badge}</span>
-                <span aria-hidden>·</span>
-                <span>{readMinutes} min read</span>
-                <span aria-hidden>·</span>
-                <span>{sources.length} sources</span>
-              </div>
+              {!hideMeta && (
+                <div
+                  className="flex flex-wrap items-center gap-x-6 gap-y-2 mt-7 brief-mono text-[11px] text-foreground/60 animate-fade-up"
+                  style={{ animationDelay: "0.28s" }}
+                >
+                  <span>{badge}</span>
+                  <span aria-hidden>·</span>
+                  <span>{readMinutes} min read</span>
+                  {sources.length > 0 && (
+                    <>
+                      <span aria-hidden>·</span>
+                      <span>{sources.length} sources</span>
+                    </>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </header>
@@ -309,7 +334,30 @@ const ContentPageLayout = ({
           </section>
         )}
 
+        {/* ── Link cards (navigation to key pages) ───────────────────── */}
+        {linkCards && linkCards.length > 0 && (
+          <section className="container px-4 max-w-6xl mt-16 md:mt-20">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
+              {linkCards.map((c, i) => (
+                <Link
+                  key={i}
+                  to={c.to}
+                  className="brief-reveal group rounded-2xl border border-border bg-card p-6 shadow-card hover:-translate-y-0.5 hover:shadow-xl transition-all"
+                  style={{ transitionDelay: `${i * 70}ms` }}
+                >
+                  <span className="grid w-11 h-11 place-items-center rounded-xl bg-primary text-primary-foreground mb-4">
+                    <c.icon className="w-5 h-5" />
+                  </span>
+                  <h3 className="font-bold text-foreground mb-1 group-hover:text-primary transition-colors">{c.title}</h3>
+                  <p className="text-sm text-muted-foreground leading-snug">{c.desc}</p>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+
         {/* ── Sources ────────────────────────────────────────────────── */}
+        {sources.length > 0 && (
         <section className="container px-4 max-w-3xl mt-20">
           <div className="brief-reveal rounded-2xl border border-border bg-card/80 backdrop-blur-sm p-6 md:p-7">
             <h3 className="brief-mono text-[11px] text-muted-foreground mb-4">Sources &amp; further reading</h3>
@@ -333,8 +381,10 @@ const ContentPageLayout = ({
             </ul>
           </div>
         </section>
+        )}
 
         {/* ── CTA ────────────────────────────────────────────────────── */}
+        {!hideCta && (
         <div className="container px-4 max-w-5xl mt-16 mb-24">
           <div className="brief-reveal relative overflow-hidden rounded-3xl gradient-hero p-8 md:p-12 text-center text-primary-foreground">
             <div className="absolute inset-0 opacity-30" style={{ backgroundImage: "radial-gradient(circle at 20% 20%, rgba(255,255,255,0.4), transparent 45%)" }} aria-hidden />
@@ -359,6 +409,7 @@ const ContentPageLayout = ({
             </div>
           </div>
         </div>
+        )}
       </main>
       <Footer />
     </div>
