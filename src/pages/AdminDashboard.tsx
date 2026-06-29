@@ -25,11 +25,13 @@ interface Totals {
   knownVisitors: number; leads: number; knownViews: number; anonViews: number;
 }
 interface Bar { key: string; count: number }
+interface PageRow { key: string; count: number; visitors: number }
 interface Data {
   range: string;
   totals: Totals;
   series: { date: string; views: number; sessions: number }[];
-  topPages: Bar[]; topReferrers: Bar[]; topCountries: Bar[]; topCities: Bar[]; topClicks: Bar[];
+  pages: PageRow[];
+  topReferrers: Bar[]; topCountries: Bar[]; topCities: Bar[]; topClicks: Bar[];
   recentKnown: { name: string; email: string; path: string; place: string; when: string }[];
 }
 
@@ -81,6 +83,45 @@ const BarList = ({ icon: Icon, title, items, empty }: { icon: typeof Eye; title:
               </div>
             </li>
           ))}
+        </ul>
+      )}
+    </div>
+  );
+};
+
+const PagesPanel = ({ pages, totalViews }: { pages: PageRow[]; totalViews: number }) => {
+  const max = Math.max(1, ...pages.map((p) => p.count));
+  return (
+    <div className="rounded-2xl border border-border bg-card p-5 shadow-card">
+      <div className="flex items-center gap-2 mb-1">
+        <FileText className="w-4 h-4 text-primary" />
+        <h3 className="font-bold font-display text-foreground">Page views</h3>
+        <span className="text-xs text-muted-foreground ml-1">views &amp; unique visitors per page</span>
+        <span className="ml-auto text-xs text-muted-foreground">{nf.format(pages.length)} pages</span>
+      </div>
+      {pages.length === 0 ? (
+        <p className="text-sm text-muted-foreground py-4">No pageviews yet.</p>
+      ) : (
+        <ul className="mt-3 space-y-3 max-h-[460px] overflow-y-auto pr-1">
+          {pages.map((p) => {
+            const pct = totalViews > 0 ? Math.round((p.count / totalViews) * 100) : 0;
+            return (
+              <li key={p.key}>
+                <div className="flex items-baseline justify-between gap-3 text-sm mb-1">
+                  <span className="text-foreground truncate font-medium" title={p.key}>{p.key}</span>
+                  <span className="text-muted-foreground shrink-0 tabular-nums">
+                    <span className="text-foreground font-semibold">{nf.format(p.count)}</span> view{p.count === 1 ? "" : "s"}
+                    <span className="mx-1.5 text-border">·</span>
+                    {nf.format(p.visitors)} visitor{p.visitors === 1 ? "" : "s"}
+                    <span className="ml-2 text-xs text-muted-foreground">{pct}%</span>
+                  </span>
+                </div>
+                <div className="h-2 rounded-full bg-muted overflow-hidden">
+                  <div className="h-full rounded-full gradient-hero" style={{ width: `${(p.count / max) * 100}%` }} />
+                </div>
+              </li>
+            );
+          })}
         </ul>
       )}
     </div>
@@ -270,9 +311,13 @@ const AdminDashboard = () => {
               </div>
             </section>
 
+            {/* Per-page views */}
+            <section>
+              <PagesPanel pages={data.pages} totalViews={t.pageviews} />
+            </section>
+
             {/* Breakdown grid */}
             <section className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
-              <BarList icon={FileText} title="Top pages" items={data.topPages} empty="No pageviews yet." />
               <BarList icon={Link2} title="Top referrers" items={data.topReferrers} empty="No referrers yet." />
               <BarList icon={MousePointerClick} title="Top clicks" items={data.topClicks} empty="No clicks yet." />
               <BarList icon={MapPin} title="Top countries" items={data.topCountries} empty="No geo data yet." />

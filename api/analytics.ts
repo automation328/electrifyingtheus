@@ -62,6 +62,14 @@ function bump(map: Map<string, number>, key: string | null | undefined) {
   map.set(k, (map.get(k) || 0) + 1);
 }
 
+// Pathname only — drop query string + hash and trailing slash, so each page
+// aggregates to one row regardless of its params.
+function stripQuery(path: string): string {
+  let p = (path || "/").split("?")[0].split("#")[0];
+  if (p.length > 1) p = p.replace(/\/+$/, "");
+  return p || "/";
+}
+
 function normReferrer(r: string): string {
   if (!r) return "direct / none";
   try {
@@ -108,7 +116,8 @@ export default async function handler(req: any, res: any) {
   const visitors = new Set<string>();
   const knownVisitors = new Set<string>();
   const leadEmails = new Set<string>();
-  const pages = new Map<string, number>();
+  const pageViews = new Map<string, number>();
+  const pageVisitors = new Map<string, Set<string>>();
   const referrers = new Map<string, number>();
   const countries = new Map<string, number>();
   const cities = new Map<string, number>();
@@ -131,7 +140,13 @@ export default async function handler(req: any, res: any) {
       if (r.is_known) knownVisitors.add(r.visitor_id);
     }
     if (r.is_known) { knownViews++; if (r.email) leadEmails.add(r.email.toLowerCase()); }
-    bump(pages, r.path || "/");
+    const page = stripQuery(r.path);
+    pageViews.set(page, (pageViews.get(page) || 0) + 1);
+    if (r.visitor_id) {
+      let set = pageVisitors.get(page);
+      if (!set) { set = new Set(); pageVisitors.set(page, set); }
+      set.add(r.visitor_id);
+    }
     bump(referrers, normReferrer(r.referrer));
     bump(countries, r.country);
     bump(cities, [r.city, r.region].filter(Boolean).join(", "));
@@ -140,6 +155,12 @@ export default async function handler(req: any, res: any) {
     if (seriesSessions.has(day) && r.session_id) seriesSessions.get(day)!.add(r.session_id);
   }
   for (const r of clicks) bump(clickLabels, r.label);
+
+  // Views + unique visitors per page (pathname), most-viewed first.
+  const pages = [...pageViews.entries()]
+    .map(([key, views]) => ({ key, count: views, visitors: pageVisitors.get(key)?.size || 0 }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 30);
 
   // Recent named-visitor feed (latest event per known visitor).
   const seenVisitor = new Set<string>();
@@ -177,7 +198,7 @@ export default async function handler(req: any, res: any) {
       views: seriesViews.get(d) || 0,
       sessions: (seriesSessions.get(d)?.size) || 0,
     })),
-    topPages: topN(pages, 12),
+    pages,
     topReferrers: topN(referrers, 10),
     topCountries: topN(countries, 10),
     topCities: topN(cities, 10),
