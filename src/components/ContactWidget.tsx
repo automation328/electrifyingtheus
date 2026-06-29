@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useLocation } from "react-router-dom";
 import { Headset } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger,
@@ -11,10 +10,6 @@ import ContactForm from "@/components/forms/ContactForm";
 // in GoHighLevel + Slack identically.
 const ContactWidget = () => {
   const [open, setOpen] = useState(false);
-  const { pathname } = useLocation();
-
-  // Internal tools (the analytics dashboard) shouldn't show the public widget.
-  if (pathname.startsWith("/admin")) return null;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
