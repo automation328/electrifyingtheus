@@ -43,8 +43,9 @@ import ContactUs from "./pages/ContactUs.tsx";
 import ThankYou from "./pages/ThankYou.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import ContactWidget from "./components/ContactWidget.tsx";
-import VisitorTracker from "./components/VisitorTracker.tsx";
+import AnalyticsTracker from "./components/AnalyticsTracker.tsx";
 import GoogleAnalytics from "./components/GoogleAnalytics.tsx";
+import AdminDashboard from "./pages/AdminDashboard.tsx";
 
 const queryClient = new QueryClient();
 
@@ -101,13 +102,15 @@ const App = () => (
           <Route path="/thank-you" element={<ThankYou />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/terms" element={<TermsConditions />} />
+          {/* Internal analytics dashboard — password-gated (ANALYTICS_PASSWORD). */}
+          <Route path="/admin" element={<AdminDashboard />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
         {/* Floating contact widget — visible on every page. */}
         <ContactWidget />
-        {/* Logs each visit (IP + geo) to Slack — fires once per session. */}
-        <VisitorTracker />
+        {/* First-party analytics: pageviews + clicks → Supabase; Slack once/session. */}
+        <AnalyticsTracker />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
