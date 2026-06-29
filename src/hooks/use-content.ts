@@ -6,7 +6,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { fetchEvents, fetchPosts, fetchGallery, fetchJobs, mergeEvents, mergePosts } from "@/lib/content";
-import { EVENTS, type EventItem } from "@/data/events";
+import { EVENTS, isActive, type EventItem } from "@/data/events";
 import { BLOG_POSTS, type BlogPost } from "@/data/blog-posts";
 import { GALLERY_PHOTOS, GALLERY_VIDEOS, type GalleryPhoto, type GalleryVideo } from "@/data/gallery";
 import { type Job } from "@/data/careers";
@@ -20,8 +20,11 @@ export function useEvents(): { events: EventItem[]; loading: boolean } {
     enabled: isSupabaseConfigured,
     staleTime: FIVE_MIN,
   });
-  if (!isSupabaseConfigured) return { events: EVENTS, loading: false };
-  return { events: mergeEvents(q.data ?? []), loading: q.isLoading };
+  // Auto-remove events once they're done — except our own (isActive keeps
+  // upcoming events plus any flagged `ours`). Applies everywhere useEvents feeds:
+  // homepage hero/featured, navbar dropdown, the Events list, and EventDetail.
+  const base = isSupabaseConfigured ? mergeEvents(q.data ?? []) : EVENTS;
+  return { events: base.filter(isActive), loading: isSupabaseConfigured ? q.isLoading : false };
 }
 
 export function usePosts(): { posts: BlogPost[]; loading: boolean } {

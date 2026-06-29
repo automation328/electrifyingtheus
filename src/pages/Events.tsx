@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { gcalLink, isUpcoming, byDateAsc, eventFullDate, eventDisplayTitle, type EventItem } from "@/data/events";
+import { gcalLink, isUpcoming, isActive, byDateAsc, eventFullDate, eventDisplayTitle, type EventItem } from "@/data/events";
 import { useEvents } from "@/hooks/use-content";
 import { useExternalEvents } from "@/hooks/use-external-events";
 import { submitLead } from "@/lib/submitLead";
@@ -47,10 +47,12 @@ const Events = () => {
   const { events } = useEvents();
   const { events: externalEvents } = useExternalEvents();
 
-  // "All upcoming events" = ETU's own events first (soonest first), then the
-  // aggregated US-wide EV feed (soonest first). Past events are dropped.
+  // List = ETU's own events first (soonest first), then the aggregated US-wide
+  // EV feed (soonest first). Past events are dropped — except our own, which we
+  // keep on the site after they're done (isActive). External-feed events always
+  // drop once past.
   const allUpcoming = useMemo(() => {
-    const etu = events.filter(isUpcoming).sort(byDateAsc);
+    const etu = events.filter(isActive).sort(byDateAsc);
     const ext = externalEvents.filter(isUpcoming).sort(byDateAsc);
     return [...etu, ...ext];
   }, [events, externalEvents]);
@@ -74,7 +76,7 @@ const Events = () => {
   useEffect(() => { setVisibleCount(PAGE_START); }, [query]);
   const visibleEvents = filtered.slice(0, visibleCount);
 
-  const featured = events.filter((e) => e.featured && isUpcoming(e));
+  const featured = events.filter((e) => e.featured && isActive(e));
 
   // Featured shows 2 cards at a time; arrows page through the rest.
   const FEAT_PER = 2;

@@ -27,6 +27,10 @@ export interface EventItem {
   /** When true, the event is excluded from the homepage hero carousel (it can
    *  still appear in the Events list / Featured section). */
   heroHidden?: boolean;
+  /** True for events Electrifying the US hosts/produces. "Our" events are kept
+   *  on the site after their date passes; all other (third-party, submitted, and
+   *  external-feed) events are auto-removed once they're done. */
+  ours?: boolean;
 }
 
 const MONTH_NUM: Record<string, number> = {
@@ -46,6 +50,11 @@ export const isUpcoming = (e: EventItem): boolean => {
   today.setHours(0, 0, 0, 0);
   return eventDate(e).getTime() >= today.getTime();
 };
+
+/** Whether an event should still be shown on the site. Upcoming events always
+ *  show; past events show only if they're ours (e.ours). Everything else — past
+ *  third-party, submitted, and external-feed events — is auto-removed once done. */
+export const isActive = (e: EventItem): boolean => isUpcoming(e) || !!e.ours;
 
 /** Sort comparator: soonest first. */
 export const byDateAsc = (a: EventItem, b: EventItem) => eventDate(a).getTime() - eventDate(b).getTime();
@@ -120,6 +129,7 @@ export const EVENTS: EventItem[] = [
       "A free one-hour webinar on how switching from gas to electric saves drivers thousands — on fuel, maintenance, and incentives. See real cost comparisons and how to find the rebates available in your area. Powered by Electrifying Michigan, Electrifying the US, and Electrifying Virginia.",
     image: pumpToPlug,
     featured: true,
+    ours: true,
     slug: "from-pump-to-plug",
     registerUrl: "https://us06web.zoom.us/webinar/register/WN_PtzGLoOyQqmDMg8lXpKRlw#/registration",
   },
