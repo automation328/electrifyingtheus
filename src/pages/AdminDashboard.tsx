@@ -9,6 +9,7 @@ import {
 import {
   Activity, MousePointerClick, Users, UserCheck, Eye, Sparkles,
   RefreshCw, LogOut, Lock, MapPin, Link2, FileText, TrendingUp,
+  ChevronRight, X, Clock, MousePointer, FileText as FileIcon,
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 
@@ -26,14 +27,36 @@ interface Totals {
 }
 interface Bar { key: string; count: number }
 interface PageRow { key: string; count: number; visitors: number }
+interface VisitorRow {
+  visitorId: string; isKnown: boolean; name: string | null; email: string | null;
+  views: number; clicks: number; sessions: number; lastSeen: string; firstSeen: string;
+  lastPage: string; place: string;
+}
 interface Data {
   range: string;
   totals: Totals;
   series: { date: string; views: number; sessions: number }[];
   pages: PageRow[];
+  visitors: VisitorRow[];
   topReferrers: Bar[]; topCountries: Bar[]; topCities: Bar[]; topClicks: Bar[];
   recentKnown: { name: string; email: string; path: string; place: string; when: string }[];
 }
+
+interface JourneyEvent { when: string; type: string; path: string; label: string | null; referrer: string }
+interface JourneySession { sessionId: string; start: string; end: string; events: JourneyEvent[] }
+interface Journey {
+  visitor: {
+    visitorId: string; isKnown: boolean; name: string | null; email: string | null;
+    views: number; clicks: number; sessions: number; place: string; firstSeen: string | null; lastSeen: string | null;
+  };
+  sessions: JourneySession[];
+}
+
+const visitorLabel = (v: { name: string | null; email: string | null; visitorId: string }) =>
+  v.name || v.email || `Anonymous · ${v.visitorId.slice(0, 8)}`;
+const fmtTime = (iso: string, withDate = false) => {
+  try { return format(parseISO(iso), withDate ? "MMM d, h:mma" : "h:mm:ss a"); } catch { return ""; }
+};
 
 const nf = new Intl.NumberFormat("en-US");
 
@@ -45,6 +68,16 @@ async function fetchAnalytics(password: string, range: string): Promise<{ ok: bo
   });
   if (!res.ok) return { ok: false, status: res.status };
   return { ok: true, status: 200, data: (await res.json()) as Data };
+}
+
+async function fetchJourney(password: string, visitorId: string): Promise<Journey | null> {
+  const res = await fetch("/api/analytics", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ password, visitorId }),
+  });
+  if (!res.ok) return null;
+  return (await res.json()) as Journey;
 }
 
 /* ── Small presentational pieces ─────────────────────────────────────────── */
@@ -128,6 +161,121 @@ const PagesPanel = ({ pages, totalViews }: { pages: PageRow[]; totalViews: numbe
   );
 };
 
+const VisitorsPanel = ({ visitors, onSelect }: { visitors: VisitorRow[]; onSelect: (v: VisitorRow) => void }) => (
+  <div className="rounded-2xl border border-border bg-card p-5 shadow-card">
+    <div className="flex items-center gap-2 mb-1">
+      <Users className="w-4 h-4 text-primary" />
+      <h3 className="font-bold font-display text-foreground">Visitors</h3>
+      <span className="text-xs text-muted-foreground ml-1 hidden sm:inline">click a visitor to see every page they viewed</span>
+      <span className="ml-auto text-xs text-muted-foreground">{nf.format(visitors.length)}</span>
+    </div>
+    {visitors.length === 0 ? (
+      <p className="text-sm text-muted-foreground py-4">No visitors in this range yet.</p>
+    ) : (
+      <ul className="mt-2 max-h-[480px] overflow-y-auto divide-y divide-border">
+        {visitors.map((v) => (
+          <li key={v.visitorId}>
+            <button
+              onClick={() => onSelect(v)}
+              className="w-full text-left py-2.5 px-2 -mx-2 rounded-lg flex items-center gap-3 hover:bg-muted/60 transition-colors"
+            >
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${v.isKnown ? "gradient-hero text-white" : "bg-muted text-muted-foreground"}`}>
+                {(v.name?.[0] || v.email?.[0] || "?").toUpperCase()}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="font-semibold text-foreground truncate">{visitorLabel(v)}</span>
+                  {v.isKnown && v.name && v.email && (
+                    <span className="text-xs text-muted-foreground truncate hidden sm:inline">{v.email}</span>
+                  )}
+                </div>
+                <div className="text-xs text-muted-foreground truncate">
+                  {nf.format(v.views)} view{v.views === 1 ? "" : "s"} · {nf.format(v.sessions)} session{v.sessions === 1 ? "" : "s"} · last on {v.lastPage}{v.place ? ` · ${v.place}` : ""}
+                </div>
+              </div>
+              <span className="text-xs text-muted-foreground shrink-0 hidden md:block">{fmtTime(v.lastSeen, true)}</span>
+              <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
+            </button>
+          </li>
+        ))}
+      </ul>
+    )}
+  </div>
+);
+
+const JourneyModal = ({ journey, loading, onClose }: { journey: Journey | null; loading: boolean; onClose: () => void }) => {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  const v = journey?.visitor;
+  return (
+    <div className="fixed inset-0 z-50 flex items-start md:items-center justify-center p-3 md:p-6 bg-black/50 backdrop-blur-sm" onClick={onClose}>
+      <div className="bg-card rounded-2xl border border-border shadow-elevated w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden" onClick={(e) => e.stopPropagation()}>
+        {/* Header */}
+        <div className="flex items-start gap-3 p-5 border-b border-border">
+          <div className={`w-11 h-11 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${v?.isKnown ? "gradient-hero text-white" : "bg-muted text-muted-foreground"}`}>
+            {(v?.name?.[0] || v?.email?.[0] || "?").toUpperCase()}
+          </div>
+          <div className="min-w-0 flex-1">
+            <h2 className="font-bold font-display text-lg text-foreground truncate">{v ? visitorLabel(v) : "Visitor"}</h2>
+            <p className="text-sm text-muted-foreground truncate">
+              {v?.email && v?.name ? `${v.email} · ` : ""}{v?.place || "Unknown location"}
+            </p>
+            {v && (
+              <p className="text-xs text-muted-foreground mt-1">
+                {nf.format(v.views)} views · {nf.format(v.clicks)} clicks · {nf.format(v.sessions)} session{v.sessions === 1 ? "" : "s"}
+                {v.firstSeen ? ` · first seen ${fmtTime(v.firstSeen, true)}` : ""}
+              </p>
+            )}
+          </div>
+          <button onClick={onClose} className="p-2 rounded-full text-muted-foreground hover:bg-muted transition-colors shrink-0" title="Close">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Body */}
+        <div className="overflow-y-auto p-5">
+          {loading && <div className="py-12 text-center text-muted-foreground text-sm">Loading journey…</div>}
+          {!loading && journey && journey.sessions.length === 0 && (
+            <div className="py-12 text-center text-muted-foreground text-sm">No activity recorded in the last 90 days.</div>
+          )}
+          {!loading && journey && journey.sessions.map((s, si) => (
+            <div key={s.sessionId + si} className="mb-6 last:mb-0">
+              <div className="flex items-center gap-2 mb-3">
+                <Clock className="w-3.5 h-3.5 text-muted-foreground" />
+                <span className="text-xs font-semibold text-foreground">Session {journey.sessions.length - si}</span>
+                <span className="text-xs text-muted-foreground">· {fmtTime(s.start, true)}</span>
+                <span className="text-xs text-muted-foreground ml-auto">{s.events.length} event{s.events.length === 1 ? "" : "s"}</span>
+              </div>
+              <ol className="relative border-l border-border ml-1.5 space-y-0.5">
+                {s.events.map((e, i) => {
+                  const click = e.type === "click";
+                  return (
+                    <li key={i} className="relative pl-5 py-1.5">
+                      <span className={`absolute -left-[5px] top-2.5 w-2.5 h-2.5 rounded-full ${click ? "bg-secondary" : "bg-primary"}`} />
+                      <div className="flex items-baseline justify-between gap-3">
+                        <span className="text-sm truncate flex items-center gap-1.5">
+                          {click
+                            ? <span className="text-muted-foreground flex items-center gap-1.5"><MousePointer className="w-3 h-3 shrink-0" />Clicked: <span className="text-foreground">{e.label}</span></span>
+                            : <span className="text-foreground flex items-center gap-1.5"><FileIcon className="w-3 h-3 shrink-0 text-primary" />{e.path}</span>}
+                        </span>
+                        <span className="text-xs text-muted-foreground shrink-0 tabular-nums">{fmtTime(e.when)}</span>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ol>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 /* ── Login ───────────────────────────────────────────────────────────────── */
 
 const Login = ({ onSubmit, error }: { onSubmit: (pw: string) => void; error: string }) => {
@@ -171,6 +319,9 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [loginError, setLoginError] = useState("");
+  const [journey, setJourney] = useState<Journey | null>(null);
+  const [journeyLoading, setJourneyLoading] = useState(false);
+  const [journeyOpen, setJourneyOpen] = useState(false);
 
   const load = useCallback(async (pw: string, r: string) => {
     setLoading(true); setError("");
@@ -208,6 +359,13 @@ const AdminDashboard = () => {
   const logout = () => {
     try { localStorage.removeItem(PW_KEY); } catch { /* ignore */ }
     setPassword(null); setData(null);
+  };
+
+  const openVisitor = async (v: VisitorRow) => {
+    if (!password) return;
+    setJourneyOpen(true); setJourneyLoading(true); setJourney(null);
+    const j = await fetchJourney(password, v.visitorId);
+    setJourney(j); setJourneyLoading(false);
   };
 
   if (!password) return <Login onSubmit={onLogin} error={loginError} />;
@@ -316,6 +474,11 @@ const AdminDashboard = () => {
               <PagesPanel pages={data.pages} totalViews={t.pageviews} />
             </section>
 
+            {/* Visitors — drill into one person's page-by-page journey */}
+            <section>
+              <VisitorsPanel visitors={data.visitors} onSelect={openVisitor} />
+            </section>
+
             {/* Breakdown grid */}
             <section className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
               <BarList icon={Link2} title="Top referrers" items={data.topReferrers} empty="No referrers yet." />
@@ -354,6 +517,14 @@ const AdminDashboard = () => {
           </>
         )}
       </main>
+
+      {journeyOpen && (
+        <JourneyModal
+          journey={journey}
+          loading={journeyLoading}
+          onClose={() => { setJourneyOpen(false); setJourney(null); }}
+        />
+      )}
     </div>
   );
 };

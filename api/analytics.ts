@@ -94,6 +94,55 @@ export default async function handler(req: any, res: any) {
   const db = adminSupabase();
   if (!db) { res.status(500).json({ error: "analytics_not_configured" }); return; }
 
+  // ── Single-visitor journey: every page this person visited, in order ────────
+  // Looks back 90 days regardless of the selected range, grouped by session.
+  if (b.visitorId) {
+    const vid = String(b.visitorId).slice(0, 80);
+    const winceIso = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
+    const { data: vrows, error: verr } = await db
+      .from("site_analytics")
+      .select("created_at,type,path,referrer,label,session_id,first_name,email,is_known,city,region,country")
+      .eq("visitor_id", vid)
+      .gte("created_at", winceIso)
+      .order("created_at", { ascending: true })
+      .limit(3000);
+    if (verr) { res.status(500).json({ error: "query_failed", detail: verr.message }); return; }
+    const evs = (vrows || []) as Row[];
+
+    let name = "", email = "", known = false, place = "";
+    const sids = new Set<string>();
+    let views = 0, clk = 0;
+    for (const r of evs) {
+      if (r.is_known) { known = true; if (r.first_name) name = r.first_name; if (r.email) email = r.email; }
+      if (r.type === "click") clk++; else views++;
+      if (r.session_id) sids.add(r.session_id);
+      const pl = [r.city, r.region, r.country].filter(Boolean).join(", ");
+      if (pl) place = pl;
+    }
+
+    // Group into sessions (ordered by first event); newest session first.
+    const order: string[] = [];
+    const groups = new Map<string, { sessionId: string; start: string; end: string; events: Array<{ when: string; type: string; path: string; label: string | null; referrer: string }> }>();
+    for (const r of evs) {
+      const sid = r.session_id || "—";
+      let g = groups.get(sid);
+      if (!g) { g = { sessionId: sid, start: r.created_at, end: r.created_at, events: [] }; groups.set(sid, g); order.push(sid); }
+      g.end = r.created_at;
+      g.events.push({ when: r.created_at, type: r.type, path: r.path || "/", label: r.label, referrer: r.referrer });
+    }
+    const journeySessions = order.map((sid) => groups.get(sid)!).reverse();
+
+    res.status(200).json({
+      visitor: {
+        visitorId: vid, isKnown: known, name: name || null, email: email || null,
+        views, clicks: clk, sessions: sids.size, place,
+        firstSeen: evs[0]?.created_at || null, lastSeen: evs[evs.length - 1]?.created_at || null,
+      },
+      sessions: journeySessions,
+    });
+    return;
+  }
+
   const rangeKey = RANGES[String(b.range ?? "7d")] ? String(b.range) : "7d";
   const days = RANGES[rangeKey];
   const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
@@ -162,6 +211,39 @@ export default async function handler(req: any, res: any) {
     .sort((a, b) => b.count - a.count)
     .slice(0, 30);
 
+  // Per-visitor roster (by persistent device id) — for the drill-down list. rows
+  // are newest-first, so the first event seen for a visitor is their latest.
+  interface VAgg {
+    visitorId: string; isKnown: boolean; name: string; email: string;
+    views: number; clicks: number; sessions: Set<string>;
+    firstSeen: string; lastSeen: string; lastPage: string; place: string;
+  }
+  const vmap = new Map<string, VAgg>();
+  for (const r of rows) {
+    const vid = r.visitor_id;
+    if (!vid) continue;
+    let v = vmap.get(vid);
+    if (!v) {
+      v = { visitorId: vid, isKnown: false, name: "", email: "", views: 0, clicks: 0, sessions: new Set(), firstSeen: r.created_at, lastSeen: r.created_at, lastPage: "", place: "" };
+      vmap.set(vid, v);
+    }
+    if (r.created_at > v.lastSeen) v.lastSeen = r.created_at;
+    if (r.created_at < v.firstSeen) v.firstSeen = r.created_at;
+    if (r.type === "click") v.clicks++;
+    else { v.views++; if (!v.lastPage) v.lastPage = stripQuery(r.path); }
+    if (r.session_id) v.sessions.add(r.session_id);
+    if (r.is_known) { v.isKnown = true; if (r.first_name && !v.name) v.name = r.first_name; if (r.email && !v.email) v.email = r.email; }
+    if (!v.place) { const pl = [r.city, r.region, r.country].filter(Boolean).join(", "); if (pl) v.place = pl; }
+  }
+  const visitorsList = [...vmap.values()]
+    .sort((a, b2) => (a.lastSeen < b2.lastSeen ? 1 : a.lastSeen > b2.lastSeen ? -1 : 0))
+    .slice(0, 200)
+    .map((v) => ({
+      visitorId: v.visitorId, isKnown: v.isKnown, name: v.name || null, email: v.email || null,
+      views: v.views, clicks: v.clicks, sessions: v.sessions.size,
+      lastSeen: v.lastSeen, firstSeen: v.firstSeen, lastPage: v.lastPage || "/", place: v.place,
+    }));
+
   // Recent named-visitor feed (latest event per known visitor).
   const seenVisitor = new Set<string>();
   const recentKnown: Array<{ name: string; email: string; path: string; place: string; when: string }> = [];
@@ -199,6 +281,7 @@ export default async function handler(req: any, res: any) {
       sessions: (seriesSessions.get(d)?.size) || 0,
     })),
     pages,
+    visitors: visitorsList,
     topReferrers: topN(referrers, 10),
     topCountries: topN(countries, 10),
     topCities: topN(cities, 10),
