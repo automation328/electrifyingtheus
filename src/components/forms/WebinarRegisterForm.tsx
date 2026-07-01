@@ -43,6 +43,25 @@ const EMPTY = {
   vehicle: "", concern: "", question: "",
 };
 
+// Register the person on Zoom (if the ZOOM_* env vars are configured server-side)
+// and return their unique join link, or null. Best-effort — never blocks the form.
+async function registerOnZoom(f: typeof EMPTY): Promise<string | null> {
+  try {
+    const r = await fetch("/api/register-webinar", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        firstName: f.firstName.trim(), lastName: f.lastName.trim(), email: f.email.trim(),
+        city: f.city.trim(), zip: f.zip.trim(), company: f.company.trim(),
+        industry: f.industry.trim(), title: f.title.trim(), mobile: f.mobile.trim(),
+        vehicle: f.vehicle, concern: f.concern, question: f.question.trim(),
+      }),
+    });
+    const d = await r.json();
+    return d?.joinUrl ?? null;
+  } catch { return null; }
+}
+
 const inputCls =
   "w-full rounded-xl border border-border bg-background px-4 py-3 text-foreground outline-none focus:ring-2 focus:ring-primary/40";
 const Req = () => <span className="text-destructive">*</span>;
@@ -53,6 +72,7 @@ const WebinarRegisterForm = ({ eventTitle, eventTime, eventSummary, registerUrl,
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
+  const [joinUrl, setJoinUrl] = useState<string | null>(null);
 
   const set =
     (k: keyof typeof EMPTY) =>
@@ -75,23 +95,29 @@ const WebinarRegisterForm = ({ eventTitle, eventTime, eventSummary, registerUrl,
     setBusy(true);
 
     saveLeadIdentity({ firstName: f.firstName.trim(), email: f.email.trim() });
-    await submitLead("event-register", {
-      firstName: f.firstName.trim(),
-      lastName: f.lastName.trim(),
-      email: f.email.trim(),
-      mobile: f.mobile.trim(),
-      company: f.company.trim(),
-      industry: f.industry.trim(),
-      title: f.title.trim(),
-      city: f.city.trim(),
-      zip: f.zip.trim(),
-      subject: `Webinar registration: ${eventTitle}`,
-      topic: eventSummary,
-      message:
-        `Vehicle situation: ${f.vehicle}\n` +
-        `Biggest EV concern: ${f.concern}\n` +
-        `Question for the webinar: ${f.question.trim()}`,
-    });
+    // Capture the lead in the CRM, and — if Zoom is wired up — register the person
+    // on the webinar for their unique join link. Both run together; neither blocks.
+    const [, zoomJoin] = await Promise.all([
+      submitLead("event-register", {
+        firstName: f.firstName.trim(),
+        lastName: f.lastName.trim(),
+        email: f.email.trim(),
+        mobile: f.mobile.trim(),
+        company: f.company.trim(),
+        industry: f.industry.trim(),
+        title: f.title.trim(),
+        city: f.city.trim(),
+        zip: f.zip.trim(),
+        subject: `Webinar registration: ${eventTitle}`,
+        topic: eventSummary,
+        message:
+          `Vehicle situation: ${f.vehicle}\n` +
+          `Biggest EV concern: ${f.concern}\n` +
+          `Question for the webinar: ${f.question.trim()}`,
+      }),
+      registerOnZoom(f),
+    ]);
+    setJoinUrl(zoomJoin);
     setBusy(false);
     setDone(true);
   };
@@ -104,17 +130,27 @@ const WebinarRegisterForm = ({ eventTitle, eventTime, eventSummary, registerUrl,
         </span>
         <h2 className="font-display font-bold text-2xl text-foreground mb-2">You're registered, {f.firstName.trim()}!</h2>
         <p className="text-muted-foreground max-w-md mx-auto mb-6">
-          We've saved your spot for {eventTime}. We'll email your join link to <span className="font-semibold text-foreground">{f.email.trim()}</span> before the webinar.
+          {joinUrl
+            ? <>Your spot for {eventTime} is confirmed. Your personal join link is below and we've also emailed it to <span className="font-semibold text-foreground">{f.email.trim()}</span>.</>
+            : <>We've saved your spot for {eventTime}. We'll email your join link to <span className="font-semibold text-foreground">{f.email.trim()}</span> before the webinar.</>}
         </p>
         <div className="flex flex-wrap items-center justify-center gap-3">
+          {joinUrl && (
+            <a href={joinUrl} target="_blank" rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 gradient-primary text-primary-foreground font-semibold px-5 py-3 rounded-xl shadow-card hover:opacity-90 transition">
+              <Ticket className="w-5 h-5" /> Join the webinar
+            </a>
+          )}
           <a href={calendarUrl} target="_blank" rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 gradient-primary text-primary-foreground font-semibold px-5 py-3 rounded-xl shadow-card hover:opacity-90 transition">
+            className={`inline-flex items-center gap-2 font-semibold px-5 py-3 rounded-xl transition ${joinUrl ? "bg-card border border-border text-foreground hover:border-primary/40 hover:text-primary" : "gradient-primary text-primary-foreground shadow-card hover:opacity-90"}`}>
             <CalendarPlus className="w-5 h-5" /> Add to calendar
           </a>
-          <a href={registerUrl} target="_blank" rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition">
-            Prefer Zoom? Complete registration there <ExternalLink className="w-4 h-4" />
-          </a>
+          {!joinUrl && (
+            <a href={registerUrl} target="_blank" rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition">
+              Prefer Zoom? Complete registration there <ExternalLink className="w-4 h-4" />
+            </a>
+          )}
         </div>
       </div>
     );
