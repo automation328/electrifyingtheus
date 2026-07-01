@@ -7,6 +7,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ShareGate from "@/components/forms/ShareGate";
 import EventActionGate from "@/components/forms/EventActionGate";
+import WebinarRegisterForm from "@/components/forms/WebinarRegisterForm";
 import { EVENTS, gcalLink } from "@/data/events";
 import flyer from "@/assets/event-pump-to-plug.jpg";
 
@@ -21,6 +22,9 @@ const LEARN = [
 const EventFromPumpToPlug = () => {
   const event = EVENTS.find((e) => e.slug === SLUG) ?? EVENTS[0];
   const registerUrl = event.registerUrl ?? "https://us06web.zoom.us/webinar/register/WN_PtzGLoOyQqmDMg8lXpKRlw#/registration";
+  const eventSummary = `${event.location} · ${event.month} ${event.day}, ${event.year}`;
+  const scrollToRegister = () =>
+    document.getElementById("register")?.scrollIntoView({ behavior: "smooth", block: "start" });
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -42,6 +46,47 @@ const EventFromPumpToPlug = () => {
                 <div className="bg-secondary text-primary-foreground text-[11px] font-bold tracking-wider py-1">{event.month}</div>
                 <div className="text-foreground text-3xl font-bold font-display leading-none py-2">{event.day}</div>
               </div>
+
+              {/* CTAs — below the poster. Register scrolls to the on-page form;
+                  Add to calendar + Share gate the visitor's first name + email. */}
+              <div className="mt-6 flex flex-wrap items-center gap-2.5">
+                <button
+                  type="button"
+                  onClick={scrollToRegister}
+                  className="inline-flex items-center gap-2 gradient-primary text-primary-foreground font-semibold px-5 py-3 rounded-xl shadow-card hover:opacity-90 transition"
+                >
+                  <Ticket className="w-5 h-5" /> Register
+                </button>
+                <EventActionGate
+                  href={gcalLink(event)}
+                  formType="event-calendar"
+                  title={event.title}
+                  summary={eventSummary}
+                  label="Add to calendar"
+                  icon={<CalendarPlus className="w-5 h-5" />}
+                  className="inline-flex items-center gap-2 bg-card border border-border text-foreground font-semibold px-5 py-3 rounded-xl hover:border-primary/40 hover:text-primary transition"
+                />
+                <ShareGate
+                  url={event.slug ? `/events/${event.slug}` : "/events"}
+                  title={event.title}
+                  summary={eventSummary}
+                  description={event.description}
+                  image={event.image}
+                  meta={`${event.type} · ${event.location} · ${event.month} ${event.day}, ${event.year} · ${event.time}`}
+                  formType="event-share"
+                  variant="label"
+                  label="Share"
+                  className="inline-flex items-center gap-2 bg-card border border-border text-foreground font-semibold px-5 py-3 rounded-xl hover:border-primary/40 hover:text-primary transition"
+                />
+                <Link to="/list-your-event"
+                  className="inline-flex items-center gap-2 bg-green-600 text-white font-semibold px-5 py-3 rounded-xl shadow-card hover:bg-green-700 transition">
+                  <Megaphone className="w-5 h-5" /> List Your Event
+                </Link>
+                <Link to="/events"
+                  className="inline-flex items-center gap-2 bg-card border border-border text-foreground font-semibold px-5 py-3 rounded-xl hover:border-primary/40 hover:text-primary transition">
+                  <CalendarDays className="w-5 h-5" /> View more events
+                </Link>
+              </div>
             </div>
 
             {/* Details */}
@@ -61,49 +106,6 @@ const EventFromPumpToPlug = () => {
               </div>
 
               <p className="text-muted-foreground leading-relaxed mb-6">{event.description}</p>
-
-              {/* CTAs — Add to calendar, Share, then Register. Each captures the
-                  visitor's first name + email before proceeding. */}
-              <div className="flex flex-wrap items-center gap-2.5 mb-6">
-                <EventActionGate
-                  href={gcalLink(event)}
-                  formType="event-calendar"
-                  title={event.title}
-                  summary={`${event.location} · ${event.month} ${event.day}, ${event.year}`}
-                  label="Add to calendar"
-                  icon={<CalendarPlus className="w-5 h-5" />}
-                  className="inline-flex items-center gap-2 bg-card border border-border text-foreground font-semibold px-5 py-3 rounded-xl hover:border-primary/40 hover:text-primary transition"
-                />
-                <ShareGate
-                  url={event.slug ? `/events/${event.slug}` : "/events"}
-                  title={event.title}
-                  summary={`${event.location} · ${event.month} ${event.day}, ${event.year}`}
-                  description={event.description}
-                  image={event.image}
-                  meta={`${event.type} · ${event.location} · ${event.month} ${event.day}, ${event.year} · ${event.time}`}
-                  formType="event-share"
-                  variant="label"
-                  label="Share"
-                  className="inline-flex items-center gap-2 bg-card border border-border text-foreground font-semibold px-5 py-3 rounded-xl hover:border-primary/40 hover:text-primary transition"
-                />
-                <EventActionGate
-                  href={registerUrl}
-                  formType="event-register"
-                  title={event.title}
-                  summary={`${event.location} · ${event.month} ${event.day}, ${event.year}`}
-                  label="Register"
-                  icon={<Ticket className="w-5 h-5" />}
-                  className="inline-flex items-center gap-2 gradient-primary text-primary-foreground font-semibold px-5 py-3 rounded-xl shadow-card hover:opacity-90 transition"
-                />
-                <Link to="/list-your-event"
-                  className="inline-flex items-center gap-2 bg-green-600 text-white font-semibold px-5 py-3 rounded-xl shadow-card hover:bg-green-700 transition">
-                  <Megaphone className="w-5 h-5" /> List Your Event
-                </Link>
-                <Link to="/events"
-                  className="inline-flex items-center gap-2 bg-card border border-border text-foreground font-semibold px-5 py-3 rounded-xl hover:border-primary/40 hover:text-primary transition">
-                  <CalendarDays className="w-5 h-5" /> View more events
-                </Link>
-              </div>
 
               <p className="text-xs text-muted-foreground">
                 Powered by <span className="font-semibold text-foreground">Electrifying Michigan</span>,{" "}
@@ -130,20 +132,14 @@ const EventFromPumpToPlug = () => {
             </div>
           </div>
 
-          {/* Bottom register band */}
-          <div className="mt-8 rounded-3xl gradient-hero p-8 md:p-10 text-center text-primary-foreground">
-            <h2 className="text-2xl md:text-3xl font-bold font-display mb-3">Save your seat</h2>
-            <p className="text-primary-foreground/90 mb-6 max-w-xl mx-auto">
-              {event.time}. Register now and we'll send you the link.
-            </p>
-            <EventActionGate
-              href={registerUrl}
-              formType="event-register"
-              title={event.title}
-              summary={`${event.location} · ${event.month} ${event.day}, ${event.year}`}
-              label="Register for the webinar"
-              icon={<Ticket className="w-5 h-5" />}
-              className="inline-flex items-center gap-2 bg-primary-foreground text-primary font-bold px-7 py-3.5 rounded-2xl hover:opacity-90 transition"
+          {/* On-page registration form */}
+          <div className="mt-8">
+            <WebinarRegisterForm
+              eventTitle={event.title}
+              eventTime={event.time}
+              eventSummary={eventSummary}
+              registerUrl={registerUrl}
+              calendarUrl={gcalLink(event)}
             />
           </div>
         </div>
