@@ -232,9 +232,11 @@ const ElectricityVsGasoline = () => {
   const gasSel = vehicles.find((v) => v.id === gasId);
   const evSel = vehicles.find((v) => v.id === evId);
   // Fallbacks keep the math from crashing before a selection; the results stay
-  // hidden until both cars are actually chosen (`bothSelected`).
-  const FALLBACK_GAS = vehicles.find((v) => v.id === "toyota-camry") ?? vehicles.find((v) => v.type === "gas")!;
-  const FALLBACK_EV = vehicles.find((v) => v.id === "tesla-model-3") ?? vehicles.find((v) => v.type === "ev")!;
+  // hidden until both cars are actually chosen (`bothSelected`). The fallbacks
+  // double as the Sample-preview example shown before any selection, so they're
+  // the Chevrolet Equinox vs Equinox EV pair.
+  const FALLBACK_GAS = vehicles.find((v) => v.id === "chevy-equinox") ?? vehicles.find((v) => v.type === "gas")!;
+  const FALLBACK_EV = vehicles.find((v) => v.id === "chevy-equinox-ev") ?? vehicles.find((v) => v.type === "ev")!;
   const gas = gasSel ?? FALLBACK_GAS;
   const ev = evSel ?? FALLBACK_EV;
   const bothSelected = !!gasSel && !!evSel;
@@ -641,9 +643,10 @@ const ElectricityVsGasoline = () => {
 
             {/* Sample preview — a worked Chevrolet Equinox example shown before the
                 visitor runs their own numbers. Clearly badged as a sample (no
-                share/email — those live in the full gated result). Hidden once
-                real results are calculated. */}
-            {bothSelected && !showResults && (
+                share/email — those live in the full gated result). Shows the
+                Chevrolet Equinox example until vehicles are picked, then previews
+                the chosen matchup. Hidden once real results are calculated. */}
+            {!showResults && (
               <div className="relative mb-8 rounded-3xl border-2 border-dashed border-secondary/50 bg-secondary/5 p-2.5">
                 <div className="absolute -top-3 left-6 z-10">
                   <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary text-secondary-foreground text-[11px] font-bold uppercase tracking-wider px-3 py-1 shadow-md">
