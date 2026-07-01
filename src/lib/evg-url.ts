@@ -70,10 +70,11 @@ export function parseCalcState(sp: URLSearchParams, fallback: CalcState): CalcSt
  */
 export function serializeCalcState(s: CalcState, defaults: CalcState): Record<string, string> {
   const out: Record<string, string> = {
-    [K.gasId]: s.gasId,
     [K.stateCode]: s.stateCode,
     [K.homeCharging]: s.homeCharging ? "1" : "0",
   };
+  // car/ev only written once chosen — the form starts empty.
+  if (s.gasId) out[K.gasId] = s.gasId;
   if (s.evId) out[K.evId] = s.evId;
 
   const round = (n: number) => String(Math.round(n * 1000) / 1000);

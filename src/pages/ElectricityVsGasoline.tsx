@@ -190,15 +190,14 @@ const ElectricityVsGasoline = () => {
   }, []);
 
   const [stateCode, setStateCode] = useState(initial.stateCode);
-  // Pre-seed a Chevrolet Equinox vs Equinox EV sample so the calculator shows a
-  // worked example before the visitor picks their own cars. URL deep-links
-  // (?car=…&ev=…) still take precedence when present.
-  const [gasId, setGasId] = useState(searchParams.get("car") ?? "chevy-equinox");
-  const [evId, setEvId] = useState(searchParams.get("ev") ?? "chevy-equinox-ev");
+  // Start with no vehicles selected — the visitor picks their current gas car and
+  // an EV. URL deep-links (?car=…&ev=…) still restore a specific comparison.
+  const [gasId, setGasId] = useState(searchParams.get("car") ?? "");
+  const [evId, setEvId] = useState(searchParams.get("ev") ?? "");
   // Make selection drives the Model dropdown. Kept in sync with the chosen id
   // (deep links, EV-match cards) via the effects below.
-  const [gasMake, setGasMake] = useState(() => { const v = vehicles.find((x) => x.id === (searchParams.get("car") ?? "chevy-equinox")); return v ? makeOf(v.name) : ""; });
-  const [evMake, setEvMake] = useState(() => { const v = vehicles.find((x) => x.id === (searchParams.get("ev") ?? "chevy-equinox-ev")); return v ? makeOf(v.name) : ""; });
+  const [gasMake, setGasMake] = useState(() => { const v = vehicles.find((x) => x.id === searchParams.get("car")); return v ? makeOf(v.name) : ""; });
+  const [evMake, setEvMake] = useState(() => { const v = vehicles.find((x) => x.id === searchParams.get("ev")); return v ? makeOf(v.name) : ""; });
   const [homeCharging, setHomeCharging] = useState(initial.homeCharging);
 
   // Keep Make in sync whenever the selected vehicle id changes elsewhere.
