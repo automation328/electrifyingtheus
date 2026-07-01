@@ -20,21 +20,21 @@ interface Props {
   calendarUrl: string;
 }
 
+// These must match the Zoom webinar's registration dropdown answers exactly —
+// Zoom validates custom-question values character-for-character.
 const VEHICLE_OPTIONS = [
-  "I currently drive a gas vehicle",
-  "I currently drive a hybrid",
-  "I currently drive a plug-in hybrid",
-  "I already drive an EV",
-  "I'm shopping for my next vehicle",
-  "I don't own a vehicle",
+  "I drive a gas or hybrid car and want to save money",
+  "I already own an electric vehicle (EV)",
+  "I am looking to switch to an EV in the next 6 months",
+  "I don't own a car but interested in purchasing one",
 ];
 const CONCERN_OPTIONS = [
-  "Upfront price / cost",
-  "Charging access / infrastructure",
-  "Driving range",
-  "Battery life & reliability",
-  "Home charging setup",
-  "No major concerns",
+  "Upfront cost",
+  "Range/charging availability in my area",
+  "Not sure if it makes financial sense",
+  "I live in a rural area",
+  "I rent my home and can't install a charger",
+  "I already own an EV",
 ];
 
 const EMPTY = {

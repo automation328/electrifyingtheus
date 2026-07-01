@@ -57,20 +57,23 @@ export default async function handler(req: any, res: any) {
     res.status(400).json({ ok: false, error: "invalid_input" }); return;
   }
 
+  // This webinar configures City/Zip/Company/Industry/Title + the 3 EV questions
+  // as required CUSTOM questions (not standard fields), so everything except
+  // name/email/phone is sent in custom_questions with the exact Zoom titles.
   const custom_questions = [
-    b.vehicle && { title: "What best describes your current vehicle situation?", value: clean(b.vehicle) },
-    b.concern && { title: "What's your biggest concern about switching to an EV?", value: clean(b.concern) },
-    b.question && { title: "What is one question you hope we answer during this webinar?", value: clean(b.question, 500) },
-  ].filter(Boolean) as Array<{ title: string; value: string }>;
+    { title: "City", value: clean(b.city, 64) },
+    { title: "Zip code", value: clean(b.zip, 16) },
+    { title: "Company or Organization", value: clean(b.company, 128) },
+    { title: "Industry", value: clean(b.industry, 64) },
+    { title: "Title", value: clean(b.title, 64) },
+    { title: "What best describes your current vehicle situation?", value: clean(b.vehicle) },
+    { title: "What’s your biggest concern about switching to an EV?", value: clean(b.concern) },
+    { title: "What is one question you hope we answer during this webinar?", value: clean(b.question, 500) },
+  ].filter((q) => q.value);
 
   const drop = (o: Record<string, unknown>) => Object.fromEntries(Object.entries(o).filter(([, v]) => v));
   const payload = drop({
     first_name, last_name, email,
-    city: clean(b.city, 64),
-    zip: clean(b.zip, 16),
-    org: clean(b.company, 128),
-    industry: clean(b.industry, 64),
-    job_title: clean(b.title, 64),
     phone: clean(b.mobile, 32),
     custom_questions: custom_questions.length ? custom_questions : undefined,
   });
@@ -82,13 +85,7 @@ export default async function handler(req: any, res: any) {
       body: JSON.stringify(payloadObj),
     });
 
-  let r = await register(payload);
-  // If the custom questions don't match the webinar's config, Zoom returns 400 —
-  // retry with standard fields only so the person is still registered.
-  if (!r.ok && payload.custom_questions) {
-    const { custom_questions: _omit, ...standard } = payload;
-    r = await register(standard);
-  }
+  const r = await register(payload);
 
   const data = (await r.json().catch(() => ({}))) as { join_url?: string; message?: string };
   if (!r.ok) { res.status(502).json({ ok: false, configured: true, error: data?.message || "zoom_error" }); return; }
