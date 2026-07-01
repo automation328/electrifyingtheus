@@ -153,7 +153,7 @@ Car buyers don't adopt new technology in the abstract. They adopt specific vehic
 
 Yes — and it now exceeds the gas station network by a meaningful measure.
 
-The U.S. has more than **240,000 public EV charging ports** across more than 65,000 stations — surpassing the total number of gas stations nationwide. Fast-charging infrastructure along major highway corridors is expanding under both federal investment and private buildout by Tesla, ChargePoint, EVgo, and Electrify America.
+The U.S. has more than **250,000 public EV charging ports** across more than 65,000 stations — surpassing the total number of gas stations nationwide. Fast-charging infrastructure along major highway corridors is expanding under both federal investment and private buildout by Tesla, ChargePoint, EVgo, and Electrify America.
 
 A question I hear constantly: *"What if I want to drive cross-country?"* EVs are simply cars with different powertrains. I have friends who have driven across the country in their EVs for far less money than a gas equivalent. Most modern EVs work like a GPS for charging — enter your destination, and the car seamlessly calculates charging stops and times.
 
@@ -188,7 +188,7 @@ The case for EVs in 2026 isn't built on a single breakthrough. It's built on sev
 | Gas prices | Record highs, projected to stay elevated |
 | Battery costs | Below $100/kWh — mainstream parity threshold crossed |
 | Vehicle selection | Every major U.S. segment covered |
-| Charging network | 240,000+ ports, NACS standardization complete |
+| Charging network | 250,000+ ports, NACS standardization complete |
 | Household math tools | Real-time, personalized cost calculators |
 | Global EV share | 25–30% of all new vehicle sales |
 
@@ -209,7 +209,7 @@ Most American drivers save between **$1,500 and $2,500 per year** on fuel and ma
 Yes. The Chevrolet Equinox EV starts under $35,000, and a growing roster of crossovers, sedans, and SUVs is available under $40,000 from Ford, Hyundai, Kia, Tesla, and others.
 
 ### Is the U.S. EV charging network large enough for everyday drivers?
-The U.S. now has over **240,000 public EV charging ports** across 65,000+ stations — more than the number of gas stations. With NACS standardization adopted by all major automakers, the compatibility and availability issues of early EV ownership are largely resolved.
+The U.S. now has over **250,000 public EV charging ports** across 65,000+ stations — more than the number of gas stations. With NACS standardization adopted by all major automakers, the compatibility and availability issues of early EV ownership are largely resolved.
 
 ### What is the North American Charging Standard (NACS)?
 NACS is the universal EV charging plug standard now adopted by virtually every major automaker. It gives all EV drivers access to the same charging network — including Tesla's Supercharger network — eliminating the plug-compatibility issues that slowed early EV adoption.
