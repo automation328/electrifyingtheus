@@ -785,7 +785,7 @@ const ElectricityVsGasoline = () => {
                 {/* Preset summary */}
                 <div className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-2">
                   <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 text-primary text-xs font-semibold px-3 py-1.5">
-                    <MapPin className="w-3.5 h-3.5" /> {rates.name} · {currency(gasPrice, 2)}/gal · {currency(electricityRate, 2)}/kWh · {Math.round(homeShareFor(homeCharging) * 100)}% home charging
+                    <MapPin className="w-3.5 h-3.5" /> {rates.name} · {currency(gasPrice, 2)}/gal · {currency(electricityRate, 2)}/kWh · {homeCharging ? "home charging" : `${Math.round(homeShareFor(false) * 100)}% home charging`}
                   </span>
                   <span className="text-[11px] text-muted-foreground">Prices are MSRP, preset from state averages.</span>
                 </div>

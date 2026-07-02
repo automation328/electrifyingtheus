@@ -30,10 +30,12 @@ export const DEFAULTS = {
   // one via the advanced assumptions.)
   chargingLoss: 0,
   publicKwhPrice: 0.43, // national blended DCFC, v1
-  /** Home-charging mix: share of energy taken at the cheaper home rate. A driver
-   *  who charges at home does the large majority there; ~10% covers occasional
-   *  road-trip DC fast charging. */
-  homeShareWithHome: 0.9, // Home = Yes  → 90% home / 10% public
+  /** Home-charging mix: share of energy costed at the home rate. When the driver
+   *  charges at home we cost all charging at the residential rate — the standard
+   *  industry/EIA approach (e.g. zeta.org's calculator): ~80-90% of charging is
+   *  done at home and public-charging price data is limited, so at-home charging
+   *  cost is used. The "No home charging" path still uses a public-heavy mix. */
+  homeShareWithHome: 1.0, // Home = Yes  → home rate (at-home charging)
   homeShareWithoutHome: 0.3, // Home = No   → 30% home / 70% public
   dollarAmount: 50, // dollar-driving callout
 } as const;
