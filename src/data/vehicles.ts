@@ -383,7 +383,7 @@ export const vehicles: VehicleData[] = [
   // Trucks
   {
     id: "ford-f150", name: "Ford F-150", type: "gas", msrp: 36965,
-    mpg: 23, maintenanceCostPerMile: 0.1, insuranceAnnual: 1900,
+    mpg: 21, maintenanceCostPerMile: 0.1, insuranceAnnual: 1900,
     depreciationRate: 0.14, category: "Truck",
     bodyStyle: "truck", sizeClass: 4, seats: 5, drivetrain: "4WD",
   },

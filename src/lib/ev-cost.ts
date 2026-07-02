@@ -23,10 +23,17 @@ export const KWH_PER_GALLON = 33.7;
 export const DEFAULTS = {
   annualMiles: 13_500, // FHWA US average
   horizonYears: 5, // convention
-  chargingLoss: 0.1, // SAE J2894 typical, wall-to-wheel
+  // EPA MPGe / kWh-per-100mi are measured at the wall (AC energy drawn to
+  // recharge), so charging + onboard-charger losses are ALREADY baked into each
+  // vehicle's efficiency figure. Applying an extra loss here would double-count
+  // it and overstate EV running cost, so the default is 0. (Users can still add
+  // one via the advanced assumptions.)
+  chargingLoss: 0,
   publicKwhPrice: 0.43, // national blended DCFC, v1
-  /** Home-charging mix: share of energy taken at the cheaper home rate. */
-  homeShareWithHome: 0.8, // Home = Yes  → 80% home / 20% public
+  /** Home-charging mix: share of energy taken at the cheaper home rate. A driver
+   *  who charges at home does the large majority there; ~10% covers occasional
+   *  road-trip DC fast charging. */
+  homeShareWithHome: 0.9, // Home = Yes  → 90% home / 10% public
   homeShareWithoutHome: 0.3, // Home = No   → 30% home / 70% public
   dollarAmount: 50, // dollar-driving callout
 } as const;
