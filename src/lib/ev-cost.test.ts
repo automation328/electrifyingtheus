@@ -14,8 +14,8 @@ describe("calculate() — Appendix A worked example", () => {
     gasPricePerGallon: 3.62,
     homeKwhPrice: 0.13,
     publicKwhPrice: 0.41,
-    homeChargingShare: homeShareFor(true), // 0.80
-    chargingLoss: 0.1,
+    homeChargingShare: 0.8, // fixed worked-example mix (decoupled from the app default)
+    chargingLoss: 0.1,      // fixed worked-example loss (decoupled from the app default)
     gas: { mpgCombined: 32 },
     ev: { kwhPer100mi: 24.4 }, // 0.244 kWh/mi, the spec's Model 3 RWD figure
     federalCredit: 7500,
