@@ -1289,48 +1289,6 @@ const ElectricityVsGasoline = () => {
           </div>
         </section>
 
-        {/* ───────────────── METHODOLOGY ───────────────── */}
-        <section className="py-16 border-t border-border">
-          <div className="container px-4 max-w-4xl">
-            <div className="max-w-2xl mb-10">
-              <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary mb-3">
-                <Info className="w-4 h-4" /> Methodology
-              </div>
-              <h2 className="font-charge text-3xl md:text-4xl text-foreground">How we calculate</h2>
-              <p className="text-muted-foreground mt-3">
-                We compare the fueling cost of a gas vehicle against charging an EV, using live state
-                prices and each vehicle's EPA-rated efficiency — the same at-home-charging approach used
-                by the U.S. Department of Energy and independent analyses.
-              </p>
-            </div>
-
-            <div className="grid sm:grid-cols-2 gap-4 md:gap-5">
-              {[
-                { icon: Fuel, title: "Gas prices", body: "Live regular-unleaded prices by state, from AAA / EIA state averages, refreshed regularly.", src: SOURCES.gas },
-                { icon: House, title: "Electricity & charging", body: "Charging is costed at your state's average residential (at-home) electricity rate from the EIA — the standard assumption, since most charging is done at home. Choose “Charge at home? No” to blend in public DC fast-charging instead.", src: SOURCES.electricity },
-                { icon: Car, title: "Vehicle efficiency", body: "EPA-rated MPG for gas cars and kWh per 100 miles for EVs — measured at the wall, so charging losses are already included — for the base trim of each model.", src: SOURCES.vehicle },
-                { icon: CircleDollarSign, title: "Savings & incentives", body: "Annual fuel cost is miles ÷ MPG × gas price for gas, and miles × kWh/mile × electricity rate for the EV. Multi-year totals apply federal, state, and utility incentives once, as a reduction of the total.", src: SOURCES.incentiveFederal },
-              ].map((m) => (
-                <div key={m.title} className="rounded-2xl border border-border bg-card p-5 md:p-6 shadow-card">
-                  <div className="flex items-center gap-2.5 mb-2.5">
-                    <span className="grid place-items-center w-9 h-9 rounded-xl bg-primary/10 text-primary shrink-0"><m.icon className="w-5 h-5" /></span>
-                    <h3 className="font-charge text-lg text-foreground">{m.title}</h3>
-                  </div>
-                  <p className="text-sm text-muted-foreground leading-relaxed">{m.body}</p>
-                  <a href={m.src.href} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-semibold text-primary mt-3 hover:gap-1.5 transition-all">
-                    {m.src.label} <ArrowRight className="w-3.5 h-3.5" />
-                  </a>
-                </div>
-              ))}
-            </div>
-
-            <p className="text-xs text-muted-foreground mt-6 flex items-start gap-2">
-              <Info className="w-4 h-4 shrink-0 mt-0.5" />
-              Figures are estimates for the selected state and update with our data sources (last reviewed {SOURCES.gas.asOf}). Your actual costs vary with driving habits, local utility and fuel prices, vehicle condition, and the incentives you qualify for. This tool is informational and not financial advice.
-            </p>
-          </div>
-        </section>
-
         {/* ───────────────── STATS BAND ───────────────── */}
         <section className="py-16 border-y border-border bg-muted/40">
           <div className="container px-4 max-w-5xl">
