@@ -91,6 +91,46 @@ export const eventDisplayTitle = (e: EventItem): string => {
   return `${e.title} - ${city}`;
 };
 
+/** Two-letter state code parsed from an event's location (last comma segment,
+ *  e.g. "…, Pasadena, CA 91103" → "CA"). "" for online/see-details locations. */
+export const eventStateCode = (e: EventItem): string => {
+  const loc = (e.location || "").trim();
+  if (!loc || /see event details/i.test(loc) || /online|webinar|virtual/i.test(loc)) return "";
+  const parts = loc.split(",").map((s) => s.trim()).filter(Boolean);
+  const last = parts[parts.length - 1] || "";
+  const m = last.match(/\b([A-Z]{2})\b/);
+  return m ? m[1] : "";
+};
+
+/** "City, ST" for the card's location pin — city + state only, no street address.
+ *  "" for online / see-details events. */
+export const eventCityState = (e: EventItem): string => {
+  const city = eventCity(e);
+  if (!city) return "";
+  const st = eventStateCode(e);
+  return st ? `${city}, ${st}` : city;
+};
+
+/** Card title with any trailing location suffix removed — the address lives in
+ *  the location pin, not the title. Strips " - City, ST" / " - City" / ", City,
+ *  ST" / ", City" (and en-dash variants) only when it exactly matches the event's
+ *  own city/state, so real " - subtitle" titles are left untouched. */
+export const eventTitleClean = (e: EventItem): string => {
+  const title = eventDisplayTitle(e);
+  const city = eventCity(e);
+  if (!city) return title;
+  const cands = [eventCityState(e), city].filter(Boolean);
+  for (const c of cands) {
+    for (const sep of [" - ", " – ", " — ", ", "]) {
+      const suffix = sep + c;
+      if (title.toLowerCase().endsWith(suffix.toLowerCase())) {
+        return title.slice(0, title.length - suffix.length).trim();
+      }
+    }
+  }
+  return title;
+};
+
 /** URL-safe slug from arbitrary text (≤60 chars). */
 export const slugify = (s: string): string =>
   s.toLowerCase()
