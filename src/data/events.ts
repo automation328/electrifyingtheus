@@ -148,11 +148,26 @@ const meetupCity = (e: EventItem): string => {
   return (slug && MEETUP_GROUP_CITY[slug]) || "";
 };
 
-/** "City, ST" for the card / detail location pin. Prefers the location field,
- *  then a known Meetup group's home metro, then a "City, ST" parsed from the
- *  blurb. Returns "" for online/virtual events (no map pin) and when nothing
- *  resolves — so feed events with an empty LOCATION still get a pin. */
+// Per-event pin overrides — for feed events whose actual venue city differs from
+// the group metro / the label the feed baked into the title. Keyed by the stable
+// event id in the URL (…/events/<id>/).
+const PIN_OVERRIDES: Record<string, string> = {
+  "315538690": "League City, TX", // JSC EV Club Lunch — meets on JSC's south side
+};
+
+const eventPinOverride = (e: EventItem): string => {
+  const id = e.registerUrl?.match(/\/events\/(\d+)/i)?.[1];
+  return (id && PIN_OVERRIDES[id]) || "";
+};
+
+/** "City, ST" for the card / detail location pin. Prefers a per-event override,
+ *  then the location field, then a known Meetup group's home metro, then a
+ *  "City, ST" parsed from the blurb. Returns "" for online/virtual events (no map
+ *  pin) and when nothing resolves — so feed events with an empty LOCATION still
+ *  get a pin. */
 export const eventLocationPin = (e: EventItem): string => {
+  const override = eventPinOverride(e);
+  if (override) return override;
   const loc = (e.location || "").trim();
   if (/online|webinar|virtual/i.test(loc)) return ""; // online events: no map pin
   const fromLoc = eventCityState(e);
@@ -174,7 +189,13 @@ export const eventLocationText = (e: EventItem): string => {
  *  ST" / ", City" (and en-dash variants) only when it exactly matches the event's
  *  own city/state, so real " - subtitle" titles are left untouched. */
 export const eventTitleClean = (e: EventItem): string => {
-  const title = eventDisplayTitle(e);
+  let title = eventDisplayTitle(e);
+  // Strip a trailing " - City, ST" the feed baked into the title (e.g. a Meetup /
+  // NDEM og:title venue label) so the address shows only in the location pin.
+  // Only fires when the trailing token is a real state code, so real subtitles
+  // like "Part 2 - How EVs Save You Thousands" are left intact.
+  const tr = title.match(/\s[-–—]\s+([A-Z][A-Za-z.'-]+(?:[ ][A-Z][A-Za-z.'-]+){0,3}),\s*([A-Z]{2})\s*$/);
+  if (tr && US_STATE_CODES.has(tr[2])) title = title.slice(0, tr.index).trim();
   const city = eventCity(e);
   if (!city) return title;
   const cands = [eventCityState(e), city].filter(Boolean);
