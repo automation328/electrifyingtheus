@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { gcalLink, isUpcoming, isActive, byDateAsc, eventFullDate, eventTitleClean, eventCityState, type EventItem } from "@/data/events";
+import { gcalLink, isUpcoming, isActive, byDateAsc, eventFullDate, eventTitleClean, eventLocationPin, type EventItem } from "@/data/events";
 import { useEvents } from "@/hooks/use-content";
 import { useExternalEvents } from "@/hooks/use-external-events";
 import { submitLead } from "@/lib/submitLead";
@@ -317,7 +317,7 @@ const Events = () => {
                       <span className="inline-block self-start px-2.5 py-0.5 rounded-full bg-white/20 text-[11px] font-semibold mb-2.5">{e.type}</span>
                       <h3 className="text-lg font-bold font-display leading-snug mb-3">{eventTitleClean(e)}</h3>
                       <div className="flex flex-wrap items-center gap-2 mb-3">
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 text-xs font-semibold"><MapPin className="w-3.5 h-3.5" /> {eventCityState(e) || e.location}</span>
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 text-xs font-semibold"><MapPin className="w-3.5 h-3.5" /> {eventLocationPin(e) || e.location}</span>
                         <span className="inline-flex items-center gap-1.5 text-xs text-primary-foreground/90"><Clock className="w-3.5 h-3.5" /> {e.time}</span>
                       </div>
                       <p className="text-sm text-primary-foreground/90 mb-4">{e.description}</p>
@@ -395,8 +395,8 @@ const Events = () => {
                         <div className="flex flex-wrap gap-x-5 gap-y-1 text-sm text-muted-foreground mb-3">
                           <span className="flex items-center gap-1.5"><CalendarDays className="w-4 h-4 text-secondary" /> {eventFullDate(e)}</span>
                           <span className="flex items-center gap-1.5"><Clock className="w-4 h-4 text-secondary" /> {e.time}</span>
-                          {eventCityState(e) && (
-                            <span className="flex items-center gap-1.5"><MapPin className="w-4 h-4 text-secondary" /> {eventCityState(e)}</span>
+                          {eventLocationPin(e) && (
+                            <span className="flex items-center gap-1.5"><MapPin className="w-4 h-4 text-secondary" /> {eventLocationPin(e)}</span>
                           )}
                         </div>
                         <p className={`text-sm text-muted-foreground ${open ? "whitespace-pre-line" : ""}`}>

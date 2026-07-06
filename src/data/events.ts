@@ -111,6 +111,64 @@ export const eventCityState = (e: EventItem): string => {
   return st ? `${city}, ${st}` : city;
 };
 
+// US state / DC / PR + Canadian province codes — used to validate a "City, ST"
+// pulled from free text so we don't treat any two-capital token as a state.
+const US_STATE_CODES = new Set([
+  "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA","KS",
+  "KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY",
+  "NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV",
+  "WI","WY","DC","PR",
+  "ON","BC","AB","QC","MB","SK","NS","NB","NL","PE", // a few feed events are cross-border
+]);
+
+/** First "City, ST" found in free text (e.g. an event's description body), with
+ *  ST validated against the state/province list. City = 1–4 capitalized words.
+ *  Returns "" when nothing matches. */
+export const cityStateFromText = (text: string): string => {
+  if (!text) return "";
+  const re = /([A-Z][A-Za-z.'-]+(?:[ ][A-Z][A-Za-z.'-]+){0,3}),\s*([A-Z]{2})\b(?:\s+\d{5}(?:-\d{4})?)?/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(text))) {
+    if (US_STATE_CODES.has(m[2])) return `${m[1].trim()}, ${m[2]}`;
+  }
+  return "";
+};
+
+// Meetup.com group → home metro. Meetup ICS feed events carry no LOCATION and
+// often no address in the blurb, but each group is fixed to one city — keyed by
+// the stable URL slug (…/meetup.com/<slug>/events/…).
+const MEETUP_GROUP_CITY: Record<string, string> = {
+  "austinevs": "Austin, TX",
+  "houston-light-electric-vehicles-meetup-group": "Houston, TX",
+  "knoxville-electric-vehicle-association": "Knoxville, TN",
+};
+
+const meetupCity = (e: EventItem): string => {
+  const slug = e.registerUrl?.match(/meetup\.com\/([^/?#]+)/i)?.[1]?.toLowerCase();
+  return (slug && MEETUP_GROUP_CITY[slug]) || "";
+};
+
+/** "City, ST" for the card / detail location pin. Prefers the location field,
+ *  then a known Meetup group's home metro, then a "City, ST" parsed from the
+ *  blurb. Returns "" for online/virtual events (no map pin) and when nothing
+ *  resolves — so feed events with an empty LOCATION still get a pin. */
+export const eventLocationPin = (e: EventItem): string => {
+  const loc = (e.location || "").trim();
+  if (/online|webinar|virtual/i.test(loc)) return ""; // online events: no map pin
+  const fromLoc = eventCityState(e);
+  if (fromLoc) return fromLoc;
+  return meetupCity(e) || cityStateFromText(e.description || "");
+};
+
+/** Location string for the detail page: the full venue/address when the feed
+ *  gives one, otherwise the derived "City, ST" pin. Falls back to the raw
+ *  location (e.g. "Online · Live Webinar") so the line is never blank. */
+export const eventLocationText = (e: EventItem): string => {
+  const loc = (e.location || "").trim();
+  if (loc && !/see event details/i.test(loc)) return loc;
+  return eventLocationPin(e) || loc || "See event details";
+};
+
 /** Card title with any trailing location suffix removed — the address lives in
  *  the location pin, not the title. Strips " - City, ST" / " - City" / ", City,
  *  ST" / ", City" (and en-dash variants) only when it exactly matches the event's

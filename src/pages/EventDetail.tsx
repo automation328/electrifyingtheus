@@ -7,7 +7,7 @@ import Footer from "@/components/Footer";
 import ShareGate from "@/components/forms/ShareGate";
 import EventActionGate from "@/components/forms/EventActionGate";
 import EventDisclaimer from "@/components/EventDisclaimer";
-import { gcalLink, eventDate, eventDisplayTitle, type EventItem } from "@/data/events";
+import { gcalLink, eventDate, eventDisplayTitle, eventLocationText, type EventItem } from "@/data/events";
 import { useEvents } from "@/hooks/use-content";
 import { useExternalEvents } from "@/hooks/use-external-events";
 
@@ -140,7 +140,7 @@ const EventDetail = () => {
             <div className="flex flex-col gap-2 text-foreground mb-5">
               <span className="flex items-center gap-2.5"><CalendarDays className="w-5 h-5 text-primary shrink-0" /> {day ? `${day}, ` : ""}{event.month} {event.day}, {event.year}</span>
               <span className="flex items-center gap-2.5"><Clock className="w-5 h-5 text-primary shrink-0" /> {event.time}</span>
-              <span className="flex items-center gap-2.5"><MapPin className="w-5 h-5 text-primary shrink-0" /> {event.location}</span>
+              <span className="flex items-center gap-2.5"><MapPin className="w-5 h-5 text-primary shrink-0" /> {eventLocationText(event)}</span>
             </div>
 
             <p className="text-foreground leading-relaxed whitespace-pre-line">{event.description}</p>
