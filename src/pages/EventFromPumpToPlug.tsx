@@ -8,7 +8,7 @@ import Footer from "@/components/Footer";
 import ShareGate from "@/components/forms/ShareGate";
 import EventActionGate from "@/components/forms/EventActionGate";
 import WebinarRegisterForm from "@/components/forms/WebinarRegisterForm";
-import { EVENTS, gcalLink } from "@/data/events";
+import { EVENTS, eventFullDate, gcalLink } from "@/data/events";
 import flyer from "@/assets/event-pump-to-plug.jpg";
 
 const SLUG = "from-pump-to-plug";
@@ -100,7 +100,7 @@ const EventFromPumpToPlug = () => {
               </h1>
 
               <div className="flex flex-col gap-2 text-foreground mb-5">
-                <span className="flex items-center gap-2.5"><CalendarDays className="w-5 h-5 text-primary shrink-0" /> Thursday, {event.month} {event.day}, {event.year}</span>
+                <span className="flex items-center gap-2.5"><CalendarDays className="w-5 h-5 text-primary shrink-0" /> {eventFullDate(event)}</span>
                 <span className="flex items-center gap-2.5"><Clock className="w-5 h-5 text-primary shrink-0" /> {event.time}</span>
                 <span className="flex items-center gap-2.5"><MapPin className="w-5 h-5 text-primary shrink-0" /> {event.location}</span>
               </div>

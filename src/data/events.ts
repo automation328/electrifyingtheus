@@ -59,8 +59,8 @@ export const isActive = (e: EventItem): boolean => isUpcoming(e) || !!e.ours;
 /** Sort comparator: soonest first. */
 export const byDateAsc = (a: EventItem, b: EventItem) => eventDate(a).getTime() - eventDate(b).getTime();
 
-/** "Thursday, AUG 6, 2026" — long weekday + the stored MON/day/year (matches the
- *  event detail page). */
+/** "Wednesday, AUG 19, 2026" — long weekday + the stored MON/day/year (matches
+ *  the event detail page). */
 export const eventFullDate = (e: EventItem): string => {
   let weekday = "";
   try { weekday = eventDate(e).toLocaleDateString("en-US", { weekday: "long" }); } catch { /* keep blank */ }
@@ -238,7 +238,7 @@ export const EVENTS: EventItem[] = [
     registerUrl: "https://demodaysfestival.com/products/los-angeles",
   },
   {
-    month: "AUG", day: "6", year: 2026,
+    month: "AUG", day: "19", year: 2026,
     title: "Part 2: From The Pump To The Plug - How Electric Vehicles Can Save You Thousands",
     type: "Webinar",
     location: "Online · Live Webinar",
