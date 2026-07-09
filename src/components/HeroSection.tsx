@@ -86,7 +86,7 @@ const HeroSection = () => {
                 <div className="absolute inset-0 bg-black/30" />
                 <img
                   src={pumpToPlugFlyer}
-                  alt="Part 2: From The Pump To The Plug — How Electric Vehicles Can Save You Thousands — webinar, Wednesday August 19, 2–3 PM ET"
+                  alt="Part 2: From The Pump To The Plug — How Electric Vehicles Can Save You Thousands — webinar, Thursday August 27, 2–3 PM ET"
                   className="absolute inset-0 w-full h-full object-contain"
                   loading="lazy"
                 />
