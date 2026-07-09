@@ -22,6 +22,9 @@ export interface GalleryVideo {
   captions?: string;
   /** Poster — auto for YouTube; required for Vimeo/self-hosted. */
   poster?: string;
+  /** When set, the card links to this route instead of playing inline — used for
+   *  videos that have their own page (e.g. the webinar replay). */
+  href?: string;
 }
 
 // Eager-import every watermarked photo in src/assets/gallery as a URL string.
@@ -46,6 +49,15 @@ export const GALLERY_VIDEOS: GalleryVideo[] = [
     title: "Why I switched to electric",
     src: "/media/testimonial-1.mp4",
     poster: "/media/testimonial-1-poster.jpg",
+  },
+  // Webinar replay — the card links to the replay page rather than playing here,
+  // so visitors land on the full write-up (and its Part 2 registration CTA).
+  {
+    provider: "youtube",
+    id: "WaIWh8wY_tI",
+    title: "Webinar Part 1: From The Pump To The Plug",
+    poster: "https://i.ytimg.com/vi/WaIWh8wY_tI/maxresdefault.jpg",
+    href: "/save-with-evs-webinar",
   },
   {
     provider: "file",

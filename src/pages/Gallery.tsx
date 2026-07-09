@@ -107,6 +107,7 @@ const Gallery = () => {
                     src={v.src}
                     captions={v.captions}
                     poster={v.poster}
+                    href={v.href}
                   />
                   <figcaption className="text-sm text-muted-foreground px-1">{v.title}</figcaption>
                 </figure>

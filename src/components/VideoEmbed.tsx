@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Play } from "lucide-react";
 
 // Lazy "facade" video embed — shows a poster + play button and only loads the
@@ -26,6 +27,9 @@ interface VideoEmbedProps {
   captions?: string;
   /** Poster image — auto for YouTube; required for Vimeo/file to show a thumbnail. */
   poster?: string;
+  /** When set, the card is a link to this route instead of an inline player —
+   *  for videos that live on their own page (e.g. a webinar replay). */
+  href?: string;
   className?: string;
 }
 
@@ -36,10 +40,31 @@ const embedSrc = (provider: VideoProvider, id: string) =>
     ? `https://drive.google.com/file/d/${id}/preview`
     : `https://player.vimeo.com/video/${id}?autoplay=1`;
 
-const VideoEmbed = ({ title, provider = "youtube", id, src, captions, poster, className = "" }: VideoEmbedProps) => {
+const VideoEmbed = ({ title, provider = "youtube", id, src, captions, poster, href, className = "" }: VideoEmbedProps) => {
   const [playing, setPlaying] = useState(false);
   const isFile = provider === "file";
   const img = poster ?? (provider === "youtube" && id ? `https://i.ytimg.com/vi/${id}/hqdefault.jpg` : "");
+
+  // Poster + scrim + play badge + title bar. Shared by the play button and the
+  // link variant so both cards look identical.
+  const facade = (
+    <>
+      {img ? (
+        <img src={img} alt={title} loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
+      ) : (
+        <span aria-hidden className="absolute inset-0 gradient-hero" />
+      )}
+      <span aria-hidden className="absolute inset-0 bg-foreground/30 transition-colors group-hover:bg-foreground/40" />
+      <span className="absolute inset-0 grid place-items-center">
+        <span className="grid h-16 w-16 place-items-center rounded-full bg-white/90 text-primary shadow-elevated transition-transform group-hover:scale-110">
+          <Play className="ml-0.5 h-7 w-7" fill="currentColor" />
+        </span>
+      </span>
+      <span className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-foreground/70 to-transparent p-4 text-left text-sm font-semibold text-white">
+        {title}
+      </span>
+    </>
+  );
 
   return (
     <div className={`relative aspect-video overflow-hidden rounded-2xl bg-muted ring-1 ring-border ${className}`}>
@@ -66,6 +91,14 @@ const VideoEmbed = ({ title, provider = "youtube", id, src, captions, poster, cl
             loading="lazy"
           />
         )
+      ) : href ? (
+        <Link
+          to={href}
+          aria-label={`Watch: ${title}`}
+          className="group absolute inset-0 block h-full w-full focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        >
+          {facade}
+        </Link>
       ) : (
         <button
           type="button"
@@ -73,20 +106,7 @@ const VideoEmbed = ({ title, provider = "youtube", id, src, captions, poster, cl
           aria-label={`Play video: ${title}`}
           className="group absolute inset-0 h-full w-full"
         >
-          {img ? (
-            <img src={img} alt={title} loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
-          ) : (
-            <span aria-hidden className="absolute inset-0 gradient-hero" />
-          )}
-          <span aria-hidden className="absolute inset-0 bg-foreground/30 transition-colors group-hover:bg-foreground/40" />
-          <span className="absolute inset-0 grid place-items-center">
-            <span className="grid h-16 w-16 place-items-center rounded-full bg-white/90 text-primary shadow-elevated transition-transform group-hover:scale-110">
-              <Play className="ml-0.5 h-7 w-7" fill="currentColor" />
-            </span>
-          </span>
-          <span className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-foreground/70 to-transparent p-4 text-left text-sm font-semibold text-white">
-            {title}
-          </span>
+          {facade}
         </button>
       )}
     </div>
