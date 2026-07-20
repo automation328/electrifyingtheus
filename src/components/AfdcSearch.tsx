@@ -83,12 +83,28 @@ const AfdcSearch = () => {
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch("https://ipapi.co/json/");
-        if (!res.ok) return;
-        const data = await res.json();
-        if (cancelled || data?.country_code !== "US") return;
-        const code = String(data?.region_code ?? "").toUpperCase();
-        const postal = String(data?.postal ?? "").replace(/\D/g, "").slice(0, 5);
+        let code = "";
+        let postal = "";
+        // Primary: our own edge-geo endpoint (Vercel headers — reliable, no rate limit).
+        try {
+          const g = await fetch("/api/geo");
+          if (g.ok) {
+            const gd = await g.json();
+            if (gd?.country === "US") code = String(gd?.region ?? "").toUpperCase();
+          }
+        } catch { /* fall through to the third-party lookup */ }
+        // Fallback: third-party IP lookup (also yields a ZIP for zip→state).
+        if (!code && !cancelled) {
+          const res = await fetch("https://ipapi.co/json/");
+          if (res.ok) {
+            const data = await res.json();
+            if (data?.country_code === "US") {
+              code = String(data?.region_code ?? "").toUpperCase();
+              postal = String(data?.postal ?? "").replace(/\D/g, "").slice(0, 5);
+            }
+          }
+        }
+        if (cancelled) return;
         const resolved = JURISDICTIONS.some((j) => j.value === code) ? code : zipToState(postal);
         if (resolved && JURISDICTIONS.some((j) => j.value === resolved)) {
           setJurisdiction(resolved);
@@ -151,9 +167,6 @@ const AfdcSearch = () => {
         <h2 className="text-2xl md:text-3xl font-bold font-display text-foreground mb-3">
           Search <span className="text-gradient-primary">policy &amp; regulation</span> in your area
         </h2>
-        <p className="text-muted-foreground">
-          Filter the full laws and incentives database by jurisdiction, technology, and type.
-        </p>
         {detectedState && (
           <p className="mt-2 inline-flex items-center gap-1.5 text-sm font-medium text-secondary">
             <MapPin className="w-4 h-4" />
