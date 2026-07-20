@@ -17,6 +17,9 @@ interface NormEvent {
   description?: string;
   url?: string;
   source?: string;
+  /** Explicit source label that wins over the url-derived host (e.g. "myeva.org"
+   *  for EventCalendarApp events, whose event pages live on a CDN/widget host). */
+  sourceLabel?: string;
   image?: string;
 }
 
@@ -189,6 +192,99 @@ function parseRss(xml: string, source: string): NormEvent[] {
   return out;
 }
 
+// ── EventCalendarApp JSON (e.g. the Electric Vehicle Association calendar on
+// myeva.org) ─────────────────────────────────────────────────────────────────
+// utcStartTime/utcEndTime are Unix epochs in SECONDS; `location` is an object;
+// recurring events arrive as separate dated entries (no RRULE expansion needed);
+// results are paginated via pages.nextPage — the default response is the page
+// straddling "today", so following nextPage forward collects all upcoming ones.
+// The chapters' internal monthly "Chapter Leadership Zoom" calls are dropped —
+// we list public EV events only (per the site owner's instruction).
+const ECA_EXCLUDE = /chapter leadership|leadership zoom/i;
+const httpUrl = (v: unknown): string | undefined =>
+  typeof v === "string" && /^https?:\/\//.test(v) ? v : undefined;
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function parseEventCalendarApp(json: any, sourceLabel: string): NormEvent[] {
+  const list = Array.isArray(json?.events) ? json.events : [];
+  const out: NormEvent[] = [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  for (const e of list as any[]) {
+    const title = typeof e?.summary === "string" ? e.summary.trim() : "";
+    const startSec = Number(e?.utcStartTime);
+    if (!title || !Number.isFinite(startSec)) continue;
+    if (ECA_EXCLUDE.test(title)) continue;                         // skip internal chapter calls
+    const endSec = Number(e?.utcEndTime);
+    const addr = typeof e?.location?.description === "string" ? e.location.description.trim() : "";
+    const venue = typeof e?.venueName === "string" ? e.venueName.trim() : "";
+    const location = e?.onlineEvent ? "Online" : ([venue, addr].filter(Boolean).join(", ") || undefined);
+    const html = e?.longDescription || e?.description || e?.shortDescription || "";
+    const description = typeof html === "string" ? (decodeEntities(html.replace(/<[^>]+>/g, " ")) || undefined) : undefined;
+    out.push({
+      title,
+      startISO: new Date(startSec * 1000).toISOString(),
+      endISO: Number.isFinite(endSec) ? new Date(endSec * 1000).toISOString() : undefined,
+      location,
+      description,
+      url: httpUrl(e?.url) ?? httpUrl(e?.ticketsLink),
+      image: httpUrl(e?.image) ?? httpUrl(e?.thumbnail),
+      source: sourceLabel,
+      sourceLabel,
+    });
+  }
+  return out;
+}
+
+async function fetchEventCalendarApp(url: string, sourceLabel: string): Promise<NormEvent[]> {
+  const raw: NormEvent[] = [];
+  let next: string | undefined = url;
+  for (let page = 0; page < 4 && next; page++) {                   // current + up to 3 forward pages
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 8000);
+    try {
+      const res = await fetch(next, { signal: ctrl.signal, headers: { Accept: "application/json", "User-Agent": ENRICH_UA } });
+      if (!res.ok) break;
+      const json = await res.json();
+      raw.push(...parseEventCalendarApp(json, sourceLabel));
+      next = typeof json?.pages?.nextPage === "string" ? json.pages.nextPage : undefined;
+    } catch {
+      break;
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+  // Recurring meetups (e.g. a monthly "Cars & Coffee") arrive as one entry per
+  // occurrence — collapse each same-titled series to its soonest UPCOMING date so
+  // one recurring event can't flood the list with a dozen identical cards.
+  const cutoff = Date.now() - 12 * 3600 * 1000;
+  const soonestByTitle = new Map<string, NormEvent>();
+  for (const e of raw) {
+    if (Date.parse(e.startISO) < cutoff) continue;                 // drop past occurrences
+    const prev = soonestByTitle.get(e.title);
+    if (!prev || Date.parse(e.startISO) < Date.parse(prev.startISO)) soonestByTitle.set(e.title, e);
+  }
+  return Array.from(soonestByTitle.values());
+}
+
+// Built-in EventCalendarApp sources beyond the ICS/RSS feeds in EVENT_FEEDS.
+const ECA_SOURCES: { url: string; label: string }[] = [
+  // Electric Vehicle Association — public EV showcases & ride-and-drives nationwide.
+  { url: "https://api.eventcalendarapp.com/events?id=13662&widgetUuid=6cab85cd-92a5-486c-b6d6-af38fa5d9b25", label: "myeva.org" },
+];
+
+// Curated one-off events from sources that publish no machine-readable feed.
+// Each auto-drops from the site once its date passes (upcoming filter below).
+const STATIC_EVENTS: NormEvent[] = [
+  {
+    title: "Discover Electric Vehicles in Falmouth",
+    startISO: "2026-07-25T14:00:00Z", // 10:00 AM EDT
+    location: "Mullen Hall, Falmouth, MA",
+    description: "Learn about electric cars this summer at Mullen Hall with the Green Energy Consumers Alliance — meet local EV drivers and see the latest models up close.",
+    url: "https://www.greenenergyconsumers.org/event/discoverelectricvehiclesfalmouth",
+    source: "greenenergyconsumers.org",
+  },
+];
+
 function hostOf(url: string): string {
   try { return new URL(url).hostname.replace(/^www\./, ""); } catch { return "feed"; }
 }
@@ -217,37 +313,52 @@ export default async function handler(req: any, res: any) {
   const feeds = (process.env.EVENT_FEEDS ?? "")
     .split(/[\n,]/).map((s) => s.trim()).filter(Boolean);
 
-  if (feeds.length === 0) {
-    // No feeds configured — return empty so the page just shows ETU's own events.
-    res.setHeader("Cache-Control", "public, s-maxage=3600");
-    res.status(200).json({ events: [] });
-    return;
-  }
-
   try {
-    const results = await Promise.all(feeds.map(fetchFeed));
+    // ICS/RSS feeds (env) + EventCalendarApp JSON sources + curated one-offs.
+    const [feedResults, ecaResults] = await Promise.all([
+      Promise.all(feeds.map(fetchFeed)),
+      Promise.all(ECA_SOURCES.map((s) => fetchEventCalendarApp(s.url, s.label))),
+    ]);
     const now = Date.now();
     const seen = new Set<string>();
-    const events = results
-      .flat()
+    const events = [...feedResults.flat(), ...ecaResults.flat(), ...STATIC_EVENTS]
       .filter((e) => Date.parse(e.startISO) >= now - 12 * 3600 * 1000) // upcoming (allow today)
       .filter((e) => { const k = `${e.title}|${e.startISO}`; if (seen.has(k)) return false; seen.add(k); return true; })
       .sort((a, b) => Date.parse(a.startISO) - Date.parse(b.startISO))
-      .slice(0, 60);
+      .slice(0, 80);
 
     // Enrich with the real event title + featured image from each event's page
-    // (parallel, best-effort). Cached below, so this only runs on a cache miss.
-    await Promise.all(events.map(enrich));
+    // (parallel, best-effort). Skip EventCalendarApp events — their JSON already
+    // carries a clean title, description, and per-event image. Cached below, so
+    // this only runs on a cache miss.
+    await Promise.all(events.map((e) => (e.sourceLabel ? Promise.resolve() : enrich(e))));
 
-    // Show each event's real public source (its own page host, e.g.
+    // Show each event's real public source. An explicit sourceLabel wins (e.g.
+    // myeva.org); otherwise derive it from the event page host (e.g.
     // driveelectricmonth.org) — never the internal feed/proxy host.
     for (const e of events) {
+      if (e.sourceLabel) { e.source = e.sourceLabel; continue; }
       if (e.url) { try { e.source = hostOf(e.url); } catch { /* keep */ } }
     }
 
+    // Post-enrich dedup: enrichment can converge two sources onto the same real
+    // title (e.g. an EVA event that is also a Drive Electric Month event) — which
+    // the pre-enrich pass couldn't see. Collapse same-title, same-DAY events, but
+    // keep the generic "National Drive Electric Month/Week" placeholders, which
+    // the Events page disambiguates by city.
+    const generic = /^national drive electric (month|week)\b/i;
+    const seenReal = new Set<string>();
+    const deduped = events.filter((e) => {
+      if (generic.test(e.title)) return true;
+      const k = `${e.title.trim().toLowerCase()}|${e.startISO.slice(0, 10)}`;
+      if (seenReal.has(k)) return false;
+      seenReal.add(k);
+      return true;
+    });
+
     // Cache hard at the CDN — calendars change slowly. 1h fresh, serve-stale 6h.
     res.setHeader("Cache-Control", "public, s-maxage=3600, stale-while-revalidate=21600");
-    res.status(200).json({ events });
+    res.status(200).json({ events: deduped });
   } catch (err) {
     console.error("events feed error", err);
     res.status(502).json({ error: "Couldn't load the events feed.", events: [] });
