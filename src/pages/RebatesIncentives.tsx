@@ -17,7 +17,7 @@ import {
   Accordion, AccordionContent, AccordionItem, AccordionTrigger,
 } from "@/components/ui/accordion";
 import {
-  type CatKey, type Incentive, incentivesFor, utilityIncentivesFor, afdcUtilityUrl,
+  type CatKey, type Incentive, incentivesFor, utilityIncentivesFor, utilityProgramsUrl,
   stateFromZip, STATE_NAMES,
 } from "@/data/incentives";
 import { INCENTIVES_DISCLAIMER } from "@/lib/disclaimers";
@@ -286,8 +286,8 @@ const RebatesIncentives = () => {
               );
             })}
 
-            {/* Utility Company Incentives — curated flagship programs + live AFDC
-                deep-link (AFDC's "Utility/Private Incentives" sector). */}
+            {/* Utility Company Incentives — curated flagship programs + a live
+                deep-link to the "Utility/Private Incentives" sector. */}
             {(() => {
               const utilProgs = utilityIncentivesFor(loc.state);
               return (
@@ -361,7 +361,7 @@ const RebatesIncentives = () => {
                         Live, currently-active utility programs in your area.
                       </p>
                     </div>
-                    <a href={afdcUtilityUrl(loc.state)} target="_blank" rel="noopener noreferrer"
+                    <a href={utilityProgramsUrl(loc.state)} target="_blank" rel="noopener noreferrer"
                       className="inline-flex items-center gap-1.5 gradient-primary text-primary-foreground text-sm font-semibold px-5 py-2.5 rounded-xl hover:opacity-90 transition-opacity shrink-0">
                       See utility programs <ArrowRight className="w-4 h-4" />
                     </a>
@@ -397,7 +397,7 @@ const RebatesIncentives = () => {
           </div>
         )}
 
-        {/* AFDC laws & incentives search */}
+        {/* Laws & incentives search */}
         <AfdcSearch />
 
         {/* FAQ */}

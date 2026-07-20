@@ -1,7 +1,7 @@
 // EV incentives dataset + lookups — shared by the Rebates & Incentives page and
 // the EV-vs-Gas calculator's "typical incentives" panel. Curated set mirroring
-// electricforall.org / AFDC; amounts are typical maximums, always verify on the
-// official program page.
+// electricforall.org and public program data; amounts are typical maximums,
+// always verify on the official program page.
 
 export type CatKey = "vehicle" | "charging" | "electricity" | "perks";
 
@@ -229,11 +229,11 @@ export const incentivesFor = (state: string, key: CatKey): Incentive[] => [
 ];
 
 // ── Utility / Private incentives ─────────────────────────────────────────────
-// The DOE AFDC "Utility/Private Incentives" sector (implementing_sector=U) is no
-// longer served by a reachable AFDC API — the canonical developer.nrel.gov host
-// is decommissioned, and the live api.data.gov mirror carries no sector field.
+// The "Utility/Private Incentives" sector (implementing_sector=U) is no longer
+// served by a reachable API — the canonical developer.nrel.gov host is
+// decommissioned, and the live api.data.gov mirror carries no sector field.
 // So these flagship utility EV programs are curated by state, and we deep-link to
-// AFDC's live, sector-categorized state page for the complete, current list.
+// the live, sector-categorized state incentives page for the complete list.
 export const UTILITY_INCENTIVES: Record<string, Incentive[]> = {
   CA: [
     { name: "PG&E Empower EV", jurisdiction: "Pacific Gas & Electric Incentive", amount: "Up to $4,000", income: true,
@@ -337,8 +337,8 @@ export const UTILITY_INCENTIVES: Record<string, Incentive[]> = {
 export const utilityIncentivesFor = (state: string): Incentive[] =>
   UTILITY_INCENTIVES[state] ?? [];
 
-/** Deep-link to AFDC's live, sector-categorized incentives page for a state. */
-export const afdcUtilityUrl = (state: string): string =>
+/** Deep-link to the live, sector-categorized incentives page for a state. */
+export const utilityProgramsUrl = (state: string): string =>
   `https://afdc.energy.gov/laws/state?state=${encodeURIComponent(state)}`;
 
 const ALL_CATS: CatKey[] = ["vehicle", "charging", "electricity", "perks"];

@@ -1,4 +1,4 @@
-// Server-side proxy for the NREL AFDC "Laws & Incentives" API.
+// Server-side proxy for the NREL "Laws & Incentives" API.
 //
 // The browser calls /api/incentives instead of developer.nrel.gov directly.
 // Why a proxy (same reasoning as api/lead.ts):
