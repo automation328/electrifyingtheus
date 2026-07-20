@@ -334,12 +334,33 @@ const ElectricityVsGasoline = () => {
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch("https://ipapi.co/json/");
-        if (!res.ok) return;
-        const data = await res.json();
-        if (cancelled || data?.country_code !== "US") return;
-        const code = String(data?.region_code ?? "").toUpperCase();
-        const postal = String(data?.postal ?? "").replace(/\D/g, "").slice(0, 5);
+        let code = "";
+        let postal = "";
+        // Primary: our own edge-geo endpoint (Vercel headers — reliable, no rate limit).
+        try {
+          const g = await fetch("/api/geo");
+          if (g.ok) {
+            const gd = await g.json();
+            if (gd?.country === "US") {
+              code = String(gd?.region ?? "").toUpperCase();
+              postal = String(gd?.postal ?? "").replace(/\D/g, "").slice(0, 5);
+            }
+          }
+        } catch { /* fall through to the third-party lookup */ }
+        // Fallback: third-party IP lookup, only if edge geo didn't resolve.
+        if ((!code || postal.length !== 5) && !cancelled) {
+          try {
+            const res = await fetch("https://ipapi.co/json/");
+            if (res.ok) {
+              const data = await res.json();
+              if (data?.country_code === "US") {
+                if (!code) code = String(data?.region_code ?? "").toUpperCase();
+                if (postal.length !== 5) postal = String(data?.postal ?? "").replace(/\D/g, "").slice(0, 5);
+              }
+            }
+          } catch { /* keep whatever we have */ }
+        }
+        if (cancelled) return;
         // ZIP is always auto-detected from the visitor's location.
         if (postal.length === 5) setZip(postal);
         // State preset only auto-applies when the URL didn't pin a state.

@@ -15,7 +15,10 @@ export default function handler(req: any, res: any) {
   // For the U.S. this is the state code (e.g. "CA", "TX"); ISO 3166-2 subdivision.
   const region = header(req, "x-vercel-ip-country-region").toUpperCase();
   const city = header(req, "x-vercel-ip-city");
+  const postal = header(req, "x-vercel-ip-postal-code");
+  const latitude = header(req, "x-vercel-ip-latitude");
+  const longitude = header(req, "x-vercel-ip-longitude");
   // Per-visitor geo — never cache at the CDN.
   res.setHeader("Cache-Control", "no-store");
-  res.status(200).json({ country, region, city });
+  res.status(200).json({ country, region, city, postal, latitude, longitude });
 }

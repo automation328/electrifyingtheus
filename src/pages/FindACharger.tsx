@@ -45,11 +45,26 @@ const FindACharger = () => {
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch("https://ipapi.co/json/");
-        if (!res.ok) throw new Error(String(res.status));
-        const data = await res.json();
+        let postal = "";
+        // Primary: our own edge-geo endpoint (Vercel headers — reliable, no rate limit).
+        try {
+          const g = await fetch("/api/geo");
+          if (g.ok) {
+            const gd = await g.json();
+            if (gd?.country === "US") postal = String(gd?.postal ?? "").replace(/\D/g, "").slice(0, 5);
+          }
+        } catch { /* fall through to the third-party lookup */ }
+        // Fallback: third-party IP lookup.
+        if (postal.length !== 5 && !cancelled) {
+          try {
+            const res = await fetch("https://ipapi.co/json/");
+            if (res.ok) {
+              const data = await res.json();
+              if (data?.country_code === "US") postal = String(data?.postal ?? "").replace(/\D/g, "").slice(0, 5);
+            }
+          } catch { /* manual entry */ }
+        }
         if (cancelled) return;
-        const postal = String(data?.postal ?? "").replace(/\D/g, "").slice(0, 5);
         if (postal.length === 5) {
           setZip(postal);
           setQuery(postal);
