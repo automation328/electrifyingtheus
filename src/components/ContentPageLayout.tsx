@@ -62,6 +62,9 @@ interface ContentPageLayoutProps {
   compactTitle?: boolean;
   /** Optional primary CTA shown in the bottom CTA band (e.g. a related page). */
   extraCta?: { label: string; to: string };
+  /** Optional flyer image shown directly under the extraCta button — e.g. an
+   *  event flyer that links to its registration page. */
+  extraCtaImage?: { src: string; alt: string; to?: string };
   /** Hide the "badge · N min read · N sources" meta line in the hero. */
   hideMeta?: boolean;
   /** Hide the bottom "Ready to make the switch?" CTA band. */
@@ -73,7 +76,7 @@ interface ContentPageLayoutProps {
 const ContentPageLayout = ({
   badge, title, highlight, intro, heroImage, icon: Icon,
   stats, sections, sources = [], kicker, pullQuote, gallery, video, statsCta, compactTitle, extraCta,
-  hideMeta, hideCta, linkCards,
+  extraCtaImage, hideMeta, hideCta, linkCards,
 }: ContentPageLayoutProps) => {
   const [playing, setPlaying] = useState(false);
 
@@ -263,6 +266,29 @@ const ContentPageLayout = ({
                     {extraCta.label} <ArrowRight className="w-5 h-5" />
                   </button>
                 </Link>
+              </div>
+            )}
+
+            {/* Optional flyer directly under the CTA button (e.g. the event flyer,
+                linking to its registration page). */}
+            {extraCtaImage && (
+              <div className="mt-6 flex justify-center brief-reveal">
+                {extraCtaImage.to ? (
+                  <Link
+                    to={extraCtaImage.to}
+                    aria-label={extraCtaImage.alt}
+                    className="block w-full max-w-2xl overflow-hidden rounded-2xl shadow-elevated ring-1 ring-border transition-transform hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                  >
+                    <img src={extraCtaImage.src} alt={extraCtaImage.alt} className="w-full h-auto" loading="lazy" />
+                  </Link>
+                ) : (
+                  <img
+                    src={extraCtaImage.src}
+                    alt={extraCtaImage.alt}
+                    className="w-full max-w-2xl h-auto rounded-2xl shadow-elevated ring-1 ring-border"
+                    loading="lazy"
+                  />
+                )}
               </div>
             )}
           </section>

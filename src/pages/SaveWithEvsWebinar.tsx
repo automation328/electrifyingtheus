@@ -1,5 +1,6 @@
 import { PlayCircle, MessageCircle, Calculator, BadgeCheck, Plug } from "lucide-react";
 import ContentPageLayout, { type ContentSection, type ContentLinkCard } from "@/components/ContentPageLayout";
+import part2Flyer from "@/assets/event-pump-to-plug.jpg";
 
 const video = {
   youtubeId: "WaIWh8wY_tI",
@@ -49,6 +50,11 @@ const SaveWithEvsWebinar = () => (
     hideMeta
     hideCta
     extraCta={{ label: "Register for Part 2", to: "/events/from-pump-to-plug" }}
+    extraCtaImage={{
+      src: part2Flyer,
+      alt: "From The Pump To The Plug, Part 2: How Electric Vehicles Can Save You Thousands — webinar, Thursday August 27, 2–3 PM ET. Tap to register.",
+      to: "/events/from-pump-to-plug",
+    }}
     video={video}
     sections={sections}
     linkCards={linkCards}
