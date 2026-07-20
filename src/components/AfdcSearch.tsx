@@ -247,7 +247,7 @@ const AfdcSearch = () => {
                   </h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">{truncate(l.plaintext)}</p>
                   <span className="inline-flex items-center gap-1.5 mt-3 text-sm font-semibold text-primary group-hover:gap-2.5 transition-all">
-                    View on AFDC <ExternalLink className="w-3.5 h-3.5" />
+                    View details <ExternalLink className="w-3.5 h-3.5" />
                   </span>
                 </a>
               ))}
@@ -257,7 +257,7 @@ const AfdcSearch = () => {
       </div>
 
       <p className="text-xs text-muted-foreground mt-4 text-center">
-        Data: U.S. DOE Alternative Fuels Data Center. Confirm current eligibility and funding on each program page.
+        Confirm current eligibility and funding on each program page.
       </p>
     </div>
   );

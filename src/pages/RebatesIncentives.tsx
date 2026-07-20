@@ -50,7 +50,7 @@ const FAQS = [
   },
   {
     q: "My ZIP shows mostly federal programs — does my state have nothing?",
-    a: "Not necessarily. We show a curated set of state and local programs in detail; many more local and utility incentives exist. Use the 'See all programs' link to view the full, live list for your state from the U.S. DOE.",
+    a: "Not necessarily. We show a curated set of state and local programs in detail; many more local and utility incentives exist. Use the 'See all programs' link to view the full, live list for your state.",
   },
 ];
 
@@ -358,7 +358,7 @@ const RebatesIncentives = () => {
                     <div className="flex-1">
                       <h3 className="font-bold font-display text-foreground">All utility &amp; private incentives in {loc.name}</h3>
                       <p className="text-sm text-muted-foreground">
-                        Live, currently-active utility programs from the U.S. DOE Alternative Fuels Data Center.
+                        Live, currently-active utility programs in your area.
                       </p>
                     </div>
                     <a href={afdcUtilityUrl(loc.state)} target="_blank" rel="noopener noreferrer"
@@ -377,7 +377,7 @@ const RebatesIncentives = () => {
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:gap-2.5 transition-all"
               >
-                See all {loc.name} programs from the U.S. Department of Energy <ArrowRight className="w-4 h-4" />
+                See all {loc.name} programs <ArrowRight className="w-4 h-4" />
               </a>
             </div>
           </div>
