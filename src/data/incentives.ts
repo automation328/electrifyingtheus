@@ -16,16 +16,9 @@ export interface Incentive {
 }
 
 // Federal / nationwide programs — merged into every ZIP's results.
-export const FEDERAL: Partial<Record<CatKey, Incentive[]>> = {
-  charging: [{
-    name: "Alternative Fuel Vehicle Refueling Property Credit",
-    jurisdiction: "Federal Incentive",
-    amount: "Up to $1,000",
-    income: true,
-    desc: "Individuals in low-income communities and non-urban areas who purchase and install qualifying residential charging equipment may receive a tax credit of 30% of the cost, up to $1,000. Sunsets June 30, 2026.",
-    link: "https://www.irs.gov/credits-deductions/alternative-fuel-vehicle-refueling-property-credit",
-  }],
-};
+// (The Alternative Fuel Vehicle Refueling Property Credit / Section 30C was
+// removed after it sunset on June 30, 2026.)
+export const FEDERAL: Partial<Record<CatKey, Incentive[]>> = {};
 
 // State / local programs stacked on top of federal. Region-specific, mirroring electricforall.org.
 export const STATE_INCENTIVES: Record<string, Partial<Record<CatKey, Incentive[]>>> = {
