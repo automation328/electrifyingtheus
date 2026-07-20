@@ -223,7 +223,7 @@ const ElectricityVsGasoline = () => {
   const [gasPrice, setGasPrice] = useState(initial.gasPrice);
   const [electricityRate, setElectricityRate] = useState(initial.homeKwh);
   const [publicRate, setPublicRate] = useState(initial.publicKwh);
-  const [chargingLoss, setChargingLoss] = useState(initial.chargingLoss);
+  const [chargingLoss] = useState(initial.chargingLoss);
   const [dollarAmount, setDollarAmount] = useState(initial.dollarAmount);
   const [compareClass, setCompareClass] = useState<CompareClass>("midsize-sedan");
 
@@ -638,7 +638,7 @@ const ElectricityVsGasoline = () => {
             <p className="text-muted-foreground mb-8 max-w-2xl">
               Tell us the car you drive today and whether you can charge at home — we'll match it to
               the right EVs and preset everything else from {rates.name} averages.
-              Open <em>Adjust assumptions</em> to fine-tune.
+              Open <em>Adjust the data</em> to fine-tune.
             </p>
 
             {/* Sample preview — a worked Chevrolet Equinox example shown before the
@@ -990,6 +990,30 @@ const ElectricityVsGasoline = () => {
               </div>
             </div>
 
+            {/* Adjust the data — progressive disclosure, directly under the result scoreboard */}
+            <div className="rounded-3xl border border-border bg-card mb-6 overflow-hidden">
+              <button
+                type="button"
+                onClick={() => setShowAssumptions((s) => !s)}
+                className="w-full flex items-center justify-between gap-3 px-6 py-4 text-left"
+                aria-expanded={showAssumptions}
+              >
+                <span className="flex items-center gap-2.5 font-semibold text-foreground">
+                  <SlidersHorizontal className="w-4 h-4 text-primary" /> Adjust the data
+                </span>
+                <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform ${showAssumptions ? "rotate-180" : ""}`} />
+              </button>
+              {showAssumptions && (
+                <div className="px-6 pb-6 pt-1 grid sm:grid-cols-2 gap-x-8 gap-y-6 border-t border-border evg-rise">
+                  <SliderField label="Annual miles" display={annualMiles.toLocaleString()} value={annualMiles} onChange={setAnnualMiles} min={5000} max={30000} step={500} />
+                  <SliderField label="Years of ownership" display={`${ownershipYears} yrs`} value={ownershipYears} onChange={setOwnershipYears} min={1} max={10} step={1} />
+                  <SliderField label="Gas price ($/gal)" display={currency(gasPrice, 2)} value={gasPrice} onChange={setGasPrice} min={2} max={6} step={0.05} source={SOURCES.gas} />
+                  <SliderField label="Home electricity ($/kWh)" display={currency(electricityRate, 2)} value={electricityRate} onChange={setElectricityRate} min={0.08} max={0.45} step={0.01} source={SOURCES.electricity} />
+                  <SliderField label="Public charging ($/kWh)" display={currency(publicRate, 2)} value={publicRate} onChange={setPublicRate} min={0.2} max={0.7} step={0.01} source={SOURCES.publicCharging} />
+                </div>
+              )}
+            </div>
+
             {/* Typical incentives — listed below the scoreboard, auto-populated from state/ZIP */}
             <div className="rounded-3xl border border-border bg-card p-6 md:p-7 shadow-card mb-6">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
@@ -1160,31 +1184,6 @@ const ElectricityVsGasoline = () => {
                   </p>
                 )}
               </div>
-            </div>
-
-            {/* Adjust assumptions — progressive disclosure (§2) */}
-            <div className="rounded-3xl border border-border bg-card mb-6 overflow-hidden">
-              <button
-                type="button"
-                onClick={() => setShowAssumptions((s) => !s)}
-                className="w-full flex items-center justify-between gap-3 px-6 py-4 text-left"
-                aria-expanded={showAssumptions}
-              >
-                <span className="flex items-center gap-2.5 font-semibold text-foreground">
-                  <SlidersHorizontal className="w-4 h-4 text-primary" /> Adjust assumptions
-                </span>
-                <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform ${showAssumptions ? "rotate-180" : ""}`} />
-              </button>
-              {showAssumptions && (
-                <div className="px-6 pb-6 pt-1 grid sm:grid-cols-2 gap-x-8 gap-y-6 border-t border-border evg-rise">
-                  <SliderField label="Annual miles" display={annualMiles.toLocaleString()} value={annualMiles} onChange={setAnnualMiles} min={5000} max={30000} step={500} />
-                  <SliderField label="Years of ownership" display={`${ownershipYears} yrs`} value={ownershipYears} onChange={setOwnershipYears} min={1} max={10} step={1} />
-                  <SliderField label="Gas price ($/gal)" display={currency(gasPrice, 2)} value={gasPrice} onChange={setGasPrice} min={2} max={6} step={0.05} source={SOURCES.gas} />
-                  <SliderField label="Home electricity ($/kWh)" display={currency(electricityRate, 2)} value={electricityRate} onChange={setElectricityRate} min={0.08} max={0.45} step={0.01} source={SOURCES.electricity} />
-                  <SliderField label="Public charging ($/kWh)" display={currency(publicRate, 2)} value={publicRate} onChange={setPublicRate} min={0.2} max={0.7} step={0.01} source={SOURCES.publicCharging} />
-                  <SliderField label="Charging loss" display={`${Math.round(chargingLoss * 100)}%`} value={chargingLoss} onChange={setChargingLoss} min={0} max={0.2} step={0.01} />
-                </div>
-              )}
             </div>
 
             <div className="flex items-center gap-3 mb-6 mt-12">
