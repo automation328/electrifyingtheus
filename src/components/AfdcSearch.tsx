@@ -152,7 +152,7 @@ const AfdcSearch = () => {
           Search <span className="text-gradient-primary">policy &amp; regulation</span> in your area
         </h2>
         <p className="text-muted-foreground">
-          Filter the full U.S. Department of Energy database by jurisdiction, technology, and type.
+          Filter the full laws and incentives database by jurisdiction, technology, and type.
         </p>
         {detectedState && (
           <p className="mt-2 inline-flex items-center gap-1.5 text-sm font-medium text-secondary">
