@@ -59,7 +59,7 @@ const sections: ContentSection[] = [
 const sources: ContentSource[] = [
   { label: "NHTSA — Automated Vehicles Safety", url: "https://www.nhtsa.gov/vehicle-safety/automated-vehicles-safety" },
   { label: "U.S. DOT — Automated Vehicles", url: "https://www.transportation.gov/AV" },
-  { label: "U.S. Department of Energy — Alternative Fuels Data Center", url: "https://afdc.energy.gov/" },
+  { label: "EV & Alternative Fuel Resources", url: "https://afdc.energy.gov/" },
 ];
 
 const SelfDrivingVehicles = () => (

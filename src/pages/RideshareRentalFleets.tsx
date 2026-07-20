@@ -58,7 +58,7 @@ const sections: ContentSection[] = [
 
 const sources: ContentSource[] = [
   { label: "CNBC — The EV Transition Starts in the Car Rental Industry", url: "https://www.cnbc.com/2022/06/18/how-the-massive-ev-transition-is-starting-in-the-car-rental-industry.html" },
-  { label: "U.S. Department of Energy — Electric Vehicle Benefits", url: "https://afdc.energy.gov/vehicles/electric-benefits" },
+  { label: "Electric Vehicle Benefits", url: "https://afdc.energy.gov/vehicles/electric-benefits" },
   { label: "EPA — Green Vehicle Guide", url: "https://www.epa.gov/greenvehicles" },
 ];
 

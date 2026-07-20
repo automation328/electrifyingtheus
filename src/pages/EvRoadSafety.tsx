@@ -63,7 +63,7 @@ const sections: ContentSection[] = [
       "Safety is only one chapter of the case. The same source lays out a long list of everyday advantages that come with going electric:",
     ],
     list: [
-      "Efficiency: EV drivetrains convert 80 to 90 percent of their energy into motion, against roughly 25 to 30 percent for gasoline engines, making them about three times more efficient per the U.S. Department of Energy.",
+      "Efficiency: EV drivetrains convert 80 to 90 percent of their energy into motion, against roughly 25 to 30 percent for gasoline engines, making them about three times more efficient.",
       "Lower running costs: a full charge often costs just a few dollars, and many EVs already beat comparable gas cars on total lifetime cost.",
       "Zero tailpipe emissions: no CO2, NOx or particulate pollution, helping address air pollution the WHO links to over 4 million premature deaths a year.",
       "Cleaner lifecycle: EVs typically offset their manufacturing emissions within one to two years of driving, and recycling can recover up to 95 percent of key battery materials.",
@@ -77,7 +77,7 @@ const sections: ContentSection[] = [
 const sources: ContentSource[] = [
   { label: "EV Curve Futurist — 25 Reasons EVs Are Better Than ICE Cars", url: "https://evcurvefuturist.com/2025/10/25-reasons-evs-are-better-than-ice-cars/" },
   { label: "NHTSA — Electric Vehicle Safety", url: "https://www.nhtsa.gov/equipment/electric-vehicle-safety" },
-  { label: "U.S. Department of Energy — Electric Vehicle Benefits", url: "https://afdc.energy.gov/vehicles/electric-benefits" },
+  { label: "Electric Vehicle Benefits", url: "https://afdc.energy.gov/vehicles/electric-benefits" },
 ];
 
 const EvRoadSafety = () => (

@@ -98,11 +98,11 @@ const sections: ContentSection[] = [
   {
     heading: "How to get involved and find programs",
     body: [
-      "Whether you are a student, a career changer, an educator, or a school district administrator, there are concrete ways to plug into the clean-transportation workforce. Start with the EPA Clean School Bus resources and the Department of Energy's workforce and Alternative Fuels Data Center materials, then look locally for the colleges and employers training the next generation of technicians.",
+      "Whether you are a student, a career changer, an educator, or a school district administrator, there are concrete ways to plug into the clean-transportation workforce. Start with the EPA Clean School Bus resources and clean-transportation workforce and training materials, then look locally for the colleges and employers training the next generation of technicians.",
     ],
     list: [
       "Explore the EPA Clean School Bus Workforce Development and Training Resources page",
-      "Search the Department of Energy Alternative Fuels Data Center for training and credentials",
+      "Search for clean-transportation training and credentials",
       "Contact local community colleges about EV and automotive technology programs",
       "Ask fleet operators and bus manufacturers about apprenticeships and operator training",
       "Educators can request fleet visits and ride-and-drive events for STEAM classes",
@@ -113,7 +113,7 @@ const sections: ContentSection[] = [
 const sources: ContentSource[] = [
   { label: "EPA — Clean School Bus: Workforce Development & Training Resources", url: "https://www.epa.gov/cleanschoolbus/workforce-development-and-training-resources" },
   { label: "EPA — Clean School Bus Program (overview & funding)", url: "https://www.epa.gov/cleanschoolbus" },
-  { label: "U.S. Department of Energy — Alternative Fuels Data Center", url: "https://afdc.energy.gov/" },
+  { label: "EV & Alternative Fuel Resources", url: "https://afdc.energy.gov/" },
 ];
 
 const SteamEducation = () => (

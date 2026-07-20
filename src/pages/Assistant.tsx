@@ -39,7 +39,7 @@ Your expertise includes:
 - U.S. EV infrastructure and policy (NEVI program, EPA Clean School Bus, etc.)
 - Workforce development in the clean energy sector
 
-Keep answers concise, friendly, and informative. Use bullet points for lists. If you don't know something specific, suggest where they might find the answer (e.g., AFDC, EPA, DOE websites). Always be encouraging about the EV transition.`;
+Keep answers concise, friendly, and informative. Use bullet points for lists. If you don't know something specific, suggest where they might find the answer (e.g., EPA websites). Always be encouraging about the EV transition.`;
 
 // Curated starter questions with instant, offline-capable answers.
 // Free-typed questions still route to the AI backend when configured.
@@ -54,7 +54,7 @@ const PRESET_QA: { q: string; a: string }[] = [
   },
   {
     q: "What EV tax credits & incentives can I get?",
-    a: "Incentives can meaningfully cut your cost:\n- **Federal:** up to **$7,500** for a qualifying new EV and up to **$4,000** for a used EV (income, price, and assembly rules apply)\n- **State & local:** many states add rebates, reduced registration, or HOV-lane access\n- **Utilities:** rebates for home chargers and off-peak charging\n\nEligibility changes often — check the official [AFDC incentive search](https://afdc.energy.gov/laws) and [IRS Clean Vehicle Credit](https://www.irs.gov/) for your exact ZIP and situation.",
+    a: "Incentives can meaningfully cut your cost:\n- **Federal:** up to **$7,500** for a qualifying new EV and up to **$4,000** for a used EV (income, price, and assembly rules apply)\n- **State & local:** many states add rebates, reduced registration, or HOV-lane access\n- **Utilities:** rebates for home chargers and off-peak charging\n\nEligibility changes often — check the official [incentive search](https://afdc.energy.gov/laws) and [IRS Clean Vehicle Credit](https://www.irs.gov/) for your exact ZIP and situation.",
   },
   {
     q: "How much can I save by switching to an EV?",
@@ -244,7 +244,7 @@ const Assistant = () => {
             role: "assistant",
             content:
               preset?.a ??
-              "I'm currently running in demo mode. To enable full AI-powered responses, the site needs a backend connection. In the meantime, tap one of the suggested questions, or visit [AFDC](https://afdc.energy.gov/) for comprehensive EV info!",
+              "I'm currently running in demo mode. To enable full AI-powered responses, the site needs a backend connection. In the meantime, tap one of the suggested questions, or visit [the Alternative Fueling Station Locator](https://afdc.energy.gov/) for comprehensive EV info!",
           },
         ]);
         setLoading(false);

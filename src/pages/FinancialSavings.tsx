@@ -73,7 +73,7 @@ const sections: ContentSection[] = [
 
 const sources: ContentSource[] = [
   { label: "Coltura — EV vs Gas Calculator", url: "https://coltura.org/ev-vs-gas-calculator/" },
-  { label: "U.S. DOE Alternative Fuels Data Center — Reducing EV Costs", url: "https://afdc.energy.gov/vehicles/electric" },
+  { label: "Reducing EV Costs", url: "https://afdc.energy.gov/vehicles/electric" },
   { label: "Consumer Reports — EV Ownership Cost Study", url: "https://www.consumerreports.org/cars/hybrids-evs/evs-offer-big-savings-over-traditional-gas-powered-cars-a7820795671/" },
 ];
 

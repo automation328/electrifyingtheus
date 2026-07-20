@@ -540,7 +540,7 @@ The shift to electric mobility isn't just about cars — it's about people. Ever
 
 ## How Many Jobs Is the EV Transition Creating?
 
-The electric vehicle and clean energy transition is projected to create hundreds of thousands of net new U.S. jobs over the next decade — in manufacturing, construction, installation, maintenance, and support roles. According to the U.S. Department of Energy, the clean energy sector already employs more Americans than fossil fuel industries, and electrified transportation is one of the fastest-growing segments within it.
+The electric vehicle and clean energy transition is projected to create hundreds of thousands of net new U.S. jobs over the next decade — in manufacturing, construction, installation, maintenance, and support roles. The clean energy sector already employs more Americans than fossil fuel industries, and electrified transportation is one of the fastest-growing segments within it.
 
 These aren't hypothetical future jobs. The demand is here now, and employers in many regions are struggling to find qualified workers.
 

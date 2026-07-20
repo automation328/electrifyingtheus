@@ -46,7 +46,7 @@ export const SOURCES = {
     asOf: DATA_AS_OF,
   },
   incentiveFederal: {
-    label: "IRS §30D · DOE AFDC",
+    label: "IRS §30D",
     href: "https://afdc.energy.gov/laws/409",
     asOf: DATA_AS_OF,
   },

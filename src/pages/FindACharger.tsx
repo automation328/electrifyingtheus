@@ -17,8 +17,8 @@ const mapsLink = (q: string) =>
     q.trim() ? `EV charging stations near ${q.trim()}` : "EV charging stations near me",
   )}`;
 
-// Official DOE / AFDC Alternative Fueling Station Locator (authoritative source).
-const AFDC_URL = "https://afdc.energy.gov/fuels/electricity-locations#/find/nearest?fuel=ELEC";
+// Official Alternative Fueling Station Locator (authoritative source).
+const STATION_LOCATOR_URL = "https://afdc.energy.gov/fuels/electricity-locations#/find/nearest?fuel=ELEC";
 
 const buildMapSrc = (q: string) => {
   const query = q.trim() ? `EV charging stations near ${q.trim()}` : "EV charging stations near me";
@@ -176,13 +176,13 @@ const FindACharger = () => {
             <div>
               <h2 className="font-display font-bold text-foreground text-lg">Want the full station locator?</h2>
               <p className="text-muted-foreground text-sm mt-1 max-w-xl">
-                Filter by connector type, network, and charging speed using the official U.S. Department of
-                Energy AFDC Alternative Fueling Station Locator.
+                Filter by connector type, network, and charging speed using the official
+                Alternative Fueling Station Locator.
               </p>
             </div>
-            <a href={AFDC_URL} target="_blank" rel="noopener noreferrer" className="shrink-0">
+            <a href={STATION_LOCATOR_URL} target="_blank" rel="noopener noreferrer" className="shrink-0">
               <Button variant="green" className="rounded-xl">
-                Open AFDC Locator <ExternalLink className="w-4 h-4" />
+                Open Station Locator <ExternalLink className="w-4 h-4" />
               </Button>
             </a>
           </div>

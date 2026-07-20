@@ -30,7 +30,7 @@ const sections: ContentSection[] = [
   {
     heading: "Looking beyond the tailpipe: well-to-wheel emissions",
     body: [
-      "Tailpipe emissions are only one factor in a vehicle's true environmental footprint. A fair comparison uses life cycle emissions, which the U.S. Department of Energy breaks into fuel-cycle emissions, often called well-to-wheel, and vehicle-cycle emissions from building and disposing of the vehicle itself.",
+      "Tailpipe emissions are only one factor in a vehicle's true environmental footprint. A fair comparison uses life cycle emissions, which researchers break into fuel-cycle emissions, often called well-to-wheel, and vehicle-cycle emissions from building and disposing of the vehicle itself.",
       "Well-to-wheel emissions capture everything it takes to move the car a mile. For a gasoline vehicle that means extracting crude oil, refining it into fuel, and distributing it, plus the tailpipe emissions of burning it. For an EV it means the emissions created when generating the electricity used to charge the battery. Counting these upstream steps gives an apples-to-apples comparison instead of crediting EVs with an unrealistic zero.",
     ],
   },
@@ -50,14 +50,14 @@ const sections: ContentSection[] = [
   {
     heading: "EVs are cleaner across nearly every U.S. region",
     body: [
-      "Even after accounting for the power plants behind the plug, driving on electricity produces fewer greenhouse gas emissions than driving on gasoline in the vast majority of the country. Analyses from the Department of Energy and the EPA find that a typical electric vehicle beats the average new gasoline car on lifecycle emissions in all 50 states, including those with the most fossil-heavy grids.",
+      "Even after accounting for the power plants behind the plug, driving on electricity produces fewer greenhouse gas emissions than driving on gasoline in the vast majority of the country. Independent analyses find that a typical electric vehicle beats the average new gasoline car on lifecycle emissions in all 50 states, including those with the most fossil-heavy grids.",
       "Tools like the fueleconomy.gov Beyond Tailpipe Emissions Calculator let you compare a specific EV against a gasoline model using the actual generation mix for your ZIP code, so you can see the real upstream picture where you live rather than relying on a single national average.",
     ],
   },
   {
     heading: "Battery manufacturing emissions and the payback over a vehicle's life",
     body: [
-      "Building an EV, and especially its battery, produces more emissions up front than building a comparable gasoline car. The Department of Energy includes these vehicle-cycle emissions, from raw-material mining through battery production, recycling, and disposal, in its cradle-to-grave accounting so the manufacturing footprint is not ignored.",
+      "Building an EV, and especially its battery, produces more emissions up front than building a comparable gasoline car. Lifecycle accounting includes these vehicle-cycle emissions, from raw-material mining through battery production, recycling, and disposal, in a cradle-to-grave view so the manufacturing footprint is not ignored.",
       "That early carbon debt is repaid quickly. Because an EV emits so much less while driving, it typically erases the extra manufacturing emissions within the first year or two of normal use, then keeps pulling ahead for the rest of its life. Expanding battery recycling and cleaner manufacturing continue to shrink that initial footprint.",
     ],
   },
@@ -71,8 +71,8 @@ const sections: ContentSection[] = [
 ];
 
 const sources: ContentSource[] = [
-  { label: "U.S. DOE Alternative Fuels Data Center — Electricity Vehicle Emissions", url: "https://afdc.energy.gov/vehicles/electric_emissions.html" },
-  { label: "U.S. DOE & EPA fueleconomy.gov — Beyond Tailpipe Emissions Calculator", url: "https://www.fueleconomy.gov/feg/Find.do?action=bt1" },
+  { label: "Electricity Vehicle Emissions", url: "https://afdc.energy.gov/vehicles/electric_emissions.html" },
+  { label: "fueleconomy.gov — Beyond Tailpipe Emissions Calculator", url: "https://www.fueleconomy.gov/feg/Find.do?action=bt1" },
   { label: "U.S. EPA — Electric Vehicle Myths", url: "https://www.epa.gov/greenvehicles/electric-vehicle-myths" },
 ];
 

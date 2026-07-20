@@ -77,7 +77,7 @@ const sections: ContentSection[] = [
   {
     heading: "Finding a charger and planning trips",
     body: [
-      "Locating a charger is easier than ever. The U.S. Department of Energy's Alternative Fueling Station Locator maps tens of thousands of stations across the United States and Canada, letting you filter by connector type, charging level, and network.",
+      "Locating a charger is easier than ever. The Alternative Fueling Station Locator maps tens of thousands of stations across the United States and Canada, letting you filter by connector type, charging level, and network.",
       "Most EVs and charging networks also offer apps and in-dash route planners that find chargers along your route, show real-time availability, and account for your battery level. For road trips, plan stops around fast chargers and aim to charge to roughly 80 percent, since charging slows considerably beyond that point.",
     ],
   },
@@ -92,9 +92,9 @@ const sections: ContentSection[] = [
 ];
 
 const sources: ContentSource[] = [
-  { label: "U.S. DOE Alternative Fuels Data Center — Electric Vehicle Charging Stations", url: "https://afdc.energy.gov/stations" },
-  { label: "AFDC — Electric Vehicle Charging Levels, Speeds, and Connectors", url: "https://afdc.energy.gov/fuels/electricity-stations" },
-  { label: "AFDC — Electric Vehicle Charging Infrastructure Trends", url: "https://afdc.energy.gov/fuels/electricity-infrastructure-trends" },
+  { label: "Electric Vehicle Charging Stations", url: "https://afdc.energy.gov/stations" },
+  { label: "Electric Vehicle Charging Levels, Speeds, and Connectors", url: "https://afdc.energy.gov/fuels/electricity-stations" },
+  { label: "Electric Vehicle Charging Infrastructure Trends", url: "https://afdc.energy.gov/fuels/electricity-infrastructure-trends" },
 ];
 
 const EvCharging101 = () => (

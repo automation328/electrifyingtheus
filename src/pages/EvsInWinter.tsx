@@ -90,7 +90,7 @@ const sections: ContentSection[] = [
 
 const sources: ContentSource[] = [
   { label: "NHTSA — Winter Driving Tips", url: "https://www.nhtsa.gov/winter-driving-tips" },
-  { label: "U.S. DOE Alternative Fuels Data Center — Maintaining EVs in Cold Weather", url: "https://afdc.energy.gov/vehicles/electric-maintenance" },
+  { label: "Maintaining EVs in Cold Weather", url: "https://afdc.energy.gov/vehicles/electric-maintenance" },
   { label: "fueleconomy.gov — EVs in Cold Weather", url: "https://www.fueleconomy.gov/feg/coldweatherEV.shtml" },
 ];
 

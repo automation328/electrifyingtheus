@@ -98,7 +98,7 @@ const sections: ContentSection[] = [
 const sources: ContentSource[] = [
   { label: "E2 — Clean Jobs America 2024 report", url: "https://e2.org/releases/report-clean-energy-jobs-grew-3x-faster-than-rest-of-u-s-workforce-in-2024-but-future-growth-now-at-risk/" },
   { label: "E2 — Reports and research library", url: "https://e2.org/reports/" },
-  { label: "U.S. DOE — United States Energy & Employment Report (USEER)", url: "https://www.energy.gov/policy/us-energy-employment-jobs-report-useer" },
+  { label: "United States Energy & Employment Report (USEER)", url: "https://www.energy.gov/policy/us-energy-employment-jobs-report-useer" },
 ];
 
 const WorkforceEconomicDevelopment = () => (

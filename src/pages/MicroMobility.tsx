@@ -58,7 +58,7 @@ const sections: ContentSection[] = [
 
 const sources: ContentSource[] = [
   { label: "PeopleForBikes — Solutions to the E-Moto Problem", url: "https://www.peopleforbikes.org/news/solutions-to-the-e-moto-problem" },
-  { label: "U.S. Department of Energy — Alternative Fuels Data Center", url: "https://afdc.energy.gov/" },
+  { label: "EV & Alternative Fuel Resources", url: "https://afdc.energy.gov/" },
   { label: "U.S. DOT — Bicycle and Pedestrian Program", url: "https://www.transportation.gov/mission/health/bicycle-and-pedestrian-investments" },
 ];
 

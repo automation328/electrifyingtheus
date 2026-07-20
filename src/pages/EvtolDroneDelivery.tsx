@@ -59,7 +59,7 @@ const sections: ContentSection[] = [
 const sources: ContentSource[] = [
   { label: "U.S. DOT — Advanced Air Mobility National Strategy (2025)", url: "https://www.transportation.gov/sites/dot.gov/files/2025-12/AAM%20National%20Strategy%202025.pdf" },
   { label: "FAA — Advanced Air Mobility", url: "https://www.faa.gov/air-taxis" },
-  { label: "U.S. Department of Energy — Sustainable Transportation", url: "https://www.energy.gov/eere/sustainable-transportation" },
+  { label: "Sustainable Transportation", url: "https://www.energy.gov/eere/sustainable-transportation" },
 ];
 
 const EvtolDroneDelivery = () => (

@@ -59,7 +59,7 @@ const sections: ContentSection[] = [
 const sources: ContentSource[] = [
   { label: "U.S. DOT — National Freight Strategic Plan", url: "https://www.transportation.gov/freight/NFSP" },
   { label: "EPA — Greenhouse Gas Emissions from Transportation", url: "https://www.epa.gov/greenvehicles/fast-facts-transportation-greenhouse-gas-emissions" },
-  { label: "U.S. Department of Energy — Alternative Fuels Data Center", url: "https://afdc.energy.gov/" },
+  { label: "EV & Alternative Fuel Resources", url: "https://afdc.energy.gov/" },
 ];
 
 const HeavyDutyElectrification = () => (

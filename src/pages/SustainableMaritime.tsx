@@ -59,7 +59,7 @@ const sections: ContentSection[] = [
 const sources: ContentSource[] = [
   { label: "EPA — Ports Initiative", url: "https://www.epa.gov/ports-initiative" },
   { label: "U.S. Maritime Administration (MARAD) — Environment & Sustainability", url: "https://www.maritime.dot.gov/environment-and-sustainability" },
-  { label: "U.S. Department of Energy — Sustainable Transportation", url: "https://www.energy.gov/eere/sustainable-transportation" },
+  { label: "Sustainable Transportation", url: "https://www.energy.gov/eere/sustainable-transportation" },
 ];
 
 const SustainableMaritime = () => (

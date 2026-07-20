@@ -59,7 +59,7 @@ const sections: ContentSection[] = [
 const sources: ContentSource[] = [
   { label: "Sustainable Aviation Fuel Investor Institute — Future of SAF Demand", url: "https://www.safii.org/the-future-of-worldwide-sustainable-aviation-fuel-saf-demand-different-transatlantic-government-policies-make-pathways-to-net-zero-aviation-difficult/" },
   { label: "FAA — Sustainable Aviation Fuels", url: "https://www.faa.gov/sustainability/sustainable-aviation-fuels" },
-  { label: "U.S. Department of Energy — Sustainable Aviation Fuel", url: "https://www.energy.gov/eere/bioenergy/sustainable-aviation-fuel" },
+  { label: "Sustainable Aviation Fuel", url: "https://www.energy.gov/eere/bioenergy/sustainable-aviation-fuel" },
 ];
 
 const SustainableAviation = () => (

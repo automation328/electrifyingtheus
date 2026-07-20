@@ -59,7 +59,7 @@ const sections: ContentSection[] = [
 const sources: ContentSource[] = [
   { label: "EPA — Clean School Bus Program Awards", url: "https://www.epa.gov/cleanschoolbus/clean-school-bus-program-awards" },
   { label: "EPA — Clean School Bus Program", url: "https://www.epa.gov/cleanschoolbus" },
-  { label: "U.S. Department of Energy — Alternative Fuels Data Center", url: "https://afdc.energy.gov/" },
+  { label: "EV & Alternative Fuel Resources", url: "https://afdc.energy.gov/" },
 ];
 
 const ElectricSchoolBuses = () => (

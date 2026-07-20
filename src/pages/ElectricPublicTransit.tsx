@@ -59,7 +59,7 @@ const sections: ContentSection[] = [
 const sources: ContentSource[] = [
   { label: "ITDP — Better Bus Service with Electric Buses", url: "https://itdp.org/2026/01/06/better-bus-service-electric-buses-stmagazine-37/" },
   { label: "FTA — Low- and No-Emission Vehicle Program", url: "https://www.transit.dot.gov/lowno" },
-  { label: "U.S. Department of Energy — Alternative Fuels Data Center", url: "https://afdc.energy.gov/" },
+  { label: "EV & Alternative Fuel Resources", url: "https://afdc.energy.gov/" },
 ];
 
 const ElectricPublicTransit = () => (
