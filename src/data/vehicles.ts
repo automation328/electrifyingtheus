@@ -613,6 +613,60 @@ export const vehicles: VehicleData[] = [
     bodyStyle: "suv-large", sizeClass: 4, seats: 7, drivetrain: "AWD", rangeMi: 305, luxury: true,
   },
 
+  // ───── From Car and Driver "Every EV from Every Brand in America" (2025) ─────
+  // Consumer EVs in that roundup that weren't already listed above. Representative
+  // 2026 specs (MSRP / EPA range / efficiency), consistent with the rest of this
+  // curated catalog. Excludes commercial vans (Ford e-Transit, Mercedes eSprinter)
+  // and pure trim variants (AMG, Maybach, Audi S/SQ) of models already represented.
+  {
+    id: "gmc-hummer-ev", name: "GMC Hummer EV Pickup", type: "ev", msrp: 98845,
+    mpge: 47, kwhPer100mi: 47, maintenanceCostPerMile: 0.07, insuranceAnnual: 3200,
+    depreciationRate: 0.24, category: "Truck",
+    bodyStyle: "truck", sizeClass: 4, seats: 5, drivetrain: "4WD", rangeMi: 314, luxury: true,
+  },
+  {
+    id: "gmc-hummer-ev-suv", name: "GMC Hummer EV SUV", type: "ev", msrp: 105595,
+    mpge: 47, kwhPer100mi: 47, maintenanceCostPerMile: 0.07, insuranceAnnual: 3200,
+    depreciationRate: 0.24, category: "SUV",
+    bodyStyle: "suv-large", sizeClass: 4, seats: 5, drivetrain: "4WD", rangeMi: 303, luxury: true,
+  },
+  {
+    id: "jeep-recon", name: "Jeep Recon", type: "ev", msrp: 65000,
+    mpge: 80, kwhPer100mi: 43, maintenanceCostPerMile: 0.065, insuranceAnnual: 2200,
+    depreciationRate: 0.2, category: "SUV",
+    bodyStyle: "suv-mid", sizeClass: 3, seats: 5, drivetrain: "4WD", rangeMi: 250,
+  },
+  {
+    id: "audi-a6-etron", name: "Audi A6 e-tron", type: "ev", msrp: 66800,
+    mpge: 100, kwhPer100mi: 33, maintenanceCostPerMile: 0.068, insuranceAnnual: 2300,
+    depreciationRate: 0.2, category: "Sedan",
+    bodyStyle: "sedan", sizeClass: 3, seats: 5, drivetrain: "RWD", rangeMi: 377, luxury: true,
+  },
+  {
+    id: "audi-e-tron-gt", name: "Audi e-tron GT", type: "ev", msrp: 106500,
+    mpge: 82, kwhPer100mi: 41, maintenanceCostPerMile: 0.078, insuranceAnnual: 2900,
+    depreciationRate: 0.22, category: "Sedan",
+    bodyStyle: "sedan", sizeClass: 3, seats: 4, drivetrain: "AWD", rangeMi: 300, luxury: true, performance: true,
+  },
+  {
+    id: "mercedes-cla-ev", name: "Mercedes-Benz CLA EV", type: "ev", msrp: 48000,
+    mpge: 120, kwhPer100mi: 28, maintenanceCostPerMile: 0.06, insuranceAnnual: 2000,
+    depreciationRate: 0.2, category: "Sedan",
+    bodyStyle: "sedan", sizeClass: 2, seats: 5, drivetrain: "RWD", rangeMi: 310, luxury: true,
+  },
+  {
+    id: "mercedes-eqs-suv", name: "Mercedes-Benz EQS SUV", type: "ev", msrp: 105550,
+    mpge: 79, kwhPer100mi: 43, maintenanceCostPerMile: 0.078, insuranceAnnual: 2650,
+    depreciationRate: 0.24, category: "SUV",
+    bodyStyle: "suv-large", sizeClass: 4, seats: 7, drivetrain: "RWD", rangeMi: 305, luxury: true,
+  },
+  {
+    id: "cadillac-celestiq", name: "Cadillac CELESTIQ", type: "ev", msrp: 340000,
+    mpge: 75, kwhPer100mi: 45, maintenanceCostPerMile: 0.09, insuranceAnnual: 5000,
+    depreciationRate: 0.25, category: "Sedan",
+    bodyStyle: "sedan", sizeClass: 4, seats: 4, drivetrain: "AWD", rangeMi: 303, luxury: true,
+  },
+
   // ───────── Expanded brand coverage (gas) ─────────
   // Volkswagen
   {
