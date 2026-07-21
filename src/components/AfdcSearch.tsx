@@ -63,6 +63,10 @@ const TECHNOLOGIES: { value: string; label: string }[] = [
 const truncate = (s: string, n = 240) =>
   s.length > n ? `${s.slice(0, n).trimEnd()}…` : s;
 
+// Show 4 results, then reveal 6 more per "View more" click.
+const PAGE_START = 4;
+const PAGE_STEP = 6;
+
 const AfdcSearch = () => {
   const [jurisdiction, setJurisdiction] = useState("US");
   const [technology, setTechnology] = useState("ELEC");
@@ -72,6 +76,7 @@ const AfdcSearch = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [detectedState, setDetectedState] = useState<string | null>(null);
+  const [visibleCount, setVisibleCount] = useState(PAGE_START);
 
   // Auto-detect the visitor's U.S. state from their IP (ZIP/region) on first
   // load and preselect it in the jurisdiction dropdown. Runs once; a manual
@@ -156,7 +161,13 @@ const AfdcSearch = () => {
     });
   }, [laws, keyword, type]);
 
-  const shown = filtered.slice(0, 40);
+  // Collapse back to the first page whenever the result set changes (new
+  // jurisdiction/technology/type/keyword) so a fresh search starts at 4.
+  useEffect(() => {
+    setVisibleCount(PAGE_START);
+  }, [jurisdiction, technology, type, keyword]);
+
+  const shown = filtered.slice(0, visibleCount);
 
   return (
     <div className="container px-4 max-w-5xl mt-16">
@@ -265,6 +276,20 @@ const AfdcSearch = () => {
                 </a>
               ))}
             </div>
+
+            {visibleCount < filtered.length && (
+              <div className="mt-6 flex justify-center">
+                <button
+                  onClick={() => setVisibleCount((c) => c + PAGE_STEP)}
+                  className="inline-flex items-center gap-2 rounded-xl border border-primary/40 bg-card px-6 py-3 text-sm font-semibold text-primary shadow-card hover:bg-primary/5 hover:border-primary/60 transition-colors"
+                >
+                  View more results
+                  <span className="text-xs font-normal text-muted-foreground">
+                    ({filtered.length - visibleCount} more)
+                  </span>
+                </button>
+              </div>
+            )}
           </>
         )}
       </div>
