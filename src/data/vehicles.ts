@@ -666,6 +666,39 @@ export const vehicles: VehicleData[] = [
     depreciationRate: 0.25, category: "Sedan",
     bodyStyle: "sedan", sizeClass: 4, seats: 4, drivetrain: "AWD", rangeMi: 303, luxury: true,
   },
+  // Currently-sold U.S. EVs from the roundup's later (O–Z) brands that were still
+  // missing — added from current-market data (that section of the article is
+  // lazy-loaded and couldn't be scraped). Representative 2026 specs.
+  {
+    id: "tesla-cybertruck", name: "Tesla Cybertruck", type: "ev", msrp: 79990,
+    mpge: 48, kwhPer100mi: 46, maintenanceCostPerMile: 0.06, insuranceAnnual: 2800,
+    depreciationRate: 0.2, category: "Truck",
+    bodyStyle: "truck", sizeClass: 4, seats: 5, drivetrain: "AWD", rangeMi: 325,
+  },
+  {
+    id: "polestar-4", name: "Polestar 4", type: "ev", msrp: 54900,
+    mpge: 102, kwhPer100mi: 33, maintenanceCostPerMile: 0.062, insuranceAnnual: 2100,
+    depreciationRate: 0.19, category: "SUV",
+    bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "RWD", rangeMi: 300, luxury: true,
+  },
+  {
+    id: "vinfast-vf6", name: "VinFast VF 6", type: "ev", msrp: 32000,
+    mpge: 100, kwhPer100mi: 34, maintenanceCostPerMile: 0.06, insuranceAnnual: 1800,
+    depreciationRate: 0.22, category: "SUV",
+    bodyStyle: "suv-compact", sizeClass: 1, seats: 5, drivetrain: "FWD", rangeMi: 235,
+  },
+  {
+    id: "vinfast-vf7", name: "VinFast VF 7", type: "ev", msrp: 40000,
+    mpge: 96, kwhPer100mi: 35, maintenanceCostPerMile: 0.062, insuranceAnnual: 1900,
+    depreciationRate: 0.22, category: "SUV",
+    bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "FWD", rangeMi: 260,
+  },
+  {
+    id: "mercedes-g580-ev", name: "Mercedes-Benz G 580 (EV)", type: "ev", msrp: 162650,
+    mpge: 45, kwhPer100mi: 49, maintenanceCostPerMile: 0.085, insuranceAnnual: 3500,
+    depreciationRate: 0.24, category: "SUV",
+    bodyStyle: "suv-large", sizeClass: 4, seats: 5, drivetrain: "4WD", rangeMi: 239, luxury: true,
+  },
 
   // ───────── Expanded brand coverage (gas) ─────────
   // Volkswagen
