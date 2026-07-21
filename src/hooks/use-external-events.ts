@@ -14,6 +14,8 @@ import reducedEmissions from "@/assets/reduced-emissions.jpg";
 import micromobility from "@/assets/micromobility.jpg";
 // Curated per-event flyer images (override the generic pool for a specific event).
 import sowGoodSaturday from "@/assets/events/sow-good-saturday.png";
+import everythingEnvironmentalFest from "@/assets/events/everything-environmental-fest.jpg";
+import monroeFirstResponder from "@/assets/events/monroe-first-responder-workshop.jpg";
 
 // Image pool — external feed events have no image of their own, so we cycle
 // through these generic EV photos by index for visual variety. (Deliberately
@@ -21,13 +23,74 @@ import sowGoodSaturday from "@/assets/events/sow-good-saturday.png";
 const IMAGE_POOL = [evFamily, evCharging, reducedEmissions, workforce, rideshareFleet, micromobility];
 
 // Curated overrides keyed by the source event id (driveelectricmonth.org/event
-// ?eventid=NNNN). The public feeds give these events a generic title, a stub
-// description, or just a city, so we supply the real description + complete
-// street address pulled from each event's own page. Matched against the source
-// URL, so they stay attached even if the feed re-sorts.
+// ?eventid=NNNN) or, for myeva.org/EventCalendarApp events, the URL path slug
+// (evaevents.eventcalendarapp.com/<slug>). The public feeds give these events a
+// generic title, a stub description, or just a venue name, so we supply the real
+// description + complete street address pulled from each event's own page. Matched
+// against the source URL, so they stay attached even if the feed re-sorts.
 const EVENT_OVERRIDES: Record<string, { title?: string; description?: string; location?: string; image?: string }> = {
   // "Sow Good Saturday" at Baton Roots Community Farm — use the event's own flyer.
   "5318": { image: sowGoodSaturday },
+  // EVA of Ohio "Everything Environmental Fest" (myeva feed gives only the venue
+  // name) — show just the city/state on the location line and use the event's flyer.
+  "everything-environmental-fest": {
+    location: "Huber Heights, OH",
+    image: everythingEnvironmentalFest,
+  },
+  // "Lafayette Cars and Coffee Electric Avenue" (myeva feed gives only the street
+  // address) — show just the city/state so the location line reads "Lafayette, CO".
+  "lafayette-cars-and-coffee-electric-avenue-1": {
+    location: "Lafayette, CO",
+  },
+  // NY Capital District EVA "National Night Out" (myeva feed gives only the venue
+  // name) — show just the city/state so the location line reads "Schenectady, NY".
+  "national-night-out": {
+    location: "Schenectady, NY",
+  },
+  // "2026 Wisconsin EVA Road Trip" (myeva feed gives only "Lambeau Field") — show
+  // just the city/state so the location line reads "Green Bay, WI".
+  "2026-wisconsin-eva-road-trip": {
+    location: "Green Bay, WI",
+  },
+  // Metuchen Green Fair — feed gives a generic title + stub description; supply the
+  // organizer's real name, city/state pin, and full event copy.
+  "5346": {
+    title: "Metuchen Green Fair",
+    location: "Metuchen, NJ",
+    description:
+      "Join us during the Metuchen Street Fair to learn more about:\n" +
+      "• Test Drive Electric Vehicles\n" +
+      "• Clean Energy Programs\n" +
+      "• Native Plants and Invasive Species\n" +
+      "• Kids Activities!\n\n" +
+      "Thanks to a Grant for test drives from Plug-in-America, we are offering snack or dessert vouchers for the first 50 EV test drives.\n\n" +
+      "Metuchen's Environmental Commission Green Fair in Peterson Park in downtown Metuchen, attached to the Street Fair.\n\n" +
+      "August 16th, 2026 · 11am to 3pm · Metuchen Town Plaza\n\n" +
+      "We are expecting excellent foot traffic and a good cross-section of the public to visit the vehicles we have on display. A number of green organizations are participating with fun activities for the kids. Talk to people who have been driving electric about their experiences and check out some of the newest vehicles available.\n\n" +
+      "• 2 display vehicles (max allowed) by township.\n" +
+      "• Max 5 vehicles offering test drives with $250 stipend.\n" +
+      "(We are clarifying if we can do shifts from 11–1 & 1–3 to swap out vehicles.)",
+  },
+  // Central Florida EVA Chapter Meeting (myeva feed gives only "Rivian Orlando") —
+  // show just the city/state so the location line reads "Orlando, FL".
+  "central-florida-eva-chapter-meeting": {
+    location: "Orlando, FL",
+  },
+  // EV First Responder Workshop, Monroe Twp — lock the real title + "Monroe Township, NJ" pin.
+  "5327": {
+    title: "EV First Responder Workshop at Monroe Twp Fire District #2",
+    location: "Monroe Township, NJ",
+    image: monroeFirstResponder,
+    description:
+      "New Jersey EVA is pleased to offer an EV awareness workshop for first responders in New Jersey. This workshop is particularly suitable for firefighters and aims to increase awareness of EV-specific safety procedures for first responders deployed to a scene involving electric vehicle collisions. The program comprises one hour of in-class presentation at 7 PM followed by 1 hr of EV show, which covers hands-on inspections of various plug-in electric vehicles using the First Responder Guide.\n\n" +
+      "We call for EV volunteers to bring their vehicles to show them to the first responders:\n" +
+      "• let them find the safety disconnect\n" +
+      "• answer questions related to EV buying, EV charging and maintenance\n" +
+      "• share your joy of driving electric\n\n" +
+      "By registering at this portal, you are committed to the EV show portion only and you will arrive between 7:30 and 7:40 PM. If you are interested in attending the entire session, please mention it in the comments and arrive 6:45 PM.\n\n" +
+      "Dinner (e.g. pizza and beverages) will be provided to all who bring their EV.\n\n" +
+      "For effective planning, we are asking EV volunteers to register by August 12, 2026. By registering early, we can get food for everyone. And as we get closer to the event, communication will be sent to registered people. You don't want to miss on it.",
+  },
   "5250": {
     location: "Metra Station Triangle Lot, 24 S. Summit St, Park Ridge, IL 60068",
     description: "Start by learning from some of your Park Ridge neighbors and local businesses about the different makes and models to reduce their dependence on fossil fuels and become energy independent!",
@@ -171,7 +234,11 @@ const EVENT_OVERRIDES: Record<string, { title?: string; description?: string; lo
 };
 
 function applyOverride(item: EventItem): EventItem {
-  const id = item.registerUrl?.match(/eventid=(\d+)/)?.[1];
+  // Key by the driveelectricmonth eventid when present, else the EventCalendarApp
+  // URL path slug (evaevents.eventcalendarapp.com/<slug>).
+  const id =
+    item.registerUrl?.match(/eventid=(\d+)/)?.[1] ||
+    item.registerUrl?.match(/eventcalendarapp\.com\/([^/?#]+)/i)?.[1];
   const o = id ? EVENT_OVERRIDES[id] : undefined;
   if (!o) return item;
   const title = o.title ?? item.title;
