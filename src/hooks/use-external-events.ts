@@ -12,6 +12,8 @@ import workforce from "@/assets/workforce.jpg";
 import rideshareFleet from "@/assets/rideshare-fleet.jpg";
 import reducedEmissions from "@/assets/reduced-emissions.jpg";
 import micromobility from "@/assets/micromobility.jpg";
+// Curated per-event flyer images (override the generic pool for a specific event).
+import sowGoodSaturday from "@/assets/events/sow-good-saturday.png";
 
 // Image pool — external feed events have no image of their own, so we cycle
 // through these generic EV photos by index for visual variety. (Deliberately
@@ -23,7 +25,9 @@ const IMAGE_POOL = [evFamily, evCharging, reducedEmissions, workforce, rideshare
 // description, or just a city, so we supply the real description + complete
 // street address pulled from each event's own page. Matched against the source
 // URL, so they stay attached even if the feed re-sorts.
-const EVENT_OVERRIDES: Record<string, { title?: string; description?: string; location?: string }> = {
+const EVENT_OVERRIDES: Record<string, { title?: string; description?: string; location?: string; image?: string }> = {
+  // "Sow Good Saturday" at Baton Roots Community Farm — use the event's own flyer.
+  "5318": { image: sowGoodSaturday },
   "5250": {
     location: "Metra Station Triangle Lot, 24 S. Summit St, Park Ridge, IL 60068",
     description: "Start by learning from some of your Park Ridge neighbors and local businesses about the different makes and models to reduce their dependence on fossil fuels and become energy independent!",
@@ -183,6 +187,7 @@ function applyOverride(item: EventItem): EventItem {
     description: o.description ?? item.description,
     location: o.location ?? item.location,
     region: o.location ?? item.region,
+    image: o.image ?? item.image,
   };
 }
 
