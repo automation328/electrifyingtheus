@@ -184,6 +184,45 @@ export const STATE_INCENTIVES: Record<string, Partial<Record<CatKey, Incentive[]
       link: "https://epa.illinois.gov/topics/ceja/electric-vehicle-rebates.html",
     }],
   },
+  GA: {
+    charging: [
+      {
+        name: "Home Charger Rebate",
+        jurisdiction: "Georgia Power Incentive",
+        amount: "Up to $300",
+        desc: "Residential customers can receive a rebate up to $300 for the purchase and installation of a qualifying Level 2 charger on a dedicated 208/240-volt circuit. Submit your rebate through the Georgia Power EV Rebates Portal within six months of installation.",
+        link: "https://www.georgiapower.com/residential/save-money-and-energy/products-programs/electric-vehicles.html",
+      },
+      {
+        name: "Instant Savings — Georgia Power Marketplace",
+        jurisdiction: "Georgia Power Incentive",
+        desc: "Find instant rebates on select Level 2 EV chargers when you buy through the Georgia Power Marketplace — the discount is applied at checkout, with no separate application needed.",
+        link: "https://www.georgiapowermarketplace.com/",
+      },
+      {
+        name: "Business EV Charger Rebate",
+        jurisdiction: "Georgia Power Incentive",
+        amount: "Up to $500",
+        desc: "Commercial and multifamily-property accounts can claim a rebate of up to $500 per Level 2 charger installed for workplace or multifamily use.",
+        link: "https://www.georgiapower.com/business/products-programs.html",
+      },
+      {
+        name: "EV Charger Plus Rebate Program",
+        jurisdiction: "Georgia Power Incentive",
+        amount: "Up to $30,000",
+        desc: "For larger commercial projects, Georgia Power covers up to 50% of total installation and equipment costs — capped at $30,000 per project or $60,000 per calendar year per customer.",
+        link: "https://www.georgiapower.com/business/products-programs.html",
+      },
+    ],
+    electricity: [
+      {
+        name: "Overnight Advantage Rate Plan",
+        jurisdiction: "Georgia Power Incentive",
+        desc: "A special rate plan with exceptionally low Super Off-Peak rates from 11 p.m. to 7 a.m. — designed to minimize the cost of charging your EV at home. Rates are subject to Georgia Public Service Commission approval and may change.",
+        link: "https://www.georgiapower.com/residential/save-money-and-energy/products-programs/electric-vehicles.html",
+      },
+    ],
+  },
 };
 
 // 3-digit ZIP prefix ranges → USPS state. Covers the 50 states + DC.
@@ -309,7 +348,13 @@ export const UTILITY_INCENTIVES: Record<string, Incentive[]> = {
   GA: [
     { name: "Georgia Power Plug-In EV Rate", jurisdiction: "Georgia Power Incentive",
       desc: "A nights-and-weekends time-of-use rate that sharply lowers the cost of charging your EV at home during off-peak hours.",
-      link: "https://www.georgiapower.com/residential/billing-and-rate-plans/pricing-and-rate-plans/electric-vehicles.html" },
+      link: "https://www.georgiapower.com/residential/save-money-and-energy/products-programs/electric-vehicles.html" },
+    { name: "Multifamily Property Charging", jurisdiction: "Georgia Power Incentive", amount: "Up to $50,000",
+      desc: "Multifamily property owners and developers can earn up to $50,000 per project — and up to $150,000 per year — toward EV charging installations for their communities.",
+      link: "https://www.georgiapower.com/business/products-programs.html" },
+    { name: "Make Ready Infrastructure Program", jurisdiction: "Georgia Power Incentive",
+      desc: "Georgia Power helps businesses and fleet operators fund the electrical infrastructure — wiring, conduit, panels, and service upgrades — required to support new EV charging stations.",
+      link: "https://www.georgiapower.com/business/products-programs.html" },
   ],
   MD: [
     { name: "BGE / Pepco / Delmarva EVsmart", jurisdiction: "Maryland Utility Incentive", amount: "Up to $300",

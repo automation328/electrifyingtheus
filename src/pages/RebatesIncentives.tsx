@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   DollarSign, Zap, PlugZap, BadgeCheck, ArrowRight,
@@ -59,6 +59,46 @@ const RebatesIncentives = () => {
   const [loc, setLoc] = useState<{ zip: string; state: string; name: string } | null>(null);
   const [error, setError] = useState("");
   const [vFilter, setVFilter] = useState<VFilter>("all");
+  const didDetect = useRef(false);
+
+  // Auto-detect the visitor's ZIP on first load (Vercel edge geo, ipapi fallback)
+  // and show their local programs immediately — same pattern as the calculator,
+  // Find a Charger, and the laws & incentives search below.
+  useEffect(() => {
+    if (didDetect.current) return;
+    didDetect.current = true;
+    let cancelled = false;
+    (async () => {
+      try {
+        let postal = "";
+        // Primary: our own edge-geo endpoint (Vercel headers — reliable, no rate limit).
+        try {
+          const g = await fetch("/api/geo");
+          if (g.ok) {
+            const gd = await g.json();
+            if (gd?.country === "US") postal = String(gd?.postal ?? "").replace(/\D/g, "").slice(0, 5);
+          }
+        } catch { /* fall through to the third-party lookup */ }
+        // Fallback: third-party IP lookup.
+        if (!postal && !cancelled) {
+          const res = await fetch("https://ipapi.co/json/");
+          if (res.ok) {
+            const data = await res.json();
+            if (data?.country_code === "US") postal = String(data?.postal ?? "").replace(/\D/g, "").slice(0, 5);
+          }
+        }
+        // Only auto-fill if the visitor hasn't typed a ZIP themselves in the meantime.
+        if (cancelled || postal.length !== 5) return;
+        const st = stateFromZip(postal);
+        if (!st) return;
+        setZip((prev) => (prev ? prev : postal));
+        setLoc((prev) => (prev ? prev : { zip: postal, state: st, name: STATE_NAMES[st] }));
+      } catch {
+        /* offline / blocked / rate-limited — keep the empty entry state */
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   const lookup = () => {
     const z = zip.trim();
@@ -139,7 +179,7 @@ const RebatesIncentives = () => {
                 value={zip}
                 onChange={(e) => setZip(e.target.value.replace(/\D/g, ""))}
                 onKeyDown={(e) => e.key === "Enter" && lookup()}
-                className="sm:max-w-xs h-12 text-base"
+                className="sm:max-w-xs h-12 text-base border-2 border-primary/40 bg-background focus-visible:border-primary focus-visible:ring-primary/30"
                 aria-label="ZIP code"
               />
               <Button onClick={lookup} size="lg" className="btn-cta-pulse gradient-primary text-primary-foreground h-12">
