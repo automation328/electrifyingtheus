@@ -76,6 +76,14 @@ const EVENT_OVERRIDES: Record<string, { title?: string; description?: string; lo
   "central-florida-eva-chapter-meeting": {
     location: "Orlando, FL",
   },
+  // HC3 Electrify Summit Fair, Breckenridge — feed title drifts ("Breckenridge" →
+  // "Summit Electrified Fair"); lock it, add the "Breckenridge, CO" pin + real copy.
+  "5332": {
+    title: "Summit Electrified Fair",
+    location: "Breckenridge, CO",
+    description:
+      "Curious about heat pumps? Ready to try induction cooking? Wondering how electric cars perform in the mountains? Come see, touch, and test the future of home energy at HC3's Electrify Summit Fair. Chat with local vendors, watch a live cooking demo, take an e-bike or EV for a spin, and find out what rebates from HC3, Xcel Energy, and the state of Colorado could mean for your home.",
+  },
   // EV First Responder Workshop, Monroe Twp — lock the real title + "Monroe Township, NJ" pin.
   "5327": {
     title: "EV First Responder Workshop at Monroe Twp Fire District #2",
