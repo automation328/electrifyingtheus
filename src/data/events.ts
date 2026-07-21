@@ -75,6 +75,9 @@ export const eventCity = (e: EventItem): string => {
   const loc = (e.location || "").trim();
   if (!loc || /see event details/i.test(loc) || /online|webinar|virtual/i.test(loc)) return "";
   const parts = loc.split(",").map((s) => s.trim()).filter(Boolean);
+  // Drop a trailing bare-ZIP segment ("…, San Marcos, CA, 92178") so the city
+  // lands on the right part instead of the state code.
+  if (parts.length && /^\d{5}(?:-\d{4})?$/.test(parts[parts.length - 1])) parts.pop();
   if (parts.length < 2) return "";
   return parts[parts.length - 2] || "";
 };
@@ -97,6 +100,8 @@ export const eventStateCode = (e: EventItem): string => {
   const loc = (e.location || "").trim();
   if (!loc || /see event details/i.test(loc) || /online|webinar|virtual/i.test(loc)) return "";
   const parts = loc.split(",").map((s) => s.trim()).filter(Boolean);
+  // Drop a trailing bare-ZIP segment so the state lands on the "…, CA, 92178" part.
+  if (parts.length && /^\d{5}(?:-\d{4})?$/.test(parts[parts.length - 1])) parts.pop();
   const last = parts[parts.length - 1] || "";
   const m = last.match(/\b([A-Z]{2})\b/);
   return m ? m[1] : "";
