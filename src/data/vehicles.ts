@@ -622,13 +622,13 @@ export const vehicles: VehicleData[] = [
     id: "gmc-hummer-ev", name: "GMC Hummer EV Pickup", type: "ev", msrp: 98845,
     mpge: 47, kwhPer100mi: 47, maintenanceCostPerMile: 0.07, insuranceAnnual: 3200,
     depreciationRate: 0.24, category: "Truck",
-    bodyStyle: "truck", sizeClass: 4, seats: 5, drivetrain: "4WD", rangeMi: 314, luxury: true,
+    bodyStyle: "truck", sizeClass: 3, seats: 5, drivetrain: "4WD", rangeMi: 314,
   },
   {
     id: "gmc-hummer-ev-suv", name: "GMC Hummer EV SUV", type: "ev", msrp: 105595,
     mpge: 47, kwhPer100mi: 47, maintenanceCostPerMile: 0.07, insuranceAnnual: 3200,
     depreciationRate: 0.24, category: "SUV",
-    bodyStyle: "suv-large", sizeClass: 4, seats: 5, drivetrain: "4WD", rangeMi: 303, luxury: true,
+    bodyStyle: "suv-mid", sizeClass: 3, seats: 5, drivetrain: "4WD", rangeMi: 303, luxury: true,
   },
   {
     id: "jeep-recon", name: "Jeep Recon", type: "ev", msrp: 65000,
