@@ -69,9 +69,9 @@ const Events = () => {
     );
   }, [query, allUpcoming]);
 
-  // Paginate the list: show a handful, then "View more events" loads 10 more.
-  const PAGE_START = 6;
-  const PAGE_STEP = 10;
+  // Paginate the list: show 4, then "View more events" loads 3 more per click.
+  const PAGE_START = 4;
+  const PAGE_STEP = 3;
   const [visibleCount, setVisibleCount] = useState(PAGE_START);
   useEffect(() => { setVisibleCount(PAGE_START); }, [query]);
   const visibleEvents = filtered.slice(0, visibleCount);
