@@ -34,13 +34,25 @@ const HeroSection = () => {
 
   // Build the deck: brand intro first, then a couple of upcoming events,
   // featured careers, and featured articles. Each slide shows its own image.
-  const SLIDES = useMemo<Slide[]>(() => [
-    { kind: "brand" },
-    ...events.filter((e) => !e.heroHidden).slice(0, 2).map((data): Slide => ({ kind: "event", data })),
-    // Job/hiring slides hidden for rollout — keep featured events + articles only.
-    // ...JOBS.filter((j) => j.featured).slice(0, 2).map((data): Slide => ({ kind: "career", data })),
-    ...posts.slice(0, 2).map((data): Slide => ({ kind: "article", data })),
-  ], [events, posts]);
+  const SLIDES = useMemo<Slide[]>(() => {
+    // Show the eMobility Summit as the later event slide (slide 3) — keep it last
+    // among the hero events without changing the Featured section's order.
+    const heroEvents = events
+      .filter((e) => !e.heroHidden)
+      .slice(0, 2)
+      .sort(
+        (a, b) =>
+          (a.slug === "multi-modal-emobility-summit" ? 1 : 0) -
+          (b.slug === "multi-modal-emobility-summit" ? 1 : 0),
+      );
+    return [
+      { kind: "brand" },
+      ...heroEvents.map((data): Slide => ({ kind: "event", data })),
+      // Job/hiring slides hidden for rollout — keep featured events + articles only.
+      // ...JOBS.filter((j) => j.featured).slice(0, 2).map((data): Slide => ({ kind: "career", data })),
+      ...posts.slice(0, 2).map((data): Slide => ({ kind: "article", data })),
+    ];
+  }, [events, posts]);
   const count = SLIDES.length;
 
   const go = useCallback((i: number) => setIndex(((i % count) + count) % count), [count]);
