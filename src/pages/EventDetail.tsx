@@ -69,8 +69,12 @@ const EventDetail = () => {
         <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-start">
           {/* Poster */}
           <div className="relative animate-fade-up">
-            <div className="overflow-hidden rounded-3xl shadow-elevated ring-1 ring-border">
-              <img src={event.image} alt={event.title} className="w-full h-auto object-cover" loading="lazy" />
+            {/* Fixed 4:3 frame so every event's poster is the same size. The whole
+                flyer shows (object-contain), with a soft blurred fill of itself
+                behind so mismatched aspect ratios don't leave flat bars. */}
+            <div className="relative aspect-[4/3] overflow-hidden rounded-3xl shadow-elevated ring-1 ring-border bg-muted">
+              <img src={event.image} alt="" aria-hidden className="absolute inset-0 w-full h-full object-cover scale-110 blur-2xl opacity-50" />
+              <img src={event.image} alt={event.title} className="relative w-full h-full object-contain" loading="lazy" />
             </div>
             <div className="absolute -top-4 -left-4 w-20 rounded-2xl bg-white text-center shadow-lg overflow-hidden">
               <div className="bg-secondary text-primary-foreground text-[11px] font-bold tracking-wider py-1">{event.month}</div>

@@ -1,16 +1,15 @@
 import pumpToPlug from "@/assets/event-pump-to-plug.jpg";
 import demoDaysLa from "@/assets/event-demo-days-la.jpg";
 import emobilitySummit from "@/assets/events/emobility-summit.webp";
-// Generic EV photos for industry-event listings without their own flyer.
-import evFamily from "@/assets/ev-family.jpg";
-import micromobility from "@/assets/micromobility.jpg";
-// Real event flyers/photos for specific industry-event listings.
+// Real event flyers/photos for the industry-event listings.
 import iaaMobility2027 from "@/assets/events/iaa-mobility-2027.png";
 import nordicEvSummit2027 from "@/assets/events/nordic-ev-summit-2027.png";
 import evChargingSummit2027 from "@/assets/events/ev-charging-summit-2027.png";
 import moveAmerica2026 from "@/assets/events/move-america-2026.png";
 import laAutoShow2026 from "@/assets/events/la-auto-show-2026.webp";
 import batteryShow2026 from "@/assets/events/battery-show-2026.avif";
+import actExpo2027 from "@/assets/events/act-expo-2027.png";
+import autoShanghai2027 from "@/assets/events/auto-shanghai-2027.png";
 import { lookupEventTitle } from "./event-titles";
 
 export interface EventItem {
@@ -365,7 +364,7 @@ export const EVENTS: EventItem[] = [
     time: "May 17–20, 2027",
     description:
       "North America's largest clean-fleet and commercial-EV event — 12,000+ attendees, 500+ exhibitors, and 200+ zero-emission vehicles spanning EVs, hydrogen, and AI-driven fleet tech.",
-    image: micromobility,
+    image: actExpo2027,
     heroHidden: true,
     slug: "act-expo-2027",
     registerUrl: "https://www.actexpo.com/",
@@ -393,7 +392,7 @@ export const EVENTS: EventItem[] = [
     time: "Apr 23 – May 2, 2027",
     description:
       "One of the world's largest auto shows — the 22nd edition at NECC Shanghai, a major global debut stage for electric vehicles.",
-    image: evFamily,
+    image: autoShanghai2027,
     heroHidden: true,
     slug: "auto-shanghai-2027",
     registerUrl: "https://autoshanghai.auto-fairs.com/en/",
