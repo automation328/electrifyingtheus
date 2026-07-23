@@ -1,5 +1,6 @@
 import pumpToPlug from "@/assets/event-pump-to-plug.jpg";
 import demoDaysLa from "@/assets/event-demo-days-la.jpg";
+import emobilitySummit from "@/assets/events/emobility-summit.webp";
 import { lookupEventTitle } from "./event-titles";
 
 export interface EventItem {
@@ -227,6 +228,20 @@ export const slugify = (s: string): string =>
     .replace(/-+$/g, "");
 
 export const EVENTS: EventItem[] = [
+  {
+    month: "JUL", day: "29", year: 2026,
+    title: "Multi-Modal eMobility Summit",
+    type: "Summit",
+    location: "Grosse Ile Municipal Airport, Grosse Ile, MI 48138",
+    region: "Grosse Ile, MI",
+    time: "9:00 AM – 7:00 PM ET",
+    description:
+      "This inaugural Multi-Modal eMobility Summit transforms an operational airport into a live demonstration space for the future of electric transportation — across land, air, and water. Explore static displays and vendor booths, join round-table discussions, catch live demos and speaker presentations, grab a bite from the food trucks, and take a DTE ride-and-drive. Hosted by Clean Fuels Michigan for OEMs, utilities, public agencies, technology providers, startups, and mobility-sector leaders.",
+    image: emobilitySummit,
+    featured: true,
+    slug: "multi-modal-emobility-summit",
+    registerUrl: "https://dsl9y.share.hsforms.com/2OnvJ8eYuToOIglqBjydEDQ",
+  },
   {
     month: "JUN", day: "27", year: 2026,
     title: "Demo Days Los Angeles",
