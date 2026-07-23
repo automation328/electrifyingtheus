@@ -10,8 +10,7 @@ import laAutoShow2026 from "@/assets/events/la-auto-show-2026.webp";
 import batteryShow2026 from "@/assets/events/battery-show-2026.avif";
 import actExpo2027 from "@/assets/events/act-expo-2027.png";
 import autoShanghai2027 from "@/assets/events/auto-shanghai-2027.png";
-// Generic EV photos for the couple of listings without their own flyer.
-import evFamily from "@/assets/ev-family.jpg";
+// Generic EV photo for the one listing without its own flyer (EVADC Monthly Meeting).
 import workforce from "@/assets/workforce.jpg";
 // Real flyers/graphics for the Drive Clean Colorado + EVADC events.
 import unityFest2026 from "@/assets/events/unity-fest-2026.png";
@@ -26,6 +25,7 @@ import driveCleanSummit2026 from "@/assets/events/drive-clean-summit-2026.png";
 import octoberCoalition2026 from "@/assets/events/october-coalition-2026.jpg";
 import evadcAskAnEvOwner2026 from "@/assets/events/evadc-ask-an-ev-owner-2026.png";
 import evadcPicnic2026 from "@/assets/events/evadc-picnic-2026.jpg";
+import forthRoadmap2026 from "@/assets/events/forth-roadmap-2026.png";
 import { lookupEventTitle } from "./event-titles";
 
 export interface EventItem {
@@ -509,7 +509,7 @@ export const EVENTS: EventItem[] = [
     time: "Sep 13–15, 2026",
     description:
       "The nation's leading electric-transportation conference — policymakers, utilities, automakers, and charging providers at the Seattle Convention Center. Drive Clean Colorado is proud to support Roadmap 2026.",
-    image: evFamily,
+    image: forthRoadmap2026,
     heroHidden: true,
     slug: "forth-roadmap-conference-2026",
     registerUrl: "https://drivecleancolorado.org/event/forth-roadmap-conference/",
