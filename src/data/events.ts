@@ -561,6 +561,51 @@ export const EVENTS: EventItem[] = [
     slug: "october-coalition-conversation-2026",
     registerUrl: "https://drivecleancolorado.org/event/october-coalition-conversation-2/",
   },
+
+  // ── EVADC — Electric Vehicle Association of Greater Washington DC ───────────
+  // (evadc.wildapricot.org) upcoming events; venue dropped to city + state.
+  {
+    month: "AUG", day: "5", year: 2026,
+    title: "Ask an EV Owner (EVADC)",
+    type: "Virtual Meetup",
+    location: "Online",
+    region: "Online",
+    time: "7:30 PM ET",
+    description:
+      "A recurring virtual Q&A where prospective buyers can ask real EV owners anything — range, charging, cost, and living with an electric vehicle. Hosted by the Electric Vehicle Association of Greater Washington DC.",
+    image: evCharging,
+    heroHidden: true,
+    slug: "evadc-ask-an-ev-owner-2026",
+    registerUrl: "https://evadc.wildapricot.org/event-4423364",
+  },
+  {
+    month: "AUG", day: "8", year: 2026,
+    title: "EVADC Picnic",
+    type: "Meetup",
+    location: "Great Falls, VA",
+    region: "Great Falls, VA",
+    time: "12:00 PM ET",
+    description:
+      "The Electric Vehicle Association of Greater Washington DC's member picnic at Riverbend Park — food, community, and EVs.",
+    image: evFamily,
+    heroHidden: true,
+    slug: "evadc-picnic-2026",
+    registerUrl: "https://evadc.wildapricot.org/event-6750995",
+  },
+  {
+    month: "AUG", day: "19", year: 2026,
+    title: "EVADC Monthly Meeting",
+    type: "Meetup",
+    location: "Bethesda, MD",
+    region: "Bethesda, MD",
+    time: "7:00 PM ET",
+    description:
+      "The Electric Vehicle Association of Greater Washington DC's monthly meeting — updates, guest speakers, and community discussion on all things EV.",
+    image: workforce,
+    heroHidden: true,
+    slug: "evadc-monthly-meeting-2026",
+    registerUrl: "https://evadc.wildapricot.org/event-5761950",
+  },
 ];
 
 const MONTHS = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
