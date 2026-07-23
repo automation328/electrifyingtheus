@@ -1,6 +1,14 @@
 import pumpToPlug from "@/assets/event-pump-to-plug.jpg";
 import demoDaysLa from "@/assets/event-demo-days-la.jpg";
 import emobilitySummit from "@/assets/events/emobility-summit.webp";
+// Generic EV photos for the curated industry-event listings (they have no flyer
+// of their own — cycled for visual variety, same pool the feed events use).
+import evCharging from "@/assets/ev-charging.jpg";
+import evFamily from "@/assets/ev-family.jpg";
+import workforce from "@/assets/workforce.jpg";
+import rideshareFleet from "@/assets/rideshare-fleet.jpg";
+import reducedEmissions from "@/assets/reduced-emissions.jpg";
+import micromobility from "@/assets/micromobility.jpg";
 import { lookupEventTitle } from "./event-titles";
 
 export interface EventItem {
@@ -271,6 +279,136 @@ export const EVENTS: EventItem[] = [
     ours: true,
     slug: "from-pump-to-plug",
     registerUrl: "https://us06web.zoom.us/webinar/register/WN_PtzGLoOyQqmDMg8lXpKRlw#/registration",
+  },
+
+  // ── Major EV / mobility industry events (from EV Magazine's Top 10) ─────────
+  // Only their next upcoming edition (on/after Jul 2026); past editions excluded.
+  // Listed in the Events directory only — not featured, kept out of the hero.
+  {
+    month: "SEP", day: "23", year: 2026,
+    title: "MOVE America 2026",
+    type: "Conference",
+    location: "Huntington Place, Detroit, MI",
+    region: "Detroit, MI",
+    time: "Sep 23–24, 2026",
+    description:
+      "The leading converged mobility conference in the Americas — 5,000+ professionals across EVs, fleets, micromobility, charging, and smart cities, with live demos on wireless charging, V2X, and electrified fleets.",
+    image: reducedEmissions,
+    heroHidden: true,
+    slug: "move-america-2026",
+    registerUrl: "https://www.terrapinn.com/exhibition/move-america/index.stm",
+  },
+  {
+    month: "OCT", day: "12", year: 2026,
+    title: "The Battery Show North America 2026",
+    type: "Expo",
+    location: "Huntington Place, Detroit, MI",
+    region: "Detroit, MI",
+    time: "Oct 12–15, 2026",
+    description:
+      "North America's largest battery and EV-tech event — 21,000+ professionals and 1,300+ exhibitors across electrification, energy storage, thermal management, and battery systems. Co-located with EV Tech Expo.",
+    image: evCharging,
+    heroHidden: true,
+    slug: "the-battery-show-north-america-2026",
+    registerUrl: "https://www.thebatteryshow.com/",
+  },
+  {
+    month: "NOV", day: "20", year: 2026,
+    title: "LA Auto Show / AutoMobility LA 2026",
+    type: "Auto Show",
+    location: "Los Angeles Convention Center, Los Angeles, CA",
+    region: "Los Angeles, CA",
+    time: "Nov 20–29, 2026",
+    description:
+      "North America's premier EV launchpad — featuring Electric Avenue, a nearly mile-long indoor EV test track, and debuts from every major automaker, alongside the AutoMobility LA industry days.",
+    image: evFamily,
+    heroHidden: true,
+    slug: "la-auto-show-automobility-la-2026",
+    registerUrl: "https://laautoshow.com/",
+  },
+  {
+    month: "MAR", day: "1", year: 2027,
+    title: "EV Charging Summit & Expo 2027",
+    type: "Summit",
+    location: "Caesars Forum, Las Vegas, NV",
+    region: "Las Vegas, NV",
+    time: "Mar 1–3, 2027",
+    description:
+      "North America's most influential event focused exclusively on EV charging infrastructure — 240+ exhibitors and 180+ speakers covering charging technology, financing models, and policy.",
+    image: workforce,
+    heroHidden: true,
+    slug: "ev-charging-summit-expo-2027",
+    registerUrl: "https://evchargingsummit.com/",
+  },
+  {
+    month: "MAY", day: "12", year: 2027,
+    title: "Nordic EV Summit 2027",
+    type: "Summit",
+    location: "NOVA Spektrum, Oslo, Norway",
+    region: "Oslo, Norway",
+    time: "May 12–13, 2027",
+    description:
+      "Europe's policy-leading EV gathering — 1,300+ delegates across government, industry, and academia, with sessions on charging profitability, battery production, and zero-emission transport.",
+    image: rideshareFleet,
+    heroHidden: true,
+    slug: "nordic-ev-summit-2027",
+    registerUrl: "https://nordicevs.no/",
+  },
+  {
+    month: "MAY", day: "17", year: 2027,
+    title: "Advanced Clean Transportation (ACT) Expo 2027",
+    type: "Expo",
+    location: "Las Vegas Convention Center, Las Vegas, NV",
+    region: "Las Vegas, NV",
+    time: "May 17–20, 2027",
+    description:
+      "North America's largest clean-fleet and commercial-EV event — 12,000+ attendees, 500+ exhibitors, and 200+ zero-emission vehicles spanning EVs, hydrogen, and AI-driven fleet tech.",
+    image: micromobility,
+    heroHidden: true,
+    slug: "act-expo-2027",
+    registerUrl: "https://www.actexpo.com/",
+  },
+  {
+    month: "JUN", day: "8", year: 2027,
+    title: "Power2Drive Europe 2027",
+    type: "Expo",
+    location: "Messe München, Munich, Germany",
+    region: "Munich, Germany",
+    time: "Jun 8–10, 2027",
+    description:
+      "A premier European exhibition for EVs, charging infrastructure, and renewable-energy integration — part of The smarter E Europe, focused on bidirectional charging, V2G, and solar integration.",
+    image: reducedEmissions,
+    heroHidden: true,
+    slug: "power2drive-europe-2027",
+    registerUrl: "https://www.powertodrive.de/en/home",
+  },
+  {
+    month: "SEP", day: "7", year: 2027,
+    title: "IAA Mobility 2027",
+    type: "Auto Show",
+    location: "Messe München, Munich, Germany",
+    region: "Munich, Germany",
+    time: "Sep 7–12, 2027",
+    description:
+      "One of the world's largest mobility shows — 500,000+ visitors and 750 exhibitors, with global EV launches and a public Open Space in Munich's city center.",
+    image: evCharging,
+    heroHidden: true,
+    slug: "iaa-mobility-2027",
+    registerUrl: "https://www.iaa-mobility.com/en",
+  },
+  {
+    month: "APR", day: "23", year: 2027,
+    title: "Auto Shanghai 2027",
+    type: "Auto Show",
+    location: "National Exhibition and Convention Center (NECC), Shanghai, China",
+    region: "Shanghai, China",
+    time: "Apr 23 – May 2, 2027",
+    description:
+      "One of the world's largest auto shows — the 22nd edition at NECC Shanghai, a major global debut stage for electric vehicles.",
+    image: evFamily,
+    heroHidden: true,
+    slug: "auto-shanghai-2027",
+    registerUrl: "https://autoshanghai.auto-fairs.com/en/",
   },
 ];
 
