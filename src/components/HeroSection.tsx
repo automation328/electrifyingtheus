@@ -67,9 +67,14 @@ const HeroSection = () => {
       {/* Slides (cross-fade) */}
       {SLIDES.map((slide, i) => {
         const active = i === index;
-        // One-off: the "From Pump to Plug" event shows its designed image bare —
-        // no blue overlay, no framed thumbnail. Every other slide is unchanged.
-        const plain = slide.kind === "event" && slide.data.slug === "from-pump-to-plug";
+        // Designed-flyer events show their image bare — no blue overlay, no framed
+        // thumbnail — since the flyer carries its own copy. Every other slide is
+        // unchanged. "From Pump to Plug" shows the whole flyer (contain); the
+        // eMobility Summit flyer center-fills the hero (cover).
+        const plain =
+          slide.kind === "event" &&
+          (slide.data.slug === "from-pump-to-plug" || slide.data.slug === "multi-modal-emobility-summit");
+        const coverFlyer = slide.kind === "event" && slide.data.slug === "multi-modal-emobility-summit";
         return (
           <div
             key={i}
@@ -79,18 +84,32 @@ const HeroSection = () => {
             aria-hidden={!active}
           >
             {plain ? (
-              // Designed flyer: show it whole (no crop) over a blurred fill of
-              // itself so the wide banner reads on a tall hero.
-              <>
-                <img src={pumpToPlugFlyer} alt="" aria-hidden className="absolute inset-0 w-full h-full object-cover scale-125 blur-2xl" />
-                <div className="absolute inset-0 bg-black/30" />
-                <img
-                  src={pumpToPlugFlyer}
-                  alt="Part 2: From The Pump To The Plug — How Electric Vehicles Can Save You Thousands — webinar, Thursday August 27, 2–3 PM ET"
-                  className="absolute inset-0 w-full h-full object-contain"
-                  loading="lazy"
-                />
-              </>
+              coverFlyer ? (
+                // eMobility Summit flyer: center-fill the hero (cover), no overlay.
+                // A soft neutral scrim at the very bottom seats the CTA button.
+                <>
+                  <img
+                    src={slideBg(slide)}
+                    alt={slide.kind === "event" ? slide.data.title : ""}
+                    className="absolute inset-0 w-full h-full object-cover object-center"
+                    loading={i === 0 ? "eager" : "lazy"}
+                  />
+                  <div className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-black/55 via-black/20 to-transparent" aria-hidden />
+                </>
+              ) : (
+                // Designed flyer: show it whole (no crop) over a blurred fill of
+                // itself so the wide banner reads on a tall hero.
+                <>
+                  <img src={pumpToPlugFlyer} alt="" aria-hidden className="absolute inset-0 w-full h-full object-cover scale-125 blur-2xl" />
+                  <div className="absolute inset-0 bg-black/30" />
+                  <img
+                    src={pumpToPlugFlyer}
+                    alt="Part 2: From The Pump To The Plug — How Electric Vehicles Can Save You Thousands — webinar, Thursday August 27, 2–3 PM ET"
+                    className="absolute inset-0 w-full h-full object-contain"
+                    loading="lazy"
+                  />
+                </>
+              )
             ) : (
               <>
                 <img

@@ -232,7 +232,7 @@ export const EVENTS: EventItem[] = [
     month: "JUL", day: "29", year: 2026,
     title: "Multi-Modal eMobility Summit",
     type: "Summit",
-    location: "Grosse Ile Municipal Airport, Grosse Ile, MI 48138",
+    location: "Grosse Ile, MI",
     region: "Grosse Ile, MI",
     time: "9:00 AM – 7:00 PM ET",
     description:
