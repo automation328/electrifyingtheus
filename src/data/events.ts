@@ -10,6 +10,13 @@ import laAutoShow2026 from "@/assets/events/la-auto-show-2026.webp";
 import batteryShow2026 from "@/assets/events/battery-show-2026.avif";
 import actExpo2027 from "@/assets/events/act-expo-2027.png";
 import autoShanghai2027 from "@/assets/events/auto-shanghai-2027.png";
+// Generic EV photos for coalition/meet-up listings that have no flyer of their own.
+import evCharging from "@/assets/ev-charging.jpg";
+import evFamily from "@/assets/ev-family.jpg";
+import workforce from "@/assets/workforce.jpg";
+import rideshareFleet from "@/assets/rideshare-fleet.jpg";
+import reducedEmissions from "@/assets/reduced-emissions.jpg";
+import micromobility from "@/assets/micromobility.jpg";
 import { lookupEventTitle } from "./event-titles";
 
 export interface EventItem {
@@ -396,6 +403,163 @@ export const EVENTS: EventItem[] = [
     heroHidden: true,
     slug: "auto-shanghai-2027",
     registerUrl: "https://autoshanghai.auto-fairs.com/en/",
+  },
+
+  // ── Drive Clean Colorado events (drivecleancolorado.org/events) ────────────
+  // Upcoming only; venue dropped so the pin is city + state (or "Online").
+  {
+    month: "JUL", day: "26", year: 2026,
+    title: "5th Annual Unity Fest 2026",
+    type: "Festival",
+    location: "Aurora, CO",
+    region: "Aurora, CO",
+    time: "3:00 – 7:00 PM MT",
+    description:
+      "Drive Clean Colorado joins the 5th annual Unity Fest — a free, family-friendly celebration presented by the Black Parents United Foundation — sharing state and federal programs that support healthier, cleaner communities.",
+    image: evFamily,
+    heroHidden: true,
+    slug: "unity-fest-2026",
+    registerUrl: "https://drivecleancolorado.org/event/5th-annual-unity-fest-2026/",
+  },
+  {
+    month: "JUL", day: "30", year: 2026,
+    title: "July Coalition Conversation",
+    type: "Virtual Meetup",
+    location: "Online",
+    region: "Online",
+    time: "9:30 – 10:30 AM MT",
+    description:
+      "Drive Clean Colorado's monthly Coalition Conversation — a chance to stay plugged into Colorado's clean-transportation landscape, hear what others are working on, and share updates.",
+    image: evCharging,
+    heroHidden: true,
+    slug: "july-coalition-conversation-2026",
+    registerUrl: "https://drivecleancolorado.org/event/july-coalition-conversation/",
+  },
+  {
+    month: "JUL", day: "31", year: 2026,
+    title: "State of Charge 2026: Education, Innovation, and EV Conversions",
+    type: "Conference",
+    location: "Golden, CO",
+    region: "Golden, CO",
+    time: "Jul 31 – Aug 1, 2026",
+    description:
+      "An educational conference hosted by Ohm On The Range, bringing together EV enthusiasts, industry professionals, builders, and innovators for two days of education, innovation, and EV conversions.",
+    image: workforce,
+    heroHidden: true,
+    slug: "state-of-charge-2026",
+    registerUrl: "https://drivecleancolorado.org/event/state-of-charge-2026-education-innovation-and-ev-conversions/",
+  },
+  {
+    month: "AUG", day: "6", year: 2026,
+    title: "EV Charging Meet-Up",
+    type: "Meetup",
+    location: "Brighton, CO",
+    region: "Brighton, CO",
+    time: "8:45 – 10:30 AM MT",
+    description:
+      "An interactive session at the Adams County Conference Center bringing together charging experts, local leaders, and industry partners to share best practices for EV charging deployment.",
+    image: rideshareFleet,
+    heroHidden: true,
+    slug: "ev-charging-meet-up-2026",
+    registerUrl: "https://drivecleancolorado.org/event/ev-charging-meet-up-3/",
+  },
+  {
+    month: "AUG", day: "27", year: 2026,
+    title: "August Coalition Conversation",
+    type: "Virtual Meetup",
+    location: "Online",
+    region: "Online",
+    time: "9:30 – 10:30 AM MT",
+    description:
+      "Drive Clean Colorado's monthly Coalition Conversation — a steady touchpoint for collaboration, idea-sharing, and community-building around clean transportation.",
+    image: reducedEmissions,
+    heroHidden: true,
+    slug: "august-coalition-conversation-2026",
+    registerUrl: "https://drivecleancolorado.org/event/august-coalition-conversation-2/",
+  },
+  {
+    month: "SEP", day: "9", year: 2026,
+    title: "Fleet Charging and Meet-Up",
+    type: "Meetup",
+    location: "Colorado",
+    region: "Colorado",
+    time: "10:00 – 11:30 AM MT",
+    description:
+      "A fleet convening hosted with Xcel Energy, bringing together fleet managers, public agencies, utilities, and industry leaders to discuss fleet electrification, infrastructure planning, and utility coordination.",
+    image: micromobility,
+    heroHidden: true,
+    slug: "fleet-charging-meet-up-2026",
+    registerUrl: "https://drivecleancolorado.org/event/fleet-charging-and-meet-up/",
+  },
+  {
+    month: "SEP", day: "13", year: 2026,
+    title: "Forth Roadmap Conference",
+    type: "Conference",
+    location: "Seattle, WA",
+    region: "Seattle, WA",
+    time: "Sep 13–15, 2026",
+    description:
+      "The nation's leading electric-transportation conference — policymakers, utilities, automakers, and charging providers at the Seattle Convention Center. Drive Clean Colorado is proud to support Roadmap 2026.",
+    image: evFamily,
+    heroHidden: true,
+    slug: "forth-roadmap-conference-2026",
+    registerUrl: "https://drivecleancolorado.org/event/forth-roadmap-conference/",
+  },
+  {
+    month: "SEP", day: "17", year: 2026,
+    title: "SoCo Charging Meet-Up",
+    type: "Meetup",
+    location: "Pueblo West, CO",
+    region: "Pueblo West, CO",
+    time: "3:00 – 6:00 PM MT",
+    description:
+      "A fun, interactive event at Steel City Solar to connect with industry experts, explore EVs, and experience live charging demonstrations — whether you're EV-curious or already driving electric.",
+    image: evCharging,
+    heroHidden: true,
+    slug: "soco-charging-meet-up-2026",
+    registerUrl: "https://drivecleancolorado.org/event/soco-charging-meet-up/",
+  },
+  {
+    month: "SEP", day: "24", year: 2026,
+    title: "September Coalition Conversation",
+    type: "Virtual Meetup",
+    location: "Online",
+    region: "Online",
+    time: "9:30 – 10:30 AM MT",
+    description:
+      "Drive Clean Colorado's monthly Coalition Conversation — a place to exchange insights, celebrate progress, and learn what's next across the state.",
+    image: workforce,
+    heroHidden: true,
+    slug: "september-coalition-conversation-2026",
+    registerUrl: "https://drivecleancolorado.org/event/september-coalition-conversation-2/",
+  },
+  {
+    month: "OCT", day: "22", year: 2026,
+    title: "Drive Clean Summit + Expo 2026",
+    type: "Expo",
+    location: "Denver, CO",
+    region: "Denver, CO",
+    time: "10:00 AM – 5:00 PM MT",
+    description:
+      "Drive Clean Colorado's flagship Summit + Expo at Empower Field at Mile High — a full day of clean-transportation education, exhibits, and networking. Registration opens August 1, 2026.",
+    image: rideshareFleet,
+    heroHidden: true,
+    slug: "drive-clean-summit-expo-2026",
+    registerUrl: "https://drivecleancolorado.org/event/drive-clean-summit-expo-2026/",
+  },
+  {
+    month: "OCT", day: "29", year: 2026,
+    title: "October Coalition Conversation",
+    type: "Virtual Meetup",
+    location: "Online",
+    region: "Online",
+    time: "9:30 – 10:30 AM MT",
+    description:
+      "The final Coalition Conversation of the year — a chance to reflect on progress and look ahead. (No calls in November or December.)",
+    image: reducedEmissions,
+    heroHidden: true,
+    slug: "october-coalition-conversation-2026",
+    registerUrl: "https://drivecleancolorado.org/event/october-coalition-conversation-2/",
   },
 ];
 
