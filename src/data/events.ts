@@ -10,13 +10,22 @@ import laAutoShow2026 from "@/assets/events/la-auto-show-2026.webp";
 import batteryShow2026 from "@/assets/events/battery-show-2026.avif";
 import actExpo2027 from "@/assets/events/act-expo-2027.png";
 import autoShanghai2027 from "@/assets/events/auto-shanghai-2027.png";
-// Generic EV photos for coalition/meet-up listings that have no flyer of their own.
-import evCharging from "@/assets/ev-charging.jpg";
+// Generic EV photos for the couple of listings without their own flyer.
 import evFamily from "@/assets/ev-family.jpg";
 import workforce from "@/assets/workforce.jpg";
-import rideshareFleet from "@/assets/rideshare-fleet.jpg";
-import reducedEmissions from "@/assets/reduced-emissions.jpg";
-import micromobility from "@/assets/micromobility.jpg";
+// Real flyers/graphics for the Drive Clean Colorado + EVADC events.
+import unityFest2026 from "@/assets/events/unity-fest-2026.png";
+import julyCoalition2026 from "@/assets/events/july-coalition-2026.jpg";
+import stateOfCharge2026 from "@/assets/events/state-of-charge-2026.png";
+import evChargingMeetup2026 from "@/assets/events/ev-charging-meetup-2026.jpg";
+import augustCoalition2026 from "@/assets/events/august-coalition-2026.jpg";
+import fleetCharging2026 from "@/assets/events/fleet-charging-2026.jpg";
+import socoMeetup2026 from "@/assets/events/soco-meetup-2026.jpg";
+import septemberCoalition2026 from "@/assets/events/september-coalition-2026.jpg";
+import driveCleanSummit2026 from "@/assets/events/drive-clean-summit-2026.png";
+import octoberCoalition2026 from "@/assets/events/october-coalition-2026.jpg";
+import evadcAskAnEvOwner2026 from "@/assets/events/evadc-ask-an-ev-owner-2026.png";
+import evadcPicnic2026 from "@/assets/events/evadc-picnic-2026.jpg";
 import { lookupEventTitle } from "./event-titles";
 
 export interface EventItem {
@@ -416,7 +425,7 @@ export const EVENTS: EventItem[] = [
     time: "3:00 – 7:00 PM MT",
     description:
       "Drive Clean Colorado joins the 5th annual Unity Fest — a free, family-friendly celebration presented by the Black Parents United Foundation — sharing state and federal programs that support healthier, cleaner communities.",
-    image: evFamily,
+    image: unityFest2026,
     heroHidden: true,
     slug: "unity-fest-2026",
     registerUrl: "https://drivecleancolorado.org/event/5th-annual-unity-fest-2026/",
@@ -430,7 +439,7 @@ export const EVENTS: EventItem[] = [
     time: "9:30 – 10:30 AM MT",
     description:
       "Drive Clean Colorado's monthly Coalition Conversation — a chance to stay plugged into Colorado's clean-transportation landscape, hear what others are working on, and share updates.",
-    image: evCharging,
+    image: julyCoalition2026,
     heroHidden: true,
     slug: "july-coalition-conversation-2026",
     registerUrl: "https://drivecleancolorado.org/event/july-coalition-conversation/",
@@ -444,7 +453,7 @@ export const EVENTS: EventItem[] = [
     time: "Jul 31 – Aug 1, 2026",
     description:
       "An educational conference hosted by Ohm On The Range, bringing together EV enthusiasts, industry professionals, builders, and innovators for two days of education, innovation, and EV conversions.",
-    image: workforce,
+    image: stateOfCharge2026,
     heroHidden: true,
     slug: "state-of-charge-2026",
     registerUrl: "https://drivecleancolorado.org/event/state-of-charge-2026-education-innovation-and-ev-conversions/",
@@ -458,7 +467,7 @@ export const EVENTS: EventItem[] = [
     time: "8:45 – 10:30 AM MT",
     description:
       "An interactive session at the Adams County Conference Center bringing together charging experts, local leaders, and industry partners to share best practices for EV charging deployment.",
-    image: rideshareFleet,
+    image: evChargingMeetup2026,
     heroHidden: true,
     slug: "ev-charging-meet-up-2026",
     registerUrl: "https://drivecleancolorado.org/event/ev-charging-meet-up-3/",
@@ -472,7 +481,7 @@ export const EVENTS: EventItem[] = [
     time: "9:30 – 10:30 AM MT",
     description:
       "Drive Clean Colorado's monthly Coalition Conversation — a steady touchpoint for collaboration, idea-sharing, and community-building around clean transportation.",
-    image: reducedEmissions,
+    image: augustCoalition2026,
     heroHidden: true,
     slug: "august-coalition-conversation-2026",
     registerUrl: "https://drivecleancolorado.org/event/august-coalition-conversation-2/",
@@ -486,7 +495,7 @@ export const EVENTS: EventItem[] = [
     time: "10:00 – 11:30 AM MT",
     description:
       "A fleet convening hosted with Xcel Energy, bringing together fleet managers, public agencies, utilities, and industry leaders to discuss fleet electrification, infrastructure planning, and utility coordination.",
-    image: micromobility,
+    image: fleetCharging2026,
     heroHidden: true,
     slug: "fleet-charging-meet-up-2026",
     registerUrl: "https://drivecleancolorado.org/event/fleet-charging-and-meet-up/",
@@ -514,7 +523,7 @@ export const EVENTS: EventItem[] = [
     time: "3:00 – 6:00 PM MT",
     description:
       "A fun, interactive event at Steel City Solar to connect with industry experts, explore EVs, and experience live charging demonstrations — whether you're EV-curious or already driving electric.",
-    image: evCharging,
+    image: socoMeetup2026,
     heroHidden: true,
     slug: "soco-charging-meet-up-2026",
     registerUrl: "https://drivecleancolorado.org/event/soco-charging-meet-up/",
@@ -528,7 +537,7 @@ export const EVENTS: EventItem[] = [
     time: "9:30 – 10:30 AM MT",
     description:
       "Drive Clean Colorado's monthly Coalition Conversation — a place to exchange insights, celebrate progress, and learn what's next across the state.",
-    image: workforce,
+    image: septemberCoalition2026,
     heroHidden: true,
     slug: "september-coalition-conversation-2026",
     registerUrl: "https://drivecleancolorado.org/event/september-coalition-conversation-2/",
@@ -542,7 +551,7 @@ export const EVENTS: EventItem[] = [
     time: "10:00 AM – 5:00 PM MT",
     description:
       "Drive Clean Colorado's flagship Summit + Expo at Empower Field at Mile High — a full day of clean-transportation education, exhibits, and networking. Registration opens August 1, 2026.",
-    image: rideshareFleet,
+    image: driveCleanSummit2026,
     heroHidden: true,
     slug: "drive-clean-summit-expo-2026",
     registerUrl: "https://drivecleancolorado.org/event/drive-clean-summit-expo-2026/",
@@ -556,7 +565,7 @@ export const EVENTS: EventItem[] = [
     time: "9:30 – 10:30 AM MT",
     description:
       "The final Coalition Conversation of the year — a chance to reflect on progress and look ahead. (No calls in November or December.)",
-    image: reducedEmissions,
+    image: octoberCoalition2026,
     heroHidden: true,
     slug: "october-coalition-conversation-2026",
     registerUrl: "https://drivecleancolorado.org/event/october-coalition-conversation-2/",
@@ -573,7 +582,7 @@ export const EVENTS: EventItem[] = [
     time: "7:30 PM ET",
     description:
       "A recurring virtual Q&A where prospective buyers can ask real EV owners anything — range, charging, cost, and living with an electric vehicle. Hosted by the Electric Vehicle Association of Greater Washington DC.",
-    image: evCharging,
+    image: evadcAskAnEvOwner2026,
     heroHidden: true,
     slug: "evadc-ask-an-ev-owner-2026",
     registerUrl: "https://evadc.wildapricot.org/event-4423364",
@@ -587,7 +596,7 @@ export const EVENTS: EventItem[] = [
     time: "12:00 PM ET",
     description:
       "The Electric Vehicle Association of Greater Washington DC's member picnic at Riverbend Park — food, community, and EVs.",
-    image: evFamily,
+    image: evadcPicnic2026,
     heroHidden: true,
     slug: "evadc-picnic-2026",
     registerUrl: "https://evadc.wildapricot.org/event-6750995",
