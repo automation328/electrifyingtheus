@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { useEmbedFrame } from "@/hooks/useEmbedFrame";
 import AfdcSearch from "@/components/AfdcSearch";
 import ShareGate from "@/components/forms/ShareGate";
 import { Button } from "@/components/ui/button";
@@ -58,6 +59,7 @@ const RebatesIncentives = () => {
   // `?embed=1` renders the tool chrome-free for iframing on third-party sites.
   const embed = typeof window !== "undefined" &&
     new URLSearchParams(window.location.search).get("embed") === "1";
+  useEmbedFrame(embed);
   const [zip, setZip] = useState("");
   const [loc, setLoc] = useState<{ zip: string; state: string; name: string } | null>(null);
   const [error, setError] = useState("");

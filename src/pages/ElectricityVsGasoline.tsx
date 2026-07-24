@@ -25,6 +25,7 @@ import iconSmallSuv from "@/assets/vehicle-icons/small-suv.png";
 import iconFullSuv from "@/assets/vehicle-icons/full-suv.png";
 import iconPickup from "@/assets/vehicle-icons/pickup.png";
 import Navbar from "@/components/Navbar";
+import { useEmbedFrame } from "@/hooks/useEmbedFrame";
 import ShareResultDialog from "@/components/forms/ShareResultDialog";
 import ShareGate from "@/components/forms/ShareGate";
 import CalculatorGateDialog from "@/components/forms/CalculatorGateDialog";
@@ -174,6 +175,7 @@ const DEFAULT_STATE: CalcState = {
 const ElectricityVsGasoline = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const embed = searchParams.get("embed") === "1";
+  useEmbedFrame(embed);
 
   // Hydrate once from the URL. Price fallbacks use the URL's state preset so a
   // link like ?car=…&state=TX restores TX prices even without explicit values.

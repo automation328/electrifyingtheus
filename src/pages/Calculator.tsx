@@ -37,6 +37,7 @@ import {
 } from "@/lib/tco-calculator";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { useEmbedFrame } from "@/hooks/useEmbedFrame";
 
 const US_STATES = [
   "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD",
@@ -48,6 +49,7 @@ const Calculator = () => {
   // `?embed=1` renders the tool chrome-free for iframing on third-party sites.
   const embed = typeof window !== "undefined" &&
     new URLSearchParams(window.location.search).get("embed") === "1";
+  useEmbedFrame(embed);
   const [step, setStep] = useState(1);
   const [selectedEV, setSelectedEV] = useState<string>("tesla-model-3");
   const [selectedGas, setSelectedGas] = useState<string>("toyota-camry");

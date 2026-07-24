@@ -211,6 +211,23 @@ html[data-theme="glass"] body {
 /* Let the body mesh show through full-page wrappers */
 html[data-theme="glass"] .bg-background { background-color: transparent !important; }
 
+/* =========================================================================
+   EMBEDDED TOOLS — `?embed=1` (html.embed is set by useEmbedFrame)
+   Strip the themed backdrop (glass gradient mesh) and the decorative
+   full-page overlays so an embedded widget sits on a clean white surface —
+   the tool is the only focus on whatever host page it's dropped into.
+   ========================================================================= */
+html.embed body,
+html.embed[data-theme="glass"] body {
+  background: #fff !important;
+  background-attachment: initial !important;
+}
+/* Decorative atmosphere layers (energy glows, engineering grid, film grain,
+   terminal glow) read as an unwanted background in an embed — hide them. */
+html.embed .evg-atmos,
+html.embed .term-glow { display: none !important; }
+html.embed .evg-grain::after { display: none !important; }
+
 /* Frosted cards */
 html[data-theme="glass"] .bg-card {
   background-color: rgba(255, 255, 255, 0.55) !important;

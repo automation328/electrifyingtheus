@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { MapPin, Search, ExternalLink, Plug, Zap, Gauge, Locate } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { useEmbedFrame } from "@/hooks/useEmbedFrame";
 import { Button } from "@/components/ui/button";
 import ShareGate from "@/components/forms/ShareGate";
 
@@ -35,6 +36,7 @@ const FindACharger = () => {
   // `?embed=1` renders the tool chrome-free for iframing on third-party sites.
   const embed = typeof window !== "undefined" &&
     new URLSearchParams(window.location.search).get("embed") === "1";
+  useEmbedFrame(embed);
   const urlZip = initialZipFromUrl();
   const [zip, setZip] = useState(urlZip);
   const [query, setQuery] = useState(urlZip); // the applied search term that drives the map

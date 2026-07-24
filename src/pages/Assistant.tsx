@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { ArrowLeft, Send, Zap, ArrowRight, Mail, Code2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { useEmbedFrame } from "@/hooks/useEmbedFrame";
 import ReactMarkdown from "react-markdown";
 import OpenAI from "openai";
 import { type Lead, EMPTY_LEAD, isValidEmail } from "@/lib/lead";
@@ -331,6 +332,7 @@ const Assistant = () => {
   // `?embed=1` renders the tool chrome-free for iframing on third-party sites.
   const embed = typeof window !== "undefined" &&
     new URLSearchParams(window.location.search).get("embed") === "1";
+  useEmbedFrame(embed);
 
   return (
     <div className="term min-h-screen flex flex-col bg-gradient-to-b from-primary/5 via-background to-secondary/5">
