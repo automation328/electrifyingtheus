@@ -134,7 +134,7 @@ const RebatesIncentives = () => {
       <main className={`flex-1 pb-16 ${embed ? "pt-8" : "pt-28"}`}>
         {/* Hero */}
         <section className="relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-secondary/5 to-transparent" aria-hidden />
+          {!embed && <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-secondary/5 to-transparent" aria-hidden />}
           <div className="container relative z-10 px-4 max-w-5xl">
             <div className="text-center max-w-2xl mx-auto pb-2">
               <span className="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-semibold mb-4 animate-fade-up">

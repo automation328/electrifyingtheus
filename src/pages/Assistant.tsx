@@ -335,7 +335,7 @@ const Assistant = () => {
   useEmbedFrame(embed);
 
   return (
-    <div className="term min-h-screen flex flex-col bg-gradient-to-b from-primary/5 via-background to-secondary/5">
+    <div className={`term min-h-screen flex flex-col ${embed ? "bg-white" : "bg-gradient-to-b from-primary/5 via-background to-secondary/5"}`}>
       <div className="term-glow" aria-hidden />
       {!embed && <Navbar />}
       <div className={`relative z-10 pb-16 flex-1 ${embed ? "pt-8" : "pt-28"}`}>
