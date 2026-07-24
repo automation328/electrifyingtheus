@@ -55,6 +55,9 @@ const FAQS = [
 ];
 
 const RebatesIncentives = () => {
+  // `?embed=1` renders the tool chrome-free for iframing on third-party sites.
+  const embed = typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("embed") === "1";
   const [zip, setZip] = useState("");
   const [loc, setLoc] = useState<{ zip: string; state: string; name: string } | null>(null);
   const [error, setError] = useState("");
@@ -125,8 +128,8 @@ const RebatesIncentives = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <Navbar />
-      <main className="flex-1 pt-28 pb-16">
+      {!embed && <Navbar />}
+      <main className={`flex-1 pb-16 ${embed ? "pt-8" : "pt-28"}`}>
         {/* Hero */}
         <section className="relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-secondary/5 to-transparent" aria-hidden />
@@ -490,7 +493,15 @@ const RebatesIncentives = () => {
         </div>
 
       </main>
-      <Footer />
+      {embed && (
+        <div className="container px-4 max-w-5xl pb-8 text-center">
+          <a href="https://electrifyingtheus.com/rebates-incentives" target="_blank" rel="noopener noreferrer"
+            className="text-xs text-muted-foreground hover:text-primary">
+            Powered by <span className="font-semibold text-foreground">Electrifying the US</span>
+          </a>
+        </div>
+      )}
+      {!embed && <Footer />}
     </div>
   );
 };

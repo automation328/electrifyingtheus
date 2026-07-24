@@ -33,6 +33,17 @@ const SITE_DEFAULT = {
 const CRAWLER =
   /facebookexternalhit|facebot|twitterbot|linkedinbot|slackbot|slack-imgproxy|whatsapp|telegrambot|discordbot|pinterest|redditbot|bingbot|embedly|vkshare|skypeuripreview|applebot|flipboard|nuzzel|iframely|google-inspectiontool|googleother/i;
 
+// Tool pages that may be embedded chrome-free (`?embed=1`) on third-party sites.
+// These requests carry no gate cookie, so they bypass the password gate below —
+// scoped to these exact paths so the rest of the site stays private.
+const EMBED_TOOL_PATHS = new Set([
+  "/calculator",
+  "/electricity-vs-gasoline",
+  "/find-a-charger",
+  "/rebates-incentives",
+  "/assistant",
+]);
+
 const esc = (v: string) =>
   String(v ?? "")
     .replace(/&/g, "&amp;")
@@ -139,11 +150,18 @@ function gateHtml(): string {
 export default function middleware(request: Request) {
   const ua = request.headers.get("user-agent") || "";
 
+  // Embedded tool requests (`?embed=1` on an EMBED_TOOL_PATHS route) skip the
+  // gate so third-party iframes render instead of the 401 sign-in page.
+  const reqUrl = new URL(request.url);
+  const reqPath = reqUrl.pathname.replace(/\/+$/, "") || "/";
+  const isEmbed =
+    reqUrl.searchParams.get("embed") === "1" && EMBED_TOOL_PATHS.has(reqPath);
+
   // Password gate — humans (non-crawlers) must carry the gate cookie. Crawlers
   // fall through to the OG logic below so social/link previews still render.
   if (!CRAWLER.test(ua)) {
     const token = process.env.GATE_TOKEN;
-    if (token) {
+    if (token && !isEmbed) {
       const cookie = request.headers.get("cookie") || "";
       const ok = cookie.split(/; */).some((c) => c === `etu_gate=${token}`);
       if (!ok) {

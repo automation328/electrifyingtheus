@@ -11,6 +11,12 @@ import ContactForm from "@/components/forms/ContactForm";
 const ContactWidget = () => {
   const [open, setOpen] = useState(false);
 
+  // Hide the floating widget when a tool is embedded (`?embed=1`) on a third-party
+  // site — the host page owns its own contact/CTA surface.
+  const embed = typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("embed") === "1";
+  if (embed) return null;
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>

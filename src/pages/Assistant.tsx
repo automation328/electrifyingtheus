@@ -328,18 +328,23 @@ const Assistant = () => {
   const showLeadForm = !lead && !!pending && !loading;
   const TXT = "text-[hsl(var(--term-text))]";
   const MUTED = "text-[hsl(var(--term-muted))]";
+  // `?embed=1` renders the tool chrome-free for iframing on third-party sites.
+  const embed = typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("embed") === "1";
 
   return (
     <div className="term min-h-screen flex flex-col bg-gradient-to-b from-primary/5 via-background to-secondary/5">
       <div className="term-glow" aria-hidden />
-      <Navbar />
-      <div className="relative z-10 pt-28 pb-16 flex-1">
+      {!embed && <Navbar />}
+      <div className={`relative z-10 pb-16 flex-1 ${embed ? "pt-8" : "pt-28"}`}>
         <div className="container px-4 max-w-3xl">
           {/* Back link */}
-          <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-8 transition-colors text-sm">
-            <ArrowLeft className="w-4 h-4" />
-            Back to Home
-          </Link>
+          {!embed && (
+            <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-8 transition-colors text-sm">
+              <ArrowLeft className="w-4 h-4" />
+              Back to Home
+            </Link>
+          )}
 
           {/* HMI header — energy core + identity + status */}
           <div className="text-center mb-9">
@@ -539,7 +544,15 @@ const Assistant = () => {
           </p>
         </div>
       </div>
-      <Footer />
+      {embed && (
+        <div className="container px-4 max-w-3xl pb-8 text-center">
+          <a href="https://electrifyingtheus.com/assistant" target="_blank" rel="noopener noreferrer"
+            className="text-xs text-muted-foreground hover:text-primary">
+            Powered by <span className="font-semibold text-foreground">Electrifying the US</span>
+          </a>
+        </div>
+      )}
+      {!embed && <Footer />}
     </div>
   );
 };
