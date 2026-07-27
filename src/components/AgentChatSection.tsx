@@ -276,7 +276,12 @@ const pushChatLeadToGHL = (lead: Lead) => {
   } catch { /* best-effort */ }
 };
 
-const AgentChatSection = () => {
+const SITE_ORIGIN = "https://electrifyingtheus.com";
+
+// `embed` — rendered inside a third-party iframe (via /assistant?embed=1): trims
+// the outer padding and makes in-tool links open the real site in a new tab
+// instead of navigating the iframe. `image` overrides the advisor portrait.
+const AgentChatSection = ({ embed = false, image = evanPortrait }: { embed?: boolean; image?: string }) => {
   // Seed identity from any earlier gate so a known visitor skips the lead form
   // entirely and is greeted by name.
   const [lead, setLead] = useState<Lead | null>(() => {
@@ -458,15 +463,33 @@ const AgentChatSection = () => {
     if (q) doSend(q, captured);
   };
 
+  // In embed, internal links open the live site in a new tab (a bare Link would
+  // navigate the iframe itself). Used for the markdown answer links below.
+  const mdComponents = embed
+    ? {
+        ...markdownComponents,
+        a: ({ href, children }: { href?: string; children?: React.ReactNode }) => (
+          <a
+            href={href?.startsWith("/") ? SITE_ORIGIN + href : href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline font-medium text-[hsl(var(--term-link))]"
+          >
+            {children}
+          </a>
+        ),
+      }
+    : markdownComponents;
+
   return (
-    <section id="agent-chat" className="py-20 md:py-28">
+    <section id="agent-chat" className={embed ? "py-6" : "py-20 md:py-28"}>
       <div className="container">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-stretch">
           {/* LEFT — Electric agents image */}
           <div className="relative flex">
             <div className="relative rounded-3xl overflow-hidden shadow-xl w-full">
               <img
-                src={evanPortrait}
+                src={image}
                 alt="EVan, your Electrifying the US E-Mobility Advisor"
                 className="w-full h-full object-cover"
                 loading="lazy"
@@ -531,7 +554,7 @@ const AgentChatSection = () => {
                           }`}
                           style={msg.role === "user" ? { background: "linear-gradient(135deg, hsl(var(--term-blue)), hsl(var(--term-cyan)) 58%, hsl(var(--term-green)))" } : undefined}
                         >
-                          <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>{msg.content}</ReactMarkdown>
+                          <ReactMarkdown remarkPlugins={[remarkGfm]} components={mdComponents}>{msg.content}</ReactMarkdown>
                         </div>
                       </div>
                     ))}
@@ -592,9 +615,17 @@ const AgentChatSection = () => {
                         </button>
                         <p className="text-[11px] text-[hsl(var(--term-muted))] px-1 leading-relaxed">
                           By using this tool, you agree to our{" "}
-                          <Link to="/terms" className="underline hover:text-[hsl(var(--term-cyan))]">Terms of Use</Link>{" "}
+                          {embed ? (
+                            <a href={`${SITE_ORIGIN}/terms`} target="_blank" rel="noopener noreferrer" className="underline hover:text-[hsl(var(--term-cyan))]">Terms of Use</a>
+                          ) : (
+                            <Link to="/terms" className="underline hover:text-[hsl(var(--term-cyan))]">Terms of Use</Link>
+                          )}{" "}
                           and{" "}
-                          <Link to="/privacy-policy" className="underline hover:text-[hsl(var(--term-cyan))]">Privacy Policy</Link>.
+                          {embed ? (
+                            <a href={`${SITE_ORIGIN}/privacy-policy`} target="_blank" rel="noopener noreferrer" className="underline hover:text-[hsl(var(--term-cyan))]">Privacy Policy</a>
+                          ) : (
+                            <Link to="/privacy-policy" className="underline hover:text-[hsl(var(--term-cyan))]">Privacy Policy</Link>
+                          )}.
                           Results are estimates only and should not be relied upon as financial or professional advice.
                         </p>
                       </form>
@@ -666,11 +697,19 @@ const AgentChatSection = () => {
                   E-Mobility Advisor to your website and engage your visitors.
                 </p>
               </div>
-              <Link to="/contact-us" className="shrink-0">
-                <Button variant="green" className="rounded-xl">
-                  <Sparkles className="w-4 h-4" /> Add EVan to my site
-                </Button>
-              </Link>
+              {embed ? (
+                <a href={`${SITE_ORIGIN}/contact-us`} target="_blank" rel="noopener noreferrer" className="shrink-0">
+                  <Button variant="green" className="rounded-xl">
+                    <Sparkles className="w-4 h-4" /> Add EVan to my site
+                  </Button>
+                </a>
+              ) : (
+                <Link to="/contact-us" className="shrink-0">
+                  <Button variant="green" className="rounded-xl">
+                    <Sparkles className="w-4 h-4" /> Add EVan to my site
+                  </Button>
+                </Link>
+              )}
             </div>
           </div>
         </div>
