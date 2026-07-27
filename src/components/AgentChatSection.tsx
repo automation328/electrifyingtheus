@@ -484,7 +484,7 @@ const AgentChatSection = ({ embed = false, image = evanPortrait }: { embed?: boo
   return (
     <section id="agent-chat" className={embed ? "py-6" : "py-20 md:py-28"}>
       <div className="container">
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-stretch">
+        <div className={`grid items-stretch ${embed ? "lg:grid-cols-[minmax(0,0.72fr)_minmax(0,1.45fr)] gap-8 lg:gap-10" : "lg:grid-cols-2 gap-12 lg:gap-16"}`}>
           {/* LEFT — Electric agents image */}
           <div className="relative flex">
             <div className="relative rounded-3xl overflow-hidden shadow-xl w-full">
