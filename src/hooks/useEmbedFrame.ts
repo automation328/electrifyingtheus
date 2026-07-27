@@ -18,6 +18,16 @@ export function useEmbedFrame(enabled: boolean) {
     const html = document.documentElement;
     html.classList.add("embed");
 
+    // Match the host page's font when the loader passed it as `?font=`. Applied
+    // to the body base font so paragraphs, labels, inputs, and buttons inherit
+    // it; branded display headings keep their own explicit font-family, so the
+    // tool blends into the host without losing its identity.
+    const font = new URLSearchParams(window.location.search).get("font");
+    if (font) {
+      document.body.style.setProperty("font-family", font);
+      html.style.setProperty("--embed-font", font);
+    }
+
     const post = () => {
       const height = Math.ceil(
         Math.max(
@@ -44,6 +54,8 @@ export function useEmbedFrame(enabled: boolean) {
       window.clearInterval(iv);
       window.clearTimeout(stop);
       html.classList.remove("embed");
+      document.body.style.removeProperty("font-family");
+      html.style.removeProperty("--embed-font");
     };
   }, [enabled]);
 }

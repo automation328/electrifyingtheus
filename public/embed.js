@@ -46,7 +46,20 @@
 
   var initialHeight = parseInt(self.getAttribute("data-etu-height"), 10) || 700;
   var extra = self.getAttribute("data-etu-query") || "";
-  var src = ORIGIN + path + "?embed=1" + (extra ? "&" + extra.replace(/^\?/, "") : "");
+
+  // Auto-match the host page's font: this loader runs in the host document, so
+  // it can read the host's computed font-family (which a cross-origin iframe
+  // never could) and hand it to the tool. An explicit data-etu-font wins.
+  // System / Google fonts match exactly; a host-only custom webfont passes its
+  // name but the iframe falls back to the next family in the stack.
+  var font = self.getAttribute("data-etu-font") || "";
+  if (!font) {
+    try { font = getComputedStyle(document.body).fontFamily || ""; } catch (e) { font = ""; }
+  }
+
+  var src = ORIGIN + path + "?embed=1" +
+    (extra ? "&" + extra.replace(/^\?/, "") : "") +
+    (font ? "&font=" + encodeURIComponent(font) : "");
 
   var frame = document.createElement("iframe");
   frame.src = src;
