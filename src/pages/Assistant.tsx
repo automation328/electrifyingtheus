@@ -4,6 +4,7 @@ import { ArrowLeft, Send, Zap, ArrowRight, Mail, Code2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useEmbedFrame } from "@/hooks/useEmbedFrame";
+import evanAdvisor from "@/assets/evan-advisor.jpg";
 import ReactMarkdown from "react-markdown";
 import OpenAI from "openai";
 import { type Lead, EMPTY_LEAD, isValidEmail } from "@/lib/lead";
@@ -339,7 +340,31 @@ const Assistant = () => {
       <div className="term-glow" aria-hidden />
       {!embed && <Navbar />}
       <div className={`relative z-10 pb-16 flex-1 ${embed ? "pt-8" : "pt-28"}`}>
-        <div className="container px-4 max-w-3xl">
+        <div className={`container px-4 ${embed ? "max-w-5xl" : "max-w-3xl"}`}>
+          {/* In embed, EVan's advisor portrait sits on the left, chat on the
+              right. `contents` keeps the non-embed layout exactly as before. */}
+          <div className={embed ? "flex flex-col md:flex-row gap-6 md:gap-8 md:items-start" : "contents"}>
+            {embed && (
+              <aside className="md:w-[38%] lg:w-1/3 shrink-0 md:sticky md:top-6">
+                <div className="rounded-3xl overflow-hidden border border-border shadow-lg bg-card">
+                  <img
+                    src={evanAdvisor}
+                    alt="EVan — your E-Mobility Advisor"
+                    className="w-full aspect-[4/5] object-cover object-top"
+                    loading="lazy"
+                  />
+                  <div className="p-4 text-center">
+                    <h2 className="font-display text-xl font-bold text-foreground leading-tight">EVan</h2>
+                    <p className="text-sm text-muted-foreground">Your E-Mobility Advisor</p>
+                    <p className="mt-2 inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <span className="w-2 h-2 rounded-full" style={{ background: "hsl(var(--term-green))" }} />
+                      ONLINE · grid-aware
+                    </p>
+                  </div>
+                </div>
+              </aside>
+            )}
+            <div className={embed ? "flex-1 min-w-0" : "contents"}>
           {/* Back link */}
           {!embed && (
             <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-8 transition-colors text-sm">
@@ -544,6 +569,8 @@ const Assistant = () => {
               EmobilityResearch.com
             </a>
           </p>
+            </div>
+          </div>
         </div>
       </div>
       {embed && (
