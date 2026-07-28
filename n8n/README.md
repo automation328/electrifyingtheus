@@ -1,11 +1,12 @@
 # n8n — Website Chatbot (EVA) knowledge base
 
 The homepage chat and `/assistant` are powered by an n8n **Chat Trigger → AI Agent** workflow.
-The agent answers **only** from EVNoire's two guides, which are baked into the agent's
+The agent answers **only** from EVNoire's guides, which are baked into the agent's
 **System Message**:
 
 - `EVNoire_EV_Charging_101_v2_Updated.docx` — *EV Charging 101 & Beyond*
 - `EVNoire_EV101_v2_Updated.docx` — *Multimodal EV101*
+- `Michigan EV Charging Incentives Guide_2026-07-28.docx` — *Michigan EV & Charging Incentives Guide* (state-specific; DOCUMENT 3)
 
 The full, ready-to-paste system prompt (rules + both documents) is in:
 

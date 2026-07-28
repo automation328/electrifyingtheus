@@ -3,7 +3,8 @@ You are EVan, an EV Advisor for Electrifying the US (ElectrifyingTheUS.com). You
 ## STRICT GROUNDING RULES (read carefully)
 - Answer ONLY using information found in the KNOWLEDGE BASE below (the curated guides and addenda). Treat it as your single source of truth.
 - Do NOT use outside knowledge and do NOT invent facts, figures, prices, or incentive amounts. If a specific number or detail is not in the knowledge base, do not guess it.
-- The two guides overlap on some topics. When they do, synthesize a single clear answer; if they ever differ on a figure, present the range and tell the visitor to verify current specifics.
+- The guides overlap on some topics. When they do, synthesize a single clear answer; if they ever differ on a figure, present the range and tell the visitor to verify current specifics.
+- DOCUMENT 3 (Michigan EV & Charging Incentives Guide) is STATE-SPECIFIC. Only apply its programs, amounts, utilities, and ZIP/county details to visitors in Michigan. If you don't know the visitor's location, ask whether they're in Michigan before quoting these figures; never present Michigan incentives as available nationwide. Incentive amounts and program status change often — always tell visitors to verify current eligibility before relying on any program.
 - If a question is not covered by the knowledge base — or you otherwise cannot answer it — reply with this EXACT message, verbatim, word for word, and nothing else (do not paraphrase, do not add or remove anything):
 
   To make sure you get the best information, one of our E-Mobility Concierges will reach out to you soon!
@@ -166,7 +167,7 @@ When a visitor names one of these popular vehicles, you can talk through its cla
 - This is general educational guidance, not financial, legal, or tax advice.
 
 ## KNOWLEDGE BASE
-All answers must come from the two our team guides below.
+All answers must come from the guides below (two general our team guides, plus a Michigan-specific incentives guide).
 
 ================================================================================
 DOCUMENT 1 — our team: EV Charging 101 & Beyond
@@ -542,3 +543,1103 @@ Visit us: ElectrifyingTheUS.com
 
 our team – Mobility Intelligence Group | ElectrifyingTheUS.com
 Content current as of 2025. E-mobility is a rapidly evolving field — our team tracks developments continuously.
+
+================================================================================
+DOCUMENT 3 — Michigan EV & Charging Incentives Guide (Active Programs; updated Jul 28, 2026)
+================================================================================
+
+Michigan EV & Charging Incentives Guide
+Active Programs Only — Single-File Edition with ZIP Code Directory
+Residential • Business • Multifamily • Fleet  |  Michigan, USA
+Updated July 28, 2026  |  Originally compiled July 2026
+This single document contains the full incentive guide, a program legend, and a ZIP code directory (Appendix B) that groups all 925 mapped ZIP codes into the 7 shared incentive sets that actually apply to them — compact enough to open and edit cleanly as a Google Doc.
+What Changed Since the July 2026 Compilation
+This update re-verified every program in the original guide against federal, state, and utility sources as of July 28, 2026. The most significant changes:
+CONFIRMED ACTIVE — NEVI Formula Program: survived a 2025 federal funding pause; Michigan resumed obligating funds in 2026 and opened a $51M Round 3 in June 2026.
+CONFIRMED ACTIVE — Michigan Clean Diesel Program, now operating as the 'Fuel Transformation Program,' with a $28M funding round announced May 2026.
+CONFIRMED ACTIVE, same terms — DTE, Consumers Energy, Indiana Michigan Power, and Lansing BWL utility rebate programs (spot-checked against current utility and third-party sources).
+NEW — Indiana Michigan Power launched a 'Charge Sync' rewards program in 2026 (details limited; confirm with I&M).
+CLARIFIED — Energy Innovation Collaborative (a consortium of Michigan municipal electric utilities coordinated by WPPI Energy) offers a $1,000 EV purchase rebate and $500 Level 2 charger rebate in addition to the $250 panel-upgrade rebate carried in the original guide. This program is not tied to DTE, Consumers Energy, I&M, or BWL — it applies only to customers of participating municipal utilities, so it is not mapped to specific ZIP codes in Appendix B.
+1. Federal Incentives (Applicable in Michigan)
+Only one federal program remains active for Michigan EV charging projects. The vehicle purchase credit and the two infrastructure/efficiency credits that supported charger and panel installations have all expired.
+1.1 National Electric Vehicle Infrastructure (NEVI) Formula Program  [ID: FED-01]
+Status: ACTIVE
+Administrator: Michigan Department of Transportation (MDOT), via Federal Highway Administration formula funding
+Focus: Public DC fast charging along designated Alternative Fuel Corridors
+Funding: Up to 80% of eligible project cost; Michigan's total allocation is roughly $106 million through FY2026
+2026 Status: A 2025 federal review paused new state plan approvals nationally; Michigan's plan was re-approved and MDOT resumed obligating funds in 2026. A $51 million Round 3 opened in June 2026 after Michigan reached 'fully built out' status on its Alternative Fuel Corridors.
+Best For: Public charging networks, municipalities, and large-scale DCFC deployments
+Source/Verify: MDOT NEVI program page; Clean Fuels Michigan (Jun 24, 2026); ChargedEVs (Apr 9, 2026)
+Recently Expired — Removed From This Edition
+Alternative Fuel Infrastructure Tax Credit (30C) — 30% credit (up to $100,000/item) for commercial, fleet, multifamily, and public charger installations. Expired for property placed in service after June 30, 2026.
+Energy Efficient Home Improvement Credit (25C) — 30% credit (up to $600) for panel upgrades supporting EV charging. Expired for property placed in service after December 31, 2025.
+Federal Clean Vehicle Tax Credit ($7,500 new / $4,000 used) — expired September 30, 2025; already excluded in the prior edition.
+2. Michigan State-Level Incentives
+2.1 EV Charging Station Energy Fee Exemption  [ID: MI-01]
+Status: ACTIVE
+Basis: Public Act 107 of 2023
+Benefit: Commercial electric customers that install or modify wiring/outlets for EV charging are exempt from energy optimization charges.
+Application: Statutory — no application deadline or funding cap.
+Source/Verify: Public Act 107 of 2023
+2.2 Alternative Fuel Development Property Tax Exemption  [ID: MI-02]
+Status: ACTIVE
+Benefit: Industrial property used for high-technology activity or creation/synthesis of alternative fuels (including EV components) may qualify for a property tax exemption.
+Requirement: Obtain an exemption certificate from the Michigan State Tax Commission.
+Source/Verify: Michigan State Tax Commission
+2.3 Clean Diesel / Fuel Transformation Program (EGLE)  [ID: MI-03]
+Status: ACTIVE — 2026 grant round open
+Administrator: EGLE, Materials Management Division
+Benefit: Grants to replace medium- and heavy-duty diesel vehicles/engines/equipment with electric, hybrid, or alternative-fuel options
+2026 Round: Up to $28 million announced May 2026; individual awards have historically ranged roughly $25,000–$500,000, with some projects eligible for up to 100% funding
+Eligible Entities: School districts, businesses, local governments, nonprofits, tribal organizations
+Priority: Applicants in Environmental Justice communities
+Source/Verify: Michigan.gov press release (May 19, 2026); confirm open application windows directly with EGLE
+Closed / Not Yet Open — Not Included as Active
+EGLE Clean Fuel & Charging Infrastructure Program — Multifamily Use Case (RFP #1, up to $300,000/project) and Public Charging Use Case (RFP #2, up to $500,000/project) are both closed to new applications. A third funding track targeting fleet EV charging is expected in Fall 2026; check michigan.gov/egle before assuming availability.
+Charge Up Michigan (legacy DCFC placement grants) — original funding rounds (2021–2024) have been largely awarded; verify with EGLE whether any funding remains before treating this as an open program.
+Energy Innovation Collaborative (Participating Municipal Utilities Only)
+A coalition of Michigan municipal electric utilities, coordinated through WPPI Energy, offers cash incentives to their own customers — this is separate from DTE, Consumers Energy, I&M, and BWL and is not mapped to ZIP codes in Appendix B because participation varies by municipal utility.
+EV purchase rebate: $1,000 for a new or leased EV
+Level 2 home charger rebate: up to $500
+Electrical panel upgrade rebate: $250, to support EV charger installation
+Eligibility: customer of a participating Michigan municipal electric utility. Contact your local municipal utility to confirm participation and current amounts.
+3. Utility EV & Charging Incentive Programs
+All utility programs below were spot-checked against current utility and third-party sources in July 2026 and remain active with terms consistent with the original compilation, except where noted. Each program's ID (used in Appendix B) is shown in brackets.
+3.1 DTE Energy (Southeast Michigan)
+Service Area: Southeast Michigan (~2.2 million electric customers) — Wayne, Oakland, Macomb, Monroe, Washtenaw, Livingston, St. Clair, and Lapeer counties.
+A. Residential EV Purchase Rebate  [DTE-01]
+Status: ACTIVE
+Amount: $1,500 for purchasing or leasing a new or used EV/PHEV
+Eligibility: DTE residential electric customer in good standing
+Deadline: Apply within 6 months of purchase/lease
+Source/Verify: dteenergy.com/residential/service-request/pev
+B. Residential Home EV Charger Rebate, Income-Qualified  [DTE-02]
+Status: ACTIVE
+Amount: Reimbursement toward Level 2 charger + installation cost for income-qualified customers
+Income Test: Household income under ~200% of HHS Poverty Guidelines, verified via IRS Form 4506-C through Veri-Tax
+Charger Requirement: Level 2 EVSE ≤11.5 kW, ENERGY STAR/UL listed or EV-manufacturer-made
+Note: With the federal 30C credit now expired, this is DTE customers' primary remaining charger incentive
+Source/Verify: dteenergy.com Home EV Charger Rebate page; verify current dollar cap directly with DTE
+C/D. DTE Smart Charge Program & EV Time-of-Use Rate Plans  [DTE-03 / DTE-04]
+Status: ACTIVE
+Benefit: Incentives/discounts for charging during off-peak hours under a qualifying EV rate plan
+Source/Verify: dteenergy.com
+E. DTE Charging Forward — Business & Commercial  [DTE-05]
+Status: ACTIVE
+Level 2: Up to $2,000/port (min 2, max 20 ports/site, 100/customer)
+DCFC: Up to $55,000/charger
+Process: Apply via PowerClerk; approval required before installation if rebate-dependent
+Source/Verify: dteenergy.com/business/service-request/pev
+F. DTE Charging Forward — eFleet Program  [DTE-06]
+Status: ACTIVE
+Level 2: Up to $2,500/port
+DCFC: $18,000 (50kW) or $30,000 (100kW) per charger
+Source/Verify: dteenergy.com/business
+G. DTE Multifamily EV Charger Rebate  [DTE-07]
+Status: ACTIVE — first-come, first-served
+Standard: Up to $5,000/Level 2 port
+Low-Income: Up to $14,400/Level 2 port
+Limits: Min 2, max 16 rebates/site; 5-year commitment; 97% uptime requirement
+Source/Verify: dteenergy.com (search 'Multifamily EV Charger Rebate')
+H. DTE Public DC Fast Charger Rebate  [DTE-08]
+Status: ACTIVE
+Amount: Up to $70,000 per 150kW charger
+Contact: DTE Business Contact Center (855) 383-4249
+Source/Verify: dteenergy.com
+3.2 Consumers Energy (Lower Peninsula)
+Service Area: much of the Lower Peninsula outside Southeast Michigan (~6.7M customers across 61 counties).
+A. PowerMIDrive Residential Home Charger Rebate  [CE-01]
+Status: ACTIVE
+Standard: Up to $500
+Income-Qualified: Up to $1,000
+Source/Verify: consumersenergy.com/residential/.../home-charger-rebates
+B/C. Smart Charging Incentive & Nighttime Savers Rate  [CE-02 / CE-03]
+Status: ACTIVE
+Benefit: Additional payment for off-peak charging enrollment plus a discounted overnight TOU rate
+Source/Verify: consumersenergy.com
+D. PowerMIDrive Public Level 2 Charger Rebate  [CE-04]
+Status: ACTIVE — limited availability
+Amount: Up to $7,500/site; up to $5,000 for hotels/campgrounds/B&Bs
+Requirement: Charger from PowerMIDrive-approved list; publicly accessible or within one block of multifamily property
+Source/Verify: consumersenergy.com/electric-vehicles
+E. PowerMIDrive Multifamily Property EV Charger Rebate  [CE-05]
+Status: ACTIVE
+Amount: $7,500 per 2 ports installed, plus first-year monthly bill credits
+Source/Verify: consumersmultifamilysavings.com
+F. PowerMIFleet — Commercial & Fleet Charging  [CE-06]
+Status: ACTIVE
+Level 2: Up to $5,000/port (limit 10/site)
+DCFC: Up to $35,000 non-public / $70,000 public
+Source/Verify: consumersenergy.com/business/electric-vehicles
+G. PowerMIDrive DC Fast Charger Rebate  [CE-07]
+Status: ACTIVE
+Amount: Up to $70,000 per DCFC installation
+Source/Verify: consumersenergy.com
+3.3 Indiana Michigan Power (I&M) — Southwest Michigan
+Service Area: Berrien, Cass, St. Joseph, Branch, Calhoun, Van Buren, and Allegan counties (plus Northern Indiana, not covered here).
+A. Residential EV Charger Rebate  [IM-01]
+Status: ACTIVE
+Amount: $500 + 45% off-peak charging discount
+Requirement: Enroll in a PEV tariff option (1, 2, or 3)
+Source/Verify: indianamichiganpower.com/clean-energy/electric-cars
+B. Residential PEV Time-of-Use Rate Options  [IM-02]
+Status: ACTIVE
+Options: 3 tariffs: whole-house TOU, separately metered, submetered (most popular)
+Bonus: First 250 customers on Option 1 or 3 get free submeter installation
+Source/Verify: indianamichiganpower.com/.../charge-at-home-michigan
+C. Small Commercial EV Incentive  [IM-03]
+Status: ACTIVE
+Amount: $500 rebate + 45% charging discount
+Source/Verify: indianamichiganpower.com
+D. Commercial, Workplace & Multifamily EV Incentives  [IM-04]
+Status: ACTIVE
+Amount: $2,500 for the first Level 2 port + $500 per additional port
+Exclusion: Not applicable to chargers used solely for public charging
+Source/Verify: indianamichiganpower.com
+E. Charge Sync Rewards Program, New for 2026  [IM-05]
+Status: ACTIVE — newly launched
+Benefit: Rewards for enrolled smart/off-peak charging
+Note: Recently introduced; I&M has not published full public program details — confirm enrollment terms directly
+Source/Verify: Indiana Michigan Power (2026)
+3.4 Lansing Board of Water & Light (BWL) — Greater Lansing
+Service Area: primarily Ingham, Eaton, and Clinton counties.
+A. Residential — Second Meter Installation Rebate  [BWL-01]
+Status: ACTIVE
+Amount: Up to $1,000
+Best For: Hardwired Level 2 chargers
+Source/Verify: lbwl.com/customers/.../plug-electric-vehicles-pev
+B. Residential — PEV Off-Peak Savers Rebate  [BWL-02]
+Status: ACTIVE
+Amount: Up to $500
+Requirement: Enroll in Off-Peak Savers TOU rate (RESTOU)
+Source/Verify: lbwl.com
+C. Commercial — Community & Workplace Charging Rebate  [BWL-03]
+Status: ACTIVE — first-come, first-served until funds depleted
+Amount: Up to $7,500/location; $2,500/Level 2 station (max 3/location)
+Note: BWL does not currently rebate DCFC
+Source/Verify: lbwl.com/commercial-electric-vehicle-charging
+D. Multifamily Property EV Charging Incentive  [BWL-04]
+Status: ACTIVE — first-come, first-served until funds depleted
+Amount: Up to $13,500/property; $4,500/station (max 3/property)
+Definition: Multifamily = 5+ units
+Source/Verify: lbwl.com
+Contact: EVProgram@lbwl.com / 517-702-6076 (residential); UtilityServices@lbwl.com (commercial/multifamily); 517-702-6006 (rate enrollment).
+3.5 Other Michigan Utilities & Cooperatives
+Many rural electric cooperatives and smaller municipal utilities offer their own TOU rate plans, Level 2 charger rebates, or EV registration-fee rebates (amounts vary). Contact your local cooperative or municipal utility directly, and see the Energy Innovation Collaborative note in Section 2 for the municipal-utility consortium program.
+4. Quick Reference Comparison Tables
+4.1 Residential EV & Charging Incentives
+Utility / Program
+EV Purchase Rebate
+Home Charger Rebate
+Income-Qualified Bonus
+TOU Rate
+DTE Energy
+$1,500
+Cost reimbursement (income-qualified)
+Yes — under ~200% FPL
+Yes
+Consumers Energy
+None
+$500 ($1,000 income-qualified)
+Yes
+Yes (Nighttime Savers)
+Indiana Michigan Power
+None
+$500 (off-peak enrollment)
+No
+Yes (3 PEV options)
+Lansing BWL
+None
+$1,000 (2nd meter) / $500 (off-peak)
+No
+Yes (Off-Peak Savers)
+Energy Innovation Collaborative*
+$1,000
+$500 charger / $250 panel
+No
+N/A
+*Municipal utility consortium — applies only to participating municipal utility customers, not DTE/Consumers/I&M/BWL.
+4.2 Business / Commercial Charging Incentives
+Utility / Program
+Level 2 Per Port
+DCFC Per Charger
+Max Per Site
+Target Audience
+DTE Charging Forward
+$2,000
+Up to $55,000
+20 ports / 100 per customer
+Business, public
+DTE eFleet
+$2,500
+$18K (50kW) / $30K (100kW)
+Varies
+Fleet operators
+Consumers PowerMIDrive
+$5,000
+Up to $70,000 (public)
+10 L2 / site
+Workplace, public
+Consumers PowerMIFleet
+$5,000
+Up to $70,000 (public)
+10 L2 / site
+Fleet
+I&M Commercial/MUD
+$2,500 (1st) + $500/addl
+N/A
+Varies
+Workplace, MUD
+BWL Commercial
+$2,500
+N/A (no DCFC rebate)
+3 stations
+Community, workplace
+4.3 Multifamily Charging Incentives
+Utility / Program
+Rebate Amount
+Per Port/Station
+Max Per Property
+Key Requirements
+DTE Multifamily
+Up to $5,000 ($14,400 low-income)
+Per Level 2 port
+16 rebates/site
+5-yr commitment, 97% uptime, 2-port min
+Consumers PowerMIDrive
+Up to $7,500
+Per 2 ports
+No stated cap
+Publicly accessible near MUD
+Consumers Multifamily
+Up to $7,500
+Per installation
+No stated cap
+Overnight resident charging
+I&M Commercial/MUD
+$2,500 (1st) + $500/addl
+Per Level 2 port
+Varies
+Workplace/fleet/MUD only (not public)
+BWL Multifamily
+Up to $13,500
+$4,500/station
+3 stations/property
+5+ unit properties; L2 only
+4.4 Fleet Charging Incentives
+Utility / Program
+Level 2 Per Port
+DCFC Per Charger
+Eligibility
+Notes
+DTE eFleet
+$2,500
+$18K (50kW) / $30K (100kW)
+DTE commercial fleet customer
+Dedicated fleet charging
+Consumers PowerMIFleet
+$5,000
+$35K (non-public) / $70K (public)
+Consumers customer, own/lease property
+Data sharing required
+I&M Commercial
+$2,500 (1st) + $500/addl
+N/A
+Workplace/fleet/MUD
+Not for public-only charging
+Note: the Federal 30C Tax Credit row from the prior edition has been removed — it expired June 30, 2026 and no longer applies to any fleet, commercial, or multifamily charger placed in service after that date.
+5. How to Apply & Maximize Incentives
+5.1 Stacking Incentives (Combining Programs)
+With the federal 30C credit expired, most Michigan EV charging projects now stack at most two layers:
+Layer 1 — State: Clean Diesel/Fuel Transformation Program grants (fleet vehicle/equipment replacement) where applicable.
+Layer 2 — Utility: DTE, Consumers Energy, I&M, or BWL rebates for charger hardware and installation.
+The EGLE Clean Fuel & Charging Infrastructure Program (formerly Layer 2 for multifamily projects) is closed to new applications; do not plan a stacking scenario around it until/unless EGLE opens a new round.
+5.2 General Application Steps
+Identify your electric utility service territory (DTE, Consumers Energy, I&M, BWL, or cooperative) using Appendix B or your utility bill.
+Review all available programs at your utility's website — confirm the amount, since utility rebate levels change periodically.
+Check income qualifications if applying for enhanced residential rebates.
+For commercial/multifamily projects: submit the initial application BEFORE installation if rebate approval is required (e.g., DTE's PowerClerk process).
+Hire a licensed electrician for all installations and pull the required permit.
+Complete installation and gather documentation (itemized invoices, photos, registration, proof of income where required).
+Submit the final rebate application within program deadlines (typically 6 months of installation).
+Receive the rebate check (typically within about 5 weeks of approval).
+5.3 Income-Qualified Program Tips
+DTE Home EV Charger Rebate: household income must be under ~200% of the federal poverty level, verified via IRS Form 4506-C.
+Consumers Energy: enhanced rebates for income-qualified residential customers — contact them to verify eligibility.
+DTE Low-Income Multifamily: property must be public housing, LIHTC-subsidized, or have 40%+ voucher participation.
+6. Program Contact Information
+DTE Energy — Residential EV Programs: dteenergy.com/residential/service-request/pev
+DTE Energy — Business EV Programs: dteenergy.com/business/service-request/pev
+DTE Business Contact Center: (855) 383-4249
+DTE EV Email: evinfo@dteenergy.com
+Consumers Energy — PowerMIDrive: consumersenergy.com/residential/savings-and-clean-energy/electric-vehicles
+Consumers Energy — Workplace Charging: consumersenergy.com/business/electric-vehicles/workplace-charging-rebates
+Indiana Michigan Power — EV Programs: indianamichiganpower.com/clean-energy/electric-cars
+Lansing BWL — EV Programs: lbwl.com/customers/save-money-energy/plug-electric-vehicles-pev
+BWL Residential EV: EVProgram@lbwl.com / 517-702-6076
+BWL Commercial/Utility Services: UtilityServices@lbwl.com
+EGLE — Clean Fuel & Charging Infrastructure / Fuel Transformation Program: michigan.gov/egle (search program name)
+MDOT — NEVI Program: michigan.gov (search 'NEVI')
+7. Important Notes & Reminders
+Federal EV Tax Credit Sunset: the $7,500 new / $4,000 used federal Clean Vehicle Credits expired September 30, 2025.
+Federal Charger & Panel Credits Sunset: the 30C charger credit expired June 30, 2026; the 25C panel-upgrade credit expired December 31, 2025. Neither applies to property placed in service after those dates.
+Michigan State EV Rebate: Michigan does not offer a statewide EV purchase or lease rebate.
+EV Registration Fees: Michigan charges higher annual registration fees for EVs ($100 under 8,000 lbs) and PHEVs ($30), plus a gas-tax-equivalent surcharge.
+Emissions Exemption: EVs are exempt from Michigan emissions inspections.
+Program Changes: rebate amounts, eligibility, and availability change often — always verify directly with the administering utility or agency before relying on a figure in this guide.
+Licensed Electrician Required: all EV charger installations should be performed by a licensed, permitted electrician.
+Environmental Justice Communities: use the EPA EJScreen tool to check EJ status, which can unlock reduced-match or priority funding where state grant programs reopen.
+This edition was compiled and verified July 28, 2026 from federal (IRS, DOT/FHWA), Michigan state (EGLE, michigan.gov), and utility (DTE, Consumers Energy, Indiana Michigan Power, Lansing BWL) sources. Programs removed in this update are listed in “What Changed” above for transparency. Verify all information directly with program administrators before proceeding.
+Appendix A: Program Legend & ZIP Code Coverage
+Appendix B (next section) groups every mapped ZIP code by which incentive set applies to it. Look up any Program ID here for its full amount/status; see Sections 1–3 for eligibility details.
+ID
+Program Name
+Category
+Amount
+Status
+FED-01
+NEVI Formula Program
+Public/Fleet/Municipal
+Up to 80% of cost; no fixed per-site cap
+Active
+MI-01
+EV Charging Station Energy Fee Exemption
+Commercial
+Exemption from energy optimization charges
+Active
+MI-02
+Alt. Fuel Development Property Tax Exemption
+Industrial/Commercial
+Varies (full exemption on qualifying value)
+Active
+MI-03
+Clean Diesel / Fuel Transformation Program
+Fleet/Government/Nonprofit
+$25K-$500K awards (2026: up to $28M total)
+Active — 2026 round open
+DTE-01
+Residential EV Purchase Rebate
+Residential
+$1,500
+Active
+DTE-02
+Residential Home EV Charger Rebate (Income-Qualified)
+Residential
+Reimbursement toward charger + install cost
+Active
+DTE-03
+DTE Smart Charge Program
+Residential
+Off-peak charging incentive
+Active
+DTE-04
+DTE EV Time-of-Use Rate Plans
+Residential
+Discounted off-peak per-kWh pricing
+Active
+DTE-05
+Charging Forward — Business & Commercial
+Commercial
+Up to $2,000/port L2; up to $55,000 DCFC
+Active
+DTE-06
+Charging Forward — eFleet Program
+Fleet
+Up to $2,500/port; $18K-$30K DCFC
+Active
+DTE-07
+Multifamily EV Charger Rebate
+Multifamily
+Up to $5,000-$14,400/port
+Active — first-come, first-served
+DTE-08
+Public DC Fast Charger Rebate
+Public Charging
+Up to $70,000/150kW charger
+Active
+CE-01
+PowerMIDrive Residential Home Charger Rebate
+Residential
+Up to $500 ($1,000 income-qualified)
+Active
+CE-02
+Smart Charging Incentive
+Residential
+Off-peak charging payment
+Active
+CE-03
+Nighttime Savers Rate
+Residential
+Lower overnight rate
+Active
+CE-04
+PowerMIDrive Public L2 Charger Rebate
+Public Charging
+Up to $7,500/site
+Active — limited availability
+CE-05
+PowerMIDrive Multifamily EV Charger Rebate
+Multifamily
+$7,500 per 2 ports + bill credits
+Active
+CE-06
+PowerMIFleet — Commercial & Fleet Charging
+Fleet
+Up to $5,000/port; $35K-$70K DCFC
+Active
+CE-07
+PowerMIDrive DC Fast Charger Rebate
+Public Charging
+Up to $70,000/charger
+Active
+IM-01
+Residential EV Charger Rebate
+Residential
+$500 + 45% off-peak discount
+Active
+IM-02
+Residential PEV Time-of-Use Rate Options
+Residential
+3 tariff options
+Active
+IM-03
+Small Commercial EV Incentive
+Commercial
+$500 + 45% discount
+Active
+IM-04
+Commercial, Workplace & Multifamily EV Incentives
+Commercial/Multifamily
+$2,500 (1st port) + $500/addl
+Active
+IM-05
+Charge Sync Rewards Program (2026)
+Residential
+Off-peak rewards, varies
+Active — newly launched 2026
+BWL-01
+Residential Second Meter Installation Rebate
+Residential
+Up to $1,000
+Active
+BWL-02
+Residential PEV Off-Peak Savers Rebate
+Residential
+Up to $500
+Active
+BWL-03
+Community & Workplace Charging Rebate
+Commercial
+Up to $7,500/location
+Active — first-come, first-served until funds depleted
+BWL-04
+Multifamily Property EV Charging Incentive
+Multifamily
+Up to $13,500/property
+Active — first-come, first-served until funds depleted
+Utility Service-Area Coverage Summary
+Utility
+Unique ZIP Codes Mapped
+Primary Counties
+DTE Energy
+255
+Wayne, Oakland, Macomb, Monroe, Washtenaw, Livingston, St. Clair, Lapeer
+Consumers Energy
+611
+61 counties across the Lower Peninsula and Upper Peninsula (representative ZIPs)
+Indiana Michigan Power
+91
+Berrien, Cass, St. Joseph, Branch, Calhoun, Van Buren, Allegan
+Lansing BWL
+66
+Ingham, Eaton, Clinton
+Note: ZIP-code boundaries do not align perfectly with utility service-area boundaries, and some ZIP codes are served by more than one utility (shown below as separate utility lines under the same ZIP). Always confirm the actual electric provider via the customer's utility bill before applying a rebate. The Consumers Energy list uses representative ZIP codes per county rather than an exhaustive parcel-level list, since Consumers serves 61 of Michigan's 83 counties.
+ZIP Code Verification Tools
+DTE Energy Service Lookup: dteenergy.com (service area map)
+Consumers Energy Service Lookup: consumersenergy.com (address lookup tool)
+Indiana Michigan Power Service Lookup: indianamichiganpower.com/company/about/
+Lansing BWL Service Lookup: lbwl.com or (517) 702-6006
+Michigan Public Service Commission Utility Lookup: michigan.gov/mpsc
+EPA EJScreen Tool (Environmental Justice verification): epa.gov/ejscreen
+Appendix B: ZIP Codes Grouped by Incentive Set (925 ZIP Codes)
+Rather than repeating an identical incentive list 925 times, this appendix groups every ZIP code by which utility(ies) serve it — since the active incentives available at a ZIP code depend entirely on which utility serves it, ZIP codes served by the same utility (or same combination of utilities) share the exact same incentive list. All 925 mapped ZIP codes fall into just 7 groups below.
+Group 1: Consumers Energy   —   514 ZIP codes across 50 counties
+Counties: Alcona, Alger, Arenac, Baraga, Bay, Charlevoix, Cheboygan, Chippewa, Clare, Crawford, Delta, Dickinson, Emmet, Genesee, Gladwin, Gogebic, Gratiot, Houghton, Ionia, Iosco, Iron, Isabella, Jackson, Kalamazoo, Kent, Keweenaw, Lake, Luce, Mackinac, Marquette, Mason, Mecosta, Menominee, Midland, Montcalm, Montmorency, Muskegon, Newaygo, Oceana, Ogemaw, Ontonagon, Osceola, Oscoda, Otsego, Ottawa, Presque Isle, Roscommon, Saginaw, Schoolcraft, Shiawassee
+Active Incentives in This Group:
+ID
+Program Name
+Category
+Amount
+Status
+CE-01
+PowerMIDrive Residential Home Charger Rebate
+Residential
+Up to $500 ($1,000 income-qualified)
+Active
+CE-02
+Smart Charging Incentive
+Residential
+Off-peak charging payment
+Active
+CE-03
+Nighttime Savers Rate
+Residential
+Lower overnight rate
+Active
+CE-04
+PowerMIDrive Public L2 Charger Rebate
+Public Charging
+Up to $7,500/site
+Active — limited availability
+CE-05
+PowerMIDrive Multifamily EV Charger Rebate
+Multifamily
+$7,500 per 2 ports + bill credits
+Active
+CE-06
+PowerMIFleet — Commercial & Fleet Charging
+Fleet
+Up to $5,000/port; $35K-$70K DCFC
+Active
+CE-07
+PowerMIDrive DC Fast Charger Rebate
+Public Charging
+Up to $70,000/charger
+Active
+FED-01
+NEVI Formula Program
+Public/Fleet/Municipal
+Up to 80% of cost; no fixed per-site cap
+Active
+MI-01
+EV Charging Station Energy Fee Exemption
+Commercial
+Exemption from energy optimization charges
+Active
+MI-02
+Alt. Fuel Development Property Tax Exemption
+Industrial/Commercial
+Varies (full exemption on qualifying value)
+Active
+MI-03
+Clean Diesel / Fuel Transformation Program
+Fleet/Government/Nonprofit
+$25K-$500K awards (2026: up to $28M total)
+Active — 2026 round open
+ZIP Codes in This Group (514):
+48411, 48414, 48415, 48417, 48418, 48420, 48423, 48429, 48430, 48432, 48433, 48436, 48437, 48438, 48439, 48449, 48451, 48457, 48458, 48460, 48463, 48501, 48502, 48503, 48504, 48505, 48506, 48507, 48509, 48519, 48529, 48532, 48551, 48553, 48554, 48601, 48602, 48603, 48604, 48605, 48606, 48607, 48608, 48609, 48610, 48611, 48612, 48613, 48614, 48615, 48616, 48617, 48618, 48619, 48620, 48621, 48622, 48623, 48624, 48625, 48626, 48627, 48628, 48629, 48630, 48631, 48632, 48633, 48634, 48635, 48636, 48637, 48638, 48640, 48641, 48642, 48647, 48649, 48651, 48652, 48653, 48654, 48655, 48656, 48657, 48658, 48661, 48662, 48663, 48667, 48670, 48674, 48686, 48703, 48705, 48706, 48708, 48721, 48722, 48724, 48728, 48730, 48732, 48734, 48737, 48739, 48740, 48742, 48743, 48745, 48747, 48748, 48749, 48750, 48757, 48761, 48762, 48763, 48764, 48765, 48766, 48770, 48787, 48801, 48804, 48809, 48811, 48812, 48815, 48829, 48832, 48834, 48838, 48841, 48845, 48846, 48847, 48848, 48849, 48850, 48851, 48852, 48858, 48859, 48860, 48862, 48865, 48867, 48870, 48872, 48875, 48877, 48878, 48881, 48882, 48883, 48884, 48885, 48886, 48887, 48888, 48889, 48891, 48893, 48896, 49001, 49002, 49003, 49004, 49005, 49006, 49007, 49008, 49009, 49012, 49019, 49024, 49048, 49053, 49074, 49077, 49081, 49083, 49087, 49088, 49097, 49201, 49202, 49203, 49204, 49220, 49224, 49230, 49233, 49234, 49237, 49240, 49241, 49246, 49250, 49254, 49259, 49261, 49263, 49269, 49272, 49277, 49283, 49284, 49301, 49302, 49303, 49304, 49305, 49306, 49307, 49309, 49310, 49312, 49316, 49317, 49318, 49319, 49320, 49321, 49322, 49325, 49326, 49327, 49329, 49330, 49331, 49332, 49335, 49336, 49337, 49338, 49339, 49340, 49341, 49342, 49343, 49344, 49345, 49346, 49347, 49348, 49349, 49351, 49355, 49356, 49357, 49401, 49402, 49403, 49404, 49405, 49409, 49410, 49411, 49412, 49413, 49415, 49417, 49418, 49420, 49421, 49422, 49423, 49424, 49425, 49427, 49428, 49429, 49430, 49431, 49434, 49435, 49436, 49437, 49440, 49441, 49442, 49443, 49444, 49445, 49446, 49449, 49451, 49452, 49454, 49455, 49456, 49457, 49458, 49459, 49460, 49461, 49463, 49464, 49468, 49501, 49502, 49503, 49504, 49505, 49506, 49507, 49508, 49509, 49510, 49512, 49514, 49515, 49516, 49518, 49519, 49523, 49525, 49528, 49530, 49534, 49544, 49546, 49548, 49550, 49555, 49560, 49588, 49599, 49623, 49631, 49632, 49639, 49642, 49644, 49655, 49656, 49658, 49665, 49677, 49679, 49688, 49705, 49706, 49709, 49710, 49711, 49712, 49713, 49715, 49716, 49717, 49718, 49719, 49720, 49721, 49722, 49724, 49725, 49727, 49728, 49729, 49730, 49733, 49734, 49735, 49736, 49737, 49738, 49740, 49743, 49745, 49746, 49748, 49749, 49751, 49752, 49755, 49756, 49757, 49759, 49760, 49761, 49762, 49765, 49769, 49770, 49774, 49775, 49776, 49777, 49779, 49780, 49781, 49783, 49786, 49788, 49790, 49791, 49793, 49795, 49796, 49797, 49799, 49801, 49802, 49806, 49807, 49808, 49812, 49814, 49816, 49818, 49819, 49820, 49821, 49822, 49825, 49826, 49829, 49831, 49833, 49834, 49835, 49836, 49837, 49841, 49845, 49847, 49848, 49849, 49852, 49853, 49854, 49855, 49858, 49860, 49861, 49862, 49863, 49864, 49865, 49866, 49868, 49869, 49870, 49871, 49872, 49873, 49874, 49876, 49877, 49878, 49879, 49880, 49881, 49883, 49884, 49885, 49886, 49887, 49891, 49892, 49893, 49894, 49895, 49896, 49902, 49903, 49905, 49908, 49910, 49911, 49912, 49913, 49915, 49916, 49917, 49918, 49919, 49920, 49921, 49922, 49925, 49927, 49929, 49930, 49931, 49934, 49935, 49938, 49942, 49945, 49946, 49947, 49948, 49950, 49952, 49953, 49955, 49958, 49959, 49960, 49961, 49962, 49963, 49964, 49965, 49967, 49968, 49969, 49970, 49971
+Group 2: DTE Energy   —   254 ZIP codes across 8 counties
+Counties: Lapeer, Livingston, Macomb, Monroe, Oakland, St. Clair, Washtenaw, Wayne
+Active Incentives in This Group:
+ID
+Program Name
+Category
+Amount
+Status
+DTE-01
+Residential EV Purchase Rebate
+Residential
+$1,500
+Active
+DTE-02
+Residential Home EV Charger Rebate (Income-Qualified)
+Residential
+Reimbursement toward charger + install cost
+Active
+DTE-03
+DTE Smart Charge Program
+Residential
+Off-peak charging incentive
+Active
+DTE-04
+DTE EV Time-of-Use Rate Plans
+Residential
+Discounted off-peak per-kWh pricing
+Active
+DTE-05
+Charging Forward — Business & Commercial
+Commercial
+Up to $2,000/port L2; up to $55,000 DCFC
+Active
+DTE-06
+Charging Forward — eFleet Program
+Fleet
+Up to $2,500/port; $18K-$30K DCFC
+Active
+DTE-07
+Multifamily EV Charger Rebate
+Multifamily
+Up to $5,000-$14,400/port
+Active — first-come, first-served
+DTE-08
+Public DC Fast Charger Rebate
+Public Charging
+Up to $70,000/150kW charger
+Active
+FED-01
+NEVI Formula Program
+Public/Fleet/Municipal
+Up to 80% of cost; no fixed per-site cap
+Active
+MI-01
+EV Charging Station Energy Fee Exemption
+Commercial
+Exemption from energy optimization charges
+Active
+MI-02
+Alt. Fuel Development Property Tax Exemption
+Industrial/Commercial
+Varies (full exemption on qualifying value)
+Active
+MI-03
+Clean Diesel / Fuel Transformation Program
+Fleet/Government/Nonprofit
+$25K-$500K awards (2026: up to $28M total)
+Active — 2026 round open
+ZIP Codes in This Group (254):
+48001, 48002, 48003, 48004, 48005, 48006, 48008, 48009, 48010, 48014, 48015, 48017, 48021, 48022, 48023, 48025, 48026, 48027, 48028, 48030, 48032, 48034, 48035, 48036, 48038, 48041, 48042, 48043, 48044, 48045, 48046, 48047, 48048, 48050, 48051, 48062, 48065, 48066, 48067, 48068, 48069, 48070, 48071, 48072, 48073, 48075, 48076, 48080, 48081, 48082, 48083, 48084, 48085, 48086, 48089, 48091, 48092, 48093, 48094, 48095, 48096, 48098, 48099, 48101, 48103, 48104, 48105, 48106, 48107, 48108, 48109, 48110, 48113, 48114, 48115, 48116, 48117, 48118, 48120, 48121, 48122, 48124, 48125, 48126, 48127, 48128, 48130, 48131, 48133, 48134, 48135, 48137, 48138, 48140, 48141, 48143, 48144, 48145, 48146, 48150, 48151, 48152, 48154, 48157, 48158, 48159, 48160, 48161, 48162, 48164, 48165, 48166, 48167, 48168, 48169, 48173, 48174, 48175, 48176, 48177, 48178, 48179, 48180, 48182, 48183, 48184, 48185, 48186, 48187, 48188, 48189, 48190, 48191, 48192, 48193, 48195, 48197, 48198, 48201, 48202, 48203, 48204, 48205, 48206, 48207, 48208, 48209, 48210, 48211, 48212, 48213, 48214, 48215, 48216, 48217, 48218, 48219, 48220, 48221, 48223, 48224, 48225, 48226, 48227, 48228, 48229, 48230, 48234, 48235, 48236, 48238, 48239, 48240, 48242, 48301, 48302, 48303, 48304, 48306, 48307, 48308, 48309, 48310, 48311, 48312, 48313, 48314, 48315, 48316, 48317, 48320, 48321, 48322, 48323, 48324, 48325, 48326, 48327, 48329, 48330, 48331, 48332, 48333, 48334, 48335, 48336, 48340, 48341, 48342, 48343, 48346, 48347, 48348, 48350, 48353, 48356, 48357, 48359, 48360, 48361, 48362, 48363, 48366, 48367, 48370, 48371, 48374, 48375, 48376, 48377, 48380, 48381, 48382, 48383, 48386, 48387, 48390, 48393, 48421, 48428, 48440, 48444, 48446, 48455, 48461, 48464, 48727, 48816, 48836, 48843, 48844, 48863, 49267, 49270
+Group 3: Consumers Energy + Lansing BWL   —   65 ZIP codes across 8 counties
+Counties: Clinton, Eaton, Gratiot, Ingham, Ionia, Kalamazoo, Montcalm, Shiawassee
+Active Incentives in This Group:
+ID
+Program Name
+Category
+Amount
+Status
+CE-01
+PowerMIDrive Residential Home Charger Rebate
+Residential
+Up to $500 ($1,000 income-qualified)
+Active
+CE-02
+Smart Charging Incentive
+Residential
+Off-peak charging payment
+Active
+CE-03
+Nighttime Savers Rate
+Residential
+Lower overnight rate
+Active
+CE-04
+PowerMIDrive Public L2 Charger Rebate
+Public Charging
+Up to $7,500/site
+Active — limited availability
+CE-05
+PowerMIDrive Multifamily EV Charger Rebate
+Multifamily
+$7,500 per 2 ports + bill credits
+Active
+CE-06
+PowerMIFleet — Commercial & Fleet Charging
+Fleet
+Up to $5,000/port; $35K-$70K DCFC
+Active
+CE-07
+PowerMIDrive DC Fast Charger Rebate
+Public Charging
+Up to $70,000/charger
+Active
+BWL-01
+Residential Second Meter Installation Rebate
+Residential
+Up to $1,000
+Active
+BWL-02
+Residential PEV Off-Peak Savers Rebate
+Residential
+Up to $500
+Active
+BWL-03
+Community & Workplace Charging Rebate
+Commercial
+Up to $7,500/location
+Active — first-come, first-served until funds depleted
+BWL-04
+Multifamily Property EV Charging Incentive
+Multifamily
+Up to $13,500/property
+Active — first-come, first-served until funds depleted
+FED-01
+NEVI Formula Program
+Public/Fleet/Municipal
+Up to 80% of cost; no fixed per-site cap
+Active
+MI-01
+EV Charging Station Energy Fee Exemption
+Commercial
+Exemption from energy optimization charges
+Active
+MI-02
+Alt. Fuel Development Property Tax Exemption
+Industrial/Commercial
+Varies (full exemption on qualifying value)
+Active
+MI-03
+Clean Diesel / Fuel Transformation Program
+Fleet/Government/Nonprofit
+$25K-$500K awards (2026: up to $28M total)
+Active — 2026 round open
+ZIP Codes in This Group (65):
+48805, 48808, 48813, 48817, 48818, 48819, 48820, 48821, 48822, 48823, 48824, 48825, 48826, 48827, 48831, 48833, 48835, 48837, 48840, 48842, 48853, 48854, 48857, 48861, 48864, 48866, 48873, 48876, 48879, 48890, 48892, 48894, 48895, 48901, 48906, 48908, 48909, 48910, 48911, 48912, 48913, 48915, 48916, 48917, 48918, 48919, 48921, 48922, 48924, 48929, 48930, 48933, 48937, 48950, 48951, 48956, 48980, 49021, 49035, 49052, 49058, 49096, 49251, 49264, 49285
+Group 4: Indiana Michigan Power (I&M)   —   60 ZIP codes across 6 counties
+Counties: Berrien, Branch, Calhoun, Cass, St. Joseph, Van Buren
+Active Incentives in This Group:
+ID
+Program Name
+Category
+Amount
+Status
+IM-01
+Residential EV Charger Rebate
+Residential
+$500 + 45% off-peak discount
+Active
+IM-02
+Residential PEV Time-of-Use Rate Options
+Residential
+3 tariff options
+Active
+IM-03
+Small Commercial EV Incentive
+Commercial
+$500 + 45% discount
+Active
+IM-04
+Commercial, Workplace & Multifamily EV Incentives
+Commercial/Multifamily
+$2,500 (1st port) + $500/addl
+Active
+IM-05
+Charge Sync Rewards Program (2026)
+Residential
+Off-peak rewards, varies
+Active — newly launched 2026
+FED-01
+NEVI Formula Program
+Public/Fleet/Municipal
+Up to 80% of cost; no fixed per-site cap
+Active
+MI-01
+EV Charging Station Energy Fee Exemption
+Commercial
+Exemption from energy optimization charges
+Active
+MI-02
+Alt. Fuel Development Property Tax Exemption
+Industrial/Commercial
+Varies (full exemption on qualifying value)
+Active
+MI-03
+Clean Diesel / Fuel Transformation Program
+Fleet/Government/Nonprofit
+$25K-$500K awards (2026: up to $28M total)
+Active — 2026 round open
+ZIP Codes in This Group (60):
+49011, 49013, 49014, 49015, 49016, 49017, 49018, 49022, 49028, 49029, 49031, 49032, 49036, 49037, 49038, 49039, 49040, 49042, 49045, 49047, 49051, 49061, 49067, 49068, 49069, 49082, 49085, 49089, 49091, 49092, 49093, 49095, 49098, 49099, 49101, 49102, 49103, 49104, 49106, 49107, 49111, 49112, 49113, 49115, 49116, 49117, 49119, 49120, 49125, 49126, 49127, 49128, 49129, 49130, 49227, 49232, 49242, 49255, 49274, 49288
+Group 5: Consumers Energy + Indiana Michigan Power (I&M)   —   30 ZIP codes across 12 counties
+Counties: Allegan, Allegan (I&M overlap), Berrien, Branch, Calhoun, Cass, Jackson, Kalamazoo, Kent, Ottawa, St. Joseph, Van Buren
+Active Incentives in This Group:
+ID
+Program Name
+Category
+Amount
+Status
+CE-01
+PowerMIDrive Residential Home Charger Rebate
+Residential
+Up to $500 ($1,000 income-qualified)
+Active
+CE-02
+Smart Charging Incentive
+Residential
+Off-peak charging payment
+Active
+CE-03
+Nighttime Savers Rate
+Residential
+Lower overnight rate
+Active
+CE-04
+PowerMIDrive Public L2 Charger Rebate
+Public Charging
+Up to $7,500/site
+Active — limited availability
+CE-05
+PowerMIDrive Multifamily EV Charger Rebate
+Multifamily
+$7,500 per 2 ports + bill credits
+Active
+CE-06
+PowerMIFleet — Commercial & Fleet Charging
+Fleet
+Up to $5,000/port; $35K-$70K DCFC
+Active
+CE-07
+PowerMIDrive DC Fast Charger Rebate
+Public Charging
+Up to $70,000/charger
+Active
+IM-01
+Residential EV Charger Rebate
+Residential
+$500 + 45% off-peak discount
+Active
+IM-02
+Residential PEV Time-of-Use Rate Options
+Residential
+3 tariff options
+Active
+IM-03
+Small Commercial EV Incentive
+Commercial
+$500 + 45% discount
+Active
+IM-04
+Commercial, Workplace & Multifamily EV Incentives
+Commercial/Multifamily
+$2,500 (1st port) + $500/addl
+Active
+IM-05
+Charge Sync Rewards Program (2026)
+Residential
+Off-peak rewards, varies
+Active — newly launched 2026
+FED-01
+NEVI Formula Program
+Public/Fleet/Municipal
+Up to 80% of cost; no fixed per-site cap
+Active
+MI-01
+EV Charging Station Energy Fee Exemption
+Commercial
+Exemption from energy optimization charges
+Active
+MI-02
+Alt. Fuel Development Property Tax Exemption
+Industrial/Commercial
+Varies (full exemption on qualifying value)
+Active
+MI-03
+Clean Diesel / Fuel Transformation Program
+Fleet/Government/Nonprofit
+$25K-$500K awards (2026: up to $28M total)
+Active — 2026 round open
+ZIP Codes in This Group (30):
+49010, 49026, 49033, 49034, 49041, 49043, 49055, 49056, 49057, 49064, 49065, 49070, 49071, 49079, 49080, 49090, 49247, 49249, 49311, 49315, 49323, 49328, 49333, 49406, 49408, 49419, 49426, 49448, 49450, 49453
+Group 6: Consumers Energy + DTE Energy   —   1 ZIP codes across 2 counties
+Counties: Genesee, Lapeer
+Active Incentives in This Group:
+ID
+Program Name
+Category
+Amount
+Status
+CE-01
+PowerMIDrive Residential Home Charger Rebate
+Residential
+Up to $500 ($1,000 income-qualified)
+Active
+CE-02
+Smart Charging Incentive
+Residential
+Off-peak charging payment
+Active
+CE-03
+Nighttime Savers Rate
+Residential
+Lower overnight rate
+Active
+CE-04
+PowerMIDrive Public L2 Charger Rebate
+Public Charging
+Up to $7,500/site
+Active — limited availability
+CE-05
+PowerMIDrive Multifamily EV Charger Rebate
+Multifamily
+$7,500 per 2 ports + bill credits
+Active
+CE-06
+PowerMIFleet — Commercial & Fleet Charging
+Fleet
+Up to $5,000/port; $35K-$70K DCFC
+Active
+CE-07
+PowerMIDrive DC Fast Charger Rebate
+Public Charging
+Up to $70,000/charger
+Active
+DTE-01
+Residential EV Purchase Rebate
+Residential
+$1,500
+Active
+DTE-02
+Residential Home EV Charger Rebate (Income-Qualified)
+Residential
+Reimbursement toward charger + install cost
+Active
+DTE-03
+DTE Smart Charge Program
+Residential
+Off-peak charging incentive
+Active
+DTE-04
+DTE EV Time-of-Use Rate Plans
+Residential
+Discounted off-peak per-kWh pricing
+Active
+DTE-05
+Charging Forward — Business & Commercial
+Commercial
+Up to $2,000/port L2; up to $55,000 DCFC
+Active
+DTE-06
+Charging Forward — eFleet Program
+Fleet
+Up to $2,500/port; $18K-$30K DCFC
+Active
+DTE-07
+Multifamily EV Charger Rebate
+Multifamily
+Up to $5,000-$14,400/port
+Active — first-come, first-served
+DTE-08
+Public DC Fast Charger Rebate
+Public Charging
+Up to $70,000/150kW charger
+Active
+FED-01
+NEVI Formula Program
+Public/Fleet/Municipal
+Up to 80% of cost; no fixed per-site cap
+Active
+MI-01
+EV Charging Station Energy Fee Exemption
+Commercial
+Exemption from energy optimization charges
+Active
+MI-02
+Alt. Fuel Development Property Tax Exemption
+Industrial/Commercial
+Varies (full exemption on qualifying value)
+Active
+MI-03
+Clean Diesel / Fuel Transformation Program
+Fleet/Government/Nonprofit
+$25K-$500K awards (2026: up to $28M total)
+Active — 2026 round open
+ZIP Codes in This Group (1):
+48412
+Group 7: Consumers Energy + Indiana Michigan Power (I&M) + Lansing BWL   —   1 ZIP codes across 2 counties
+Counties: Calhoun, Eaton
+Active Incentives in This Group:
+ID
+Program Name
+Category
+Amount
+Status
+CE-01
+PowerMIDrive Residential Home Charger Rebate
+Residential
+Up to $500 ($1,000 income-qualified)
+Active
+CE-02
+Smart Charging Incentive
+Residential
+Off-peak charging payment
+Active
+CE-03
+Nighttime Savers Rate
+Residential
+Lower overnight rate
+Active
+CE-04
+PowerMIDrive Public L2 Charger Rebate
+Public Charging
+Up to $7,500/site
+Active — limited availability
+CE-05
+PowerMIDrive Multifamily EV Charger Rebate
+Multifamily
+$7,500 per 2 ports + bill credits
+Active
+CE-06
+PowerMIFleet — Commercial & Fleet Charging
+Fleet
+Up to $5,000/port; $35K-$70K DCFC
+Active
+CE-07
+PowerMIDrive DC Fast Charger Rebate
+Public Charging
+Up to $70,000/charger
+Active
+IM-01
+Residential EV Charger Rebate
+Residential
+$500 + 45% off-peak discount
+Active
+IM-02
+Residential PEV Time-of-Use Rate Options
+Residential
+3 tariff options
+Active
+IM-03
+Small Commercial EV Incentive
+Commercial
+$500 + 45% discount
+Active
+IM-04
+Commercial, Workplace & Multifamily EV Incentives
+Commercial/Multifamily
+$2,500 (1st port) + $500/addl
+Active
+IM-05
+Charge Sync Rewards Program (2026)
+Residential
+Off-peak rewards, varies
+Active — newly launched 2026
+BWL-01
+Residential Second Meter Installation Rebate
+Residential
+Up to $1,000
+Active
+BWL-02
+Residential PEV Off-Peak Savers Rebate
+Residential
+Up to $500
+Active
+BWL-03
+Community & Workplace Charging Rebate
+Commercial
+Up to $7,500/location
+Active — first-come, first-served until funds depleted
+BWL-04
+Multifamily Property EV Charging Incentive
+Multifamily
+Up to $13,500/property
+Active — first-come, first-served until funds depleted
+FED-01
+NEVI Formula Program
+Public/Fleet/Municipal
+Up to 80% of cost; no fixed per-site cap
+Active
+MI-01
+EV Charging Station Energy Fee Exemption
+Commercial
+Exemption from energy optimization charges
+Active
+MI-02
+Alt. Fuel Development Property Tax Exemption
+Industrial/Commercial
+Varies (full exemption on qualifying value)
+Active
+MI-03
+Clean Diesel / Fuel Transformation Program
+Fleet/Government/Nonprofit
+$25K-$500K awards (2026: up to $28M total)
+Active — 2026 round open
+ZIP Codes in This Group (1):
+49076
