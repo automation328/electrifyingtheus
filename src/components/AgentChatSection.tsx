@@ -484,25 +484,27 @@ const AgentChatSection = ({ embed = false, image = evanPortrait }: { embed?: boo
   return (
     <section id="agent-chat" className={embed ? "py-6" : "py-20 md:py-28"}>
       <div className="container">
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-stretch">
-          {/* LEFT — Electric agents image */}
-          <div className="relative flex">
-            <div className="relative rounded-3xl overflow-hidden shadow-xl w-full">
-              <img
-                src={image}
-                alt="EVan, your Electrifying the US E-Mobility Advisor"
-                className="w-full h-full object-cover"
-                loading="lazy"
-              />
-              {/* Floating badge */}
-              <div className="absolute bottom-5 left-5 glass-card rounded-2xl px-5 py-4 animate-float">
-                <div className="flex items-center gap-2 text-primary font-bold font-display text-lg">
-                  <Sparkles size={20} /> Always On
+        <div className={`grid ${embed ? "" : "lg:grid-cols-2"} gap-12 lg:gap-16 items-stretch`}>
+          {/* LEFT — Electric agents image (hidden in embed mode) */}
+          {!embed && (
+            <div className="relative flex">
+              <div className="relative rounded-3xl overflow-hidden shadow-xl w-full">
+                <img
+                  src={image}
+                  alt="EVan, your Electrifying the US E-Mobility Advisor"
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                />
+                {/* Floating badge */}
+                <div className="absolute bottom-5 left-5 glass-card rounded-2xl px-5 py-4 animate-float">
+                  <div className="flex items-center gap-2 text-primary font-bold font-display text-lg">
+                    <Sparkles size={20} /> Always On
+                  </div>
+                  <div className="text-sm text-muted-foreground">AI agents ready 24/7</div>
                 </div>
-                <div className="text-sm text-muted-foreground">AI agents ready 24/7</div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* RIGHT — Live chat */}
           <div className="flex flex-col">

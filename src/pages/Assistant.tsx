@@ -343,16 +343,6 @@ const Assistant = () => {
     return (
       <div className="min-h-screen bg-white">
         <AgentChatSection embed image={evanAdvisor} />
-        <div className="container px-4 pb-8 text-center">
-          <a
-            href="https://electrifyingtheus.com/assistant"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-xs text-muted-foreground hover:text-primary"
-          >
-            Powered by <span className="font-semibold text-foreground">Electrifying the US</span>
-          </a>
-        </div>
       </div>
     );
   }
