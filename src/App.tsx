@@ -8,6 +8,7 @@ import Index from "./pages/Index.tsx";
 import Calculator from "./pages/Calculator.tsx";
 import Assistant from "./pages/Assistant.tsx";
 import ElectricityVsGasoline from "./pages/ElectricityVsGasoline.tsx";
+import GmEvVsGas from "./pages/GmEvVsGas.tsx";
 import News from "./pages/News.tsx";
 import BlogPost from "./pages/BlogPost.tsx";
 import Events from "./pages/Events.tsx";
@@ -62,6 +63,7 @@ const App = () => (
           <Route path="/calculator" element={<Calculator />} />
           <Route path="/assistant" element={<Assistant />} />
           <Route path="/electricity-vs-gasoline" element={<ElectricityVsGasoline />} />
+          <Route path="/gm-ev-vs-gas" element={<GmEvVsGas />} />
           <Route path="/news" element={<News />} />
           <Route path="/blog" element={<Navigate to="/news" replace />} />
           {/* Legacy blog slugs → current SEO slugs (preserve old links). */}

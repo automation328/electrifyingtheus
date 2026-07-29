@@ -39,6 +39,7 @@ const CRAWLER =
 const EMBED_TOOL_PATHS = new Set([
   "/calculator",
   "/electricity-vs-gasoline",
+  "/gm-ev-vs-gas",
   "/find-a-charger",
   "/rebates-incentives",
   "/assistant",
@@ -61,13 +62,17 @@ function calculatorMeta(url: URL, origin: string): Meta {
   const pageUrl = origin + url.pathname + url.search;
   const ev = p.get("ogEv");
   const gas = p.get("ogGas");
+  const isGm = url.pathname.replace(/\/+$/, "") === "/gm-ev-vs-gas";
 
   // Bare share (no result params, e.g. a copied page URL) → branded banner card.
   if (!ev || !gas) {
     return {
-      title: "EV vs Gas Calculator — See how much you'll save",
-      description:
-        "Compare any EV against a gas car on real U.S. energy prices, state by state — fuel, maintenance, and incentives.",
+      title: isGm
+        ? "GM EV vs Gas Cost Calculator — See how much you'll save"
+        : "EV vs Gas Calculator — See how much you'll save",
+      description: isGm
+        ? "Compare a GM EV — Equinox EV, Silverado EV, Cadillac LYRIQ and more — against your gas car on real U.S. energy prices, state by state."
+        : "Compare any EV against a gas car on real U.S. energy prices, state by state — fuel, maintenance, and incentives.",
       image,
       url: pageUrl,
     };
@@ -180,7 +185,7 @@ export default function middleware(request: Request) {
 
   let meta: Meta | null = null;
 
-  if (path === "/electricity-vs-gasoline") {
+  if (path === "/electricity-vs-gasoline" || path === "/gm-ev-vs-gas") {
     meta = calculatorMeta(url, origin);
   } else {
     const entry = OG_ENTRIES.find((e) => e.path === path);
