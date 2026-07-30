@@ -22,6 +22,7 @@
   var ORIGIN = "https://electrifyingtheus.com";
   var TOOLS = {
     "ev-vs-gas": "/electricity-vs-gasoline",
+    "gm-ev-vs-gas": "/gm-ev-vs-gas",
     "calculator": "/calculator",
     "find-a-charger": "/find-a-charger",
     "rebates": "/rebates-incentives",
