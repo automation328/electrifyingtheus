@@ -676,6 +676,11 @@ const AgentChatSection = ({ embed = false, image = evanPortrait }: { embed?: boo
               </div>
             </div>
 
+            {/* Tailoring note */}
+            <p className="text-sm text-muted-foreground mt-4 text-center">
+              We can tailor the top 10 questions based on your specific use case and needs.
+            </p>
+
             {/* Powered-by credit */}
             <p className="text-xs text-muted-foreground mt-4 text-center lg:text-left">
               Powered by{" "}
