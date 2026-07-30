@@ -695,29 +695,23 @@ const AgentChatSection = ({ embed = false, image = evanPortrait }: { embed?: boo
               </a>
             </p>
 
-            {/* "Put EVan on your own site" CTA */}
-            <div className="mt-5 rounded-2xl border border-border bg-card p-5 flex flex-col sm:flex-row sm:items-center gap-4">
-              <div className="flex-1">
-                <p className="font-semibold text-foreground">Would you like to have EVan or other EV tools on your website?</p>
-                <p className="text-sm text-muted-foreground">
-                  Answering EV questions and providing real-time data. Click here to add the
-                  E-Mobility Advisor to your website and engage your visitors.
-                </p>
-              </div>
-              {embed ? (
-                <a href={`${SITE_ORIGIN}/contact-us`} target="_blank" rel="noopener noreferrer" className="shrink-0">
-                  <Button variant="green" className="rounded-xl">
-                    <Sparkles className="w-4 h-4" /> Add EVan to my site
-                  </Button>
-                </a>
-              ) : (
+            {/* "Put EVan on your own site" CTA — hidden inside third-party iframes */}
+            {!embed && (
+              <div className="mt-5 rounded-2xl border border-border bg-card p-5 flex flex-col sm:flex-row sm:items-center gap-4">
+                <div className="flex-1">
+                  <p className="font-semibold text-foreground">Would you like to have EVan or other EV tools on your website?</p>
+                  <p className="text-sm text-muted-foreground">
+                    Answering EV questions and providing real-time data. Click here to add the
+                    E-Mobility Advisor to your website and engage your visitors.
+                  </p>
+                </div>
                 <Link to="/contact-us" className="shrink-0">
                   <Button variant="green" className="rounded-xl">
                     <Sparkles className="w-4 h-4" /> Add EVan to my site
                   </Button>
                 </Link>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
