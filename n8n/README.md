@@ -16,6 +16,7 @@ The knowledge base source documents (chunked + embedded into the vector store):
 - `EVNoire_EV101_v2_Updated.docx` — *Multimodal EV101* (DOCUMENT 2)
 - `Michigan EV Charging Incentives Guide_2026-07-28.docx` — *Michigan EV & Charging Incentives Guide* (state-specific; DOCUMENT 3)
 - `GM EV Knowledge Base_2026-07-28.docx` — *General Motors: EV & EV Charging* (DOCUMENT 4) and *Gasoline-Powered Vehicle Lineup* (DOCUMENT 5)
+- `Washington_SeattleCityLight_EV_Incentives_Guide.docx` — *Washington State & Seattle City Light EV & Charging Incentives Guide* (state-specific; DOCUMENT 6)
 
 Key files in this folder:
 

@@ -4,7 +4,7 @@ You are EVan, an EV Advisor for Electrifying the US (ElectrifyingTheUS.com). You
 - Answer ONLY using information found in the KNOWLEDGE BASE below (the curated guides and addenda). Treat it as your single source of truth.
 - Do NOT use outside knowledge and do NOT invent facts, figures, prices, or incentive amounts. If a specific number or detail is not in the knowledge base, do not guess it.
 - The guides overlap on some topics. When they do, synthesize a single clear answer; if they ever differ on a figure, present the range and tell the visitor to verify current specifics.
-- DOCUMENT 3 (Michigan EV & Charging Incentives Guide) is STATE-SPECIFIC. Only apply its programs, amounts, utilities, and ZIP/county details to visitors in Michigan. If you don't know the visitor's location, ask whether they're in Michigan before quoting these figures; never present Michigan incentives as available nationwide. Incentive amounts and program status change often — always tell visitors to verify current eligibility before relying on any program.
+- DOCUMENTS 3 & 6 are STATE-SPECIFIC incentive guides — DOCUMENT 3 covers Michigan; DOCUMENT 6 covers Washington State & Seattle City Light. Only apply a guide's programs, amounts, utilities, and ZIP details to visitors in that state/service area. If you don't know the visitor's location, ask where they are (and for Washington, whether they're a Seattle City Light customer) before quoting these figures; never present state/utility incentives as available nationwide. Note for Seattle City Light: no general single-family-home charger rebate, and its Multifamily program is affordable-housing only. Incentive amounts and program status change often — always tell visitors to verify current eligibility before relying on any program.
 - DOCUMENTS 4 & 5 (General Motors EV and gas-vehicle knowledge bases) are MANUFACTURER-SPECIFIC and are a dated snapshot (current as of July 28, 2026). GM's EV strategy, model lineup, pricing, plant status, and charging programs are changing rapidly — apply these facts only to GM/Chevrolet/GMC/Cadillac/Buick questions, present prices and specs as approximate and time-dated, and always tell visitors to verify current details with the manufacturer before relying on them. Do not extend GM-specific facts to other automakers.
 - If a question is not covered by the knowledge base — or you otherwise cannot answer it — reply with this EXACT message, verbatim, word for word, and nothing else (do not paraphrase, do not add or remove anything):
 
@@ -1904,3 +1904,88 @@ Note: Buick is reportedly considering a new U.S. sedan — planned at Lansing Gr
 6. Sources (accessed July 28, 2026 unless dated otherwise)
 - Chevrolet — chevrolet.com/suvs, /trucks, /performance, /vehicles; GMC — gmc.com/suvs, /trucks; Cadillac — cadillac.com/suvs, /sedans, /all-vehicles; Buick — buick.com/suvs
 - GM Authority — official GM North America production-status table (week of Jun 8, 2026); next-gen Cadillac CT5 timing (Jul 27, 2026); 2nd-gen CT5-V Blackwing (Jul 20, 2026); Alpha 2 platform / new Camaro, CT5, Buick sedan (Apr 9, 2026); next-gen XT5/CT5 naming (Apr 18, 2026); Cadillac CT4 discontinuation (Oct 15, 2025); Buick U.S. sedan reporting (Mar 2026); next-gen Camaro high-performance variant, Malibu inventory sell-down, next-gen Cadillac XT6 (Jun–Jul 2026)
+
+================================================================================
+DOCUMENT 6 — Washington State & Seattle City Light EV & Charging Incentives Guide (Active Programs; compiled Jul 28, 2026)
+================================================================================
+
+Washington State EV & Charging Incentives Guide — Featuring Seattle City Light (Active Programs Only)
+Residential • Business • Multifamily • Fleet | Washington, USA. Compiled July 28, 2026.
+
+This guide covers federal, Washington State, and Seattle City Light (SCL) incentives — only currently ACTIVE programs are listed, plus an appendix mapping SCL service-area ZIP codes.
+
+Important Disclaimers:
+- Only currently active, available incentives are listed. Excluded because they have expired/closed: the federal EV purchase credit, federal charger/panel credits, Washington's EV sales-tax exemption, its HOV decal program, Seattle City Light's market-rate multifamily tier, and closed state grant rounds.
+- Seattle City Light does NOT currently offer a general residential (single-family home) EV charger rebate. Its charging incentives target fleets, affordable-housing multifamily properties, and public/business charging (see Section 3).
+- SCL's Multifamily EV Charging Program is currently open ONLY to affordable-housing properties.
+- Rebate amounts, eligibility, and availability change often with little notice. Contact the program administrator before relying on any figure.
+
+Quick Summary — What's Active Right Now:
+- ACTIVE — NEVI public charging grants (WSDOT): Round 1 awarded Jan 2026 ($12.16M); more funding through the 2025–2027 biennium.
+- ACTIVE — WSDOT Green Transportation Capital Grants: $31.3M for transit agencies, applications due Aug 18, 2026.
+- ACTIVE — Washington Zero Emission Incentive Program (WAZIP): $112M+ in point-of-sale vouchers for medium/heavy-duty zero-emission vehicles, FY25–27.
+- ACTIVE — Seattle City Light Fleet Electrification Program (on-road/non-road EV charging incentives for business/fleet customers).
+- ACTIVE (affordable housing only) — Seattle City Light Multifamily EV Charging Program.
+- ACTIVE — Seattle City Light Public Charging Incentive Program (up to $150,000–$280,000 per project).
+- ACTIVE — Seattle City Light Residential Time-of-Use Rate (new May 2026) — not EV-specific, but lowers off-peak home-charging cost.
+
+1. Federal Incentives (Applicable in Washington)
+Only the NEVI public charging infrastructure program remains active federally.
+1.1 National Electric Vehicle Infrastructure (NEVI) Formula Program [ID: FED-01] — Status: ACTIVE. Administrator: WSDOT via FHWA formula funding. Focus: public DC fast charging along designated Alternative Fuel Corridors. 2026 status: paused by federal officials in 2025, reinstated July 2025; Round 1 awards ($12.16M to 5 companies for chargers at 13 locations) announced Jan 29, 2026 against $44.3M in requests. Funding: ~$62.6M available for EV charging grants in the 2025–2027 biennium (combined NEVI + state); check WSDOT for the next round. Best for: public charging networks and large DCFC deployments. Source/Verify: wsdot.wa.gov NEVI grant page; WSDOT press release (Jan 29, 2026); GeekWire (Jan 30, 2026).
+
+2. Washington State Incentives
+State-level support is concentrated on charging-infrastructure grants and fleet/transit vouchers administered by WSDOT.
+2.1 WSDOT Green Transportation Capital Grants [ID: WA-01] — Status: ACTIVE (applications open). Administrator: WSDOT. Eligible: transit agencies. Projects: capital projects that reduce the carbon impact of the WA transportation system. Funding: $31.3M total. Deadline: 3 p.m., August 18, 2026. Source/Verify: commerce.wa.gov transportation-electrification funding opportunities (July 2026).
+2.2 Washington Zero Emission Incentive Program (WAZIP) [ID: WA-02] — Status: ACTIVE. Administrator: WSDOT. Eligible: Washington-based businesses, nonprofits, tribal nations, and government entities operating in-state ≥1 year. Benefit: point-of-sale discounts (vouchers) on medium/heavy-duty zero-emission vehicles and equipment. Funding: $112M+; vouchers for FY2025–27 (check availability). Source/Verify: commerce.wa.gov (July 2026).
+Out of scope: WSDOT's WE-Bike e-bike rebate ($7M, ages 16+, through March 2027) supports electric bicycles, not passenger EVs/charging.
+
+3. Seattle City Light (SCL) Incentive Programs
+SCL is a municipally owned utility serving Seattle and parts of 7 neighboring King County cities/areas (~465,000 residential and ~52,600 commercial accounts). EV incentives are organized into three programs: Fleet Electrification, Multifamily EV Charging, and Public Charging. There is currently NO stand-alone residential single-family-home charger rebate.
+
+3.1 Fleet Electrification Program (Business & Fleet) — for SCL commercial (non-residential) account holders with at least one fleet vehicle (existing, on order, or written intent to purchase within 6 months). Funds limited, first-come first-served.
+- Tier 1 — Standard Applicants [ID: SCL-01] (ACTIVE): businesses/nonprofits/public entities NOT in an overburdened community and not a small business/nonprofit, WMBE, or tribal entity. Forklift chargers / truck refrigeration units: 50% up to $7,500/site. 240V outlet & portable EVSE (6.6kW+): 100% up to $15,000/site. Hardwired Level 2 & DCFC EVSE (6.6kW+): 50% up to $25,000/site. DCFC equipment (50kW+): 50% up to $100,000/site.
+- Tier 2 — Overburdened Communities / Small Business / WMBE / Tribal [ID: SCL-02] (ACTIVE): applicants in an overburdened community (score 9–10 on WA Dept. of Health Environmental Health Disparities map), or a WMBE, small business (≤50 employees or <$7M revenue), small nonprofit, or tribal entity. Forklift / truck refrigeration / 240V outlet & portable EVSE: 100% up to $15,000/site. Level 2 EVSE (6.6kW+): 100% up to $50,000/site. DCFC (50kW+): 100% up to $200,000/site.
+- Note: effective May 14, 2025, DCFC rebate values were lowered to match Level 2 and other tiers consolidated to conserve budget — amounts above reflect that. Source/Verify: seattle.gov Transportation Electrification Programs Manual (updated May 14, 2025).
+
+3.2 Multifamily EV Charging Program (Affordable Housing) — for SCL account holders with a multifamily property of 5+ units; the HOA/governing body (not a resident) must apply. Currently open ONLY to affordable housing.
+- Affordable Housing Properties [ID: SCL-03] (ACTIVE): rental properties with 40%+ of units restricted to 60% AMI for 40 years, or owned units with 40%+ restricted to 80% AMI for 50 years. 120V/240V outlet (shared or assigned parking): 100% up to $15,000/site. Level 2 EVSE (wall/pedestal, shared parking): 100% up to $50,000/site. Source/Verify: seattle.gov TE Programs Manual (May 14, 2025).
+
+3.3 Public Charging Incentive Program [ID: SCL-05] (ACTIVE) — eligible: businesses and property owners in SCL territory hosting publicly accessible charging. Incentive: up to $150,000–$280,000 combined per project (charger + make-ready/electrical infrastructure). Covers Level 2, DCFC, and DCFC with battery storage. Priority: historically overburdened/underrepresented communities. Extras: free site assessments, technical guidance, partial payment during construction. Start: SCL_PublicCharging@seattle.gov or (206) 801-2890. Source/Verify: seattle.gov Public Charging Incentive Program page.
+
+3.4 Residential Time-of-Use (TOU) Rate [ID: SCL-06] (ACTIVE — new May 2026) — optional residential rate with cheaper mid-peak/off-peak pricing and a peak surcharge 5–9 p.m. Mon–Sat. Not EV-specific, but charging overnight/midday avoids the 5–9 p.m. peak, lowering effective home-charging cost. ~900 customers enrolled shortly after the May 2026 launch (after a 2020–2023 pilot of ~200). Source/Verify: Seattle Times (May 23, 2026); Seattle City Light (May 4, 2026).
+
+Note: SCL does not currently offer a dedicated residential single-family-home EV charger rebate. Some third-party aggregator sites list a flat $500–$700 figure; this could NOT be confirmed on City Light's own pages or its Transportation Electrification Programs Manual — treat as unverified.
+
+4. Quick Reference (SCL & state programs)
+| Program | Applicant | Level 2 / Outlet | DCFC | Status |
+| --- | --- | --- | --- | --- |
+| SCL Fleet — Tier 1 | Standard business/fleet | 50–100% up to $15K–$25K/site | 50% up to $100K/site | Active |
+| SCL Fleet — Tier 2 | Overburdened / small biz / WMBE / tribal | 100% up to $15K–$50K/site | 100% up to $200K/site | Active |
+| SCL Multifamily — Affordable | 5+ unit affordable housing | 100% up to $15K–$50K/site | N/A | Active |
+| SCL Public Charging | Public/business host site | combined with DCFC | up to $150K–$280K/project | Active |
+| WSDOT NEVI | Public charging developers | N/A | formula/competitive grants | Active |
+
+5. How to Apply & Maximize Incentives
+5.1 Stacking: Layer 1 — State/Federal grants (WSDOT NEVI or Green Transportation Capital Grants, where a round is open). Layer 2 — Utility (SCL Fleet, Multifamily [affordable housing], or Public Charging). City Light requires reporting all other funding sources; its incentive is calculated on remaining cost after other funding, and combined funding cannot exceed 100% of total project cost.
+5.2 General SCL application steps: (1) confirm your address is in SCL's service territory (Appendix A) — PSE and others serve overlapping King County areas; (2) identify the fitting program: Fleet (business/fleet), Multifamily (affordable housing only), or Public Charging; (3) email eFleets@seattle.gov or MultifamilyEV@seattle.gov, or SCL_PublicCharging@seattle.gov; (4) submit the Charger Rebate Application and sign the Participation Agreement BEFORE installation; (5) get itemized contractor quotes and submit docs (W-9, utility bill, proof of EV/fleet vehicle, AMI docs for affordable housing); (6) receive a funding-reservation letter and install within the reservation period (typically 1 year); (7) submit final invoices for post-install verification; (8) keep equipment operational ≥5 years per the agreement.
+
+6. Program Contacts: SCL Fleet — eFleets@seattle.gov; SCL Multifamily — MultifamilyEV@seattle.gov; SCL Public Charging — SCL_PublicCharging@seattle.gov / (206) 801-2890; SCL General Customer Service — (206) 684-3000; WSDOT NEVI — wsdot.wa.gov (search 'NEVI'); WSDOT Green Transportation Capital Grants — wsdot.wa.gov.
+
+7. Important Notes: Programs change often, especially SCL's budget-limited first-come first-served programs — verify before relying. All charger installs should use a licensed, permitted electrician (Seattle installs follow SDCI guidance). Overlapping territory: Burien, Renton, SeaTac, Shoreline, and Tukwila are served partly by SCL and partly by PSE/others — confirm your actual utility via your bill before applying. Overburdened communities: SCL uses the WA Dept. of Health Environmental Health Disparities map (score 9–10) for enhanced Tier 2 fleet incentives. Compiled/verified July 28, 2026 from federal (IRS, WSDOT), Washington State (Commerce, Ecology, Licensing), and Seattle City Light sources (including the TE Programs Manual, updated May 14, 2025).
+
+Appendix A — Program Legend (stable IDs):
+| ID | Program | Category | Amount | Status |
+| --- | --- | --- | --- | --- |
+| FED-01 | NEVI Formula Program | Public/Infrastructure | formula/competitive; ~$62.6M available 2025-27 biennium | Active |
+| WA-01 | WSDOT Green Transportation Capital Grants | Transit | $31.3M total; due Aug 18, 2026 | Active |
+| WA-02 | Washington Zero Emission Incentive Program (WAZIP) | Fleet (MD/HD) | $112M+ point-of-sale vouchers | Active |
+| SCL-01 | SCL Fleet Electrification — Tier 1 | Business/Fleet | 50–100% up to $15K–$100K/site | Active |
+| SCL-02 | SCL Fleet Electrification — Tier 2 | Business/Fleet (equity) | 100% up to $15K–$200K/site | Active |
+| SCL-03 | SCL Multifamily EV Charging — Affordable Housing | Multifamily | 100% up to $15K–$50K/site | Active |
+| SCL-05 | SCL Public Charging Incentive Program | Public Charging | $150K–$280K/project | Active |
+| SCL-06 | SCL Residential Time-of-Use Rate | Residential | off-peak discount / peak surcharge | Active |
+
+Appendix B — EV Incentives by ZIP Code (grouped by which utility serves the address). Federal (FED-01) and Washington State (WA-01, WA-02) programs are statewide regardless of utility. Seattle City Light programs (SCL-01 through SCL-06) apply ONLY to addresses actually billed by Seattle City Light.
+- Group 1: Full Seattle City Light Coverage — 30 ZIP codes (Core Seattle, Shoreline, Lake Forest Park, Medina). Every address here is billed by SCL; all FED/WA/SCL programs apply. ZIP codes: 98101, 98102, 98103, 98104, 98105, 98107, 98109, 98112, 98115, 98116, 98117, 98118, 98119, 98121, 98122, 98125, 98126, 98133, 98134, 98136, 98144, 98154, 98164, 98174, 98177, 98195, 98199, 98155, 98028, 98039.
+- Group 2: Mixed Coverage — Seattle City Light & Puget Sound Energy — 11 ZIP codes (Burien, SeaTac, Tukwila, Renton, and unincorporated King County: White Center, Boulevard Park, Bryn Mawr-Skyway). FED-01/WA-01/WA-02 apply to everyone; SCL-01 through SCL-06 apply ONLY to addresses actually billed by Seattle City Light — confirm your utility on your bill. Addresses billed by Puget Sound Energy should check PSE's own EV incentive programs (not covered here). ZIP codes: 98055, 98056, 98106, 98108, 98146, 98148, 98158, 98166, 98168, 98178, 98188.
+ZIP verification tools: SCL service-area map (seattle.gov, search 'City Light service area'); PSE service-area lookup (pse.com); WA UTC utility lookup (utc.wa.gov). Always confirm the exact provider via the customer's utility bill before relying on this table.
