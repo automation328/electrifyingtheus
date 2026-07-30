@@ -1,6 +1,7 @@
 # n8n — Website Chatbot (EVA) knowledge base
 
-The homepage chat and `/assistant` are powered by an n8n **Chat Trigger → AI Agent** workflow.
+The homepage chat and `/assistant` are powered by an n8n **Webhook → AI Agent** workflow.
+The website posts each message to the `evan-chat` webhook (see `VITE_N8N_WEBHOOK_URL`).
 The agent answers **only** from EVNoire's guides, which are baked into the agent's
 **System Message**:
 
@@ -16,15 +17,21 @@ The full, ready-to-paste system prompt (rules + both documents) is in:
 ## How to update the live agent (Hostinger instance)
 
 The live workflow runs on `https://n8n-9odn.srv1570441.hstgr.cloud`
-(workflow `p7VVAh6DWMlo667A`). To refresh its knowledge base:
+(workflow `Y6kahfizPcdz5MMy` — **"EVan Chat → Slack Leads"**, webhook path `evan-chat`).
+To refresh its knowledge base:
 
-1. Open the workflow → double-click the **Electrifying US Agent** node.
+1. Open the workflow → double-click the **EVan Agent** node.
 2. Open **Options → System Message**.
 3. Replace its contents with the **entire** text of `EVA-system-prompt.md`.
 4. **Save**, then make sure the workflow is **Active**.
 
-No other node changes are needed — the webhook URL, OpenRouter/MiniMax model, and
+No other node changes are needed — the webhook URL, OpenRouter model, and
 per-session memory stay the same, so the website keeps working without any frontend change.
+
+> Note: several *other* EVan workflows exist on this instance (e.g. `p7VVAh6DWMlo667A`
+> "Electrifying the US - Website Chatbot", and Supabase-RAG variants using `kb_documents` /
+> `emr_kb_documents`). The **live website** agent is the `evan-chat` webhook workflow above,
+> whose KB is the baked-in System Message — not a vector store. Update that one.
 
 ## Updating the source documents later
 
