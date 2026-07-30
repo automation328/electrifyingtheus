@@ -518,6 +518,11 @@ const AgentChatSection = ({ embed = false, image = evanPortrait }: { embed?: boo
               Here to answer all your EV Questions
             </p>
 
+            {/* Tailoring note — highlighted, sits above the E-Mobility Advisor console */}
+            <p className="mb-3 text-center text-sm font-semibold text-primary bg-primary/10 border border-primary/20 rounded-xl px-4 py-2.5">
+              We can tailor the top 10 questions based on your specific use case and needs.
+            </p>
+
             {/* Chat console — "Charge Terminal" HMI style (matches /assistant).
                 Fixed height so the messages area scrolls internally instead of
                 growing the column and stretching the left image. */}
@@ -675,11 +680,6 @@ const AgentChatSection = ({ embed = false, image = evanPortrait }: { embed?: boo
                 </div>
               </div>
             </div>
-
-            {/* Tailoring note */}
-            <p className="text-sm text-muted-foreground mt-4 text-center">
-              We can tailor the top 10 questions based on your specific use case and needs.
-            </p>
 
             {/* Powered-by credit */}
             <p className="text-xs text-muted-foreground mt-4 text-center lg:text-left">
