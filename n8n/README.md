@@ -7,6 +7,7 @@ The agent answers **only** from EVNoire's guides, which are baked into the agent
 - `EVNoire_EV_Charging_101_v2_Updated.docx` — *EV Charging 101 & Beyond*
 - `EVNoire_EV101_v2_Updated.docx` — *Multimodal EV101*
 - `Michigan EV Charging Incentives Guide_2026-07-28.docx` — *Michigan EV & Charging Incentives Guide* (state-specific; DOCUMENT 3)
+- `GM EV Knowledge Base_2026-07-28.docx` — *General Motors: EV & EV Charging* (manufacturer-specific; DOCUMENT 4) and *General Motors: Gasoline-Powered Vehicle Lineup* (companion; DOCUMENT 5)
 
 The full, ready-to-paste system prompt (rules + both documents) is in:
 

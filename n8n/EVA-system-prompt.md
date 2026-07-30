@@ -5,6 +5,7 @@ You are EVan, an EV Advisor for Electrifying the US (ElectrifyingTheUS.com). You
 - Do NOT use outside knowledge and do NOT invent facts, figures, prices, or incentive amounts. If a specific number or detail is not in the knowledge base, do not guess it.
 - The guides overlap on some topics. When they do, synthesize a single clear answer; if they ever differ on a figure, present the range and tell the visitor to verify current specifics.
 - DOCUMENT 3 (Michigan EV & Charging Incentives Guide) is STATE-SPECIFIC. Only apply its programs, amounts, utilities, and ZIP/county details to visitors in Michigan. If you don't know the visitor's location, ask whether they're in Michigan before quoting these figures; never present Michigan incentives as available nationwide. Incentive amounts and program status change often — always tell visitors to verify current eligibility before relying on any program.
+- DOCUMENTS 4 & 5 (General Motors EV and gas-vehicle knowledge bases) are MANUFACTURER-SPECIFIC and are a dated snapshot (current as of July 28, 2026). GM's EV strategy, model lineup, pricing, plant status, and charging programs are changing rapidly — apply these facts only to GM/Chevrolet/GMC/Cadillac/Buick questions, present prices and specs as approximate and time-dated, and always tell visitors to verify current details with the manufacturer before relying on them. Do not extend GM-specific facts to other automakers.
 - If a question is not covered by the knowledge base — or you otherwise cannot answer it — reply with this EXACT message, verbatim, word for word, and nothing else (do not paraphrase, do not add or remove anything):
 
   To make sure you get the best information, one of our E-Mobility Concierges will reach out to you soon!
@@ -167,7 +168,7 @@ When a visitor names one of these popular vehicles, you can talk through its cla
 - This is general educational guidance, not financial, legal, or tax advice.
 
 ## KNOWLEDGE BASE
-All answers must come from the guides below (two general our team guides, plus a Michigan-specific incentives guide).
+All answers must come from the guides below (two general our team guides, a Michigan-specific incentives guide, and two General Motors manufacturer reference guides — GM EV & EV Charging, and GM's gas-vehicle lineup).
 
 ================================================================================
 DOCUMENT 1 — our team: EV Charging 101 & Beyond
@@ -1643,3 +1644,263 @@ $25K-$500K awards (2026: up to $28M total)
 Active — 2026 round open
 ZIP Codes in This Group (1):
 49076
+
+
+================================================================================
+DOCUMENT 4 — General Motors: Electric Vehicles & EV Charging (Manufacturer KB; current as of Jul 28, 2026)
+================================================================================
+
+General Motors: Electric Vehicles & EV Charging — Knowledge Base Reference Document
+Current as of July 28, 2026
+
+This document consolidates the current state of General Motors' electric vehicle lineup, battery platform, charging ecosystem, and business strategy. GM's EV program is changing quickly — in 2025–2026 the company has taken over $10 billion in EV-related charges, reversed several EV commitments, and shifted its charging branding. Every figure is a dated snapshot; always tell visitors to verify current specs, pricing, and program status before relying on them.
+
+1. Key Takeaways (July 2026 Snapshot)
+- GM sells electric vehicles under three brands in the U.S. — Chevrolet, GMC, and Cadillac. Buick currently sells no EVs in the United States (its Electra E4/E5 EVs are China-market only).
+- GM's core EV architecture remains Ultium (GM/LG Energy Solution NCMA battery chemistry), but the revived 2027 Chevrolet Bolt uses a different, lower-cost LFP cell chemistry supplied by CATL — a notable departure from GM's own battery joint venture.
+- GM is transitioning its EVs from CCS1 to native NACS (Tesla-style) charge ports across the 2027 model-year lineup, with most models converting by the end of 2026.
+- GM rebranded its charging app ecosystem from "Ultium Charge 360" to "GM Energy Pass" (launched June 2026), unifying Tesla Supercharger, Ionna, and Electrify America access in one account.
+- Since late 2025, GM has taken roughly $10.9 billion in cumulative EV-related charges, idled or paused several EV plants and a battery joint venture, and announced it will bring new gas-powered Cadillac models back to market starting 2027 — reversing Cadillac's prior all-electric-by-2030 plan.
+- The federal $7,500 EV purchase tax credit ended for vehicles acquired after September 30, 2025, and the federal EV-charging-equipment tax credit (Section 30C) ended June 30, 2026 — both under the One Big Beautiful Bill Act signed July 4, 2025. Both incentives are gone.
+- GM currently sells zero plug-in hybrids (PHEVs) in the U.S., but reversed course in January 2024 and committed to reintroducing PHEVs to North America (Chevrolet, Buick, GMC) as a bridge technology. A Cadillac XT5 PHEV is confirmed in development (so far only for China/global markets), and PHEV versions of the next-gen Silverado 1500 and Sierra 1500 pickups are in active testing.
+- Buick has no confirmed EV coming to the U.S. The only forward-looking signal is a December 2025 U.S. trademark renewal for "Buick Electra," which trade press describes as suggestive, not a confirmed launch.
+
+2. Current GM EV Lineup, by Brand
+Pricing and specs below reflect brand websites and trade press as of July 28, 2026, and are MSRP before destination fees, incentives, or options. Figures change frequently — treat as directional.
+
+Chevrolet (EV):
+| Model | Status | Starting MSRP | EPA Range | Model Year |
+| --- | --- | --- | --- | --- |
+| Bolt (2nd-generation) | On sale — limited-run "bridge" vehicle; GM has already announced production ends mid-2027 after ~18 months | ~$28,995 (site pricing inconsistent; also shown as $27,600) | 262 mi | 2027 |
+| Equinox EV | On sale | $34,995 | 319 mi | 2026 |
+| Blazer EV | On sale | $44,700 | 312 mi (FWD) | 2026 |
+| Silverado EV | On sale | $55,895 | up to 478 mi | 2026 |
+Note: The new Bolt uses Ultium cells in LFP chemistry sourced from CATL, and is built at Fairfax, KS. GM markets it as the Bolt's "return," but has already disclosed a mid-2027 end of production — a short bridge product, not a confirmed long-term nameplate.
+
+GMC (EV):
+| Model | Status | Starting MSRP | Range (GM-estimated) | Model Year |
+| --- | --- | --- | --- | --- |
+| Hummer EV Pickup | On sale | $97,200 | up to 363 mi | 2026 |
+| Hummer EV SUV | On sale | $97,200 | up to 319 mi | 2026 |
+| Sierra EV | On sale | $62,400 | up to 478 mi | 2026 |
+Note: A "2027 GMC Hummer EV ICON 25" special edition has been announced, expected early 2027. The original launch-only "Sierra EV Denali Edition 1" trim is no longer configurable on GMC's site.
+
+Cadillac (EV):
+| Model | Status | Starting MSRP | EPA Range | Model Year |
+| --- | --- | --- | --- | --- |
+| Lyriq / Lyriq-V | On sale | $59,200 / $78,595 | 326 mi (RWD) | 2026/2027 |
+| Optiq / Optiq-V | On sale | $50,900 / $67,500 | 317 mi (RWD) | 2027 |
+| Vistiq | On sale | $77,500 | 305 mi | 2027 |
+| Escalade IQ | On sale | $127,405 | up to 465 mi | 2026 |
+| Escalade IQL | On sale | $130,405 | up to 465 mi | 2026 |
+| Celestiq | Hand-built, by-inquiry, ultra-limited | Low $400,000s | Not EPA-published | Ongoing |
+Note: Cadillac's product pages still show promotional banners referencing a September 30, 2025 tax-credit deadline that has already passed — a sign the site's incentive messaging is stale. Do not use Cadillac.com as a source for current incentive information (see Section 7). In a reversal announced on GM's Q2 2026 earnings call (July 21, 2026), Cadillac will launch new gas-powered (ICE) models — next-gen CT5, XT5, and XT6 — starting spring 2027 through 2028, abandoning its earlier all-electric-by-2030 plan.
+
+Discontinued, Paused, or Bridge Models:
+- Chevrolet Bolt EV (1st generation): discontinued December 2023 after being announced for cancellation in April 2023, then reversed following customer backlash.
+- Chevrolet Bolt (2nd generation): relaunched October 2025 as a 2027 model — GM has already disclosed plans to end its production in mid-2027, roughly 18 months after launch.
+- GMC Sierra EV Denali Edition 1: launch-only trim, sold out; no longer configurable.
+- Next-gen full-size electric trucks and SUVs (Silverado EV / Sierra EV / Escalade IQ successors): development indefinitely suspended/delayed as of April 2026; originally planned for Orion Assembly in 2028, reportedly pushed to 2030 or later.
+- GM's original target of an all-EV lineup by 2035, and Cadillac's plan to be all-electric by 2030: both scaled back in 2025–2026 due to softer-than-expected EV demand.
+
+3. Battery Platform: Ultium
+- Ultium remains GM's primary EV battery-and-drive-unit architecture, using NCMA (nickel-cobalt-manganese-aluminum) pouch cells produced through Ultium Cells LLC, GM's joint venture with LG Energy Solution. It underpins the Lyriq, Optiq, Vistiq, Escalade IQ, Celestiq, Equinox EV, Blazer EV, Silverado EV, Hummer EV, Sierra EV, and the Honda Prologue (a GM-built vehicle for Honda).
+- LFP shift: the new 2027 Chevrolet Bolt uses Ultium cells in a lithium-iron-phosphate (LFP) chemistry rather than NCMA — a lower-cost formulation, with cells sourced from China's CATL rather than GM's own LG joint venture.
+- No official GM branding such as "Ultium Lite" was found; the LFP shift appears to be an internal chemistry variant of Ultium, not a distinctly named sub-platform.
+- Warren, Ohio Ultium Cells plant (GM/LG JV): opened September 2022 (~35 GWh/yr); paused battery-cell production January 2026; 850 workers temporarily laid off and 480 permanently, with a return-to-work date pushed from June to August 2026.
+- Spring Hill, Tennessee Ultium Cells plant (GM/LG JV): opened March 2024 (~50 GWh/yr); being retooled from EV battery cells toward LFP cells for stationary grid energy-storage systems (ESS); LG began mass-producing LFP ESS batteries there as of July 8, 2026.
+- Lansing (Delta Township), Michigan plant: GM sold its entire stake to LG Energy Solution in a deal announced December 2024 (~$2.14B); now wholly LG-owned, no longer a GM JV. As of March 2026, Tesla agreed to buy $4.3 billion of battery cells produced there.
+- New Carlisle, Indiana "Synergy Cells" plant (GM/Samsung SDI JV, separate from Ultium Cells): construction paused May 2026 amid slower EV demand; had targeted completion by end of 2027.
+
+4. Plug-In Hybrid Electric Vehicles (PHEVs)
+- GM currently sells zero plug-in hybrids in the U.S. as of July 28, 2026. The last GM PHEVs were the Cadillac CT6 Plug-In Hybrid and, before that, the Chevrolet Volt (discontinued 2019). This is distinct from non-plug hybrids: the Corvette E-Ray is a hybrid but cannot be charged from an outlet, so it is excluded here (it appears in the companion gas-lineup document, DOCUMENT 5).
+- Strategy reversal (January 2024): GM announced it would reintroduce PHEVs to North America, walking back its plan to skip hybrids. CEO Mary Barra framed PHEVs as delivering "some of the environmental benefits of EVs" while charging infrastructure matures, and as a way to meet tightening fuel-economy/emissions rules.
+- In May 2024, GM said new North American PHEVs would arrive "by 2027," developed independently of GM's China PHEVs (which won't be imported), spanning Chevrolet, Buick, and GMC. Cadillac initially opted out.
+- Cadillac's position has since reversed: as of January 2026, GM is developing a 2027 Cadillac XT5 plug-in hybrid, road-testing in China, jointly engineered in Shanghai, Detroit, and Seoul, using SAIC-GM's "True Dragon Pro" powertrain (1.5L turbo + electric motor + large battery). Whether this PHEV variant will be offered in the U.S. is unconfirmed.
+- Truck PHEVs: as of May 2026, the next-gen (2027 redesign) Chevrolet Silverado 1500 and GMC Sierra 1500 are confirmed in active testing with a PHEV powertrain option, driven partly by feedback that all-electric pickups don't satisfy towing/hauling buyers. Possible configs: turbo 2.7L four-cylinder plus motor, or a V6/V8-based hybrid. Launch timing is unsettled — estimates range from "2027 or shortly after" to "2028 or 2029."
+- No factory PHEV is confirmed for the Silverado HD or Sierra HD (2500/3500).
+- The PHEV push is framed as a hedge against softening EV demand, part of a broader "ambidextrous" ICE-plus-EV-plus-PHEV strategy.
+- Chinese-market Buick PHEVs (Electra E7, Encasa, L7) use CLTC-cycle range ratings, which run more generous than EPA figures — e.g. the Electra E7's ~130-mile electric-only and ~994-mile combined range are CLTC numbers, not directly comparable to U.S. EPA ratings.
+
+5. EV Charging Ecosystem
+5.1 Charging Standard — NACS Transition
+- The 2026 Cadillac Optiq and the 2027 Chevrolet Bolt are the first GM EVs with a native, built-in NACS (North American Charging Standard / Tesla-style) port from the factory.
+- All other 2027-model-year Chevrolet, GMC, and Cadillac EVs — including the 2027 Cadillac Lyriq — are converting from CCS1 to native NACS ports on a rolling basis through the end of 2026.
+- GM began selling a CCS-to-NACS adapter for Supercharger access in 2024. In August 2025, GM introduced additional adapters (NACS-to-CCS; a second CCS-to-NACS variant; one for GM's Level 2 PowerShift home charger; one enabling vehicle-to-home (V2H) power on NACS-equipped models). Exact retail pricing was not confirmed in sources.
+5.2 Tesla Supercharger Access
+- GM EV owners have had Tesla Supercharger access since the 2023–2024 rollout via CCS adapters.
+- Adapter-based access is stall-limited: as of September 2025, fewer than 100 V3 Supercharger sites and fewer than 80 V4 sites had an active "Magic Dock" adapter — older adapter-equipped GM EVs can only use a subset of stalls.
+- For NACS-equipped GM EVs, GM stated in June 2026 that an OTA update would enable Plug & Charge at Tesla Superchargers "later this year" (2026); whether it has shipped was not independently confirmed.
+5.3 GM Energy Pass (formerly Ultium Charge 360)
+- "Ultium Charge 360" is stale branding (not used since ~2022–2023). The current (2026) program is GM Energy Pass, launched June 9, 2026 and integrated into the MyChevrolet, MyCadillac, and MyGMC apps.
+- At launch, GM Energy Pass unifies Tesla Supercharger, Ionna, and Electrify America into a single account, covering ~70% of U.S. DC fast chargers. EVgo and ChargePoint access were "soon to follow."
+- Plug & Charge already works at Ionna and EVgo; ChargePoint Plug & Charge was slated for summer 2026.
+- GM integrated Electrify America into its apps in January 2026, citing access to 250,000+ public charging stations across the U.S.
+5.4 GM Energy Home Charging & Storage
+| Product | Description | Price / Notes |
+| --- | --- | --- |
+| GM Energy PowerShift Charger | Level 2 AC home charger, 19.2 kW, ~51 mi of range per charge-hour, J1772 plug, 25-ft cable, Wi-Fi + app | $1,699 before install/shipping/tax (Costco members got ~15% off in early 2025) |
+| V2H Enablement Kit | AC-DC inverter + "Home Hub" load-management computer + small backup battery; pairs with PowerShift charger for vehicle-to-home backup power | Publicly demoed powering an entire house from a Silverado EV |
+| GM Energy PowerBank | Modular home battery/storage; 10.6 kWh or 17.7 kWh units; two 17.7 kWh units combine for 35.4 kWh (~20 hrs of average home backup) | Nationwide (50-state) availability; solar install via partner Qmerit |
+Note: GM Energy's products support V2H (vehicle-to-home backup), not V2G (vehicle-to-grid export). No shipped V2G product was found. Branding evolved from "Ultium Home" (2023) to plain "GM Energy" (PowerShift, PowerBank, Home Hub) from 2024 onward.
+5.5 Public Fast-Charging Network Partnerships
+- GM–EVgo–Pilot ("EVgo eXtend"): announced 2022, goal of 2,000 DC fast-charging stalls at up to 500 Pilot/Flying J travel centers. Most recent confirmed figure (September 2025): 200+ locations across ~40 states, ~850 fast-charging stalls up to 350 kW, with Plug & Charge, and a goal of 1,000 stalls by end of 2025. No confirmed figure past September 2025 — treat current stall count as needing a fresh check.
+- Ionna: founded July 26, 2023 by seven automakers (BMW, GM, Honda, Hyundai, Kia, Mercedes-Benz, Stellantis); Toyota joined as an eighth investor July 2024. Began North American operations February 2024 targeting 30,000+ chargers. Growth: ~100 contracted sites (Feb 2025) → 3,000+ contracted bays (Jul 2025) → 1,100+ bays live/under construction with a $250M planned California investment (Nov 2025) → at its second anniversary (March 2026), 100+ live sites, ~1,000 live bays, and 4,700+ bays contracted/in construction. In March 2026, Ionna launched a 10% discount for GM EV owners via GM's apps; an April 2026 Circle K partnership adds co-located sites.
+
+6. Business Strategy, Plant Status & Financial Impact (2025–2026)
+This is the most time-sensitive section — re-verify before reuse.
+6.1 Strategy Reversals & Timeline
+- October 2025: GM took a $1.6B charge (non-cash impairment + contract-cancellation fees) as it began reassessing EV capacity.
+- December 2025: GM confirmed Orion Assembly (Michigan) would pivot from planned EV-truck production back to gas models.
+- January 2026: an additional ~$6B charge to unwind EV investments, bringing full-year 2025 EV-related charges to ~$7.9B; reports that GM plans to end Chevrolet Bolt EV production at Fairfax, KS in favor of gas Equinox and Buick Envision, starting mid-2027.
+- April 2026: GM indefinitely suspended/delayed development of next-gen full-size electric trucks and SUVs, pushing those platforms to 2030 or later.
+- May 2026: GM and Samsung SDI paused construction of their $3.5B "Synergy Cells" plant in New Carlisle, Indiana.
+- June 2026: GM announced a $275M investment in Spring Hill, TN to add gas-powered Chevrolet Blazer production (2027).
+- July 21, 2026 (Q2 earnings call): CEO Mary Barra announced new gas-powered Cadillac models (next-gen CT5, XT5, XT6) starting spring 2027 through 2028; cumulative EV-related charges since mid-2025 reached $10.9 billion.
+6.2 Plant Idling & Workforce Actions
+- Factory ZERO (Detroit/Hamtramck, MI): one shift eliminated and 1,200 workers permanently laid off (fall 2025, part of a broader 3,300-job cut); remaining ~1,300 workers temporarily idled mid-March to mid-April 2026.
+- Orion Assembly (MI): idle/retooling from planned EV-truck production toward gas Escalade, Silverado 1500, and Sierra 1500.
+- Spring Hill Assembly (TN): Cadillac Lyriq/Vistiq EV production suspended December 2025 and scaled back into early 2026, before the June 2026 gas-Blazer diversification.
+- Ultium Cells Ohio (Warren/Lordstown): production paused January 2026; 850 temporarily and 480 permanently laid off; return-to-work pushed from June to August 2026.
+6.3 Financial Impact
+| Period | Key Figures |
+| --- | --- |
+| FY2025 (reported Jan 27, 2026) | Net income fell 55% to $2.7B (from $6.0B in 2024), largely from ~$6B in Q4 EV-related charges. Full-year 2025 EV charges ~$7.9B. Revenue $185B (-1.3%); adjusted EBIT $12.7B. |
+| Q2 2026 (reported Jul 21, 2026) | $2.3B incremental EV charges. Cumulative EV charges since H2 2025: $10.9B. GAAP net income fell 31% to $1.3B; adjusted EPS $3.57 (beat); revenue $48.03B. |
+| 2026 full-year guidance | Adjusted EBIT guidance raised twice, now $14–16B. Full-year net income forecast cut for a second straight quarter to $8.4–9.8B (from $9.9–11.4B); expected annual charges roughly tripled to $3.5B. |
+Note: CFO Paul Jacobson said on the Q2 2026 call these actions "substantially complete" the material cash charges from aligning EV capacity, while cautioning "circumstances may change." For context, Honda (~$9B) and Ford (~$19.5B) took comparable EV-related charges in the same period.
+6.4 Leadership Statements
+- CEO Mary Barra, Q4 2025 shareholder letter (Jan 27, 2026): "We continue to believe in EVs, and our portfolio brought almost 100,000 new customers to GM in 2025 ... we remain confident in our path to EV profitability." On the Q2 2026 call (July 21, 2026) she announced the Cadillac ICE relaunch, framing it as reallocating a plant "previously slated to build EVs" to gas full-size SUVs.
+
+7. Regulatory Environment
+- July 4, 2025: President Trump signed the One Big Beautiful Bill Act (Public Law 119-21).
+- Effective for vehicles acquired after September 30, 2025: the federal new clean-vehicle credit (Section 30D, up to $7,500) and the used clean-vehicle credit (Section 25E) both ended.
+- Effective after June 30, 2026 (already passed): the federal alternative-fuel/EV-charging-infrastructure tax credit (Section 30C) ended.
+- Residential solar and battery-storage tax credits (relevant to GM Energy PowerBank installs) ended for property placed in service after December 31, 2025.
+- Cadillac's website still displays banners referencing the now-expired September 30, 2025 deadline — manufacturer pages can lag actual policy.
+
+8. EV Sales & Market Trends
+- Per Cox Automotive/Kelley Blue Book (published July 10, 2026, covering Q2 2026): U.S. EV sales totaled 247,226 units in Q2 2026 — up 14.7% from Q1 2026 but down 20.5% year-over-year, the third consecutive YoY decline. EVs were ~5.8% of total U.S. new-vehicle volume in Q2 2026, down from a record 10.6% in Q3 2025 (when buyers rushed to beat the expiring federal credit). Tesla accounted for roughly half of U.S. EV sales; "Chevrolet was a distant second, followed by Hyundai and Cadillac."
+- GM's overall U.S. sales (all powertrains) fell 4.2% to 714,896 units in Q2 2026, with profit carried by truck and full-size SUV margins rather than EVs; GM continues to guide to an EV-segment loss for the year, though smaller than the prior year.
+
+9. Data-Currency Notes & Open Questions (re-verify before relying on these)
+- Chevrolet's website shows inconsistent Bolt pricing ($27,600 vs $28,995) — confirm before quoting.
+- The Bolt's "revival" is a short bridge product with an already-disclosed mid-2027 production end — don't present it as a restored, ongoing nameplate.
+- No official GM term "Ultium Lite" exists; only an LFP chemistry variant of Ultium is documented.
+- GM–EVgo–Pilot network stall counts are only confirmed through September 2025 (~850 stalls, 200+ sites).
+- Whether GM's promised OTA Tesla Supercharger Plug & Charge for NACS-equipped GM EVs has shipped was not confirmed.
+- Exact retail pricing for GM's CCS↔NACS adapters was not found.
+- GM's EV-related charges have moved every quarter since late 2025 ($1.6B → $6B → $2.3B, cumulative $10.9B) — treat any total as a snapshot.
+- Whether a next-gen Cadillac XT5 PHEV will be sold in the U.S. (vs China/global only) is unconfirmed.
+- Silverado 1500 / Sierra 1500 PHEV launch timing is inconsistent across reporting (2027 to 2028–2029).
+- The December 2025 "Buick Electra" U.S. trademark filing is a procedural signal, not a product announcement.
+
+10. Sources (accessed July 28, 2026 unless dated otherwise)
+- Chevrolet EV lineup & Bolt — chevrolet.com/electric; chevrolet.com/electric/bolt-ev
+- GMC EV lineup — gmc.com/electric
+- Cadillac EV lineup — cadillac.com/electric/{lyriq,optiq,vistiq,escalade-iq,celestiq}
+- Buick current lineup — buick.com
+- GM investor relations — investor.gm.com (Q4 2025 and Q2 2026 Letters to Shareholders); GM newsroom — news.gm.com
+- Ionna — ionna.com/news-press; IRS clean vehicle credit guidance — irs.gov
+- Cox Automotive Q2 2026 EV sales report — coxautoinc.com (Jul 10, 2026); GoodCarBadCar GM Q2 2026 analysis (Jul 27, 2026)
+- InsideEVs — GM Energy Pass / NACS (Jun 8–9, 2026); Electrek — NACS adapters, Electrify America integration, PowerShift/Costco pricing, PowerBank launch, V2H demo, GM/EVgo/Pilot updates, Factory ZERO idling
+- Reuters — Ultium Cells Ohio pause (May 29, 2026); CNBC — Q2 2026 earnings / Cadillac ICE relaunch (Jul 21, 2026)
+- GM Authority (gmauthority.com) — PHEV reintroduction, Cadillac XT5 PHEV, Silverado/Sierra PHEV testing, EV job/production cuts, Buick U.S.-unavailable models, "Buick Electra" trademark re-file (Dec 11, 2025)
+
+================================================================================
+DOCUMENT 5 — General Motors: Gasoline-Powered Vehicle Lineup (Manufacturer KB companion; current as of Jul 28, 2026)
+================================================================================
+
+General Motors: Gasoline-Powered Vehicle Lineup — Knowledge Base Reference Document
+Current as of July 28, 2026
+
+This document consolidates GM's current gasoline-powered (ICE) vehicle lineup across Chevrolet, GMC, Cadillac, and Buick. It is a companion to DOCUMENT 4 (GM EV & EV Charging). GM scaled back several EV programs in 2025–2026 and is actively reallocating plant capacity toward gas models — including new gas-powered Cadillac sedans and SUVs, a returning Camaro, and reshored gas Equinox and Blazer production — so this lineup is shifting alongside the EV pullback. Every figure is a dated snapshot; tell visitors to verify current specs and pricing.
+
+1. Key Takeaways (July 2026 Snapshot)
+- All four GM brands currently sell gas-powered vehicles. Buick's entire U.S. lineup is gas-only; Chevrolet, GMC, and Cadillac each sell gas models alongside their EVs.
+- GM is in a broad EV-to-ICE production reallocation: plants once slated for EV production (Orion Township, MI; Fairfax, KS; Spring Hill, TN; Lansing Grand River, MI) are being retooled toward gas Escalade, Silverado 1500, Sierra 1500, Equinox, Blazer, CT5, and a new Camaro.
+- Cadillac is losing two current nameplates (CT4, XT4) with no announced direct successor, while bringing back the XT6 and a next-gen CT5 as gas-only models — part of the reversal of Cadillac's prior all-electric-by-2030 plan.
+- The Chevrolet Camaro, discontinued August 2023, is confirmed to return as a gas-powered, Alpha 2-2 platform model with a manual-transmission option, built at Lansing Grand River — production planned to start late 2027 for model year 2028.
+- Both the Chevrolet Silverado 1500 and GMC Sierra 1500 are getting all-new sixth-generation redesigns arriving late 2026 as 2027 models.
+- Buick may add its first U.S. sedan since the Regal (ended after MY2020) — reportedly planned at Lansing Grand River, alongside a next-gen, possibly U.S.-built compact crossover planned at Fairfax, KS.
+
+2. Current Gas-Powered Lineup, by Brand
+Pricing/specs reflect brand websites and trade press (principally GM Authority's official GM production-status table, week of June 8, 2026) as of July 28, 2026; MSRP before destination, incentives, or options. Treat as directional.
+
+Chevrolet (gas):
+| Model | Status | Starting MSRP | MY | Notes |
+| --- | --- | --- | --- | --- |
+| Trax | On sale | $21,700 | 2026 | 1.2L turbo I3 |
+| Trailblazer | On sale | $23,300 | 2026 | New "Midnight" edition for 2027MY; built Bupyeong, South Korea |
+| Equinox (gas) | On sale | $28,800 | 2026 | Built San Luis Potosí, MX; also newly "planned" at Fairfax, KS (reshoring) |
+| Malibu | Discontinued | n/a | 2025 (final) | New-unit inventory nearly sold out by mid-2026; no successor |
+| Camaro | Discontinued (Aug 2023); confirmed to return | n/a currently | 2028 (new gen) | Gas, Alpha 2-2 platform, manual option, high-performance variant; built Lansing Grand River, production starts late 2027 |
+| Corvette Stingray | On sale | $70,000 | 2026/2027 | Base RWD/AWD lineup |
+| Corvette Grand Sport | On sale (new) | $86,000 | 2027 | New RWD Grand Sport plus electrified-AWD "Grand Sport X" |
+| Corvette E-Ray | On sale | $108,600 | 2026 | AWD hybrid, 655 combined hp (not a pure EV) |
+| Corvette Z06 | On sale | $120,300 | 2026 | Naturally aspirated flat-plane V8 |
+| Corvette ZR1 | On sale | $185,000–$197,700 | 2026/2027 | Price varies by source/model year |
+| Corvette ZR1X | On sale | $209,700–$227,500 | 2026/2027 | Hybrid AWD; price varies by source/model year |
+| Blazer (gas) | On sale | $34,300 | 2026 | Built Ramos Arizpe, MX; also newly "planned" at Spring Hill, TN for H1 2027 |
+| Traverse | On sale | $40,800 | 2026 | Built Lansing Delta Township, MI |
+| Tahoe | On sale | $60,700 | 2026 | 6.2L V8 RST Performance Edition available |
+| Suburban | On sale | $63,700 | 2026 | |
+| Colorado | On sale | $32,400 | 2026 | ZR2 / ZR2 Bison off-road trims |
+| Silverado 1500 | On sale; all-new next-gen imminent | $36,900 | 2026 (2027 redesign late 2026) | Sixth-generation redesign with new V8 pairing |
+| Silverado HD (2500/3500) | On sale | $45,900 | 2026 | 6.6L Duramax turbo-diesel available |
+
+GMC (gas):
+| Model | Status | Starting MSRP | MY | Notes |
+| --- | --- | --- | --- | --- |
+| Terrain | On sale; just redesigned | $30,100–$30,400 | 2027 (new gen, on sale now) | 1.5L turbo; built San Luis Potosí, MX |
+| Acadia | On sale | $43,700–$43,800 | 2026 | 2.5L turbo, 328 hp; built Lansing Delta Township |
+| Yukon / Yukon XL | On sale | $69,200–$69,600 | 2026 | 5.3L V8 standard; 3.0L Duramax diesel available; built Arlington, TX |
+| Canyon | On sale | $38,900 | 2026 | 310-hp TurboMax standard; built Wentzville, MO |
+| Sierra 1500 | On sale; all-new next-gen imminent | $38,300 | 2026 (2027 redesign late 2026) | Sixth-generation redesign |
+| Sierra HD (2500/3500) | On sale | $47,000 | 2026 | 6.6L Duramax turbo-diesel available; built Flint, MI |
+
+Cadillac (gas):
+| Model | Status | Starting MSRP | MY | Notes |
+| --- | --- | --- | --- | --- |
+| CT4 (+ CT4-V, CT4-V Blackwing) | Discontinued after current gen | $36,000 ($50,600 V) | 2026 (final) | No North American successor announced; production ends June 2026 |
+| CT5 (+ CT5-V, CT5-V Blackwing) | On sale; gap before next-gen | $49,200 ($58,300 V) | 2026 (1st-gen ends late 2026) | Next-gen CT5 confirmed gas-only, built Lansing Grand River, arriving 2H 2028 for MY2029; 2nd-gen CT5-V Blackwing also green-lit |
+| XT4 | Discontinued | n/a | 2025 (final) | Last unit sold mid-2025; no next-gen confirmed |
+| XT5 | On sale; next-gen confirmed | $44,800 | 2026 | 2.0T I4 std / 3.6L V6 avail; built Spring Hill, TN. Next-gen (MY2028) confirmed, possible PHEV variant, ramp Q4 2027 |
+| XT6 | Discontinued; confirmed to return | n/a currently | 2028 (new gen) | Next-generation XT6 confirmed to arrive in 2028 |
+| Escalade | On sale | $91,100 ($168,000 V-Series) | 2026 | 6.2L V8 std; supercharged 682-hp V-Series; also "planned" at Orion Township, MI |
+| Escalade ESV | On sale | $94,100 ($171,000 V-Series) | 2026 | Extended-length version |
+Note: Cadillac's gas lineup is the most in flux of any GM brand — CT4 and XT4 dropped with no confirmed replacements, while XT6 and a next-gen CT5 return as gas-only, part of GM's July 2026 reversal of Cadillac's all-electric plan (see DOCUMENT 4).
+
+Buick (gas — entire U.S. lineup is gas-only):
+| Model | Status | Starting MSRP | MY | Notes |
+| --- | --- | --- | --- | --- |
+| Envista | On sale | $24,700 | 2026 | Built Bupyeong, South Korea |
+| Encore GX | On sale | $26,200 | 2026 | Built Bupyeong, South Korea |
+| Envision | On sale | $41,000 | 2026 | Built Jinqiao, China — exposed to U.S.–China auto tariff risk; a next-gen, possibly U.S.-built compact crossover separately "planned" at Fairfax, KS |
+| Enclave | On sale | $46,400 | 2026 | GM Super Cruise available; built Lansing Delta Township, MI |
+Note: Buick is reportedly considering a new U.S. sedan — planned at Lansing Grand River, MI — its first American sedan since the Regal ended after MY2020. Not formally confirmed by Buick.
+
+3. EV-to-ICE Production Reallocation (per GM Authority production-status table, week of June 8, 2026)
+- Orion Township, MI: Cadillac Escalade, Chevrolet Silverado 1500, and GMC Sierra 1500 all listed as "planned" — retooling a plant long associated with EV-truck plans toward gas trucks/SUVs.
+- Spring Hill, TN: Chevrolet Blazer (gas) is "planned," targeting H1 2027 — alongside existing Cadillac Lyriq/Vistiq EV and XT5/XT6 production.
+- Fairfax, KS: Chevrolet Equinox (gas) is "planned," alongside a next-gen Buick compact crossover — this plant also restarted limited Bolt EV production November 2025, making it a mixed EV/gas site.
+- Lansing Grand River, MI: originally funded with a $1.25 billion EV-conversion investment (November 2023), now confirmed to continue CT4/CT5 gas production and host the next-gen CT5, the returning Camaro, and a possible new Buick sedan — a direct reversal of the 2023 EV plan.
+
+4. Discontinued or Departing Models (Gas Lineup)
+- Chevrolet Malibu: final model year 2025; inventory nearly sold out by mid-2026; no successor.
+- Chevrolet Camaro: discontinued August 2023; confirmed to return for MY2028 as a gas-powered, Alpha 2-2-platform model with a manual-transmission option.
+- Cadillac CT4 (incl. CT4-V, CT4-V Blackwing): production ends after MY2026; no North American successor.
+- Cadillac XT4: discontinued after MY2025; no next-gen confirmed.
+- Cadillac XT6: current generation ended; a next-generation XT6 confirmed for 2028.
+
+5. Data-Currency Notes & Open Questions (re-verify before relying on these)
+- Cadillac's next-gen CT5, XT5, and XT6 land on different timelines: XT6 ~2028, XT5 next-gen ramps ~Q4 2027 (MY2028), CT5 next-gen later — 2H 2028 for MY2029 (per July 27, 2026 reporting). Not a single "spring 2027" launch wave.
+- Corvette ZR1 and ZR1X pricing differs between Chevrolet's performance and vehicles pages ($185,000/$209,700 vs $197,700/$227,500) — likely a MY2026-to-2027 increase, unresolved.
+- GMC's site shows two Terrain starting prices ($30,400 hero vs $30,100 trim detail) — confirm before quoting.
+- The Chevrolet Trailblazer remains on sale (received a new "Midnight" trim for MY2027), not discontinued.
+- A new Buick U.S. sedan and a next-gen, possibly U.S.-built Buick compact crossover are in GM's internal planning but not formally announced — treat as "planned," not certain.
+- The Buick Envision remains built in China (Jinqiao), carrying ongoing U.S.–China auto-tariff exposure.
+
+6. Sources (accessed July 28, 2026 unless dated otherwise)
+- Chevrolet — chevrolet.com/suvs, /trucks, /performance, /vehicles; GMC — gmc.com/suvs, /trucks; Cadillac — cadillac.com/suvs, /sedans, /all-vehicles; Buick — buick.com/suvs
+- GM Authority — official GM North America production-status table (week of Jun 8, 2026); next-gen Cadillac CT5 timing (Jul 27, 2026); 2nd-gen CT5-V Blackwing (Jul 20, 2026); Alpha 2 platform / new Camaro, CT5, Buick sedan (Apr 9, 2026); next-gen XT5/CT5 naming (Apr 18, 2026); Cadillac CT4 discontinuation (Oct 15, 2025); Buick U.S. sedan reporting (Mar 2026); next-gen Camaro high-performance variant, Malibu inventory sell-down, next-gen Cadillac XT6 (Jun–Jul 2026)
