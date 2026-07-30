@@ -2,46 +2,58 @@
 
 The homepage chat and `/assistant` are powered by an n8n **Webhook → AI Agent** workflow.
 The website posts each message to the `evan-chat` webhook (see `VITE_N8N_WEBHOOK_URL`).
-The agent answers **only** from EVNoire's guides, which are baked into the agent's
-**System Message**:
 
-- `EVNoire_EV_Charging_101_v2_Updated.docx` — *EV Charging 101 & Beyond*
-- `EVNoire_EV101_v2_Updated.docx` — *Multimodal EV101*
+**Architecture: Supabase RAG (since Jul 2026).** The agent no longer carries the whole
+knowledge base in its System Message. Instead it has a compact prompt (rules, identity,
+guardrails, special responses — see `EVA-system-prompt-RAG.md`) plus an **`ev_knowledge_base`
+retrieval tool** backed by a Supabase pgvector table. On every question the agent searches
+the vector store and answers from the passages it gets back. This keeps per-message tokens
+low (~4k vs ~45k baked-in) and lets the corpus grow without bloating the prompt.
+
+The knowledge base source documents (chunked + embedded into the vector store):
+
+- `EVNoire_EV_Charging_101_v2_Updated.docx` — *EV Charging 101 & Beyond* (DOCUMENT 1)
+- `EVNoire_EV101_v2_Updated.docx` — *Multimodal EV101* (DOCUMENT 2)
 - `Michigan EV Charging Incentives Guide_2026-07-28.docx` — *Michigan EV & Charging Incentives Guide* (state-specific; DOCUMENT 3)
-- `GM EV Knowledge Base_2026-07-28.docx` — *General Motors: EV & EV Charging* (manufacturer-specific; DOCUMENT 4) and *General Motors: Gasoline-Powered Vehicle Lineup* (companion; DOCUMENT 5)
+- `GM EV Knowledge Base_2026-07-28.docx` — *General Motors: EV & EV Charging* (DOCUMENT 4) and *Gasoline-Powered Vehicle Lineup* (DOCUMENT 5)
 
-The full, ready-to-paste system prompt (rules + both documents) is in:
+Key files in this folder:
 
-> **`EVA-system-prompt.md`**
+> - **`EVA-system-prompt.md`** — the full knowledge base (DOCUMENTS 1–5). This is the **ingestion source** (chunked + embedded), no longer pasted into the agent.
+> - **`EVA-system-prompt-RAG.md`** — the compact prompt actually running in the live agent's System Message.
+> - **`etus_kb_documents.sql`** — the Supabase table + match function DDL.
 
-## How to update the live agent (Hostinger instance)
+## The live workflow
 
-The live workflow runs on `https://n8n-9odn.srv1570441.hstgr.cloud`
-(workflow `Y6kahfizPcdz5MMy` — **"EVan Chat → Slack Leads"**, webhook path `evan-chat`).
-To refresh its knowledge base:
+`https://n8n-9odn.srv1570441.hstgr.cloud`, workflow `Y6kahfizPcdz5MMy`
+(**"EVan Chat → Slack Leads"**, webhook path `evan-chat`). Relevant nodes:
 
-1. Open the workflow → double-click the **EVan Agent** node.
-2. Open **Options → System Message**.
-3. Replace its contents with the **entire** text of `EVA-system-prompt.md`.
-4. **Save**, then make sure the workflow is **Active**.
+- **EVan Agent** — System Message = `EVA-system-prompt-RAG.md`; OpenRouter `google/gemini-2.5-flash`.
+- **ETUS Knowledge Base** — `vectorStoreSupabase` (retrieve-as-tool, tool name `ev_knowledge_base`), table `etus_kb_documents`, RPC `match_etus_kb_documents`.
+- **KB Embeddings** — Google Gemini (`gemini-embedding-001`, 3072-dim). The **same** embedding model must be used for ingestion and retrieval.
+- Brave web-search fallback fires when the agent returns the "Concierges will reach out" message.
 
-No other node changes are needed — the webhook URL, OpenRouter model, and
-per-session memory stay the same, so the website keeps working without any frontend change.
+Supabase project **"Electrifying the US"** (`wmwjjejrgequyersrjnh`), table `etus_kb_documents`.
 
-> Note: several *other* EVan workflows exist on this instance (e.g. `p7VVAh6DWMlo667A`
-> "Electrifying the US - Website Chatbot", and Supabase-RAG variants using `kb_documents` /
-> `emr_kb_documents`). The **live website** agent is the `evan-chat` webhook workflow above,
-> whose KB is the baked-in System Message — not a vector store. Update that one.
+> Other EVan workflows exist on this instance (e.g. `p7VVAh6DWMlo667A` uses `kb_documents`,
+> `Oq5led9c71ulGftw` uses `emr_kb_documents`). The **live website** agent is the `evan-chat`
+> workflow above, using `etus_kb_documents`. Update that one.
 
-## Updating the source documents later
+## Updating the knowledge base later
 
-1. Drop the new `.docx` files in Downloads (or anywhere).
-2. Re-extract + reassemble `EVA-system-prompt.md` (the project assistant can do this).
-3. Repeat the paste steps above.
+1. Edit `EVA-system-prompt.md` (or drop new `.docx` files and re-assemble it).
+2. In Supabase, `truncate table public.etus_kb_documents;` (see `etus_kb_documents.sql`).
+3. Re-chunk DOCUMENTS 1–5 (≤~1000 chars each, tagged with a `source` metadata label) and
+   POST them in batches to an ingestion workflow that runs: Code (emit `{content, metadata}`)
+   → Doc Loader → Recursive splitter → Gemini embeddings → `vectorStoreSupabase` **insert**
+   into `etus_kb_documents`. (The project assistant scripted this; a deactivated
+   "ETUS KB — Ingestion" workflow on the instance is the template.)
+4. If only the **rules/guardrails** change (not the KB facts), just update the **EVan Agent**
+   System Message from `EVA-system-prompt-RAG.md` — no re-ingestion needed.
 
-> Note: the whole knowledge base (~22k tokens) is sent as the system prompt on every
-> message. That's the most reliable setup for these two guides. If the corpus grows much
-> larger, switch to a persistent vector store (Supabase/Pinecone/Qdrant) for chunked RAG.
+> Heads-up: the Hostinger/Cloudflare proxy in front of this instance drops many webhook
+> requests and cuts responses at ~21s. Bulk ingestion must use modest batches and verify
+> progress against the live row count / executions API, not the HTTP response.
 
 ## Lead fields the website sends to the webhook
 
