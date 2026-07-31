@@ -11,7 +11,8 @@ export type AdminTable =
   | "site_jobs"
   | "site_vehicles"
   | "site_incentives"
-  | "site_pages";
+  | "site_pages"
+  | "kb_source_documents";
 
 async function post<T>(endpoint: string, payload: unknown): Promise<T> {
   const token = await getAccessToken();
@@ -77,4 +78,15 @@ export async function uploadImage(file: File): Promise<string> {
     throw new Error(detail);
   }
   return (data as { url: string }).url;
+}
+
+/** Re-chunk + re-embed a KB source doc into the live vector store. Returns chunk count. */
+export async function kbReembed(source: string, title: string, body: string): Promise<number> {
+  const { chunkCount } = await post<{ chunkCount: number }>("/api/admin/kb-ingest", { action: "reembed", source, title, body });
+  return chunkCount;
+}
+
+/** Remove a KB source doc's chunks from the live vector store. */
+export async function kbRemove(source: string): Promise<void> {
+  await post<{ ok: true }>("/api/admin/kb-ingest", { action: "remove", source });
 }

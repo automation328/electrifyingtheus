@@ -21,14 +21,14 @@ const CARDS: Card[] = [
   { to: "/admin/content/vehicles", label: "Vehicles", icon: Car, desc: "Calculator catalog", table: "site_vehicles" },
   { to: "/admin/content/incentives", label: "Incentives", icon: BadgePercent, desc: "Rebates & credits", table: "site_incentives" },
   { to: "/admin/content/pages", label: "Pages", icon: FileText, desc: "Content page copy" },
-  { to: "/admin/content/knowledge-base", label: "EVan knowledge", icon: Bot, desc: "Assistant RAG documents", soon: true },
+  { to: "/admin/content/knowledge-base", label: "EVan knowledge", icon: Bot, desc: "Assistant RAG documents", table: "kb_source_documents" },
 ];
 
 function useCounts() {
   return useQuery({
     queryKey: ["admin-counts"],
     queryFn: async () => {
-      const tables: AdminTable[] = ["site_blog_posts", "site_events", "site_gallery", "site_jobs", "site_vehicles", "site_incentives"];
+      const tables: AdminTable[] = ["site_blog_posts", "site_events", "site_gallery", "site_jobs", "site_vehicles", "site_incentives", "kb_source_documents"];
       const entries = await Promise.all(
         tables.map(async (t) => {
           try { return [t, (await listRows(t)).length] as const; }
