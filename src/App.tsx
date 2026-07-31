@@ -47,6 +47,13 @@ import ContactWidget from "./components/ContactWidget.tsx";
 import AnalyticsTracker from "./components/AnalyticsTracker.tsx";
 import GoogleAnalytics from "./components/GoogleAnalytics.tsx";
 import AdminDashboard from "./pages/AdminDashboard.tsx";
+import RequireEditor from "./components/admin/RequireEditor.tsx";
+import AdminLogin from "./pages/admin/AdminLogin.tsx";
+import AdminLayout from "./pages/admin/AdminLayout.tsx";
+import AdminHome from "./pages/admin/AdminHome.tsx";
+import AdminPlaceholder from "./pages/admin/AdminPlaceholder.tsx";
+import CollectionManager from "./components/admin/CollectionManager.tsx";
+import { blogConfig, eventsConfig, galleryConfig, jobsConfig } from "./pages/admin/collections/configs.ts";
 
 const queryClient = new QueryClient();
 
@@ -106,6 +113,19 @@ const App = () => (
           <Route path="/terms" element={<TermsConditions />} />
           {/* Internal analytics dashboard — password-gated (ANALYTICS_PASSWORD). */}
           <Route path="/admin" element={<AdminDashboard />} />
+          {/* CMS content editor — Supabase Auth, invite-only editors. */}
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/admin/content" element={<RequireEditor><AdminLayout /></RequireEditor>}>
+            <Route index element={<AdminHome />} />
+            <Route path="blog" element={<CollectionManager config={blogConfig} />} />
+            <Route path="events" element={<CollectionManager config={eventsConfig} />} />
+            <Route path="gallery" element={<CollectionManager config={galleryConfig} />} />
+            <Route path="jobs" element={<CollectionManager config={jobsConfig} />} />
+            <Route path="pages" element={<AdminPlaceholder title="Pages" note="Edit content-page copy — coming in a later phase." />} />
+            <Route path="vehicles" element={<AdminPlaceholder title="Vehicles" note="Edit the calculator vehicle catalog — coming in a later phase." />} />
+            <Route path="incentives" element={<AdminPlaceholder title="Incentives" note="Edit rebates & credits — coming in a later phase." />} />
+            <Route path="knowledge-base" element={<AdminPlaceholder title="EVan knowledge" note="Edit the assistant's RAG documents — coming in a later phase." />} />
+          </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
