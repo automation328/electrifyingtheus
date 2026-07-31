@@ -422,3 +422,58 @@ export function incentiveHeadline(state: string): IncentiveHeadline {
     items: ranked.slice(0, 6).map((i) => ({ name: i.name, amount: i.amount })),
   };
 }
+
+// ── CMS overlay ──────────────────────────────────────────────────────────────
+// A DB-backed incentive keyed into one of the three buckets. `scope` chooses the
+// bucket: federal → FEDERAL[category], state → STATE_INCENTIVES[state][category],
+// utility → UTILITY_INCENTIVES[state].
+export interface IncentiveOverride {
+  scope: "federal" | "state" | "utility";
+  state?: string | null;
+  category?: CatKey | null;
+  hidden?: boolean;
+  incentive: Incentive;
+}
+
+// Resolve (creating as needed) the target array for a row, or null if the row
+// is missing the fields its scope requires.
+function bucketFor(row: IncentiveOverride): Incentive[] | null {
+  if (row.scope === "federal") {
+    const k = row.category;
+    if (!k) return null;
+    return (FEDERAL[k] ?? (FEDERAL[k] = []));
+  }
+  if (row.scope === "state") {
+    const st = row.state, k = row.category;
+    if (!st || !k) return null;
+    const s = STATE_INCENTIVES[st] ?? (STATE_INCENTIVES[st] = {});
+    return s[k] ?? (s[k] = []);
+  }
+  // utility
+  const st = row.state;
+  if (!st) return null;
+  return UTILITY_INCENTIVES[st] ?? (UTILITY_INCENTIVES[st] = []);
+}
+
+// Apply DB incentive overrides onto the curated sets IN PLACE. Called once at
+// boot (src/lib/content-hydrate.ts) before the app renders. Within a bucket a
+// row overrides a same-name static entry (or is appended); a hidden row removes
+// the same-name static entry. Dedupes by name within its bucket.
+export function applyIncentiveOverrides(rows: IncentiveOverride[]): void {
+  // Removals first so a hidden row can't be re-added by an add row in the same pass.
+  for (const row of rows) {
+    if (!row.hidden) continue;
+    const bucket = bucketFor(row);
+    if (!bucket) continue;
+    const idx = bucket.findIndex((i) => i.name === row.incentive.name);
+    if (idx >= 0) bucket.splice(idx, 1);
+  }
+  for (const row of rows) {
+    if (row.hidden) continue;
+    const bucket = bucketFor(row);
+    if (!bucket) continue;
+    const idx = bucket.findIndex((i) => i.name === row.incentive.name);
+    if (idx >= 0) bucket[idx] = row.incentive;
+    else bucket.push(row.incentive);
+  }
+}

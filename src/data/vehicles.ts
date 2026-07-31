@@ -1513,3 +1513,25 @@ export function getMatchingGasVehicle(evId: string): VehicleData | undefined {
   if (!ev) return undefined;
   return vehicles.find(v => v.type === 'gas' && v.category === ev.category);
 }
+
+// ── CMS overlay ──────────────────────────────────────────────────────────────
+// Apply DB-backed vehicle overrides onto the curated catalog IN PLACE, so every
+// synchronous consumer of `vehicles` (including module-scope reads) sees the
+// merged set. Called once at boot from src/lib/content-hydrate.ts BEFORE the app
+// renders. `published` entries override a static vehicle with the same id or are
+// appended; `hiddenIds` remove the matching static vehicle.
+export function applyVehicleOverrides(published: VehicleData[], hiddenIds: string[] = []): void {
+  const hidden = new Set(hiddenIds);
+  const overrides = new Map(published.map((v) => [v.id, v]));
+  const merged: VehicleData[] = [];
+  for (const v of vehicles) {
+    if (hidden.has(v.id)) continue;                 // removed by a hidden override
+    merged.push(overrides.get(v.id) ?? v);          // replace in place, or keep
+    overrides.delete(v.id);
+  }
+  for (const v of overrides.values()) {
+    if (!hidden.has(v.id)) merged.push(v);          // brand-new additions
+  }
+  vehicles.length = 0;
+  vehicles.push(...merged);
+}

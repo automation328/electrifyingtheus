@@ -53,7 +53,7 @@ import AdminLayout from "./pages/admin/AdminLayout.tsx";
 import AdminHome from "./pages/admin/AdminHome.tsx";
 import AdminPlaceholder from "./pages/admin/AdminPlaceholder.tsx";
 import CollectionManager from "./components/admin/CollectionManager.tsx";
-import { blogConfig, eventsConfig, galleryConfig, jobsConfig } from "./pages/admin/collections/configs.ts";
+import { blogConfig, eventsConfig, galleryConfig, jobsConfig, vehiclesConfig, incentivesConfig } from "./pages/admin/collections/configs.ts";
 
 const queryClient = new QueryClient();
 
@@ -122,8 +122,8 @@ const App = () => (
             <Route path="gallery" element={<CollectionManager config={galleryConfig} />} />
             <Route path="jobs" element={<CollectionManager config={jobsConfig} />} />
             <Route path="pages" element={<AdminPlaceholder title="Pages" note="Edit content-page copy — coming in a later phase." />} />
-            <Route path="vehicles" element={<AdminPlaceholder title="Vehicles" note="Edit the calculator vehicle catalog — coming in a later phase." />} />
-            <Route path="incentives" element={<AdminPlaceholder title="Incentives" note="Edit rebates & credits — coming in a later phase." />} />
+            <Route path="vehicles" element={<CollectionManager config={vehiclesConfig} />} />
+            <Route path="incentives" element={<CollectionManager config={incentivesConfig} />} />
             <Route path="knowledge-base" element={<AdminPlaceholder title="EVan knowledge" note="Edit the assistant's RAG documents — coming in a later phase." />} />
           </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

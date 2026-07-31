@@ -8,6 +8,8 @@ import { BLOG_POSTS, type BlogPost } from "@/data/blog-posts";
 import type { GalleryPhoto, GalleryVideo } from "@/data/gallery";
 import type { Job } from "@/data/careers";
 import type { VideoProvider } from "@/components/VideoEmbed";
+import type { VehicleData } from "@/lib/tco-calculator";
+import type { CatKey, Incentive, IncentiveOverride } from "@/data/incentives";
 import fallbackImg from "@/assets/ev-charging.jpg";
 import jobFallbackImg from "@/assets/workforce.jpg";
 
@@ -157,4 +159,86 @@ export async function fetchJobs(): Promise<Job[]> {
     .order("sort", { ascending: true }).order("created_at", { ascending: false });
   if (error || !data) return [];
   return (data as JobRow[]).map(rowToJob);
+}
+
+// ── Vehicles (site_vehicles) — boot-time overlay onto the static catalog ──────
+interface VehicleDbRow {
+  status: string; hidden: boolean | null; vehicle_id: string; name: string; type: string;
+  msrp: number | null; mpg: number | null; mpge: number | null; kwh_per_100mi: number | null;
+  maintenance_cost_per_mile: number | null; insurance_annual: number | null; depreciation_rate: number | null;
+  category: string | null; image: string | null; body_style: string | null; size_class: number | null;
+  seats: number | null; drivetrain: string | null; range_mi: number | null;
+  performance: boolean | null; luxury: boolean | null;
+}
+
+function rowToVehicle(r: VehicleDbRow): VehicleData {
+  const v: VehicleData = {
+    id: r.vehicle_id,
+    name: r.name,
+    type: r.type === "gas" ? "gas" : "ev",
+    msrp: Number(r.msrp) || 0,
+    maintenanceCostPerMile: Number(r.maintenance_cost_per_mile) || 0,
+    insuranceAnnual: Number(r.insurance_annual) || 0,
+    depreciationRate: Number(r.depreciation_rate) || 0,
+    category: r.category || "Sedan",
+  };
+  if (r.mpg != null) v.mpg = Number(r.mpg);
+  if (r.mpge != null) v.mpge = Number(r.mpge);
+  if (r.kwh_per_100mi != null) v.kwhPer100mi = Number(r.kwh_per_100mi);
+  if (r.image) v.image = r.image;
+  if (r.body_style) v.bodyStyle = r.body_style as VehicleData["bodyStyle"];
+  if (r.size_class != null) v.sizeClass = Number(r.size_class);
+  if (r.seats != null) v.seats = Number(r.seats);
+  if (r.drivetrain) v.drivetrain = r.drivetrain as VehicleData["drivetrain"];
+  if (r.range_mi != null) v.rangeMi = Number(r.range_mi);
+  if (r.performance) v.performance = true;
+  if (r.luxury) v.luxury = true;
+  return v;
+}
+
+/** Published vehicle overrides + the ids of static vehicles to remove. */
+export async function fetchVehicleOverrides(): Promise<{ published: VehicleData[]; hiddenIds: string[] }> {
+  if (!supabase) return { published: [], hiddenIds: [] };
+  const { data, error } = await supabase
+    .from("site_vehicles").select("*").eq("status", "published")
+    .order("sort", { ascending: true });
+  if (error || !data) return { published: [], hiddenIds: [] };
+  const rows = data as VehicleDbRow[];
+  return {
+    published: rows.filter((r) => !r.hidden).map(rowToVehicle),
+    hiddenIds: rows.filter((r) => r.hidden).map((r) => r.vehicle_id),
+  };
+}
+
+// ── Incentives (site_incentives) — boot-time overlay onto the curated sets ─────
+interface IncentiveDbRow {
+  status: string; hidden: boolean | null; scope: string; state: string | null; category: string | null;
+  name: string; jurisdiction: string | null; amount: string | null;
+  income: boolean | null; used: boolean | null; description: string | null; link: string | null;
+}
+
+const CATS = new Set(["vehicle", "charging", "electricity", "perks"]);
+
+function rowToIncentiveOverride(r: IncentiveDbRow): IncentiveOverride {
+  const incentive: Incentive = {
+    name: r.name,
+    jurisdiction: r.jurisdiction || "",
+    desc: r.description || "",
+    link: r.link || "",
+  };
+  if (r.amount) incentive.amount = r.amount;
+  if (r.income) incentive.income = true;
+  if (r.used) incentive.used = true;
+  const scope = r.scope === "federal" || r.scope === "utility" ? r.scope : "state";
+  const category = r.category && CATS.has(r.category) ? (r.category as CatKey) : null;
+  return { scope, state: r.state, category, hidden: !!r.hidden, incentive };
+}
+
+export async function fetchIncentiveOverrides(): Promise<IncentiveOverride[]> {
+  if (!supabase) return [];
+  const { data, error } = await supabase
+    .from("site_incentives").select("*").eq("status", "published")
+    .order("sort", { ascending: true });
+  if (error || !data) return [];
+  return (data as IncentiveDbRow[]).map(rowToIncentiveOverride);
 }

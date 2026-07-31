@@ -4,7 +4,13 @@
 
 import { getAccessToken } from "@/lib/auth";
 
-export type AdminTable = "site_blog_posts" | "site_events" | "site_gallery" | "site_jobs";
+export type AdminTable =
+  | "site_blog_posts"
+  | "site_events"
+  | "site_gallery"
+  | "site_jobs"
+  | "site_vehicles"
+  | "site_incentives";
 
 async function post<T>(endpoint: string, payload: unknown): Promise<T> {
   const token = await getAccessToken();
