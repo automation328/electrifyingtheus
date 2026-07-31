@@ -43,9 +43,11 @@ With Supabase unset, every surface falls back to the curated static content.
 
 - **Auth/authorization:** `api/_admin-auth.ts` verifies the Supabase access token
   (GoTrue `auth/v1/user`) and confirms the email is in `public.editors`.
-- **Writes:** `api/admin/collection.ts` (generic list/insert/update/delete over a
-  table allow-list), `api/admin/upload.ts` (images → public `site-media` bucket),
-  `api/admin/kb-ingest.ts` (chunk + embed → `etus_kb_documents`).
+- **Writes:** one endpoint `api/admin.ts` dispatched by `op` — `collection`
+  (list/insert/update/delete over a table allow-list), `upload` (images → public
+  `site-media` bucket), `kb` (chunk + embed → `etus_kb_documents`), and `me`
+  (authorization check). Consolidated into a single Serverless Function to stay
+  under the Hobby-plan 12-function limit.
 - **Reactive overlays** (blog/events/gallery/jobs/pages) load via React Query, so
   edits appear on next load. **Boot-time overlays** (vehicles/incentives) merge
   into the static datasets in `src/main.tsx` before render, because those are read

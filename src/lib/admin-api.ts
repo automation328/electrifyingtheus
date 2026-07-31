@@ -14,10 +14,11 @@ export type AdminTable =
   | "site_pages"
   | "kb_source_documents";
 
-async function post<T>(endpoint: string, payload: unknown): Promise<T> {
+// Single editor-gated endpoint; the `op` selects the handler (see api/admin.ts).
+async function call<T>(payload: Record<string, unknown>): Promise<T> {
   const token = await getAccessToken();
   if (!token) throw new Error("Not signed in.");
-  const r = await fetch(endpoint, {
+  const r = await fetch("/api/admin", {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
     body: JSON.stringify(payload),
@@ -34,22 +35,22 @@ async function post<T>(endpoint: string, payload: unknown): Promise<T> {
 
 /** Fetch every row (including drafts) for a collection — admin-only view. */
 export async function listRows<T = Record<string, unknown>>(table: AdminTable): Promise<T[]> {
-  const { rows } = await post<{ rows: T[] }>("/api/admin/collection", { action: "list", table });
+  const { rows } = await call<{ rows: T[] }>({ op: "collection", action: "list", table });
   return rows;
 }
 
 export async function insertRow<T = Record<string, unknown>>(table: AdminTable, row: Record<string, unknown>): Promise<T> {
-  const { row: created } = await post<{ row: T }>("/api/admin/collection", { action: "insert", table, row });
+  const { row: created } = await call<{ row: T }>({ op: "collection", action: "insert", table, row });
   return created;
 }
 
 export async function updateRow<T = Record<string, unknown>>(table: AdminTable, id: string, row: Record<string, unknown>): Promise<T> {
-  const { row: updated } = await post<{ row: T }>("/api/admin/collection", { action: "update", table, id, row });
+  const { row: updated } = await call<{ row: T }>({ op: "collection", action: "update", table, id, row });
   return updated;
 }
 
 export async function deleteRow(table: AdminTable, id: string): Promise<void> {
-  await post<{ ok: true }>("/api/admin/collection", { action: "delete", table, id });
+  await call<{ ok: true }>({ op: "collection", action: "delete", table, id });
 }
 
 /**
@@ -65,10 +66,10 @@ export async function uploadImage(file: File): Promise<string> {
     reader.onerror = () => reject(new Error("Could not read file."));
     reader.readAsDataURL(file);
   });
-  const r = await fetch("/api/admin/upload", {
+  const r = await fetch("/api/admin", {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-    body: JSON.stringify({ filename: file.name, contentType: file.type, dataUrl }),
+    body: JSON.stringify({ op: "upload", filename: file.name, contentType: file.type, dataUrl }),
   });
   const data = await r.json().catch(() => ({}));
   if (!r.ok) {
@@ -82,11 +83,11 @@ export async function uploadImage(file: File): Promise<string> {
 
 /** Re-chunk + re-embed a KB source doc into the live vector store. Returns chunk count. */
 export async function kbReembed(source: string, title: string, body: string): Promise<number> {
-  const { chunkCount } = await post<{ chunkCount: number }>("/api/admin/kb-ingest", { action: "reembed", source, title, body });
+  const { chunkCount } = await call<{ chunkCount: number }>({ op: "kb", action: "reembed", source, title, body });
   return chunkCount;
 }
 
 /** Remove a KB source doc's chunks from the live vector store. */
 export async function kbRemove(source: string): Promise<void> {
-  await post<{ ok: true }>("/api/admin/kb-ingest", { action: "remove", source });
+  await call<{ ok: true }>({ op: "kb", action: "remove", source });
 }

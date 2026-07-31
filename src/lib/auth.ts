@@ -39,7 +39,11 @@ export async function fetchEditor(): Promise<EditorInfo | null> {
   const token = await getAccessToken();
   if (!token) return null;
   try {
-    const r = await fetch("/api/admin/me", { headers: { Authorization: `Bearer ${token}` } });
+    const r = await fetch("/api/admin", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ op: "me" }),
+    });
     if (!r.ok) return null;
     return (await r.json()) as EditorInfo;
   } catch {
