@@ -22,6 +22,7 @@ const ALLOWED = new Set<string>([
   "site_jobs",
   "site_vehicles",
   "site_incentives",
+  "site_pages",
 ]);
 
 function safeJson(s: string): unknown {

@@ -10,7 +10,8 @@ export type AdminTable =
   | "site_gallery"
   | "site_jobs"
   | "site_vehicles"
-  | "site_incentives";
+  | "site_incentives"
+  | "site_pages";
 
 async function post<T>(endpoint: string, payload: unknown): Promise<T> {
   const token = await getAccessToken();

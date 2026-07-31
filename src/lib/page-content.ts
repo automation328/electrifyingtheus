@@ -1,0 +1,83 @@
+// CMS override layer for content-page prose. A page renders via EditableContentPage,
+// which merges the published DB override (site_pages, keyed by route path) over the
+// page's static defaults — field by field, so an unset field falls back to code.
+//
+// Only the serializable prose fields are overridable; icon/hero image/video/etc.
+// stay in code. Reads are reactive (React Query), so an edit shows on next load.
+
+import { useQuery } from "@tanstack/react-query";
+import { supabase, isSupabaseConfigured } from "@/lib/supabase";
+import type { ContentStat, ContentSection, ContentSource } from "@/components/ContentPageLayout";
+import { reducedEmissionsContent } from "@/data/pages/reduced-emissions";
+
+/** The overridable prose fields of a ContentPageLayout page. */
+export interface PageOverride {
+  badge?: string;
+  title?: string;
+  highlight?: string;
+  intro?: string;
+  kicker?: string;
+  pullQuote?: string;
+  stats?: ContentStat[];
+  sections?: ContentSection[];
+  sources?: ContentSource[];
+}
+
+export const PAGE_OVERRIDE_KEYS: (keyof PageOverride)[] = [
+  "badge", "title", "highlight", "intro", "kicker", "pullQuote", "stats", "sections", "sources",
+];
+
+/** Pages wired to EditableContentPage — shown in the CMS Pages editor. */
+export interface EditablePageInfo { path: string; label: string }
+export const EDITABLE_PAGES: EditablePageInfo[] = [
+  { path: "/reduced-emissions", label: "Reduced Emissions" },
+];
+
+// Static default prose per editable page — the CMS editor pre-fills from these so
+// an editor edits the current copy (rather than a blank form). Imported from the
+// page's data module (type-only import above avoids a runtime cycle).
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const PAGE_DEFAULTS: Record<string, PageOverride> = {
+  "/reduced-emissions": reducedEmissionsContent,
+};
+
+function isEmpty(v: unknown): boolean {
+  if (v === undefined || v === null) return true;
+  if (typeof v === "string") return v.trim() === "";
+  if (Array.isArray(v)) return v.length === 0;
+  return false;
+}
+
+/** Merge an override onto static props: a non-empty override field wins. */
+export function mergePageOverride<T extends PageOverride>(base: T, override: PageOverride | null | undefined): T {
+  if (!override) return base;
+  const out = { ...base };
+  for (const key of PAGE_OVERRIDE_KEYS) {
+    const v = override[key];
+    if (!isEmpty(v)) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (out as any)[key] = v;
+    }
+  }
+  return out;
+}
+
+/** Fetch the published override payload for a route path (or null). */
+export async function fetchPageOverride(path: string): Promise<PageOverride | null> {
+  if (!supabase) return null;
+  const { data, error } = await supabase
+    .from("site_pages").select("content").eq("path", path).eq("status", "published").maybeSingle();
+  if (error || !data) return null;
+  return (data.content ?? null) as PageOverride | null;
+}
+
+/** Reactive override for a page (empty until/unless one is published). */
+export function usePageOverride(path: string): PageOverride | null {
+  const q = useQuery({
+    queryKey: ["site-page", path],
+    queryFn: () => fetchPageOverride(path),
+    enabled: isSupabaseConfigured,
+    staleTime: 5 * 60 * 1000,
+  });
+  return q.data ?? null;
+}

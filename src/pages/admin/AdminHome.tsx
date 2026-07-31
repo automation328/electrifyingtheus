@@ -20,7 +20,7 @@ const CARDS: Card[] = [
   { to: "/admin/content/jobs", label: "Jobs", icon: Briefcase, desc: "Careers board", table: "site_jobs" },
   { to: "/admin/content/vehicles", label: "Vehicles", icon: Car, desc: "Calculator catalog", table: "site_vehicles" },
   { to: "/admin/content/incentives", label: "Incentives", icon: BadgePercent, desc: "Rebates & credits", table: "site_incentives" },
-  { to: "/admin/content/pages", label: "Pages", icon: FileText, desc: "Content page copy", soon: true },
+  { to: "/admin/content/pages", label: "Pages", icon: FileText, desc: "Content page copy" },
   { to: "/admin/content/knowledge-base", label: "EVan knowledge", icon: Bot, desc: "Assistant RAG documents", soon: true },
 ];
 

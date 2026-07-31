@@ -52,6 +52,7 @@ import AdminLogin from "./pages/admin/AdminLogin.tsx";
 import AdminLayout from "./pages/admin/AdminLayout.tsx";
 import AdminHome from "./pages/admin/AdminHome.tsx";
 import AdminPlaceholder from "./pages/admin/AdminPlaceholder.tsx";
+import PagesManager from "./pages/admin/PagesManager.tsx";
 import CollectionManager from "./components/admin/CollectionManager.tsx";
 import { blogConfig, eventsConfig, galleryConfig, jobsConfig, vehiclesConfig, incentivesConfig } from "./pages/admin/collections/configs.ts";
 
@@ -121,7 +122,7 @@ const App = () => (
             <Route path="events" element={<CollectionManager config={eventsConfig} />} />
             <Route path="gallery" element={<CollectionManager config={galleryConfig} />} />
             <Route path="jobs" element={<CollectionManager config={jobsConfig} />} />
-            <Route path="pages" element={<AdminPlaceholder title="Pages" note="Edit content-page copy — coming in a later phase." />} />
+            <Route path="pages" element={<PagesManager />} />
             <Route path="vehicles" element={<CollectionManager config={vehiclesConfig} />} />
             <Route path="incentives" element={<CollectionManager config={incentivesConfig} />} />
             <Route path="knowledge-base" element={<AdminPlaceholder title="EVan knowledge" note="Edit the assistant's RAG documents — coming in a later phase." />} />
