@@ -23,7 +23,7 @@ import { PDFParse } from "pdf-parse";
 // ── collection ───────────────────────────────────────────────────────────────
 const ALLOWED_TABLES = new Set<string>([
   "site_blog_posts", "site_events", "site_gallery", "site_jobs",
-  "site_vehicles", "site_incentives", "site_pages", "kb_source_documents",
+  "site_vehicles", "site_incentives", "site_pages", "kb_source_documents", "site_settings",
 ]);
 
 // ── upload ───────────────────────────────────────────────────────────────────

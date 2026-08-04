@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/dialog";
 import ContactForm from "@/components/forms/ContactForm";
 import { useEvents, usePosts } from "@/hooks/use-content";
+import { useNavItems } from "@/lib/site-settings";
 import logoColored from "@/assets/logo-colored.png";
 import logoWhite from "@/assets/logo-white.png";
 
@@ -29,27 +30,10 @@ type Spotlight = {
 // are hidden from the burger panel (the panel then holds only the rest).
 // `barOnly: true` items show ONLY in the desktop bar — never in the burger panel
 // (so they don't appear in the mobile menu at all).
-type NavItem = { label: string; href: string; dialog?: boolean; primary?: boolean; barOnly?: boolean };
-
-const navItems: NavItem[] = [
-  { label: "About", href: "#about", primary: true },
-  { label: "EV Dashboard", href: "#dashboard", primary: true },
-  { label: "EV 101", href: "#ev101", primary: true },
-  { label: "Benefits", href: "#benefits", primary: true },
-  { label: "Events", href: "/events", primary: true },
-  { label: "EV vs Gas Calculator", href: "/electricity-vs-gasoline", primary: true },
-  { label: "Incentives", href: "/rebates-incentives" },
-  { label: "News", href: "/news" },
-  { label: "Multimodal", href: "#multimodal" },
-  { label: "Photos and Videos", href: "/gallery" },
-  // Careers hidden from nav at rollout (route + page still live; re-add to show).
-  // { label: "Careers", href: "/careers" },
-  { label: "Contact", href: "/contact-us", dialog: true },
-];
-
-const primaryItems = navItems.filter((i) => i.primary);
-
 const Navbar = () => {
+  const navItems = useNavItems();
+  const primaryItems = navItems.filter((i) => i.primary);
+
   const [open, setOpen] = useState(false);      // logical open/closed
   const [mounted, setMounted] = useState(false); // keep overlay mounted through the exit animation
   const [scrolled, setScrolled] = useState(false);

@@ -12,7 +12,8 @@ export type AdminTable =
   | "site_vehicles"
   | "site_incentives"
   | "site_pages"
-  | "kb_source_documents";
+  | "kb_source_documents"
+  | "site_settings";
 
 // Single editor-gated endpoint; the `op` selects the handler (see api/admin.ts).
 async function call<T>(payload: Record<string, unknown>): Promise<T> {
