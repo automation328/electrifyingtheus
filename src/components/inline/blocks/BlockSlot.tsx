@@ -4,7 +4,7 @@
 import { useState } from "react";
 import {
   Plus, Heading, Type, Image as ImageIcon, Film, MousePointerClick,
-  Minus, MoveVertical, Star,
+  Minus, MoveVertical, Star, Rows3, LayoutPanelTop, Columns3, Images, Megaphone,
 } from "lucide-react";
 import type { PageBlock, BlockType } from "@/lib/page-content";
 import { useInlineEdit } from "@/components/inline/edit-context";
@@ -19,6 +19,11 @@ const TYPES: { type: BlockType; label: string; icon: typeof Type }[] = [
   { type: "divider", label: "Divider", icon: Minus },
   { type: "spacer", label: "Spacer", icon: MoveVertical },
   { type: "icon", label: "Icon", icon: Star },
+  { type: "accordion", label: "Accordion", icon: Rows3 },
+  { type: "tabs", label: "Tabs", icon: LayoutPanelTop },
+  { type: "columns", label: "Columns", icon: Columns3 },
+  { type: "gallery", label: "Gallery", icon: Images },
+  { type: "cta", label: "CTA", icon: Megaphone },
 ];
 
 const AddBlock = ({ slot }: { slot: string }) => {

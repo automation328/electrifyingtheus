@@ -5,8 +5,9 @@
 import { useState } from "react";
 import {
   ArrowUp, ArrowDown, Trash2, AlignLeft, AlignCenter, AlignRight,
-  Image as ImageIcon, Film, X, Search,
+  Image as ImageIcon, Film, X, Search, Plus, ChevronDown, ArrowRight,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 import type { PageBlock } from "@/lib/page-content";
 import { useInlineEdit, type InlineEditContextValue } from "@/components/inline/edit-context";
 import ImageUpload from "@/components/admin/ImageUpload";
@@ -96,9 +97,46 @@ const IconPicker = ({ block, up }: { block: PageBlock; up: (p: Partial<PageBlock
   );
 };
 
+/* View-mode (published) renderers for Tier 2 blocks that need local state. */
+const AccordionView = ({ items }: { items: NonNullable<PageBlock["items"]> }) => {
+  const [open, setOpen] = useState<number | null>(0);
+  return (
+    <div className="text-left divide-y divide-border rounded-2xl border border-border overflow-hidden">
+      {items.map((it, i) => (
+        <div key={i}>
+          <button onClick={() => setOpen(open === i ? null : i)} className="w-full flex items-center gap-3 px-5 py-4 text-left hover:bg-muted/40 transition-colors">
+            <span className="font-semibold text-foreground flex-1">{it.title}</span>
+            <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${open === i ? "rotate-180" : ""}`} />
+          </button>
+          {open === i && <div className="px-5 pb-4 text-muted-foreground leading-relaxed whitespace-pre-line">{it.body}</div>}
+        </div>
+      ))}
+    </div>
+  );
+};
+
+const TabsView = ({ items }: { items: NonNullable<PageBlock["items"]> }) => {
+  const [active, setActive] = useState(0);
+  const cur = items[active] ?? items[0];
+  return (
+    <div className="text-left">
+      <div className="flex flex-wrap gap-1 border-b border-border mb-4">
+        {items.map((it, i) => (
+          <button key={i} onClick={() => setActive(i)} className={`px-4 py-2 text-sm font-semibold -mb-px border-b-2 transition-colors ${active === i ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}>{it.title || `Tab ${i + 1}`}</button>
+        ))}
+      </div>
+      <div className="text-muted-foreground leading-relaxed whitespace-pre-line">{cur?.body}</div>
+    </div>
+  );
+};
+
+const colsClass = (n: number) => ({ 1: "", 2: "md:grid-cols-2", 3: "md:grid-cols-3", 4: "md:grid-cols-4" }[Math.min(4, Math.max(1, n))] ?? "md:grid-cols-2");
+
 const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextValue }) => {
   const [imgOpen, setImgOpen] = useState(false);
   const [vidOpen, setVidOpen] = useState(false);
+  const [galIdx, setGalIdx] = useState<number | null>(null);
+  const [colIdx, setColIdx] = useState<number | null>(null);
   const up = (patch: Partial<PageBlock>) => ctx.updateBlock(block.id, patch);
   const editing = ctx.editing;
 
@@ -207,6 +245,113 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
         </div>
       );
     }
+
+    case "accordion":
+    case "tabs": {
+      const items = block.items ?? [];
+      const setItems = (it: NonNullable<PageBlock["items"]>) => up({ items: it });
+      if (!editing) return block.type === "tabs" ? <TabsView items={items} /> : <AccordionView items={items} />;
+      return (
+        <div className="text-left space-y-2">
+          {items.map((it, i) => (
+            <div key={i} className="rounded-xl border border-border p-3">
+              <div className="flex items-center gap-2 mb-2">
+                <input value={it.title ?? ""} onChange={(e) => setItems(items.map((x, j) => (j === i ? { ...x, title: e.target.value } : x)))} placeholder={block.type === "tabs" ? "Tab label" : "Title"} className="flex-1 rounded-lg border border-border bg-background px-2.5 py-1.5 text-sm font-semibold" />
+                <button onClick={() => setItems(items.filter((_, j) => j !== i))} className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-muted"><Trash2 className="w-3.5 h-3.5" /></button>
+              </div>
+              <textarea value={it.body ?? ""} onChange={(e) => setItems(items.map((x, j) => (j === i ? { ...x, body: e.target.value } : x)))} placeholder="Content" rows={3} className="w-full rounded-lg border border-border bg-background px-2.5 py-1.5 text-sm resize-y" />
+            </div>
+          ))}
+          <button onClick={() => setItems([...items, { title: block.type === "tabs" ? `Tab ${items.length + 1}` : "New item", body: "" }])} className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline"><Plus className="w-4 h-4" /> Add {block.type === "tabs" ? "tab" : "item"}</button>
+        </div>
+      );
+    }
+
+    case "columns": {
+      const columns = block.columns ?? [];
+      const setCols = (c: NonNullable<PageBlock["columns"]>) => up({ columns: c });
+      const n = Math.min(4, Math.max(1, columns.length || 1));
+      return (
+        <div>
+          <div className={`grid grid-cols-1 ${colsClass(n)} gap-6 text-left`}>
+            {columns.map((c, i) => (
+              <div key={i} className="space-y-2">
+                {(c.image || editing) && (
+                  <div className="relative">
+                    {c.image ? <img src={c.image} alt={c.heading || ""} className="w-full h-auto rounded-xl" /> : editing ? <div className="grid h-28 place-items-center rounded-xl border border-dashed border-border bg-muted/40 text-muted-foreground"><ImageIcon className="w-6 h-6" /></div> : null}
+                    {editing && <button onClick={() => setColIdx(i)} className="absolute top-2 right-2 inline-flex items-center gap-1 rounded-lg bg-black/70 px-2 py-1 text-xs font-semibold text-white"><ImageIcon className="w-3 h-3" /> Image</button>}
+                  </div>
+                )}
+                {c.heading || editing ? <h3 className="font-brief text-lg text-foreground">{editing ? <input value={c.heading ?? ""} onChange={(e) => setCols(columns.map((x, j) => (j === i ? { ...x, heading: e.target.value } : x)))} placeholder="Heading (optional)" className="w-full rounded border border-border bg-background px-2 py-1 text-sm" /> : c.heading}</h3> : null}
+                {editing
+                  ? <textarea value={c.body ?? ""} onChange={(e) => setCols(columns.map((x, j) => (j === i ? { ...x, body: e.target.value } : x)))} placeholder="Column text" rows={4} className="w-full rounded-lg border border-border bg-background px-2.5 py-1.5 text-sm resize-y" />
+                  : <p className="text-muted-foreground leading-relaxed whitespace-pre-line">{c.body}</p>}
+                {editing && <button onClick={() => setCols(columns.filter((_, j) => j !== i))} className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive"><Trash2 className="w-3 h-3" /> Remove column</button>}
+              </div>
+            ))}
+          </div>
+          {editing && columns.length < 4 && <button onClick={() => setCols([...columns, { body: "New column text." }])} className="mt-3 inline-flex items-center gap-1.5 text-sm text-primary hover:underline"><Plus className="w-4 h-4" /> Add column</button>}
+          {colIdx !== null && (
+            <Modal title="Column image" onClose={() => setColIdx(null)}>
+              <ImageUpload value={columns[colIdx]?.image ?? ""} onChange={(url) => setCols(columns.map((x, j) => (j === colIdx ? { ...x, image: url } : x)))} />
+              <div className="mt-4 flex justify-end"><button onClick={() => setColIdx(null)} className="rounded-xl gradient-hero text-white font-semibold px-5 py-2.5 text-sm">Done</button></div>
+            </Modal>
+          )}
+        </div>
+      );
+    }
+
+    case "gallery": {
+      const images = block.images ?? [];
+      const setImages = (im: NonNullable<PageBlock["images"]>) => up({ images: im });
+      return (
+        <div>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            {images.map((im, i) => (
+              <figure key={i} className="relative group/g">
+                <img src={im.src} alt={im.caption || ""} className="w-full aspect-square object-cover rounded-xl" loading="lazy" />
+                {editing && (
+                  <div className="absolute top-1.5 right-1.5 flex gap-1">
+                    <button onClick={() => setGalIdx(i)} className="p-1.5 rounded-lg bg-black/70 text-white text-xs hover:bg-black/85"><ImageIcon className="w-3 h-3" /></button>
+                    <button onClick={() => setImages(images.filter((_, j) => j !== i))} className="p-1.5 rounded-lg bg-black/70 text-white hover:bg-red-500/80"><Trash2 className="w-3 h-3" /></button>
+                  </div>
+                )}
+                {(im.caption || editing) && <figcaption className="text-xs text-muted-foreground mt-1 text-center">{editing ? <input value={im.caption ?? ""} onChange={(e) => setImages(images.map((x, j) => (j === i ? { ...x, caption: e.target.value } : x)))} placeholder="Caption" className="w-full rounded border border-border bg-background px-1.5 py-0.5 text-xs text-center" /> : im.caption}</figcaption>}
+              </figure>
+            ))}
+            {editing && <button onClick={() => { setImages([...images, { src: "" }]); setGalIdx(images.length); }} className="aspect-square rounded-xl border-2 border-dashed border-primary/50 bg-primary/5 grid place-items-center text-primary hover:bg-primary/10"><Plus className="w-6 h-6" /></button>}
+          </div>
+          {galIdx !== null && (
+            <Modal title="Gallery image" onClose={() => setGalIdx(null)}>
+              <ImageUpload value={images[galIdx]?.src ?? ""} onChange={(url) => setImages(images.map((x, j) => (j === galIdx ? { ...x, src: url } : x)))} />
+              <div className="mt-4 flex justify-end"><button onClick={() => setGalIdx(null)} className="rounded-xl gradient-hero text-white font-semibold px-5 py-2.5 text-sm">Done</button></div>
+            </Modal>
+          )}
+        </div>
+      );
+    }
+
+    case "cta":
+      return (
+        <div className="relative overflow-hidden rounded-3xl gradient-hero p-8 md:p-12 text-center text-primary-foreground">
+          <div className="absolute inset-0 opacity-30" style={{ backgroundImage: "radial-gradient(circle at 20% 20%, rgba(255,255,255,0.4), transparent 45%)" }} aria-hidden />
+          <div className="relative z-10">
+            <h2 className="font-brief text-3xl md:text-4xl mb-3"><InlineText value={block.text ?? ""} onCommit={(v) => up({ text: v })} /></h2>
+            <p className="text-primary-foreground/90 mb-7 max-w-xl mx-auto"><InlineText value={block.subtext ?? ""} onCommit={(v) => up({ subtext: v })} /></p>
+            {editing ? (
+              <div className="inline-flex flex-col items-center gap-1.5">
+                <span className="inline-flex items-center gap-1.5 bg-primary-foreground text-primary font-semibold px-6 py-3 rounded-xl">{block.buttonLabel || "Button"} <ArrowRight className="w-5 h-5" /></span>
+                <input value={block.buttonLabel ?? ""} onChange={(e) => up({ buttonLabel: e.target.value })} placeholder="Button label" className="rounded-lg border border-white/40 bg-white/10 px-2.5 py-1.5 text-xs text-white placeholder:text-white/60" />
+                <input value={block.href ?? ""} onChange={(e) => up({ href: e.target.value })} placeholder="Link (/page or https://…)" className="rounded-lg border border-white/40 bg-white/10 px-2.5 py-1.5 text-xs text-white placeholder:text-white/60" />
+              </div>
+            ) : (
+              block.href?.startsWith("http")
+                ? <a href={block.href} className="inline-flex items-center gap-1.5 bg-primary-foreground text-primary font-semibold px-6 py-3 rounded-xl hover:opacity-90 transition-opacity">{block.buttonLabel} <ArrowRight className="w-5 h-5" /></a>
+                : <Link to={block.href || "#"} className="inline-flex items-center gap-1.5 bg-primary-foreground text-primary font-semibold px-6 py-3 rounded-xl hover:opacity-90 transition-opacity">{block.buttonLabel} <ArrowRight className="w-5 h-5" /></Link>
+            )}
+          </div>
+        </div>
+      );
 
     default:
       return null;

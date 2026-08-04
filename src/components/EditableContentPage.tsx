@@ -29,6 +29,11 @@ function newBlock(type: BlockType): PageBlock {
     case "button": return { ...base, text: "Learn more", href: "", align: "center" };
     case "spacer": return { ...base, height: 40 };
     case "icon": return { ...base, icon: "zap", align: "center" };
+    case "accordion": return { ...base, items: [{ title: "Question one?", body: "Answer to the first question." }, { title: "Question two?", body: "Answer to the second question." }] };
+    case "tabs": return { ...base, items: [{ title: "Tab one", body: "Content for the first tab." }, { title: "Tab two", body: "Content for the second tab." }] };
+    case "columns": return { ...base, columns: [{ body: "First column text." }, { body: "Second column text." }] };
+    case "gallery": return { ...base, images: [] };
+    case "cta": return { ...base, text: "Ready to make the switch?", subtext: "See what you'd save with an EV, or explore the incentives available in your area.", buttonLabel: "Open the calculator", href: "/electricity-vs-gasoline" };
     default: return base; // divider
   }
 }

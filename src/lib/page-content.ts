@@ -10,8 +10,10 @@ import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import type { ContentStat, ContentSection, ContentSource, ContentShot } from "@/components/ContentPageLayout";
 import { reducedEmissionsContent } from "@/data/pages/reduced-emissions";
 
-/** A builder block inserted between page sections (Tier 1 block types). */
-export type BlockType = "heading" | "text" | "image" | "video" | "button" | "divider" | "spacer" | "icon";
+/** A builder block inserted between page sections. */
+export type BlockType =
+  | "heading" | "text" | "image" | "video" | "button" | "divider" | "spacer" | "icon"  // Tier 1
+  | "accordion" | "tabs" | "columns" | "gallery" | "cta";                               // Tier 2
 
 export interface PageBlock {
   id: string;
@@ -22,16 +24,22 @@ export interface PageBlock {
   size?: "sm" | "md" | "lg" | "xl";        // heading / text / button size
   font?: "display" | "sans" | "mono";      // heading / text / button font
   // Per-type fields (only the relevant ones are set):
-  text?: string;                    // heading / text / button label
+  text?: string;                    // heading / text / button label / cta heading
   level?: 2 | 3;                    // heading size
   src?: string;                     // image URL
   caption?: string;                 // image caption
-  href?: string;                    // button link
+  href?: string;                    // button / cta link
   provider?: "youtube" | "vimeo" | "file"; // video
   videoId?: string;                 // video id (youtube/vimeo) or file URL
   height?: number;                  // spacer height (px)
   icon?: string;                    // icon key (see block icon set)
   thickness?: number;               // divider thickness (px)
+  // Tier 2:
+  items?: { title?: string; body?: string }[];                        // accordion / tabs
+  columns?: { heading?: string; body?: string; image?: string }[];    // columns
+  images?: { src: string; caption?: string }[];                       // gallery
+  subtext?: string;                 // cta subtext
+  buttonLabel?: string;             // cta button label
 }
 
 /** The overridable fields of a ContentPageLayout page (prose + images + blocks). */
