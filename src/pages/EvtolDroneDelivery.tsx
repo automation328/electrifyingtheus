@@ -1,5 +1,6 @@
 import { PlaneTakeoff } from "lucide-react";
-import ContentPageLayout, { type ContentSection, type ContentStat, type ContentSource, type ContentShot } from "@/components/ContentPageLayout";
+import { type ContentSection, type ContentStat, type ContentSource, type ContentShot } from "@/components/ContentPageLayout";
+import EditableContentPage from "@/components/EditableContentPage";
 import evtolDrone from "@/assets/evtol-drone.jpg";
 import evtol from "@/assets/evtol.jpg";
 import sustainableAviation from "@/assets/sustainable-aviation.jpg";
@@ -63,7 +64,8 @@ const sources: ContentSource[] = [
 ];
 
 const EvtolDroneDelivery = () => (
-  <ContentPageLayout
+  <EditableContentPage
+    path="/evtol-drone-delivery"
     badge="Beyond Cars · Aerial"
     kicker="Multimodal · Field Brief"
     title="eVTOLs &"

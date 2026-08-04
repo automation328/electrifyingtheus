@@ -62,10 +62,10 @@ const ImageUpload = ({ value, onChange, kind = "image" }: Props) => {
       )}
 
       <div className="flex flex-wrap items-center gap-2">
-        <button type="button" onClick={() => fileRef.current?.click()} disabled={busy} className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-2 text-sm font-medium text-foreground hover:bg-muted disabled:opacity-60">
+        <button type="button" onClick={() => fileRef.current?.click()} disabled={busy} className="inline-flex items-center gap-1.5 rounded-lg gradient-hero text-white px-3.5 py-2 text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-60">
           {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />} Upload
         </button>
-        <button type="button" onClick={() => setLibOpen((o) => !o)} className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-2 text-sm font-medium text-foreground hover:bg-muted">
+        <button type="button" onClick={() => setLibOpen((o) => !o)} className={`inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-sm font-semibold transition-opacity ${libOpen ? "gradient-hero text-white hover:opacity-90" : "border border-primary/50 text-primary hover:bg-primary/10"}`}>
           <FolderOpen className="w-4 h-4" /> Library
         </button>
         <input ref={fileRef} type="file" accept={kind === "video" ? "video/*" : "image/*"} className="hidden" onChange={(e) => onPick(e.target.files?.[0])} />
@@ -76,17 +76,21 @@ const ImageUpload = ({ value, onChange, kind = "image" }: Props) => {
       </div>
 
       {libOpen && (
-        <div className="rounded-xl border border-border bg-card p-3 max-h-64 overflow-y-auto">
+        <div className="rounded-xl border border-border bg-card p-3 max-h-96 overflow-y-auto">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Media library</span>
+            {items && <span className="text-xs text-muted-foreground">{libItems.length} {kind}{libItems.length === 1 ? "" : "s"}</span>}
+          </div>
           {libLoading ? (
-            <div className="py-8 text-center text-muted-foreground"><Loader2 className="w-5 h-5 animate-spin mx-auto" /></div>
+            <div className="py-10 text-center text-muted-foreground"><Loader2 className="w-5 h-5 animate-spin mx-auto" /></div>
           ) : libItems.length === 0 ? (
-            <p className="py-6 text-center text-sm text-muted-foreground">No {kind}s in the library yet — upload one and it'll appear here.</p>
+            <p className="py-8 text-center text-sm text-muted-foreground">No {kind}s in the library yet — upload one and it'll appear here.</p>
           ) : (
-            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {libItems.map((m) => (
-                <button key={m.name} type="button" onClick={() => { onChange(m.url); setLibOpen(false); }} className={`relative aspect-square rounded-lg overflow-hidden border ${value === m.url ? "border-primary ring-2 ring-primary/40" : "border-border hover:border-primary/50"}`} title={m.name}>
+                <button key={m.name} type="button" onClick={() => { onChange(m.url); setLibOpen(false); }} className={`relative aspect-square w-full rounded-xl overflow-hidden border-2 ${value === m.url ? "border-primary ring-2 ring-primary/40" : "border-border hover:border-primary/60"}`} title={m.name}>
                   {m.kind === "video"
-                    ? <div className="w-full h-full grid place-items-center bg-muted text-muted-foreground"><Film className="w-6 h-6" /></div>
+                    ? <video src={m.url} className="w-full h-full object-cover" muted />
                     : <img src={m.url} alt={m.name} className="w-full h-full object-cover" loading="lazy" />}
                 </button>
               ))}

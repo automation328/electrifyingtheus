@@ -1,5 +1,6 @@
 import { Bike } from "lucide-react";
-import ContentPageLayout, { type ContentSection, type ContentStat, type ContentSource, type ContentShot } from "@/components/ContentPageLayout";
+import { type ContentSection, type ContentStat, type ContentSource, type ContentShot } from "@/components/ContentPageLayout";
+import EditableContentPage from "@/components/EditableContentPage";
 import micromobility from "@/assets/micromobility.jpg";
 import rideshareFleet from "@/assets/rideshare-fleet.jpg";
 import evFamily from "@/assets/ev-family.jpg";
@@ -63,7 +64,8 @@ const sources: ContentSource[] = [
 ];
 
 const MicroMobility = () => (
-  <ContentPageLayout
+  <EditableContentPage
+    path="/micro-mobility"
     badge="Beyond Cars · Micromobility"
     kicker="Multimodal · Field Brief"
     title="Micro-"

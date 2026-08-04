@@ -1,5 +1,6 @@
 import { GraduationCap } from "lucide-react";
-import ContentPageLayout, { type ContentSection, type ContentStat, type ContentSource, type ContentShot } from "@/components/ContentPageLayout";
+import { type ContentSection, type ContentStat, type ContentSource, type ContentShot } from "@/components/ContentPageLayout";
+import EditableContentPage from "@/components/EditableContentPage";
 import steamEducation from "@/assets/steam-education.jpg";
 import schoolBus from "@/assets/school-bus.jpg";
 import workforce from "@/assets/workforce.jpg";
@@ -117,7 +118,8 @@ const sources: ContentSource[] = [
 ];
 
 const SteamEducation = () => (
-  <ContentPageLayout
+  <EditableContentPage
+    path="/steam-education"
     badge="EV 101 · Education"
     kicker="EV 101 · Field Brief"
     title="STEAM"

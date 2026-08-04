@@ -1,5 +1,6 @@
 import { Snowflake } from "lucide-react";
-import ContentPageLayout, { type ContentSection, type ContentStat, type ContentSource, type ContentShot } from "@/components/ContentPageLayout";
+import { type ContentSection, type ContentStat, type ContentSource, type ContentShot } from "@/components/ContentPageLayout";
+import EditableContentPage from "@/components/EditableContentPage";
 import evWinter from "@/assets/ev-winter.jpg";
 import evFamily from "@/assets/ev-family.jpg";
 import evCharging from "@/assets/ev-charging.jpg";
@@ -107,7 +108,8 @@ const video = {
 };
 
 const EvsInWinter = () => (
-  <ContentPageLayout
+  <EditableContentPage
+    path="/evs-in-winter"
     badge="EV 101 · Winter"
     kicker="EV 101 · Field Brief"
     pullQuote="The notion that EVs can't handle winter is a myth: a low battery and instant traction make them some of the most planted cars on snow."

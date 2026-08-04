@@ -1,5 +1,6 @@
 import { Bot } from "lucide-react";
-import ContentPageLayout, { type ContentSection, type ContentStat, type ContentSource, type ContentShot } from "@/components/ContentPageLayout";
+import { type ContentSection, type ContentStat, type ContentSource, type ContentShot } from "@/components/ContentPageLayout";
+import EditableContentPage from "@/components/EditableContentPage";
 import selfDriving from "@/assets/self-driving.jpg";
 import rideshareFleet from "@/assets/rideshare-fleet.jpg";
 import micromobility from "@/assets/micromobility.jpg";
@@ -63,7 +64,8 @@ const sources: ContentSource[] = [
 ];
 
 const SelfDrivingVehicles = () => (
-  <ContentPageLayout
+  <EditableContentPage
+    path="/self-driving-vehicles"
     badge="Beyond Cars · Autonomy"
     kicker="Multimodal · Field Brief"
     title="Self-Driving Vehicles &"

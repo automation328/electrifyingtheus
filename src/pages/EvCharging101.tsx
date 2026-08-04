@@ -1,5 +1,6 @@
 import { BatteryCharging } from "lucide-react";
-import ContentPageLayout, { type ContentSection, type ContentStat, type ContentSource, type ContentShot } from "@/components/ContentPageLayout";
+import { type ContentSection, type ContentStat, type ContentSource, type ContentShot } from "@/components/ContentPageLayout";
+import EditableContentPage from "@/components/EditableContentPage";
 import evCharging from "@/assets/ev-charging.jpg";
 import evFamily from "@/assets/ev-family.jpg";
 import rideshareFleet from "@/assets/rideshare-fleet.jpg";
@@ -98,7 +99,8 @@ const sources: ContentSource[] = [
 ];
 
 const EvCharging101 = () => (
-  <ContentPageLayout
+  <EditableContentPage
+    path="/ev-charging-101"
     badge="EV 101 · Charging"
     kicker="EV 101 · Field Brief"
     title="EV Charging"

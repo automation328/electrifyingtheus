@@ -1,5 +1,6 @@
 import { Car } from "lucide-react";
-import ContentPageLayout, { type ContentSection, type ContentStat, type ContentSource, type ContentShot } from "@/components/ContentPageLayout";
+import { type ContentSection, type ContentStat, type ContentSource, type ContentShot } from "@/components/ContentPageLayout";
+import EditableContentPage from "@/components/EditableContentPage";
 import rideshareFleet from "@/assets/rideshare-fleet.jpg";
 import evFamily from "@/assets/ev-family.jpg";
 import evCharging from "@/assets/ev-charging.jpg";
@@ -63,7 +64,8 @@ const sources: ContentSource[] = [
 ];
 
 const RideshareRentalFleets = () => (
-  <ContentPageLayout
+  <EditableContentPage
+    path="/rideshare-rental-fleets"
     badge="Beyond Cars · Fleets"
     kicker="Multimodal · Field Brief"
     title="Rideshare, Rental Cars &"

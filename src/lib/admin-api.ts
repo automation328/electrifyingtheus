@@ -89,6 +89,11 @@ export async function listMedia(): Promise<MediaItem[]> {
   return items;
 }
 
+/** Delete a media object by name. */
+export async function deleteMedia(name: string): Promise<void> {
+  await call<{ ok: true }>({ op: "media-delete", name });
+}
+
 /** Re-chunk + re-embed a KB source doc into the live vector store. Returns chunk count. */
 export async function kbReembed(source: string, title: string, body: string): Promise<number> {
   const { chunkCount } = await call<{ chunkCount: number }>({ op: "kb", action: "reembed", source, title, body });

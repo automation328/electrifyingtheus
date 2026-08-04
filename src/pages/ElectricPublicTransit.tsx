@@ -1,5 +1,6 @@
 import { Bus } from "lucide-react";
-import ContentPageLayout, { type ContentSection, type ContentStat, type ContentSource, type ContentShot } from "@/components/ContentPageLayout";
+import { type ContentSection, type ContentStat, type ContentSource, type ContentShot } from "@/components/ContentPageLayout";
+import EditableContentPage from "@/components/EditableContentPage";
 import electricTransitBus from "@/assets/electric-transit-bus.jpg";
 import heavyDuty from "@/assets/heavy-duty.jpg";
 import schoolBus from "@/assets/school-bus.jpg";
@@ -63,7 +64,8 @@ const sources: ContentSource[] = [
 ];
 
 const ElectricPublicTransit = () => (
-  <ContentPageLayout
+  <EditableContentPage
+    path="/electric-public-transit"
     badge="Beyond Cars · Transit"
     kicker="Multimodal · Field Brief"
     title="Electric"

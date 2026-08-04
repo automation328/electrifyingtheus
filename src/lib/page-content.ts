@@ -59,6 +59,23 @@ export const PAGE_OVERRIDE_KEYS: (keyof PageOverride)[] = [
 export interface EditablePageInfo { path: string; label: string }
 export const EDITABLE_PAGES: EditablePageInfo[] = [
   { path: "/reduced-emissions", label: "Reduced Emissions" },
+  { path: "/electric-public-transit", label: "Electric Public Transit" },
+  { path: "/electric-school-buses", label: "Electric School Buses" },
+  { path: "/ev-charging-101", label: "EV Charging 101" },
+  { path: "/ev-road-safety", label: "EV Road Safety" },
+  { path: "/evs-in-winter", label: "EVs in Winter" },
+  { path: "/evtol-drone-delivery", label: "eVTOL & Drone Delivery" },
+  { path: "/financial-savings", label: "Financial Savings" },
+  { path: "/heavy-duty-electrification", label: "Heavy-Duty Electrification" },
+  { path: "/micro-mobility", label: "Micro-Mobility" },
+  { path: "/rideshare-rental-fleets", label: "Rideshare & Rental Fleets" },
+  { path: "/save-with-evs-webinar", label: "Save with EVs Webinar" },
+  { path: "/self-driving-vehicles", label: "Self-Driving Vehicles" },
+  { path: "/steam-education", label: "STEAM Education" },
+  { path: "/sustainable-aviation", label: "Sustainable Aviation" },
+  { path: "/sustainable-maritime", label: "Sustainable Maritime" },
+  { path: "/us-ev-policies", label: "US EV Policies" },
+  { path: "/workforce-economic-development", label: "Workforce & Economic Development" },
 ];
 
 // Static default prose per editable page — the CMS editor pre-fills from these so

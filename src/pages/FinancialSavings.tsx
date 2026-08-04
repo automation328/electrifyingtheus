@@ -1,5 +1,6 @@
 import { DollarSign } from "lucide-react";
-import ContentPageLayout, { type ContentSection, type ContentStat, type ContentSource, type ContentShot } from "@/components/ContentPageLayout";
+import { type ContentSection, type ContentStat, type ContentSource, type ContentShot } from "@/components/ContentPageLayout";
+import EditableContentPage from "@/components/EditableContentPage";
 import financialSavings from "@/assets/financial-savings.jpg";
 import evSavings from "@/assets/ev-savings.jpg";
 import evFamily from "@/assets/ev-family.jpg";
@@ -87,7 +88,8 @@ const gallery: ContentShot[] = [
 const video = { youtubeId: "g-Qk07feExU", title: "Cheaper over time: EVs versus gas-powered vehicles" };
 
 const FinancialSavings = () => (
-  <ContentPageLayout
+  <EditableContentPage
+    path="/financial-savings"
     badge="EV 101 · Savings"
     kicker="EV 101 · Field Brief"
     title="Financial"

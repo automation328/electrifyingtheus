@@ -1,5 +1,6 @@
 import { Shield } from "lucide-react";
-import ContentPageLayout, { type ContentSection, type ContentStat, type ContentSource, type ContentShot } from "@/components/ContentPageLayout";
+import { type ContentSection, type ContentStat, type ContentSource, type ContentShot } from "@/components/ContentPageLayout";
+import EditableContentPage from "@/components/EditableContentPage";
 import evSafety from "@/assets/ev-safety.jpg";
 import evFamily from "@/assets/ev-family.jpg";
 import rideshareFleet from "@/assets/rideshare-fleet.jpg";
@@ -81,7 +82,8 @@ const sources: ContentSource[] = [
 ];
 
 const EvRoadSafety = () => (
-  <ContentPageLayout
+  <EditableContentPage
+    path="/ev-road-safety"
     badge="EV 101 · Safety"
     kicker="EV 101 · Field Brief"
     title="EVs & Road"

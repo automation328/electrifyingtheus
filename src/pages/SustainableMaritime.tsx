@@ -1,5 +1,6 @@
 import { Ship } from "lucide-react";
-import ContentPageLayout, { type ContentSection, type ContentStat, type ContentSource, type ContentShot } from "@/components/ContentPageLayout";
+import { type ContentSection, type ContentStat, type ContentSource, type ContentShot } from "@/components/ContentPageLayout";
+import EditableContentPage from "@/components/EditableContentPage";
 import maritime from "@/assets/maritime.jpg";
 import heavyDuty from "@/assets/heavy-duty.jpg";
 import reducedEmissions from "@/assets/reduced-emissions.jpg";
@@ -63,7 +64,8 @@ const sources: ContentSource[] = [
 ];
 
 const SustainableMaritime = () => (
-  <ContentPageLayout
+  <EditableContentPage
+    path="/sustainable-maritime"
     badge="Beyond Cars · Maritime"
     kicker="Multimodal · Field Brief"
     title="Sustainable"

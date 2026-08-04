@@ -1,5 +1,6 @@
 import { GraduationCap } from "lucide-react";
-import ContentPageLayout, { type ContentSection, type ContentStat, type ContentSource, type ContentShot } from "@/components/ContentPageLayout";
+import { type ContentSection, type ContentStat, type ContentSource, type ContentShot } from "@/components/ContentPageLayout";
+import EditableContentPage from "@/components/EditableContentPage";
 import schoolBus from "@/assets/school-bus.jpg";
 import steamEducation from "@/assets/steam-education.jpg";
 import evFamily from "@/assets/ev-family.jpg";
@@ -63,7 +64,8 @@ const sources: ContentSource[] = [
 ];
 
 const ElectricSchoolBuses = () => (
-  <ContentPageLayout
+  <EditableContentPage
+    path="/electric-school-buses"
     badge="Beyond Cars · Schools"
     kicker="Multimodal · Field Brief"
     title="Electric"

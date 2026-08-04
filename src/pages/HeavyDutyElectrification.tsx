@@ -1,5 +1,6 @@
 import { Truck } from "lucide-react";
-import ContentPageLayout, { type ContentSection, type ContentStat, type ContentSource, type ContentShot } from "@/components/ContentPageLayout";
+import { type ContentSection, type ContentStat, type ContentSource, type ContentShot } from "@/components/ContentPageLayout";
+import EditableContentPage from "@/components/EditableContentPage";
 import heavyDuty from "@/assets/heavy-duty.jpg";
 import electricTransitBus from "@/assets/electric-transit-bus.jpg";
 import evCharging from "@/assets/ev-charging.jpg";
@@ -63,7 +64,8 @@ const sources: ContentSource[] = [
 ];
 
 const HeavyDutyElectrification = () => (
-  <ContentPageLayout
+  <EditableContentPage
+    path="/heavy-duty-electrification"
     badge="Beyond Cars · Freight"
     kicker="Multimodal · Field Brief"
     title="Medium and Heavy-Duty"

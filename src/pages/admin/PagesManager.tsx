@@ -7,7 +7,7 @@ import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
-  Loader2, Save, Plus, Trash2, ArrowUp, ArrowDown, RotateCcw, AlertCircle, FileText, ChevronRight,
+  Loader2, Save, Plus, Trash2, ArrowUp, ArrowDown, RotateCcw, AlertCircle, FileText, ExternalLink,
 } from "lucide-react";
 import { listRows, insertRow, updateRow } from "@/lib/admin-api";
 import {
@@ -215,23 +215,25 @@ const PagesManager = () => {
   return (
     <div className="max-w-3xl">
       <h1 className="text-2xl font-bold font-display text-foreground mb-1">Pages</h1>
-      <p className="text-sm text-muted-foreground mb-6">Edit the copy on content pages. Published edits override the built-in text.</p>
+      <p className="text-sm text-muted-foreground mb-6">
+        Every content page is listed here. <strong className="text-foreground">Edit on page</strong> opens the live page where you can edit text and add blocks in place. The form editor (row) tweaks the core copy.
+      </p>
       <ul className="space-y-2">
         {EDITABLE_PAGES.map((p) => {
           const row = byPath.get(p.path);
           const state = !row ? "Default" : row.status === "published" ? "Published" : "Draft";
           const tone = state === "Published" ? "bg-primary/10 text-primary" : state === "Draft" ? "bg-amber-500/15 text-amber-600" : "bg-muted text-muted-foreground";
           return (
-            <li key={p.path}>
-              <button onClick={() => setSelected(p.path)} className="w-full flex items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3.5 shadow-card hover:border-primary/40 transition-colors text-left">
-                <FileText className="w-4 h-4 text-primary shrink-0" />
-                <div className="min-w-0 flex-1">
-                  <div className="font-semibold text-foreground truncate">{p.label}</div>
-                  <div className="text-xs text-muted-foreground truncate">{p.path}</div>
-                </div>
-                <span className={`text-[10px] uppercase font-bold tracking-wide rounded-full px-2 py-0.5 ${tone}`}>{state}</span>
-                <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
+            <li key={p.path} className="flex items-center gap-2 rounded-2xl border border-border bg-card px-4 py-3.5 shadow-card">
+              <FileText className="w-4 h-4 text-primary shrink-0" />
+              <button onClick={() => setSelected(p.path)} className="min-w-0 flex-1 text-left" title="Open the form editor">
+                <div className="font-semibold text-foreground truncate">{p.label}</div>
+                <div className="text-xs text-muted-foreground truncate">{p.path}</div>
               </button>
+              <span className={`text-[10px] uppercase font-bold tracking-wide rounded-full px-2 py-0.5 ${tone}`}>{state}</span>
+              <a href={p.path} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 rounded-lg gradient-hero text-white text-xs font-semibold px-3 py-2 hover:opacity-90 transition-opacity" title="Edit on the live page">
+                Edit on page <ExternalLink className="w-3.5 h-3.5" />
+              </a>
             </li>
           );
         })}

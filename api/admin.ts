@@ -182,6 +182,18 @@ async function handleMediaList(res: any) {
   res.status(200).json({ items });
 }
 
+// Delete a media object by name (from the cms/ folder).
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function handleMediaDelete(b: Record<string, unknown>, res: any) {
+  const name = String(b.name ?? "").replace(/^cms\//, "");
+  if (!name || name.includes("/")) { res.status(400).json({ error: "bad_name" }); return; }
+  const db = adminSupabase();
+  if (!db) { res.status(500).json({ error: "not_configured" }); return; }
+  const { error } = await db.storage.from(BUCKET).remove([`cms/${name}`]);
+  if (error) { res.status(400).json({ error: "delete_failed", detail: error.message }); return; }
+  res.status(200).json({ ok: true });
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function handleKb(b: Record<string, unknown>, res: any) {
   const action = String(b.action ?? "");
@@ -249,6 +261,7 @@ export default async function handler(req: any, res: any) {
     if (op === "collection") return void (await handleCollection(b, res));
     if (op === "upload") return void (await handleUpload(b, res));
     if (op === "media-list") return void (await handleMediaList(res));
+    if (op === "media-delete") return void (await handleMediaDelete(b, res));
     if (op === "kb") return void (await handleKb(b, res));
     res.status(400).json({ error: "unknown_op" });
   } catch (e) {

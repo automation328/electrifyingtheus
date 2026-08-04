@@ -4,7 +4,7 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Newspaper, CalendarDays, Images, Briefcase,
-  FileText, Car, BadgePercent, Bot, LogOut, ExternalLink, Zap,
+  FileText, Car, BadgePercent, Bot, LogOut, ExternalLink, Zap, FolderOpen,
 } from "lucide-react";
 import { signOut, useEditorAuth } from "@/lib/auth";
 
@@ -16,6 +16,7 @@ const NAV: NavItem[] = [
   { to: "/admin/content/events", label: "Events", icon: CalendarDays },
   { to: "/admin/content/gallery", label: "Gallery", icon: Images },
   { to: "/admin/content/jobs", label: "Jobs", icon: Briefcase },
+  { to: "/admin/content/media", label: "Media", icon: FolderOpen },
   { to: "/admin/content/pages", label: "Pages", icon: FileText },
   { to: "/admin/content/vehicles", label: "Vehicles", icon: Car },
   { to: "/admin/content/incentives", label: "Incentives", icon: BadgePercent },

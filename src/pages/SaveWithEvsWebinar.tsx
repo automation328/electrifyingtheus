@@ -1,5 +1,6 @@
 import { PlayCircle, MessageCircle, Calculator, BadgeCheck, Plug } from "lucide-react";
-import ContentPageLayout, { type ContentSection, type ContentLinkCard } from "@/components/ContentPageLayout";
+import { type ContentSection, type ContentLinkCard } from "@/components/ContentPageLayout";
+import EditableContentPage from "@/components/EditableContentPage";
 import part2Flyer from "@/assets/event-pump-to-plug.jpg";
 
 const video = {
@@ -39,7 +40,8 @@ const linkCards: ContentLinkCard[] = [
 ];
 
 const SaveWithEvsWebinar = () => (
-  <ContentPageLayout
+  <EditableContentPage
+    path="/save-with-evs-webinar"
     badge="Webinar Replay"
     kicker="Webinar Replay"
     title="Webinar Series Part 1: From The Pump To The Plug:"

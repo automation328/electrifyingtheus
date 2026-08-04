@@ -1,5 +1,6 @@
 import { Wrench } from "lucide-react";
-import ContentPageLayout, { type ContentSection, type ContentStat, type ContentSource, type ContentShot } from "@/components/ContentPageLayout";
+import { type ContentSection, type ContentStat, type ContentSource, type ContentShot } from "@/components/ContentPageLayout";
+import EditableContentPage from "@/components/EditableContentPage";
 import workforce from "@/assets/workforce.jpg";
 import schoolBus from "@/assets/school-bus.jpg";
 import electricTransitBus from "@/assets/electric-transit-bus.jpg";
@@ -102,7 +103,8 @@ const sources: ContentSource[] = [
 ];
 
 const WorkforceEconomicDevelopment = () => (
-  <ContentPageLayout
+  <EditableContentPage
+    path="/workforce-economic-development"
     badge="EV 101 · Workforce"
     kicker="EV 101 · Field Brief"
     title="Workforce & Economic"

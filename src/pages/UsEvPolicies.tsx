@@ -1,5 +1,6 @@
 import { Landmark } from "lucide-react";
-import ContentPageLayout, { type ContentSection, type ContentStat, type ContentSource, type ContentShot } from "@/components/ContentPageLayout";
+import { type ContentSection, type ContentStat, type ContentSource, type ContentShot } from "@/components/ContentPageLayout";
+import EditableContentPage from "@/components/EditableContentPage";
 import evPolicy from "@/assets/ev-policy.jpg";
 import electricTransitBus from "@/assets/electric-transit-bus.jpg";
 import heavyDuty from "@/assets/heavy-duty.jpg";
@@ -87,7 +88,8 @@ const sources: ContentSource[] = [
 ];
 
 const UsEvPolicies = () => (
-  <ContentPageLayout
+  <EditableContentPage
+    path="/us-ev-policies"
     badge="EV 101 · Policy"
     kicker="EV 101 · Field Brief"
     title="U.S. EV"
