@@ -7,10 +7,10 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
-import type { ContentStat, ContentSection, ContentSource } from "@/components/ContentPageLayout";
+import type { ContentStat, ContentSection, ContentSource, ContentShot } from "@/components/ContentPageLayout";
 import { reducedEmissionsContent } from "@/data/pages/reduced-emissions";
 
-/** The overridable prose fields of a ContentPageLayout page. */
+/** The overridable fields of a ContentPageLayout page (prose + images). */
 export interface PageOverride {
   badge?: string;
   title?: string;
@@ -21,10 +21,13 @@ export interface PageOverride {
   stats?: ContentStat[];
   sections?: ContentSection[];
   sources?: ContentSource[];
+  heroImage?: string;
+  gallery?: ContentShot[];
 }
 
 export const PAGE_OVERRIDE_KEYS: (keyof PageOverride)[] = [
-  "badge", "title", "highlight", "intro", "kicker", "pullQuote", "stats", "sections", "sources",
+  "badge", "title", "highlight", "intro", "kicker", "pullQuote",
+  "stats", "sections", "sources", "heroImage", "gallery",
 ];
 
 /** Pages wired to EditableContentPage — shown in the CMS Pages editor. */
@@ -40,6 +43,19 @@ export const EDITABLE_PAGES: EditablePageInfo[] = [
 export const PAGE_DEFAULTS: Record<string, PageOverride> = {
   "/reduced-emissions": reducedEmissionsContent,
 };
+
+/** Copy just the overridable fields out of a props/content object (deep-cloned). */
+export function pickPageOverride(source: Record<string, unknown>): PageOverride {
+  const out: PageOverride = {};
+  for (const k of PAGE_OVERRIDE_KEYS) {
+    const v = source[k];
+    if (v !== undefined) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (out as any)[k] = typeof v === "object" && v !== null ? structuredClone(v) : v;
+    }
+  }
+  return out;
+}
 
 function isEmpty(v: unknown): boolean {
   if (v === undefined || v === null) return true;

@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import { ArrowRight, ArrowUpRight, ExternalLink, Play, Calculator, type LucideIcon } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import Editable from "@/components/inline/Editable";
+import EditableImage from "@/components/inline/EditableImage";
 
 export interface ContentStat {
   value: string;
@@ -121,7 +123,8 @@ const ContentPageLayout = ({
         <header className={`relative flex items-end overflow-hidden ${heroImage ? "min-h-[78vh]" : "min-h-0 pt-32"}`}>
           {heroImage && (
             <>
-              <img
+              <EditableImage
+                path="heroImage"
                 src={heroImage}
                 alt={title}
                 className="brief-hero-img absolute inset-0 w-full h-full object-cover"
@@ -137,7 +140,7 @@ const ContentPageLayout = ({
                   <Icon className="w-4.5 h-4.5 text-primary" strokeWidth={2.2} />
                 </span>
                 <span className="brief-mono text-[11px] font-semibold text-foreground/70">
-                  {kicker ?? badge}
+                  <Editable path="kicker">{kicker ?? badge}</Editable>
                 </span>
               </div>
 
@@ -149,8 +152,8 @@ const ContentPageLayout = ({
                 }`}
                 style={{ animationDelay: "0.08s" }}
               >
-                {title}{" "}
-                <span className="text-gradient-primary">{highlight}</span>
+                <Editable path="title">{title}</Editable>{" "}
+                <span className="text-gradient-primary"><Editable path="highlight">{highlight}</Editable></span>
               </h1>
 
               <div className="relative mb-6 max-w-2xl animate-fade-up" style={{ animationDelay: "0.14s" }}>
@@ -161,7 +164,7 @@ const ContentPageLayout = ({
                 className="text-base md:text-lg text-foreground/80 max-w-2xl leading-relaxed animate-fade-up"
                 style={{ animationDelay: "0.2s" }}
               >
-                {intro}
+                <Editable path="intro">{intro}</Editable>
               </p>
 
               {!hideMeta && (
@@ -194,8 +197,8 @@ const ContentPageLayout = ({
                   className="brief-stat brief-reveal rounded-2xl p-5"
                   style={{ transitionDelay: `${i * 70}ms` }}
                 >
-                  <div className="font-brief text-3xl md:text-4xl text-gradient-primary">{s.value}</div>
-                  <div className="text-xs text-muted-foreground mt-2 leading-snug">{s.label}</div>
+                  <div className="font-brief text-3xl md:text-4xl text-gradient-primary"><Editable path={`stats.${i}.value`}>{s.value}</Editable></div>
+                  <div className="text-xs text-muted-foreground mt-2 leading-snug"><Editable path={`stats.${i}.label`}>{s.label}</Editable></div>
                 </div>
               ))}
             </div>
@@ -302,12 +305,12 @@ const ContentPageLayout = ({
                 <span className="brief-index brief-mono text-sm font-bold shrink-0">
                   {String(i + 1).padStart(2, "0")}
                 </span>
-                <h2 className="font-brief text-2xl md:text-3xl text-foreground">{s.heading}</h2>
+                <h2 className="font-brief text-2xl md:text-3xl text-foreground"><Editable path={`sections.${i}.heading`}>{s.heading}</Editable></h2>
               </div>
               <div className="md:pl-10">
                 {s.body.map((p, j) => (
                   <p key={j} className="text-muted-foreground leading-[1.75] mb-4 text-[15px] md:text-base">
-                    {p}
+                    <Editable path={`sections.${i}.body.${j}`}>{p}</Editable>
                   </p>
                 ))}
                 {s.list && (
@@ -315,7 +318,7 @@ const ContentPageLayout = ({
                     {s.list.map((li, k) => (
                       <li key={k} className="flex gap-3 text-muted-foreground leading-relaxed text-[15px] md:text-base">
                         <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-gradient-to-br from-primary to-secondary" aria-hidden />
-                        <span>{li}</span>
+                        <span><Editable path={`sections.${i}.list.${k}`}>{li}</Editable></span>
                       </li>
                     ))}
                   </ul>
@@ -329,7 +332,7 @@ const ContentPageLayout = ({
         {pullQuote && (
           <section className="container px-4 max-w-4xl mt-20">
             <blockquote className="brief-quote brief-reveal text-center">
-              <p className="font-brief text-2xl md:text-4xl text-foreground leading-[1.15]">{pullQuote}</p>
+              <p className="font-brief text-2xl md:text-4xl text-foreground leading-[1.15]"><Editable path="pullQuote">{pullQuote}</Editable></p>
             </blockquote>
           </section>
         )}
@@ -350,7 +353,7 @@ const ContentPageLayout = ({
                   }`}
                   style={{ transitionDelay: `${i * 80}ms` }}
                 >
-                  <img src={shot.src} alt={shot.caption} className="w-full h-full object-cover" loading="lazy" />
+                  <EditableImage path={`gallery.${i}.src`} src={shot.src} alt={shot.caption} className="w-full h-full object-cover" loading="lazy" />
                   <span className="absolute inset-0 bg-gradient-to-t from-foreground/75 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" aria-hidden />
                   <figcaption className="absolute bottom-0 left-0 right-0 p-3 md:p-4 translate-y-1 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
                     <span className="brief-mono text-[10px] text-white/70 block mb-0.5">
