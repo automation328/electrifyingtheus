@@ -2,7 +2,7 @@
 // inherits the site theme; Heading/Text/Button expose size + font controls, and
 // each block type has the controls it needs (divider thickness, icon picker, …).
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   ArrowUp, ArrowDown, Trash2, AlignLeft, AlignCenter, AlignRight,
   Image as ImageIcon, Film, X, Search, Plus, ChevronDown, ArrowRight,
@@ -131,6 +131,35 @@ const TabsView = ({ items }: { items: NonNullable<PageBlock["items"]> }) => {
 };
 
 const colsClass = (n: number) => ({ 1: "", 2: "md:grid-cols-2", 3: "md:grid-cols-3", 4: "md:grid-cols-4" }[Math.min(4, Math.max(1, n))] ?? "md:grid-cols-2");
+
+const parseCounter = (v: string) => {
+  const m = /^(\D*)([\d.,]+)(.*)$/.exec(v || "");
+  if (!m) return { prefix: "", num: 0, suffix: v || "" };
+  return { prefix: m[1], num: parseFloat(m[2].replace(/,/g, "")) || 0, suffix: m[3] };
+};
+
+const CounterView = ({ value, label }: { value: string; label: string }) => {
+  const { prefix, num, suffix } = parseCounter(value);
+  const [n, setN] = useState(0);
+  useEffect(() => {
+    let raf = 0; const start = performance.now(); const dur = 1200;
+    const tick = (t: number) => { const p = Math.min(1, (t - start) / dur); setN(num * (1 - Math.pow(1 - p, 3))); if (p < 1) raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [num]);
+  const display = Number.isInteger(num) ? Math.round(n).toLocaleString() : n.toFixed(1);
+  return <div><div className="font-brief text-4xl md:text-5xl text-gradient-primary">{prefix}{display}{suffix}</div>{label && <div className="text-sm text-muted-foreground mt-1">{label}</div>}</div>;
+};
+
+const CountdownView = ({ target, label }: { target: string; label: string }) => {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => { const t = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(t); }, []);
+  const end = new Date(target).getTime();
+  const diff = Number.isNaN(end) ? 0 : Math.max(0, end - now);
+  const d = Math.floor(diff / 86400000), h = Math.floor(diff / 3600000) % 24, m = Math.floor(diff / 60000) % 60, s = Math.floor(diff / 1000) % 60;
+  const cell = (num: number, l: string) => <div className="text-center"><div className="font-brief text-3xl md:text-4xl text-foreground tabular-nums">{String(num).padStart(2, "0")}</div><div className="text-[11px] uppercase tracking-wide text-muted-foreground">{l}</div></div>;
+  return <div>{label && <div className="text-sm text-muted-foreground mb-2">{label}</div>}<div className="inline-flex gap-4 md:gap-6">{cell(d, "days")}{cell(h, "hrs")}{cell(m, "min")}{cell(s, "sec")}</div></div>;
+};
 
 const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextValue }) => {
   const [imgOpen, setImgOpen] = useState(false);
@@ -351,6 +380,75 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
             )}
           </div>
         </div>
+      );
+
+    case "image-box":
+      return (
+        <div className="mx-auto max-w-sm">
+          <figure className="rounded-2xl border border-border bg-card overflow-hidden shadow-card">
+            <div className="relative">
+              {block.src ? <img src={block.src} alt="" className="w-full aspect-video object-cover" /> : <div className="aspect-video grid place-items-center bg-muted text-muted-foreground"><ImageIcon className="w-8 h-8" /></div>}
+              {editing && <button onClick={() => setImgOpen(true)} className="absolute top-2 right-2 inline-flex items-center gap-1 rounded-lg bg-black/70 px-2.5 py-1.5 text-xs font-semibold text-white"><ImageIcon className="w-3.5 h-3.5" /> Change</button>}
+            </div>
+            <figcaption className="p-4 text-center">
+              <h3 className="font-brief text-xl text-foreground mb-1"><InlineText value={block.text ?? ""} onCommit={(v) => up({ text: v })} /></h3>
+              <p className="text-sm text-muted-foreground"><InlineText block value={block.subtext ?? ""} onCommit={(v) => up({ subtext: v })} /></p>
+            </figcaption>
+          </figure>
+          {imgOpen && <Modal title="Choose image" onClose={() => setImgOpen(false)}><ImageUpload value={block.src ?? ""} onChange={(url) => up({ src: url })} /><div className="mt-4 flex justify-end"><button onClick={() => setImgOpen(false)} className="rounded-xl gradient-hero text-white font-semibold px-5 py-2.5 text-sm">Done</button></div></Modal>}
+        </div>
+      );
+
+    case "icon-box": {
+      const Icon = BLOCK_ICONS[block.icon ?? "zap"] ?? BLOCK_ICONS.zap;
+      return (
+        <div className="mx-auto max-w-sm">
+          <div className="w-12 h-12 rounded-2xl gradient-hero grid place-items-center mx-auto mb-3"><Icon className="w-6 h-6 text-white" /></div>
+          <h3 className="font-brief text-xl text-foreground mb-1"><InlineText value={block.text ?? ""} onCommit={(v) => up({ text: v })} /></h3>
+          <p className="text-sm text-muted-foreground"><InlineText block value={block.subtext ?? ""} onCommit={(v) => up({ subtext: v })} /></p>
+          {editing && <IconPicker block={block} up={up} />}
+        </div>
+      );
+    }
+
+    case "counter":
+      if (!editing) return <CounterView value={block.text ?? ""} label={block.subtext ?? ""} />;
+      return (
+        <div>
+          <input value={block.text ?? ""} onChange={(e) => up({ text: e.target.value })} placeholder="60%  ·  $5,500  ·  1,200+" className="font-brief text-2xl text-center rounded-lg border border-border bg-background px-3 py-1.5 w-56" />
+          <input value={block.subtext ?? ""} onChange={(e) => up({ subtext: e.target.value })} placeholder="Label" className="mt-2 block mx-auto text-sm text-center rounded-lg border border-border bg-background px-2.5 py-1.5 w-64" />
+          <p className="text-xs text-muted-foreground mt-1">Animates a count-up on the live page (a leading “$” or trailing “%”, “+” is kept).</p>
+        </div>
+      );
+
+    case "countdown":
+      if (!editing) return <CountdownView target={block.text ?? ""} label={block.subtext ?? ""} />;
+      return (
+        <div className="space-y-2">
+          <input type="datetime-local" value={block.text ?? ""} onChange={(e) => up({ text: e.target.value })} className="rounded-lg border border-border bg-background px-3 py-2 text-sm" />
+          <input value={block.subtext ?? ""} onChange={(e) => up({ subtext: e.target.value })} placeholder="Label (e.g. Event starts in)" className="block rounded-lg border border-border bg-background px-2.5 py-1.5 text-sm w-64" />
+        </div>
+      );
+
+    case "maps":
+      return (
+        <div>
+          <div className="aspect-video rounded-2xl overflow-hidden border border-border">
+            {block.text ? <iframe title="Map" className="w-full h-full" src={`https://www.google.com/maps?q=${encodeURIComponent(block.text)}&output=embed`} loading="lazy" /> : <div className="w-full h-full grid place-items-center bg-muted text-muted-foreground text-sm">Enter an address below</div>}
+          </div>
+          {editing && <input value={block.text ?? ""} onChange={(e) => up({ text: e.target.value })} placeholder="Address or place, e.g. Detroit, MI" className="mt-2 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" />}
+        </div>
+      );
+
+    case "html":
+      return editing ? (
+        <div className="text-left">
+          <div className="rounded-xl border border-dashed border-border p-3 mb-2 overflow-x-auto" dangerouslySetInnerHTML={{ __html: block.text || "<em>Custom HTML preview</em>" }} />
+          <textarea value={block.text ?? ""} onChange={(e) => up({ text: e.target.value })} placeholder="<div>your HTML…</div>" rows={6} className="w-full rounded-lg border border-border bg-background px-2.5 py-1.5 text-sm font-mono resize-y" />
+          <p className="text-xs text-muted-foreground mt-1">Rendered as-is on the page. Use trusted HTML only.</p>
+        </div>
+      ) : (
+        <div dangerouslySetInnerHTML={{ __html: block.text || "" }} />
       );
 
     default:

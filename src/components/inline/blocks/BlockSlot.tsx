@@ -5,6 +5,7 @@ import { useState } from "react";
 import {
   Plus, Heading, Type, Image as ImageIcon, Film, MousePointerClick,
   Minus, MoveVertical, Star, Rows3, LayoutPanelTop, Columns3, Images, Megaphone,
+  GalleryVerticalEnd, Shapes, Hash, Timer, Map, Code,
 } from "lucide-react";
 import type { PageBlock, BlockType } from "@/lib/page-content";
 import { useInlineEdit } from "@/components/inline/edit-context";
@@ -24,6 +25,12 @@ const TYPES: { type: BlockType; label: string; icon: typeof Type }[] = [
   { type: "columns", label: "Columns", icon: Columns3 },
   { type: "gallery", label: "Gallery", icon: Images },
   { type: "cta", label: "CTA", icon: Megaphone },
+  { type: "image-box", label: "Image Box", icon: GalleryVerticalEnd },
+  { type: "icon-box", label: "Icon Box", icon: Shapes },
+  { type: "counter", label: "Counter", icon: Hash },
+  { type: "countdown", label: "Countdown", icon: Timer },
+  { type: "maps", label: "Maps", icon: Map },
+  { type: "html", label: "HTML", icon: Code },
 ];
 
 const AddBlock = ({ slot }: { slot: string }) => {
@@ -40,15 +47,15 @@ const AddBlock = ({ slot }: { slot: string }) => {
       </button>
       {open && (
         <>
-          <div className="fixed inset-0 z-[70]" onClick={() => setOpen(false)} />
-          <div className="absolute top-9 z-[71] grid grid-cols-4 gap-1.5 rounded-2xl border border-border bg-background p-2 shadow-elevated">
+          <div className="fixed inset-0 z-[80]" onClick={() => setOpen(false)} />
+          <div className="absolute top-9 z-[81] grid grid-cols-4 gap-1 rounded-2xl border border-neutral-200 bg-white p-2 shadow-2xl ring-1 ring-black/5 max-h-[60vh] w-[19rem] overflow-y-auto">
             {TYPES.map((t) => (
               <button
                 key={t.type}
                 onClick={() => { ctx.addBlock(slot, t.type); setOpen(false); }}
-                className="flex w-16 flex-col items-center gap-1 rounded-xl px-2 py-2.5 text-[11px] font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                className="flex flex-col items-center gap-1 rounded-xl px-1.5 py-2.5 text-[11px] font-medium text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900 transition-colors"
               >
-                <t.icon className="w-4 h-4" />
+                <t.icon className="w-4 h-4 text-primary" />
                 {t.label}
               </button>
             ))}

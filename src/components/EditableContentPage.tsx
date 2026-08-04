@@ -34,6 +34,12 @@ function newBlock(type: BlockType): PageBlock {
     case "columns": return { ...base, columns: [{ body: "First column text." }, { body: "Second column text." }] };
     case "gallery": return { ...base, images: [] };
     case "cta": return { ...base, text: "Ready to make the switch?", subtext: "See what you'd save with an EV, or explore the incentives available in your area.", buttonLabel: "Open the calculator", href: "/electricity-vs-gasoline" };
+    case "image-box": return { ...base, src: "", text: "Title", subtext: "A short supporting description.", align: "center" };
+    case "icon-box": return { ...base, icon: "zap", text: "Title", subtext: "A short supporting description.", align: "center" };
+    case "counter": return { ...base, text: "60%", subtext: "Lower lifecycle emissions", align: "center" };
+    case "countdown": return { ...base, text: "", subtext: "Event starts in", align: "center" };
+    case "maps": return { ...base, text: "" };
+    case "html": return { ...base, text: "" };
     default: return base; // divider
   }
 }

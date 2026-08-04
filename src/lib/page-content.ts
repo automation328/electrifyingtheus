@@ -13,7 +13,8 @@ import { reducedEmissionsContent } from "@/data/pages/reduced-emissions";
 /** A builder block inserted between page sections. */
 export type BlockType =
   | "heading" | "text" | "image" | "video" | "button" | "divider" | "spacer" | "icon"  // Tier 1
-  | "accordion" | "tabs" | "columns" | "gallery" | "cta";                               // Tier 2
+  | "accordion" | "tabs" | "columns" | "gallery" | "cta"                                // Tier 2
+  | "image-box" | "icon-box" | "counter" | "countdown" | "maps" | "html";               // Tier 3
 
 export interface PageBlock {
   id: string;
