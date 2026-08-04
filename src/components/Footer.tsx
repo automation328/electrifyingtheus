@@ -6,6 +6,8 @@ import {
 } from "lucide-react";
 import logo from "@/assets/logo-white.png";
 import { submitLead } from "@/lib/submitLead";
+import { useFooter } from "@/lib/site-settings";
+import type { FooterLink } from "@/data/footer";
 
 const EMPTY = {
   firstName: "", lastName: "", email: "", mobile: "",
@@ -31,6 +33,7 @@ const fieldCls =
   "w-full rounded-xl border border-white/30 bg-transparent pl-10 pr-3 py-3 text-sm text-white placeholder:text-white/60 outline-none transition focus:border-white focus:bg-white/10 focus:ring-2 focus:ring-white/25";
 
 const Footer = () => {
+  const footer = useFooter();
   const [form, setForm] = useState(EMPTY);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -75,6 +78,14 @@ const Footer = () => {
 
   const navLink = "text-white/65 hover:text-white text-sm transition-colors footer-link";
 
+  // Render a footer link: external → new tab, #anchor → plain <a>, route → <Link>.
+  const renderLink = (l: FooterLink, cls: string) =>
+    l.href.startsWith("http")
+      ? <a key={l.href + l.label} href={l.href} target="_blank" rel="noopener noreferrer" className={cls}>{l.label}</a>
+      : l.href.startsWith("#") || l.href.startsWith("mailto:")
+        ? <a key={l.href + l.label} href={l.href} className={cls}>{l.label}</a>
+        : <Link key={l.href + l.label} to={l.href} className={cls}>{l.label}</Link>;
+
   return (
     <footer className="gradient-primary relative overflow-hidden text-white">
       <div className="container py-16 md:py-20">
@@ -83,63 +94,24 @@ const Footer = () => {
           <div className="lg:col-span-7">
             <img src={logo} alt="Electrifying the US" className="h-16 w-auto mb-5" />
             <p className="text-white/70 text-sm max-w-sm leading-relaxed mb-5">
-              2026 is the tipping point for electric vehicle adoption in America—why most
-              drivers now save by going EV.
+              {footer.tagline}
             </p>
             <a
-              href="mailto:info@electrifyingtheus.com"
+              href={`mailto:${footer.email}`}
               className="inline-flex items-center gap-2 text-sm text-white/80 hover:text-white transition-colors footer-link mb-10"
             >
-              <Mail className="w-4 h-4" /> info@electrifyingtheus.com
+              <Mail className="w-4 h-4" /> {footer.email}
             </a>
 
             <div className="grid sm:grid-cols-3 gap-8 mt-2">
-              <div>
-                <h4 className="font-display font-bold text-white mb-4 text-sm tracking-wide">Quick Links</h4>
-                <div className="flex flex-col gap-2.5">
-                  {["About", "EV Dashboard", "EV 101", "Benefits", "Multimodal", "Contact"].map((l) => (
-                    <a
-                      key={l}
-                      href={l === "Contact" ? "/contact-us" : `#${l.toLowerCase().replace(/ /g, "")}`}
-                      className={navLink}
-                    >
-                      {l}
-                    </a>
-                  ))}
+              {footer.columns.map((col) => (
+                <div key={col.title}>
+                  <h4 className="font-display font-bold text-white mb-4 text-sm tracking-wide">{col.title}</h4>
+                  <div className="flex flex-col gap-2.5">
+                    {col.links.map((l) => renderLink(l, navLink))}
+                  </div>
                 </div>
-              </div>
-
-              <div>
-                <h4 className="font-display font-bold text-white mb-4 text-sm tracking-wide">Resources</h4>
-                <div className="flex flex-col gap-2.5">
-                  {[
-                    { label: "News", to: "/news" },
-                    { label: "Events", to: "/events" },
-                    { label: "Careers", to: "/careers" },
-                    { label: "EV vs Gas", to: "/electricity-vs-gasoline" },
-                    { label: "Talk to EVan", to: "/assistant" },
-                  ].map((l) => (
-                    <Link key={l.to} to={l.to} className={navLink}>
-                      {l.label}
-                    </Link>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <h4 className="font-display font-bold text-white mb-4 text-sm tracking-wide">Partner Sites</h4>
-                <div className="flex flex-col gap-2.5">
-                  <a href="https://www.electrifyingva.com/" target="_blank" rel="noopener noreferrer" className={navLink}>
-                    Electrifying Virginia
-                  </a>
-                  <a href="https://www.electrifyingmi.com/" target="_blank" rel="noopener noreferrer" className={navLink}>
-                    Electrifying Michigan
-                  </a>
-                  <Link to="/find-a-charger" className={navLink}>
-                    Find Charging Stations
-                  </Link>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
 
@@ -149,10 +121,10 @@ const Footer = () => {
               <Zap className="w-3.5 h-3.5" /> Newsletter
             </span>
             <h3 className="font-display font-bold text-2xl md:text-3xl text-white leading-tight mb-2">
-              Stay Charged
+              {footer.newsletterTitle}
             </h3>
             <p className="text-white/70 text-sm mb-6 max-w-md">
-              Join the movement — EV news, incentives, and program updates, straight to your inbox.
+              {footer.newsletterText}
             </p>
 
             {submitted ? (
@@ -239,12 +211,7 @@ const Footer = () => {
             © {new Date().getFullYear()} Electrifying The US. All rights reserved.
           </p>
           <div className="flex items-center gap-6">
-            <Link to="/privacy-policy" className="text-white/65 hover:text-white text-sm transition-colors footer-link">
-              Privacy Policy
-            </Link>
-            <Link to="/terms" className="text-white/65 hover:text-white text-sm transition-colors footer-link">
-              Terms &amp; Conditions
-            </Link>
+            {footer.bottomLinks.map((l) => renderLink(l, "text-white/65 hover:text-white text-sm transition-colors footer-link"))}
           </div>
         </div>
       </div>

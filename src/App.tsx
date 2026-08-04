@@ -55,6 +55,7 @@ import AdminHome from "./pages/admin/AdminHome.tsx";
 import PagesManager from "./pages/admin/PagesManager.tsx";
 import MediaManager from "./pages/admin/MediaManager.tsx";
 import NavEditor from "./pages/admin/NavEditor.tsx";
+import FooterEditor from "./pages/admin/FooterEditor.tsx";
 import KnowledgeBaseManager from "./pages/admin/KnowledgeBaseManager.tsx";
 import CollectionManager from "./components/admin/CollectionManager.tsx";
 import { blogConfig, eventsConfig, galleryConfig, jobsConfig, vehiclesConfig, incentivesConfig } from "./pages/admin/collections/configs.ts";
@@ -128,6 +129,7 @@ const App = () => (
             <Route path="media" element={<MediaManager />} />
             <Route path="pages" element={<PagesManager />} />
             <Route path="navigation" element={<NavEditor />} />
+            <Route path="footer" element={<FooterEditor />} />
             <Route path="vehicles" element={<CollectionManager config={vehiclesConfig} />} />
             <Route path="incentives" element={<CollectionManager config={incentivesConfig} />} />
             <Route path="knowledge-base" element={<KnowledgeBaseManager />} />
