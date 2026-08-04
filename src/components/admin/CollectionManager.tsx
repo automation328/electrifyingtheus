@@ -6,7 +6,7 @@ import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
-  Plus, Pencil, Trash2, Loader2, X, Save, AlertCircle, Eye, EyeOff,
+  Plus, Pencil, Trash2, Loader2, X, Save, AlertCircle, Eye, EyeOff, Image as ImageIcon,
 } from "lucide-react";
 import { listRows, insertRow, updateRow, deleteRow } from "@/lib/admin-api";
 import AdminField from "@/components/admin/AdminField";
@@ -37,6 +37,7 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
   const { data: rows = [], isLoading, error } = useQuery({
     queryKey: adminKey,
     queryFn: () => listRows<Row>(config.table),
+    retry: false, // surface a "table missing / not migrated" error fast instead of a long spinner
   });
 
   const [editing, setEditing] = useState<Row | null>(null);
@@ -164,8 +165,9 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
       </div>
 
       {error && (
-        <div className="rounded-xl border border-destructive/30 bg-destructive/5 text-destructive px-4 py-3 text-sm mb-4 flex items-center gap-2">
-          <AlertCircle className="w-4 h-4" /> {error instanceof Error ? error.message : "Failed to load."}
+        <div className="rounded-xl border border-amber-300 bg-amber-50 text-amber-900 px-4 py-3 text-sm mb-4 flex items-start gap-2">
+          <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+          <span>Couldn't load this section: {error instanceof Error ? error.message : "unknown error"}. If this is Vehicles, Incentives, or EVan knowledge, the database table may not be created yet — run the matching migration in Supabase (0006 / 0008).</span>
         </div>
       )}
 
@@ -185,6 +187,11 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
                 key={String(row.id)}
                 className="flex items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3 shadow-card"
               >
+                {config.imageField && (
+                  String(row[config.imageField] ?? "")
+                    ? <img src={String(row[config.imageField])} alt="" className="w-12 h-12 rounded-lg object-cover border border-border shrink-0" loading="lazy" />
+                    : <div className="w-12 h-12 rounded-lg bg-muted grid place-items-center text-muted-foreground shrink-0"><ImageIcon className="w-4 h-4" /></div>
+                )}
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     <span className="font-semibold text-foreground truncate">{titleOf(row)}</span>

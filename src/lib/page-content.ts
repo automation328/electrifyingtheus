@@ -41,6 +41,7 @@ export interface PageBlock {
   images?: { src: string; caption?: string }[];                       // gallery
   subtext?: string;                 // cta subtext
   buttonLabel?: string;             // cta button label
+  variant?: string;                 // design variant (countdown: boxes | cards | inline | minimal)
 }
 
 /** The overridable fields of a ContentPageLayout page (prose + images + blocks). */

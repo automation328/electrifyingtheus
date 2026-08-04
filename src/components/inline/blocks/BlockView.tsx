@@ -151,14 +151,29 @@ const CounterView = ({ value, label }: { value: string; label: string }) => {
   return <div><div className="font-brief text-4xl md:text-5xl text-gradient-primary">{prefix}{display}{suffix}</div>{label && <div className="text-sm text-muted-foreground mt-1">{label}</div>}</div>;
 };
 
-const CountdownView = ({ target, label }: { target: string; label: string }) => {
+export const COUNTDOWN_VARIANTS = ["boxes", "cards", "inline", "minimal"] as const;
+
+const CountdownView = ({ target, label, variant = "boxes" }: { target: string; label: string; variant?: string }) => {
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => { const t = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(t); }, []);
   const end = new Date(target).getTime();
   const diff = Number.isNaN(end) ? 0 : Math.max(0, end - now);
   const d = Math.floor(diff / 86400000), h = Math.floor(diff / 3600000) % 24, m = Math.floor(diff / 60000) % 60, s = Math.floor(diff / 1000) % 60;
-  const cell = (num: number, l: string) => <div className="text-center"><div className="font-brief text-3xl md:text-4xl text-foreground tabular-nums">{String(num).padStart(2, "0")}</div><div className="text-[11px] uppercase tracking-wide text-muted-foreground">{l}</div></div>;
-  return <div>{label && <div className="text-sm text-muted-foreground mb-2">{label}</div>}<div className="inline-flex gap-4 md:gap-6">{cell(d, "days")}{cell(h, "hrs")}{cell(m, "min")}{cell(s, "sec")}</div></div>;
+  const parts: [number, string][] = [[d, "days"], [h, "hrs"], [m, "min"], [s, "sec"]];
+  const pad = (n: number) => String(n).padStart(2, "0");
+
+  const body =
+    variant === "inline" ? (
+      <div className="font-brief text-3xl md:text-4xl text-foreground tabular-nums">{d}<span className="text-muted-foreground text-xl">d</span> {pad(h)}<span className="text-muted-foreground text-xl">h</span> {pad(m)}<span className="text-muted-foreground text-xl">m</span> {pad(s)}<span className="text-muted-foreground text-xl">s</span></div>
+    ) : variant === "minimal" ? (
+      <div className="font-brief text-4xl md:text-5xl text-gradient-primary tabular-nums">{pad(d)}:{pad(h)}:{pad(m)}:{pad(s)}</div>
+    ) : variant === "cards" ? (
+      <div className="inline-flex gap-3">{parts.map(([n, l]) => <div key={l} className="min-w-16 rounded-2xl gradient-hero text-white px-4 py-3 text-center shadow-card"><div className="font-brief text-3xl md:text-4xl tabular-nums">{pad(n)}</div><div className="text-[10px] uppercase tracking-wide text-white/80">{l}</div></div>)}</div>
+    ) : (
+      <div className="inline-flex gap-4 md:gap-6">{parts.map(([n, l]) => <div key={l} className="text-center"><div className="font-brief text-3xl md:text-4xl text-foreground tabular-nums">{pad(n)}</div><div className="text-[11px] uppercase tracking-wide text-muted-foreground">{l}</div></div>)}</div>
+    );
+
+  return <div>{label && <div className="text-sm text-muted-foreground mb-2">{label}</div>}{body}</div>;
 };
 
 const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextValue }) => {
@@ -422,11 +437,20 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
       );
 
     case "countdown":
-      if (!editing) return <CountdownView target={block.text ?? ""} label={block.subtext ?? ""} />;
+      if (!editing) return <CountdownView target={block.text ?? ""} label={block.subtext ?? ""} variant={block.variant} />;
       return (
         <div className="space-y-2">
-          <input type="datetime-local" value={block.text ?? ""} onChange={(e) => up({ text: e.target.value })} className="rounded-lg border border-border bg-background px-3 py-2 text-sm" />
-          <input value={block.subtext ?? ""} onChange={(e) => up({ subtext: e.target.value })} placeholder="Label (e.g. Event starts in)" className="block rounded-lg border border-border bg-background px-2.5 py-1.5 text-sm w-64" />
+          <CountdownView target={block.text ?? ""} label={block.subtext ?? ""} variant={block.variant} />
+          <div className="inline-flex flex-wrap items-center gap-2 rounded-lg border border-border bg-background/80 px-2 py-1.5 text-xs mt-2">
+            <span className="text-muted-foreground">Design</span>
+            {COUNTDOWN_VARIANTS.map((v) => (
+              <button key={v} onClick={() => up({ variant: v })} className={`px-2 py-0.5 rounded capitalize ${(block.variant ?? "boxes") === v ? "gradient-hero text-white" : "text-muted-foreground hover:bg-muted"}`}>{v}</button>
+            ))}
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <input type="datetime-local" value={block.text ?? ""} onChange={(e) => up({ text: e.target.value })} className="rounded-lg border border-border bg-background px-3 py-2 text-sm" />
+            <input value={block.subtext ?? ""} onChange={(e) => up({ subtext: e.target.value })} placeholder="Label (e.g. Event starts in)" className="rounded-lg border border-border bg-background px-2.5 py-1.5 text-sm w-64" />
+          </div>
         </div>
       );
 

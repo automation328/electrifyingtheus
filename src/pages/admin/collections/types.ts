@@ -38,6 +38,10 @@ export interface CollectionConfig {
   /** Field holding the status string (published | draft | archived). */
   statusField: string;
   statusOptions: string[];
+  /** Row field holding a thumbnail image URL (shown in the list). */
+  imageField?: string;
+  /** Optional row field to group the list by (e.g. vehicle type). */
+  groupField?: string;
   fields: FieldDef[];
   /** Optional row → default sort key (desc). Falls back to created_at. */
   sortRows?: (a: Record<string, unknown>, b: Record<string, unknown>) => number;
