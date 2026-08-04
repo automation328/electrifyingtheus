@@ -2,15 +2,15 @@
 // saving a PUBLISHED doc re-chunks + re-embeds it into the live vector store so
 // the assistant answers from the new text. Drafts are removed from the store.
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import {
-  Plus, Pencil, Trash2, Loader2, X, Save, AlertCircle, Bot, Eye, Sparkles,
+  Plus, Pencil, Trash2, Loader2, X, Save, AlertCircle, Bot, Eye, Sparkles, Upload,
 } from "lucide-react";
-import { listRows, insertRow, updateRow, deleteRow, kbReembed, kbRemove } from "@/lib/admin-api";
+import { listRows, insertRow, updateRow, deleteRow, kbReembed, kbRemove, kbUpload } from "@/lib/admin-api";
 
 interface KbRow {
   id?: string; source: string; title: string; body: string; status: string;
@@ -35,7 +35,27 @@ const KnowledgeBaseManager = () => {
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState("");
 
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+
   const invalidate = () => qc.invalidateQueries({ queryKey: key });
+
+  const onUpload = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    setUploading(true);
+    try {
+      for (const f of Array.from(files)) {
+        const res = await kbUpload(f, "published");
+        toast.success(`${res.title}: embedded ${res.chunkCount} chunk${res.chunkCount === 1 ? "" : "s"}`);
+      }
+      invalidate();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Upload failed.");
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  };
 
   const openNew = () => { setDraft({ source: "", title: "", body: "", status: "draft" }); setEditing(null); setIsNew(true); setPreview(false); setFormError(""); };
   const openEdit = (r: KbRow) => { setDraft({ ...r }); setEditing(r); setIsNew(false); setPreview(false); setFormError(""); };
@@ -94,14 +114,19 @@ const KnowledgeBaseManager = () => {
             {isLoading ? "Loading…" : `${rows.length} document${rows.length === 1 ? "" : "s"}`}
           </p>
         </div>
-        <button onClick={openNew} className="ml-auto inline-flex items-center gap-2 rounded-xl gradient-hero text-white font-semibold px-4 py-2.5 text-sm hover:opacity-90">
+        <button onClick={() => fileRef.current?.click()} disabled={uploading} className="ml-auto inline-flex items-center gap-2 rounded-xl border border-primary/50 text-primary font-semibold px-4 py-2.5 text-sm hover:bg-primary/10 disabled:opacity-60">
+          {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />} Upload document
+        </button>
+        <input ref={fileRef} type="file" accept=".pdf,.docx,.txt,.md,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,text/markdown" multiple className="hidden" onChange={(e) => onUpload(e.target.files)} />
+        <button onClick={openNew} className="inline-flex items-center gap-2 rounded-xl gradient-hero text-white font-semibold px-4 py-2.5 text-sm hover:opacity-90">
           <Plus className="w-4 h-4" /> New document
         </button>
       </div>
       <p className="text-xs text-muted-foreground mb-6 flex items-start gap-1.5">
         <Sparkles className="w-3.5 h-3.5 mt-0.5 shrink-0 text-primary" />
-        Publishing a document re-embeds it into the assistant's vector store — the answer changes on the next question. Drafts are held out of the assistant.
+        Upload a PDF, DOCX, or text file — the text is extracted, chunked, and embedded into EVan's knowledge base automatically. Publishing a document re-embeds it; drafts are held out of the assistant.
       </p>
+      {uploading && <p className="text-xs text-muted-foreground mb-4"><Loader2 className="w-3.5 h-3.5 animate-spin inline mr-1" /> Extracting text and embedding… large documents can take a minute.</p>}
 
       {error && (
         <div className="rounded-xl border border-destructive/30 bg-destructive/5 text-destructive px-4 py-3 text-sm mb-4 flex items-center gap-2">

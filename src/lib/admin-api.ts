@@ -104,3 +104,23 @@ export async function kbReembed(source: string, title: string, body: string): Pr
 export async function kbRemove(source: string): Promise<void> {
   await call<{ ok: true }>({ op: "kb", action: "remove", source });
 }
+
+/** Upload a PDF/DOCX/TXT/MD document → extract text → embed into EVan's KB. */
+export async function kbUpload(file: File, status: "draft" | "published" = "published"): Promise<{ source: string; title: string; chars: number; chunkCount: number }> {
+  const token = await getAccessToken();
+  if (!token) throw new Error("Not signed in.");
+  const dataUrl = await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(new Error("Could not read file."));
+    reader.readAsDataURL(file);
+  });
+  const r = await fetch("/api/admin", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ op: "kb-upload", filename: file.name, contentType: file.type, dataUrl, status }),
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error((data as { detail?: string; error?: string }).detail || (data as { error?: string }).error || `Upload failed (${r.status})`);
+  return data as { source: string; title: string; chars: number; chunkCount: number };
+}

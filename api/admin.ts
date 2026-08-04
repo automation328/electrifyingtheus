@@ -17,6 +17,8 @@
 // Env (server-only): SUPABASE_SERVICE_ROLE_KEY, VITE_SUPABASE_URL/ANON, GEMINI_API_KEY.
 
 import { getEditor, requireEditor, adminSupabase } from "./_admin-auth.js";
+import mammoth from "mammoth";
+import { PDFParse } from "pdf-parse";
 
 // ── collection ───────────────────────────────────────────────────────────────
 const ALLOWED_TABLES = new Set<string>([
@@ -238,6 +240,103 @@ async function handleKb(b: Record<string, unknown>, res: any) {
   res.status(200).json({ chunkCount: ok });
 }
 
+const plainSlug = (s: string) => s.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60);
+
+// Chunk + embed a source's body into the live vector store (replacing its rows).
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function reembedSource(db: any, source: string, title: string, body: string, key: string): Promise<number> {
+  await db.from(KB_TABLE).delete().filter("metadata->>source", "eq", source);
+  const chunks = chunk(body);
+  let ok = 0;
+  for (let i = 0; i < chunks.length; i++) {
+    const c = chunks[i];
+    const vec = await embed(c.body, key);
+    const ins = await db.from(KB_TABLE).insert({ content: c.body, metadata: { source, title: c.title || title, chunk: i }, embedding: `[${vec.map((x) => x.toFixed(6)).join(",")}]` });
+    if (ins.error) throw new Error(ins.error.message);
+    ok++;
+  }
+  return ok;
+}
+
+// Upload a document (PDF / DOCX / TXT / MD): extract text, upsert a KB source doc,
+// and (if published) re-embed it into the live vector store.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function handleKbUpload(b: Record<string, unknown>, res: any) {
+  const filename = String(b.filename ?? "document");
+  const contentType = String(b.contentType ?? "").toLowerCase();
+  const dataUrl = String(b.dataUrl ?? "");
+  const status = String(b.status ?? "published") === "draft" ? "draft" : "published";
+
+  const comma = dataUrl.indexOf(",");
+  const base64 = comma >= 0 ? dataUrl.slice(comma + 1) : dataUrl;
+  let buffer: Buffer;
+  try { buffer = Buffer.from(base64, "base64"); } catch { res.status(400).json({ error: "bad_data" }); return; }
+  if (!buffer.length) { res.status(400).json({ error: "empty_file" }); return; }
+  if (buffer.length > 25 * 1024 * 1024) { res.status(400).json({ error: "too_large", detail: "Max document size is 25 MB." }); return; }
+
+  const lower = filename.toLowerCase();
+  let text = "";
+  try {
+    if (contentType.includes("pdf") || lower.endsWith(".pdf")) {
+      const parser = new PDFParse({ data: buffer });
+      const r = await parser.getText();
+      text = r.text || "";
+    } else if (contentType.includes("wordprocessingml") || lower.endsWith(".docx")) {
+      const r = await mammoth.extractRawText({ buffer });
+      text = r.value || "";
+    } else if (contentType.startsWith("text/") || lower.endsWith(".txt") || lower.endsWith(".md")) {
+      text = buffer.toString("utf8");
+    } else {
+      res.status(400).json({ error: "unsupported_type", detail: "Upload a PDF, DOCX, TXT, or MD file." });
+      return;
+    }
+  } catch (e) {
+    res.status(400).json({ error: "extract_failed", detail: e instanceof Error ? e.message : String(e) });
+    return;
+  }
+
+  text = text.replace(/\r\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim();
+  if (!text) { res.status(400).json({ error: "no_text", detail: "No text could be extracted — the file may be scanned images." }); return; }
+
+  const baseName = filename.replace(/\.[^.]+$/, "");
+  const source = plainSlug(baseName) || `doc-${Date.now()}`;
+  const title = String(b.title ?? "").trim() || baseName;
+
+  const db = adminSupabase();
+  if (!db) { res.status(500).json({ error: "not_configured" }); return; }
+
+  // Upsert the editable source document.
+  const { data: existing } = await db.from("kb_source_documents").select("id").eq("source", source).maybeSingle();
+  const rowFields = { source, title, body: text, status, updated_at: new Date().toISOString() };
+  let rowId = existing?.id as string | undefined;
+  if (rowId) {
+    const { error } = await db.from("kb_source_documents").update(rowFields).eq("id", rowId);
+    if (error) { res.status(400).json({ error: "save_failed", detail: error.message }); return; }
+  } else {
+    const { data, error } = await db.from("kb_source_documents").insert(rowFields).select("id").single();
+    if (error) { res.status(400).json({ error: "save_failed", detail: error.message }); return; }
+    rowId = data?.id;
+  }
+
+  // Sync the vector store.
+  let chunkCount = 0;
+  if (status === "published") {
+    const key = process.env.GEMINI_API_KEY;
+    if (!key) { res.status(500).json({ error: "no_gemini_key", detail: "Set GEMINI_API_KEY to embed documents." }); return; }
+    try {
+      chunkCount = await reembedSource(db, source, title, text, key);
+    } catch (e) {
+      res.status(500).json({ error: "embed_failed", detail: e instanceof Error ? e.message : String(e) });
+      return;
+    }
+    if (rowId) await db.from("kb_source_documents").update({ last_embedded_at: new Date().toISOString(), chunk_count: chunkCount }).eq("id", rowId);
+  } else {
+    await db.from(KB_TABLE).delete().filter("metadata->>source", "eq", source);
+  }
+
+  res.status(200).json({ source, title, chars: text.length, chunkCount });
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default async function handler(req: any, res: any) {
   if (req.method !== "POST") { res.status(405).json({ error: "method_not_allowed" }); return; }
@@ -263,6 +362,7 @@ export default async function handler(req: any, res: any) {
     if (op === "media-list") return void (await handleMediaList(res));
     if (op === "media-delete") return void (await handleMediaDelete(b, res));
     if (op === "kb") return void (await handleKb(b, res));
+    if (op === "kb-upload") return void (await handleKbUpload(b, res));
     res.status(400).json({ error: "unknown_op" });
   } catch (e) {
     res.status(500).json({ error: "server_error", detail: e instanceof Error ? e.message : String(e) });
