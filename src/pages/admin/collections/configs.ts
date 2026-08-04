@@ -71,6 +71,8 @@ export const galleryConfig: CollectionConfig = {
   titleField: "title",
   subtitleFields: ["kind", "album"],
   imageField: "url",
+  description: "Your public gallery page — curate it from the Media library, or add items by hand.",
+  mediaImport: (m) => ({ kind: m.kind, url: m.url, title: m.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " "), album: "", poster: "", provider: m.kind === "video" ? "file" : "", sort: 0, status: "published" }),
   statusField,
   statusOptions: STATUS,
   staticRows: galleryStaticRows,

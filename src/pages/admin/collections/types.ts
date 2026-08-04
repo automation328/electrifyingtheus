@@ -48,6 +48,10 @@ export interface CollectionConfig {
   staticRows?: () => Record<string, unknown>[];
   /** Stable identity for de-duping built-in items against DB overrides. */
   keyOf?: (row: Record<string, unknown>) => string;
+  /** One-line description shown under the section title. */
+  description?: string;
+  /** If set, enables an "Add from library" button that maps a media item to a row. */
+  mediaImport?: (m: { name: string; url: string; kind: "image" | "video" }) => Record<string, unknown>;
   fields: FieldDef[];
   /** Optional row → default sort key (desc). Falls back to created_at. */
   sortRows?: (a: Record<string, unknown>, b: Record<string, unknown>) => number;

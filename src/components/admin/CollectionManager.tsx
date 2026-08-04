@@ -6,10 +6,11 @@ import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
-  Plus, Pencil, Trash2, Loader2, X, Save, AlertCircle, Eye, EyeOff, Image as ImageIcon,
+  Plus, Pencil, Trash2, Loader2, X, Save, AlertCircle, Eye, EyeOff, Image as ImageIcon, FolderOpen,
 } from "lucide-react";
-import { listRows, insertRow, updateRow, deleteRow } from "@/lib/admin-api";
+import { listRows, insertRow, updateRow, deleteRow, type MediaItem } from "@/lib/admin-api";
 import AdminField from "@/components/admin/AdminField";
+import MediaPickerModal from "@/components/admin/MediaPickerModal";
 import { type CollectionConfig, emptyRecord } from "@/pages/admin/collections/types";
 
 type Row = Record<string, unknown> & { id?: string };
@@ -45,6 +46,18 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
   const [draft, setDraft] = useState<Row>({});
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState("");
+  const [mediaOpen, setMediaOpen] = useState(false);
+
+  const addFromMedia = async (items: MediaItem[]) => {
+    if (!config.mediaImport || items.length === 0) return;
+    try {
+      for (const m of items) await insertRow(config.table, config.mediaImport(m));
+      toast.success(`Added ${items.length} item${items.length === 1 ? "" : "s"}`);
+      invalidate();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Couldn't add items.");
+    }
+  };
 
   // Merged view: DB rows + built-in (curated) rows that aren't already overridden.
   const merged = useMemo(() => {
@@ -221,10 +234,19 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
           <p className="text-sm text-muted-foreground">
             {isLoading ? "Loading…" : `${sorted.length} item${sorted.length === 1 ? "" : "s"}`}
           </p>
+          {config.description && <p className="text-xs text-muted-foreground mt-1 max-w-lg">{config.description}</p>}
         </div>
+        {config.mediaImport && (
+          <button
+            onClick={() => setMediaOpen(true)}
+            className="ml-auto inline-flex items-center gap-2 rounded-xl border border-primary/50 text-primary font-semibold px-4 py-2.5 text-sm hover:bg-primary/10 transition-colors"
+          >
+            <FolderOpen className="w-4 h-4" /> Add from library
+          </button>
+        )}
         <button
           onClick={openNew}
-          className="ml-auto inline-flex items-center gap-2 rounded-xl gradient-hero text-white font-semibold px-4 py-2.5 text-sm hover:opacity-90 transition-opacity"
+          className={`${config.mediaImport ? "" : "ml-auto"} inline-flex items-center gap-2 rounded-xl gradient-hero text-white font-semibold px-4 py-2.5 text-sm hover:opacity-90 transition-opacity`}
         >
           <Plus className="w-4 h-4" /> New {config.singular.toLowerCase()}
         </button>
@@ -308,6 +330,10 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
             </div>
           </div>
         </div>
+      )}
+
+      {mediaOpen && config.mediaImport && (
+        <MediaPickerModal onClose={() => setMediaOpen(false)} onAdd={addFromMedia} />
       )}
     </div>
   );
