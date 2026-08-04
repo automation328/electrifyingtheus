@@ -42,6 +42,12 @@ export interface CollectionConfig {
   imageField?: string;
   /** Optional row field to group the list by (e.g. vehicle type). */
   groupField?: string;
+  /** Pretty labels for group values (e.g. { ev: "Electric", gas: "Gas" }). */
+  groupLabels?: Record<string, string>;
+  /** Built-in (curated) items to show alongside DB rows (the merged view). */
+  staticRows?: () => Record<string, unknown>[];
+  /** Stable identity for de-duping built-in items against DB overrides. */
+  keyOf?: (row: Record<string, unknown>) => string;
   fields: FieldDef[];
   /** Optional row → default sort key (desc). Falls back to created_at. */
   sortRows?: (a: Record<string, unknown>, b: Record<string, unknown>) => number;

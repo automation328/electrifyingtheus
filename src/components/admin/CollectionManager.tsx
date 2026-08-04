@@ -46,11 +46,31 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState("");
 
+  // Merged view: DB rows + built-in (curated) rows that aren't already overridden.
+  const merged = useMemo(() => {
+    const statics = config.staticRows ? config.staticRows() : [];
+    if (!statics.length || !config.keyOf) return rows as Row[];
+    const dbKeys = new Set(rows.map((r) => config.keyOf!(r)));
+    const extra = statics.filter((s) => !dbKeys.has(config.keyOf!(s))) as Row[];
+    return [...rows, ...extra];
+  }, [rows, config]);
+
   const sorted = useMemo(() => {
-    const copy = [...rows];
+    const copy = [...merged];
     if (config.sortRows) copy.sort(config.sortRows);
     return copy;
-  }, [rows, config]);
+  }, [merged, config]);
+
+  const groups = useMemo(() => {
+    if (!config.groupField) return null;
+    const map = new Map<string, Row[]>();
+    for (const r of sorted) {
+      const g = String(r[config.groupField] ?? "");
+      if (!map.has(g)) map.set(g, []);
+      map.get(g)!.push(r);
+    }
+    return [...map.entries()];
+  }, [sorted, config]);
 
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: adminKey });
@@ -67,9 +87,18 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
   };
 
   const openEdit = (row: Row) => {
-    setDraft({ ...row });
-    setEditing(row);
-    setIsNew(false);
+    if (row.__static) {
+      // Adopt a built-in item: open as NEW so Save inserts it into the DB.
+      const { __static, id, ...rest } = row as Row & { __static?: boolean };
+      void __static; void id;
+      setDraft(rest as Row);
+      setEditing(null);
+      setIsNew(true);
+    } else {
+      setDraft({ ...row });
+      setEditing(row);
+      setIsNew(false);
+    }
     setFormError("");
   };
 
@@ -142,10 +171,47 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
   const titleOf = (row: Row) => String(row[config.titleField] ?? "") || `Untitled ${config.singular.toLowerCase()}`;
   const subtitleOf = (row: Row) =>
     (config.subtitleFields ?? [])
-      .map((f) => row[f])
+      .map((f) => (config.groupLabels && f === config.groupField ? config.groupLabels[String(row[f])] ?? row[f] : row[f]))
       .filter((v) => v !== undefined && v !== null && String(v).trim() !== "")
       .map(String)
       .join(" · ");
+
+  const renderRow = (row: Row) => {
+    const isStatic = !!row.__static;
+    const status = String(row[config.statusField] ?? "");
+    const published = status === "published";
+    return (
+      <li key={isStatic ? `s:${config.keyOf?.(row)}` : String(row.id)} className="flex items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3 shadow-card">
+        {config.imageField && (
+          String(row[config.imageField] ?? "")
+            ? <img src={String(row[config.imageField])} alt="" className="w-12 h-12 rounded-lg object-cover border border-border shrink-0" loading="lazy" />
+            : <div className="w-12 h-12 rounded-lg bg-muted grid place-items-center text-muted-foreground shrink-0"><ImageIcon className="w-4 h-4" /></div>
+        )}
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <span className="font-semibold text-foreground truncate">{titleOf(row)}</span>
+            {isStatic
+              ? <span className="text-[10px] uppercase font-bold tracking-wide rounded-full px-2 py-0.5 bg-blue-500/10 text-blue-600">built-in</span>
+              : <span className={`text-[10px] uppercase font-bold tracking-wide rounded-full px-2 py-0.5 ${statusStyle(status)}`}>{status}</span>}
+          </div>
+          {subtitleOf(row) && <p className="text-xs text-muted-foreground truncate mt-0.5">{subtitleOf(row)}</p>}
+        </div>
+        {isStatic ? (
+          <button onClick={() => openEdit(row)} className="inline-flex items-center gap-1.5 rounded-lg border border-primary/50 text-primary text-xs font-semibold px-3 py-2 hover:bg-primary/10" title="Edit — adds an editable copy to your library">
+            <Pencil className="w-3.5 h-3.5" /> Edit
+          </button>
+        ) : (
+          <>
+            <button onClick={() => toggleStatus(row)} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors" title={published ? "Unpublish" : "Publish"}>
+              {published ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+            </button>
+            <button onClick={() => openEdit(row)} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors" title="Edit"><Pencil className="w-4 h-4" /></button>
+            <button onClick={() => remove(row)} className="p-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-muted transition-colors" title="Delete"><Trash2 className="w-4 h-4" /></button>
+          </>
+        )}
+      </li>
+    );
+  };
 
   return (
     <div className="max-w-5xl">
@@ -153,7 +219,7 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
         <div>
           <h1 className="text-2xl font-bold font-display text-foreground">{config.plural}</h1>
           <p className="text-sm text-muted-foreground">
-            {isLoading ? "Loading…" : `${rows.length} item${rows.length === 1 ? "" : "s"}`}
+            {isLoading ? "Loading…" : `${sorted.length} item${sorted.length === 1 ? "" : "s"}`}
           </p>
         </div>
         <button
@@ -177,55 +243,17 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
         <div className="rounded-2xl border border-dashed border-border bg-card p-10 text-center text-muted-foreground">
           No {config.plural.toLowerCase()} yet. Create the first one.
         </div>
+      ) : groups ? (
+        <div className="space-y-6">
+          {groups.map(([g, gr]) => (
+            <div key={g || "—"}>
+              <h2 className="text-xs font-bold uppercase tracking-wide text-muted-foreground mb-2">{config.groupLabels?.[g] ?? g ?? "Other"} <span className="text-muted-foreground/60">· {gr.length}</span></h2>
+              <ul className="space-y-2">{gr.map(renderRow)}</ul>
+            </div>
+          ))}
+        </div>
       ) : (
-        <ul className="space-y-2">
-          {sorted.map((row) => {
-            const status = String(row[config.statusField] ?? "");
-            const published = status === "published";
-            return (
-              <li
-                key={String(row.id)}
-                className="flex items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3 shadow-card"
-              >
-                {config.imageField && (
-                  String(row[config.imageField] ?? "")
-                    ? <img src={String(row[config.imageField])} alt="" className="w-12 h-12 rounded-lg object-cover border border-border shrink-0" loading="lazy" />
-                    : <div className="w-12 h-12 rounded-lg bg-muted grid place-items-center text-muted-foreground shrink-0"><ImageIcon className="w-4 h-4" /></div>
-                )}
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold text-foreground truncate">{titleOf(row)}</span>
-                    <span className={`text-[10px] uppercase font-bold tracking-wide rounded-full px-2 py-0.5 ${statusStyle(status)}`}>
-                      {status}
-                    </span>
-                  </div>
-                  {subtitleOf(row) && <p className="text-xs text-muted-foreground truncate mt-0.5">{subtitleOf(row)}</p>}
-                </div>
-                <button
-                  onClick={() => toggleStatus(row)}
-                  className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                  title={published ? "Unpublish" : "Publish"}
-                >
-                  {published ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-                </button>
-                <button
-                  onClick={() => openEdit(row)}
-                  className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                  title="Edit"
-                >
-                  <Pencil className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => remove(row)}
-                  className="p-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-muted transition-colors"
-                  title="Delete"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </li>
-            );
-          })}
-        </ul>
+        <ul className="space-y-2">{sorted.map(renderRow)}</ul>
       )}
 
       {/* Editor drawer */}

@@ -3,8 +3,10 @@
 // column names (see supabase/migrations/0001,0003,0004).
 
 import type { CollectionConfig } from "./types";
+import { blogStaticRows, eventStaticRows, vehicleStaticRows, incentiveStaticRows, galleryStaticRows } from "@/lib/seed-content";
 
 const STATUS = ["draft", "published", "archived"];
+const str = (v: unknown) => String(v ?? "");
 const statusField = "status";
 
 const asNum = (v: unknown) => Number(v ?? 0) || 0;
@@ -19,6 +21,8 @@ export const blogConfig: CollectionConfig = {
   imageField: "image",
   statusField,
   statusOptions: STATUS,
+  staticRows: blogStaticRows,
+  keyOf: (r) => str(r.slug),
   sortRows: (a, b) => asStr(b.published_at).localeCompare(asStr(a.published_at)),
   fields: [
     { name: "title", label: "Title", type: "text", required: true, width: "full" },
@@ -44,6 +48,8 @@ export const eventsConfig: CollectionConfig = {
   imageField: "image",
   statusField,
   statusOptions: STATUS,
+  staticRows: eventStaticRows,
+  keyOf: (r) => `${str(r.title)}|${str(r.event_date)}`,
   sortRows: (a, b) => asStr(b.event_date).localeCompare(asStr(a.event_date)),
   fields: [
     { name: "title", label: "Title", type: "text", required: true },
@@ -67,6 +73,8 @@ export const galleryConfig: CollectionConfig = {
   imageField: "url",
   statusField,
   statusOptions: STATUS,
+  staticRows: galleryStaticRows,
+  keyOf: (r) => `${str(r.kind)}|${str(r.url)}`,
   sortRows: (a, b) => asNum(a.sort) - asNum(b.sort),
   fields: [
     { name: "kind", label: "Kind", type: "select", options: [{ value: "photo", label: "Photo" }, { value: "video", label: "Video" }], defaultValue: "photo", width: "half" },
@@ -112,13 +120,17 @@ export const vehiclesConfig: CollectionConfig = {
   titleField: "name",
   subtitleFields: ["type", "category", "vehicle_id"],
   imageField: "image",
+  groupField: "type",
+  groupLabels: { ev: "Electric", hybrid: "Hybrid", gas: "Gas" },
+  staticRows: vehicleStaticRows,
+  keyOf: (r) => str(r.vehicle_id),
   statusField,
   statusOptions: STATUS,
   sortRows: (a, b) => asNum(a.sort) - asNum(b.sort),
   fields: [
     { name: "name", label: "Name", type: "text", required: true },
     { name: "vehicle_id", label: "Vehicle ID (slug)", type: "text", required: true, width: "half", help: "Calculator key, e.g. tesla-model-3. Reuse an existing ID to override that vehicle." },
-    { name: "type", label: "Type", type: "select", options: [{ value: "ev", label: "EV" }, { value: "gas", label: "Gas" }], defaultValue: "ev", width: "half" },
+    { name: "type", label: "Type", type: "select", options: [{ value: "ev", label: "Electric" }, { value: "hybrid", label: "Hybrid" }, { value: "gas", label: "Gas" }], defaultValue: "ev", width: "half" },
     { name: "category", label: "Category", type: "select", options: ["Sedan", "Coupe", "SUV", "Minivan", "Truck"].map((c) => ({ value: c, label: c })), defaultValue: "Sedan", width: "half" },
     { name: "msrp", label: "MSRP ($)", type: "number", width: "half" },
     { name: "mpg", label: "MPG (gas)", type: "number", width: "half", help: "Gas vehicles only." },
@@ -148,6 +160,8 @@ export const incentivesConfig: CollectionConfig = {
   subtitleFields: ["scope", "state", "jurisdiction"],
   statusField,
   statusOptions: STATUS,
+  staticRows: incentiveStaticRows,
+  keyOf: (r) => `${str(r.scope)}|${str(r.state) || ""}|${str(r.name)}`,
   sortRows: (a, b) => asNum(a.sort) - asNum(b.sort),
   fields: [
     { name: "name", label: "Program name", type: "text", required: true },
