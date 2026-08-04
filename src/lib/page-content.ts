@@ -10,7 +10,28 @@ import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import type { ContentStat, ContentSection, ContentSource, ContentShot } from "@/components/ContentPageLayout";
 import { reducedEmissionsContent } from "@/data/pages/reduced-emissions";
 
-/** The overridable fields of a ContentPageLayout page (prose + images). */
+/** A builder block inserted between page sections (Tier 1 block types). */
+export type BlockType = "heading" | "text" | "image" | "video" | "button" | "divider" | "spacer" | "icon";
+
+export interface PageBlock {
+  id: string;
+  /** Insertion point: "after-stats" | "after-section-{i}" | "end". */
+  slot: string;
+  type: BlockType;
+  align?: "left" | "center" | "right";
+  // Per-type fields (only the relevant ones are set):
+  text?: string;                    // heading / text / button label
+  level?: 2 | 3;                    // heading size
+  src?: string;                     // image URL
+  caption?: string;                 // image caption
+  href?: string;                    // button link
+  provider?: "youtube" | "vimeo" | "file"; // video
+  videoId?: string;                 // video id (youtube/vimeo) or file URL
+  height?: number;                  // spacer height (px)
+  icon?: string;                    // icon key (see block icon set)
+}
+
+/** The overridable fields of a ContentPageLayout page (prose + images + blocks). */
 export interface PageOverride {
   badge?: string;
   title?: string;
@@ -23,11 +44,12 @@ export interface PageOverride {
   sources?: ContentSource[];
   heroImage?: string;
   gallery?: ContentShot[];
+  blocks?: PageBlock[];
 }
 
 export const PAGE_OVERRIDE_KEYS: (keyof PageOverride)[] = [
   "badge", "title", "highlight", "intro", "kicker", "pullQuote",
-  "stats", "sections", "sources", "heroImage", "gallery",
+  "stats", "sections", "sources", "heroImage", "gallery", "blocks",
 ];
 
 /** Pages wired to EditableContentPage — shown in the CMS Pages editor. */

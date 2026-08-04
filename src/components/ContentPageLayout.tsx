@@ -1,10 +1,12 @@
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, ArrowUpRight, ExternalLink, Play, Calculator, type LucideIcon } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Editable from "@/components/inline/Editable";
 import EditableImage from "@/components/inline/EditableImage";
+import BlockSlot from "@/components/inline/blocks/BlockSlot";
+import type { PageBlock } from "@/lib/page-content";
 
 export interface ContentStat {
   value: string;
@@ -73,12 +75,14 @@ interface ContentPageLayoutProps {
   hideCta?: boolean;
   /** Optional grid of clickable navigation cards (icon + title + description). */
   linkCards?: ContentLinkCard[];
+  /** Builder blocks inserted between sections (on-page editor). */
+  blocks?: PageBlock[];
 }
 
 const ContentPageLayout = ({
   badge, title, highlight, intro, heroImage, icon: Icon,
   stats, sections, sources = [], kicker, pullQuote, gallery, video, statsCta, compactTitle, extraCta,
-  extraCtaImage, hideMeta, hideCta, linkCards,
+  extraCtaImage, hideMeta, hideCta, linkCards, blocks,
 }: ContentPageLayoutProps) => {
   const [playing, setPlaying] = useState(false);
 
@@ -299,8 +303,10 @@ const ContentPageLayout = ({
 
         {/* ── Editorial body ─────────────────────────────────────────── */}
         <article className="container px-4 max-w-3xl mt-16 md:mt-24 space-y-14">
+          <BlockSlot slot="after-stats" blocks={blocks} />
           {sections.map((s, i) => (
-            <section key={i} className="brief-reveal">
+            <Fragment key={i}>
+            <section className="brief-reveal">
               <div className="flex items-baseline gap-4 mb-4">
                 <span className="brief-index brief-mono text-sm font-bold shrink-0">
                   {String(i + 1).padStart(2, "0")}
@@ -325,7 +331,10 @@ const ContentPageLayout = ({
                 )}
               </div>
             </section>
+            <BlockSlot slot={`after-section-${i}`} blocks={blocks} />
+            </Fragment>
           ))}
+          <BlockSlot slot="end" blocks={blocks} />
         </article>
 
         {/* ── Pull-quote ─────────────────────────────────────────────── */}

@@ -4,6 +4,7 @@
 // the working override (a deep clone of the page's current effective content).
 
 import { createContext, useContext } from "react";
+import type { PageBlock, BlockType } from "@/lib/page-content";
 
 export interface InlineEditContextValue {
   /** True while the page is in edit mode. */
@@ -12,6 +13,15 @@ export interface InlineEditContextValue {
   set: (path: string, value: unknown) => void;
   /** Read the current value at a dotted path (for image controls). */
   get: (path: string) => unknown;
+  // ── Builder blocks ──────────────────────────────────────────────
+  /** Add a new block of `type` at insertion slot `slot`. */
+  addBlock: (slot: string, type: BlockType) => void;
+  /** Patch a block by id. */
+  updateBlock: (id: string, patch: Partial<PageBlock>) => void;
+  /** Move a block up/down among the blocks sharing its slot. */
+  moveBlock: (id: string, dir: -1 | 1) => void;
+  /** Remove a block by id. */
+  removeBlock: (id: string) => void;
 }
 
 export const InlineEditContext = createContext<InlineEditContextValue | null>(null);

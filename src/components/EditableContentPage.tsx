@@ -9,13 +9,42 @@ import { toast } from "sonner";
 import ContentPageLayout from "@/components/ContentPageLayout";
 import EditBar from "@/components/inline/EditBar";
 import { InlineEditContext, setPath, getPath } from "@/components/inline/edit-context";
-import { usePageOverride, mergePageOverride, pickPageOverride, EDITABLE_PAGES, type PageOverride } from "@/lib/page-content";
+import { usePageOverride, mergePageOverride, pickPageOverride, EDITABLE_PAGES, type PageOverride, type PageBlock, type BlockType } from "@/lib/page-content";
 import { useEditorAuth } from "@/lib/auth";
 import { listRows, insertRow, updateRow } from "@/lib/admin-api";
 
 type LayoutProps = React.ComponentProps<typeof ContentPageLayout>;
 
 interface PageRow { id: string; path: string; status: string; content: PageOverride }
+
+// A fresh block seeded with sensible defaults so it's immediately visible/editable.
+function newBlock(type: BlockType): PageBlock {
+  const id = (typeof crypto !== "undefined" && crypto.randomUUID) ? crypto.randomUUID() : `blk_${Date.now()}_${Math.round(Math.random() * 1e6)}`;
+  const base: PageBlock = { id, slot: "", type };
+  switch (type) {
+    case "heading": return { ...base, text: "New heading", level: 2, align: "center" };
+    case "text": return { ...base, text: "New paragraph. Click to edit this text.", align: "left" };
+    case "image": return { ...base, src: "", caption: "", align: "center" };
+    case "video": return { ...base, provider: "youtube", videoId: "", align: "center" };
+    case "button": return { ...base, text: "Learn more", href: "", align: "center" };
+    case "spacer": return { ...base, height: 40 };
+    case "icon": return { ...base, icon: "zap", align: "center" };
+    default: return base; // divider
+  }
+}
+
+// Swap a block with its nearest same-slot neighbour in the given direction.
+function moveWithinSlot(blocks: PageBlock[], id: string, dir: -1 | 1): PageBlock[] {
+  const arr = [...blocks];
+  const idx = arr.findIndex((b) => b.id === id);
+  if (idx < 0) return arr;
+  const slot = arr[idx].slot;
+  let j = idx + dir;
+  while (j >= 0 && j < arr.length && arr[j].slot !== slot) j += dir;
+  if (j < 0 || j >= arr.length) return arr;
+  [arr[idx], arr[j]] = [arr[j], arr[idx]];
+  return arr;
+}
 
 const EditableContentPage = ({ path, ...props }: LayoutProps & { path: string }) => {
   const qc = useQueryClient();
@@ -34,10 +63,19 @@ const EditableContentPage = ({ path, ...props }: LayoutProps & { path: string })
     [props, editing, working, published],
   );
 
+  const mutateBlocks = (fn: (blocks: PageBlock[]) => PageBlock[]) => {
+    setWorking((w) => ({ ...w, blocks: fn(w.blocks ?? []) }));
+    setDirty(true);
+  };
+
   const ctx = useMemo(() => ({
     editing,
     set: (p: string, v: unknown) => { setWorking((w) => setPath(w, p, v)); setDirty(true); },
     get: (p: string) => getPath(working, p),
+    addBlock: (slot: string, type: BlockType) => mutateBlocks((blocks) => [...blocks, { ...newBlock(type), slot }]),
+    updateBlock: (id: string, patch: Partial<PageBlock>) => mutateBlocks((blocks) => blocks.map((b) => (b.id === id ? { ...b, ...patch } : b))),
+    moveBlock: (id: string, dir: -1 | 1) => mutateBlocks((blocks) => moveWithinSlot(blocks, id, dir)),
+    removeBlock: (id: string) => mutateBlocks((blocks) => blocks.filter((b) => b.id !== id)),
   }), [editing, working]);
 
   const startEdit = () => {
