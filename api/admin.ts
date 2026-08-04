@@ -17,8 +17,9 @@
 // Env (server-only): SUPABASE_SERVICE_ROLE_KEY, VITE_SUPABASE_URL/ANON, GEMINI_API_KEY.
 
 import { getEditor, requireEditor, adminSupabase } from "./_admin-auth.js";
-import mammoth from "mammoth";
-import { PDFParse } from "pdf-parse";
+// NOTE: mammoth / pdf-parse are imported LAZILY inside handleKbUpload — a top-level
+// import of pdf-parse (pdfjs) crashes the whole serverless function at load, which
+// would break every /api/admin op (including the auth check). Keep them lazy.
 
 // ── collection ───────────────────────────────────────────────────────────────
 const ALLOWED_TABLES = new Set<string>([
@@ -278,10 +279,15 @@ async function handleKbUpload(b: Record<string, unknown>, res: any) {
   let text = "";
   try {
     if (contentType.includes("pdf") || lower.endsWith(".pdf")) {
+      // Lazy import — isolate any pdfjs load failure to PDF uploads only.
+      const { PDFParse } = await import("pdf-parse");
       const parser = new PDFParse({ data: buffer });
       const r = await parser.getText();
       text = r.text || "";
     } else if (contentType.includes("wordprocessingml") || lower.endsWith(".docx")) {
+      const mod = await import("mammoth");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const mammoth: any = (mod as any).default ?? mod;
       const r = await mammoth.extractRawText({ buffer });
       text = r.value || "";
     } else if (contentType.startsWith("text/") || lower.endsWith(".txt") || lower.endsWith(".md")) {
