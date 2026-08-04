@@ -19,6 +19,8 @@ export interface PageBlock {
   slot: string;
   type: BlockType;
   align?: "left" | "center" | "right";
+  size?: "sm" | "md" | "lg" | "xl";        // heading / text / button size
+  font?: "display" | "sans" | "mono";      // heading / text / button font
   // Per-type fields (only the relevant ones are set):
   text?: string;                    // heading / text / button label
   level?: 2 | 3;                    // heading size
@@ -29,6 +31,7 @@ export interface PageBlock {
   videoId?: string;                 // video id (youtube/vimeo) or file URL
   height?: number;                  // spacer height (px)
   icon?: string;                    // icon key (see block icon set)
+  thickness?: number;               // divider thickness (px)
 }
 
 /** The overridable fields of a ContentPageLayout page (prose + images + blocks). */

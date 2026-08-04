@@ -33,17 +33,48 @@ function newBlock(type: BlockType): PageBlock {
   }
 }
 
-// Swap a block with its nearest same-slot neighbour in the given direction.
-function moveWithinSlot(blocks: PageBlock[], id: string, dir: -1 | 1): PageBlock[] {
+const lastIndexWhere = <T,>(arr: T[], pred: (x: T) => boolean): number => {
+  for (let i = arr.length - 1; i >= 0; i--) if (pred(arr[i])) return i;
+  return -1;
+};
+
+// Move a block one step "up"/"down" in overall page order: reorder within its
+// slot when it has a neighbour there, otherwise hop to the adjacent slot (using
+// the page's ordered slot list) so up/down always does something visible.
+function moveBlockInList(blocks: PageBlock[], id: string, dir: -1 | 1, slotOrder: string[]): PageBlock[] {
   const arr = [...blocks];
   const idx = arr.findIndex((b) => b.id === id);
   if (idx < 0) return arr;
-  const slot = arr[idx].slot;
-  let j = idx + dir;
-  while (j >= 0 && j < arr.length && arr[j].slot !== slot) j += dir;
-  if (j < 0 || j >= arr.length) return arr;
-  [arr[idx], arr[j]] = [arr[j], arr[idx]];
-  return arr;
+  const b = arr[idx];
+  const siblings = arr.filter((x) => x.slot === b.slot);
+  const pos = siblings.indexOf(b);
+
+  // Same-slot neighbour → swap.
+  if (dir === -1 && pos > 0) {
+    const j = arr.indexOf(siblings[pos - 1]);
+    [arr[idx], arr[j]] = [arr[j], arr[idx]];
+    return arr;
+  }
+  if (dir === 1 && pos < siblings.length - 1) {
+    const j = arr.indexOf(siblings[pos + 1]);
+    [arr[idx], arr[j]] = [arr[j], arr[idx]];
+    return arr;
+  }
+
+  // At the slot edge → hop to the adjacent slot.
+  const si = slotOrder.indexOf(b.slot);
+  const target = slotOrder[si + dir];
+  if (!target) return arr; // already at the page edge
+  const without = arr.filter((x) => x.id !== id);
+  const moved: PageBlock = { ...b, slot: target };
+  if (dir === -1) {
+    const at = lastIndexWhere(without, (x) => x.slot === target);
+    if (at < 0) without.push(moved); else without.splice(at + 1, 0, moved);
+  } else {
+    const at = without.findIndex((x) => x.slot === target);
+    if (at < 0) without.push(moved); else without.splice(at, 0, moved);
+  }
+  return without;
 }
 
 const EditableContentPage = ({ path, ...props }: LayoutProps & { path: string }) => {
@@ -63,6 +94,12 @@ const EditableContentPage = ({ path, ...props }: LayoutProps & { path: string })
     [props, editing, working, published],
   );
 
+  // Ordered insertion slots for this page (used by move up/down).
+  const slotOrder = useMemo(() => {
+    const n = ((props as PageOverride).sections ?? []).length;
+    return ["after-stats", ...Array.from({ length: n }, (_, i) => `after-section-${i}`), "end"];
+  }, [props]);
+
   const mutateBlocks = (fn: (blocks: PageBlock[]) => PageBlock[]) => {
     setWorking((w) => ({ ...w, blocks: fn(w.blocks ?? []) }));
     setDirty(true);
@@ -74,9 +111,9 @@ const EditableContentPage = ({ path, ...props }: LayoutProps & { path: string })
     get: (p: string) => getPath(working, p),
     addBlock: (slot: string, type: BlockType) => mutateBlocks((blocks) => [...blocks, { ...newBlock(type), slot }]),
     updateBlock: (id: string, patch: Partial<PageBlock>) => mutateBlocks((blocks) => blocks.map((b) => (b.id === id ? { ...b, ...patch } : b))),
-    moveBlock: (id: string, dir: -1 | 1) => mutateBlocks((blocks) => moveWithinSlot(blocks, id, dir)),
+    moveBlock: (id: string, dir: -1 | 1) => mutateBlocks((blocks) => moveBlockInList(blocks, id, dir, slotOrder)),
     removeBlock: (id: string) => mutateBlocks((blocks) => blocks.filter((b) => b.id !== id)),
-  }), [editing, working]);
+  }), [editing, working, slotOrder]);
 
   const startEdit = () => {
     // Snapshot the current effective content so every field/path exists to edit.

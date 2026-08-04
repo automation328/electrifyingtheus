@@ -26,8 +26,11 @@ const ALLOWED_TABLES = new Set<string>([
 
 // ── upload ───────────────────────────────────────────────────────────────────
 const BUCKET = "site-media";
-const MAX_BYTES = 10 * 1024 * 1024;
-const ALLOWED_MIME = new Set(["image/png", "image/jpeg", "image/webp", "image/gif"]);
+const MAX_BYTES = 50 * 1024 * 1024; // 50 MB (bucket limit raised in 0009_media_bucket.sql)
+const ALLOWED_MIME = new Set([
+  "image/png", "image/jpeg", "image/webp", "image/gif",
+  "video/mp4", "video/webm", "video/quicktime",
+]);
 
 // ── kb re-embed ──────────────────────────────────────────────────────────────
 const EMBED_MODEL = "gemini-embedding-001"; // 3072-dim, matches vector(3072)
@@ -139,14 +142,14 @@ async function handleUpload(b: Record<string, unknown>, res: any) {
   const contentType = String(b.contentType ?? "").toLowerCase();
   const filename = String(b.filename ?? "image");
   const dataUrl = String(b.dataUrl ?? "");
-  if (!ALLOWED_MIME.has(contentType)) { res.status(400).json({ error: "unsupported_type", detail: "Use PNG, JPEG, WebP, or GIF." }); return; }
+  if (!ALLOWED_MIME.has(contentType)) { res.status(400).json({ error: "unsupported_type", detail: "Use PNG, JPEG, WebP, GIF, MP4, WebM, or MOV." }); return; }
 
   const comma = dataUrl.indexOf(",");
   const base64 = comma >= 0 ? dataUrl.slice(comma + 1) : dataUrl;
   let buffer: Buffer;
   try { buffer = Buffer.from(base64, "base64"); } catch { res.status(400).json({ error: "bad_data" }); return; }
   if (buffer.length === 0) { res.status(400).json({ error: "empty_file" }); return; }
-  if (buffer.length > MAX_BYTES) { res.status(400).json({ error: "too_large", detail: "Max image size is 10 MB." }); return; }
+  if (buffer.length > MAX_BYTES) { res.status(400).json({ error: "too_large", detail: "Max file size is 50 MB." }); return; }
 
   const db = adminSupabase();
   if (!db) { res.status(500).json({ error: "not_configured" }); return; }
@@ -155,6 +158,28 @@ async function handleUpload(b: Record<string, unknown>, res: any) {
   if (error) { res.status(400).json({ error: "upload_failed", detail: error.message }); return; }
   const { data } = db.storage.from(BUCKET).getPublicUrl(path);
   res.status(200).json({ url: data.publicUrl });
+}
+
+// List everything in the media bucket (images + any video files) so the CMS can
+// offer a "pick from library" experience instead of re-uploading.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function handleMediaList(res: any) {
+  const db = adminSupabase();
+  if (!db) { res.status(500).json({ error: "not_configured" }); return; }
+  const { data, error } = await db.storage.from(BUCKET).list("cms", {
+    limit: 200,
+    sortBy: { column: "created_at", order: "desc" },
+  });
+  if (error) { res.status(500).json({ error: "list_failed", detail: error.message }); return; }
+  const VIDEO = /\.(mp4|webm|mov|m4v)$/i;
+  const items = (data ?? [])
+    .filter((f) => f.name && !f.name.startsWith(".")) // skip folder placeholders
+    .map((f) => {
+      const path = `cms/${f.name}`;
+      const url = db.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
+      return { name: f.name, url, kind: VIDEO.test(f.name) ? "video" : "image" };
+    });
+  res.status(200).json({ items });
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -223,6 +248,7 @@ export default async function handler(req: any, res: any) {
   try {
     if (op === "collection") return void (await handleCollection(b, res));
     if (op === "upload") return void (await handleUpload(b, res));
+    if (op === "media-list") return void (await handleMediaList(res));
     if (op === "kb") return void (await handleKb(b, res));
     res.status(400).json({ error: "unknown_op" });
   } catch (e) {
