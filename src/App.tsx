@@ -43,6 +43,7 @@ import TermsConditions from "./pages/TermsConditions.tsx";
 import ContactUs from "./pages/ContactUs.tsx";
 import ThankYou from "./pages/ThankYou.tsx";
 import NotFound from "./pages/NotFound.tsx";
+import CustomPage from "./pages/CustomPage.tsx";
 import ContactWidget from "./components/ContactWidget.tsx";
 import AnalyticsTracker from "./components/AnalyticsTracker.tsx";
 import GoogleAnalytics from "./components/GoogleAnalytics.tsx";
@@ -130,7 +131,8 @@ const App = () => (
             <Route path="knowledge-base" element={<KnowledgeBaseManager />} />
           </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
+          {/* Catch-all: renders a CMS-created custom page if one exists, else 404. */}
+          <Route path="*" element={<CustomPage />} />
         </Routes>
         {/* Floating contact widget — visible on every page. */}
         <ContactWidget />

@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import {
   Loader2, Save, Plus, Trash2, ArrowUp, ArrowDown, RotateCcw, AlertCircle, FileText, ExternalLink,
 } from "lucide-react";
-import { listRows, insertRow, updateRow } from "@/lib/admin-api";
+import { listRows, insertRow, updateRow, deleteRow } from "@/lib/admin-api";
 import {
   EDITABLE_PAGES, PAGE_DEFAULTS, type PageOverride,
 } from "@/lib/page-content";
@@ -198,6 +198,48 @@ const PagesManager = () => {
     if (selected) qc.invalidateQueries({ queryKey: ["site-page", selected] });
   };
 
+  // Custom (CMS-created) pages = DB rows whose path isn't a built-in coded route.
+  const customPages = useMemo(
+    () => rows.filter((r) => !EDITABLE_PAGES.some((p) => p.path === r.path)),
+    [rows],
+  );
+
+  const [newOpen, setNewOpen] = useState(false);
+  const [newTitle, setNewTitle] = useState("");
+  const [creating, setCreating] = useState(false);
+  const slug = newTitle.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+
+  const createPage = async () => {
+    if (!slug) return;
+    const path = `/${slug}`;
+    if (rows.some((r) => r.path === path) || EDITABLE_PAGES.some((p) => p.path === path)) {
+      toast.error("A page with that address already exists."); return;
+    }
+    setCreating(true);
+    try {
+      await insertRow("site_pages", { path, title: newTitle.trim(), status: "draft", content: { title: newTitle.trim(), intro: "", blocks: [] }, updated_at: new Date().toISOString() });
+      toast.success("Page created — opening it to edit");
+      qc.invalidateQueries({ queryKey: ["admin-collection", "site_pages"] });
+      setNewOpen(false); setNewTitle("");
+      window.open(path, "_blank");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Couldn't create the page.");
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const deletePage = async (row: PageRow) => {
+    if (!window.confirm(`Delete the page "${row.title || row.path}"? This can't be undone.`)) return;
+    try {
+      await deleteRow("site_pages", row.id);
+      toast.success("Page deleted");
+      qc.invalidateQueries({ queryKey: ["admin-collection", "site_pages"] });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Delete failed.");
+    }
+  };
+
   if (selected) {
     const existing = byPath.get(selected);
     const initial = existing?.content && Object.keys(existing.content).length ? existing.content : (PAGE_DEFAULTS[selected] ?? {});
@@ -214,10 +256,43 @@ const PagesManager = () => {
 
   return (
     <div className="max-w-3xl">
-      <h1 className="text-2xl font-bold font-display text-foreground mb-1">Pages</h1>
-      <p className="text-sm text-muted-foreground mb-6">
-        Every content page is listed here. <strong className="text-foreground">Edit on page</strong> opens the live page where you can edit text and add blocks in place. The form editor (row) tweaks the core copy.
-      </p>
+      <div className="flex items-start gap-3 mb-6">
+        <div>
+          <h1 className="text-2xl font-bold font-display text-foreground mb-1">Pages</h1>
+          <p className="text-sm text-muted-foreground">
+            <strong className="text-foreground">Edit on page</strong> opens the live page to edit text and add blocks in place. Or create a brand-new page built entirely from blocks.
+          </p>
+        </div>
+        <button onClick={() => setNewOpen(true)} className="ml-auto shrink-0 inline-flex items-center gap-2 rounded-xl gradient-hero text-white font-semibold px-4 py-2.5 text-sm hover:opacity-90 transition-opacity">
+          <Plus className="w-4 h-4" /> New page
+        </button>
+      </div>
+
+      {customPages.length > 0 && (
+        <>
+          <h2 className="text-xs font-bold uppercase tracking-wide text-muted-foreground mb-2">Your pages</h2>
+          <ul className="space-y-2 mb-8">
+            {customPages.map((row) => {
+              const state = row.status === "published" ? "Published" : "Draft";
+              const tone = state === "Published" ? "bg-primary/10 text-primary" : "bg-amber-500/15 text-amber-600";
+              return (
+                <li key={row.id} className="flex items-center gap-2 rounded-2xl border border-border bg-card px-4 py-3.5 shadow-card">
+                  <FileText className="w-4 h-4 text-primary shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <div className="font-semibold text-foreground truncate">{row.title || row.path}</div>
+                    <div className="text-xs text-muted-foreground truncate">{row.path}</div>
+                  </div>
+                  <span className={`text-[10px] uppercase font-bold tracking-wide rounded-full px-2 py-0.5 ${tone}`}>{state}</span>
+                  <a href={row.path} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 rounded-lg gradient-hero text-white text-xs font-semibold px-3 py-2 hover:opacity-90" title="Edit on the live page">Edit on page <ExternalLink className="w-3.5 h-3.5" /></a>
+                  <button onClick={() => deletePage(row)} className="p-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-muted" title="Delete page"><Trash2 className="w-4 h-4" /></button>
+                </li>
+              );
+            })}
+          </ul>
+        </>
+      )}
+
+      <h2 className="text-xs font-bold uppercase tracking-wide text-muted-foreground mb-2">Built-in pages</h2>
       <ul className="space-y-2">
         {EDITABLE_PAGES.map((p) => {
           const row = byPath.get(p.path);
@@ -239,6 +314,24 @@ const PagesManager = () => {
         })}
       </ul>
       {isLoading && <p className="text-sm text-muted-foreground mt-4"><Loader2 className="w-4 h-4 animate-spin inline" /> Loading…</p>}
+
+      {newOpen && (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 backdrop-blur-sm p-4" onClick={() => setNewOpen(false)}>
+          <div className="w-full max-w-md rounded-2xl border border-border bg-background p-5 shadow-elevated" onClick={(e) => e.stopPropagation()}>
+            <h3 className="font-bold font-display text-foreground mb-3">New page</h3>
+            <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">Page title</label>
+            <input autoFocus value={newTitle} onChange={(e) => setNewTitle(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") createPage(); }} placeholder="e.g. Fleet Solutions" className="w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-sm" />
+            {slug && <p className="text-xs text-muted-foreground mt-2">Address: <span className="font-mono text-foreground">/{slug}</span></p>}
+            <div className="mt-4 flex items-center gap-2">
+              <button onClick={createPage} disabled={!slug || creating} className="inline-flex items-center gap-2 rounded-xl gradient-hero text-white font-semibold px-5 py-2.5 text-sm hover:opacity-90 disabled:opacity-60">
+                {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />} Create & edit
+              </button>
+              <button onClick={() => setNewOpen(false)} className="rounded-xl border border-border bg-background px-5 py-2.5 text-sm font-medium text-foreground hover:bg-muted">Cancel</button>
+            </div>
+            <p className="text-xs text-muted-foreground mt-3">Creates a draft page you build with blocks. It won't be public until you Publish it on the page.</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

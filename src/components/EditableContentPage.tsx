@@ -4,7 +4,7 @@
 // `path`; everything else stays as passed.
 
 import { useMemo, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import ContentPageLayout from "@/components/ContentPageLayout";
 import EditBar from "@/components/inline/EditBar";
@@ -15,7 +15,7 @@ import { listRows, insertRow, updateRow } from "@/lib/admin-api";
 
 type LayoutProps = React.ComponentProps<typeof ContentPageLayout>;
 
-interface PageRow { id: string; path: string; status: string; content: PageOverride }
+interface PageRow { id: string; path: string; status: string; title?: string; content: PageOverride }
 
 // A fresh block seeded with sensible defaults so it's immediately visible/editable.
 function newBlock(type: BlockType): PageBlock {
@@ -88,21 +88,30 @@ function moveBlockInList(blocks: PageBlock[], id: string, dir: -1 | 1, slotOrder
   return without;
 }
 
-const EditableContentPage = ({ path, ...props }: LayoutProps & { path: string }) => {
+const EditableContentPage = ({ path, label, ...props }: LayoutProps & { path: string; label?: string }) => {
   const qc = useQueryClient();
   const auth = useEditorAuth();
   const isEditor = auth.status === "editor";
   const published = usePageOverride(path);
+
+  // Editors also load the DB row at ANY status (so drafts are visible/editable).
+  const editorRowQuery = useQuery({
+    queryKey: ["editor-page-row", path],
+    queryFn: async () => (await listRows<PageRow>("site_pages")).find((r) => r.path === path) ?? null,
+    enabled: isEditor,
+    staleTime: 30_000,
+  });
+  const baseOverride = (isEditor ? (editorRowQuery.data?.content ?? published) : published) as PageOverride | null;
 
   const [editing, setEditing] = useState(false);
   const [working, setWorking] = useState<PageOverride>({});
   const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  // What the layout renders: the working copy while editing, else the published override.
+  // What the layout renders: the working copy while editing, else the effective override.
   const rendered = useMemo(
-    () => mergePageOverride(props as PageOverride, editing ? working : published) as LayoutProps,
-    [props, editing, working, published],
+    () => mergePageOverride(props as PageOverride, editing ? working : baseOverride) as LayoutProps,
+    [props, editing, working, baseOverride],
   );
 
   // Ordered insertion slots for this page (used by move up/down).
@@ -128,7 +137,7 @@ const EditableContentPage = ({ path, ...props }: LayoutProps & { path: string })
 
   const startEdit = () => {
     // Snapshot the current effective content so every field/path exists to edit.
-    const effective = mergePageOverride(props as PageOverride, published) as Record<string, unknown>;
+    const effective = mergePageOverride(props as PageOverride, baseOverride) as Record<string, unknown>;
     setWorking(pickPageOverride(effective));
     setDirty(false);
     setEditing(true);
@@ -141,11 +150,12 @@ const EditableContentPage = ({ path, ...props }: LayoutProps & { path: string })
     try {
       const rows = await listRows<PageRow>("site_pages");
       const existing = rows.find((r) => r.path === path);
-      const label = EDITABLE_PAGES.find((p) => p.path === path)?.label ?? path;
-      const payload = { path, title: label, status, content: working, updated_at: new Date().toISOString() };
+      const title = label ?? EDITABLE_PAGES.find((p) => p.path === path)?.label ?? existing?.title ?? path;
+      const payload = { path, title, status, content: working, updated_at: new Date().toISOString() };
       if (existing) await updateRow("site_pages", existing.id, payload);
       else await insertRow("site_pages", payload);
       qc.invalidateQueries({ queryKey: ["site-page", path] });
+      qc.invalidateQueries({ queryKey: ["editor-page-row", path] });
       toast.success(status === "published" ? "Page published" : "Draft saved");
       setEditing(false); setDirty(false);
     } catch (e) {
