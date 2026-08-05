@@ -7,6 +7,8 @@ import {
   ArrowUp, ArrowDown, Trash2, AlignLeft, AlignCenter, AlignRight,
   Image as ImageIcon, Film, X, Search, Plus, ChevronDown, ArrowRight,
   Copy, Palette, GripVertical, Smartphone, Monitor,
+  Star, Facebook, Twitter, Instagram, Linkedin, Youtube, Mail, Info, CheckCircle2, AlertTriangle, AlertCircle,
+  type LucideIcon,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { BlockStyle } from "@/lib/page-content";
@@ -133,6 +135,15 @@ const TabsView = ({ items }: { items: NonNullable<PageBlock["items"]> }) => {
 };
 
 const colsClass = (n: number) => ({ 1: "", 2: "md:grid-cols-2", 3: "md:grid-cols-3", 4: "md:grid-cols-4" }[Math.min(4, Math.max(1, n))] ?? "md:grid-cols-2");
+
+const SOCIAL_ICONS: Record<string, LucideIcon> = { facebook: Facebook, twitter: Twitter, x: Twitter, instagram: Instagram, linkedin: Linkedin, youtube: Youtube, email: Mail };
+const SOCIAL_OPTIONS = ["facebook", "twitter", "instagram", "linkedin", "youtube", "email"];
+const ALERT_CFG: Record<string, { icon: LucideIcon; cls: string }> = {
+  info: { icon: Info, cls: "bg-blue-50 border-blue-200 text-blue-800" },
+  success: { icon: CheckCircle2, cls: "bg-green-50 border-green-200 text-green-800" },
+  warning: { icon: AlertTriangle, cls: "bg-amber-50 border-amber-200 text-amber-900" },
+  error: { icon: AlertCircle, cls: "bg-red-50 border-red-200 text-red-800" },
+};
 
 const parseCounter = (v: string) => {
   const m = /^(\D*)([\d.,]+)(.*)$/.exec(v || "");
@@ -476,6 +487,88 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
       ) : (
         <div dangerouslySetInnerHTML={{ __html: block.text || "" }} />
       );
+
+    case "testimonial":
+      return (
+        <figure className="mx-auto max-w-xl rounded-2xl border border-border bg-card p-6 shadow-card">
+          <blockquote className="text-foreground text-lg leading-relaxed"><InlineText block value={block.text ?? ""} onCommit={(v) => up({ text: v })} /></blockquote>
+          <figcaption className="mt-4 flex items-center gap-3">
+            <div className="relative">
+              {block.src ? <img src={block.src} alt="" className="w-11 h-11 rounded-full object-cover" /> : <div className="w-11 h-11 rounded-full bg-muted grid place-items-center text-muted-foreground"><ImageIcon className="w-4 h-4" /></div>}
+              {editing && <button onClick={() => setImgOpen(true)} className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full gradient-hero grid place-items-center text-white"><ImageIcon className="w-3 h-3" /></button>}
+            </div>
+            <div className="text-left">
+              <div className="font-semibold text-foreground text-sm"><InlineText value={block.subtext ?? ""} onCommit={(v) => up({ subtext: v })} /></div>
+              <div className="text-xs text-muted-foreground"><InlineText value={block.caption ?? ""} onCommit={(v) => up({ caption: v })} /></div>
+            </div>
+          </figcaption>
+          {imgOpen && <Modal title="Avatar" onClose={() => setImgOpen(false)}><ImageUpload value={block.src ?? ""} onChange={(url) => up({ src: url })} /><div className="mt-4 flex justify-end"><button onClick={() => setImgOpen(false)} className="rounded-xl gradient-hero text-white font-semibold px-5 py-2.5 text-sm">Done</button></div></Modal>}
+        </figure>
+      );
+
+    case "alert": {
+      const cfg = ALERT_CFG[block.variant ?? "info"] ?? ALERT_CFG.info;
+      const Icon = cfg.icon;
+      return (
+        <div>
+          <div className={`flex items-start gap-3 rounded-xl border px-4 py-3 text-left ${cfg.cls}`}>
+            <Icon className="w-5 h-5 mt-0.5 shrink-0" />
+            <div className="flex-1"><InlineText block value={block.text ?? ""} onCommit={(v) => up({ text: v })} /></div>
+          </div>
+          {editing && <div className="mt-2 inline-flex gap-1">{["info", "success", "warning", "error"].map((v) => <button key={v} onClick={() => up({ variant: v })} className={`px-2 py-0.5 rounded text-xs capitalize ${(block.variant ?? "info") === v ? "gradient-hero text-white" : "border border-border text-muted-foreground hover:bg-muted"}`}>{v}</button>)}</div>}
+        </div>
+      );
+    }
+
+    case "rating": {
+      const val = block.num ?? 5;
+      return (
+        <div>
+          <div className="inline-flex items-center gap-1">
+            {[1, 2, 3, 4, 5].map((i) => editing
+              ? <button key={i} onClick={() => up({ num: i })}><Star className={`w-6 h-6 ${i <= val ? "fill-amber-400 text-amber-400" : "text-muted-foreground"}`} /></button>
+              : <Star key={i} className={`w-6 h-6 ${i <= val ? "fill-amber-400 text-amber-400" : "text-muted-foreground"}`} />)}
+          </div>
+          {(block.subtext || editing) && <div className="text-sm text-muted-foreground mt-1"><InlineText value={block.subtext ?? ""} onCommit={(v) => up({ subtext: v })} /></div>}
+        </div>
+      );
+    }
+
+    case "social": {
+      const items = block.items ?? [];
+      const setItems = (it: NonNullable<PageBlock["items"]>) => up({ items: it });
+      if (!editing) return (
+        <div className="inline-flex items-center gap-3">
+          {items.map((it, i) => { const Icon = SOCIAL_ICONS[it.title ?? ""] ?? Mail; return <a key={i} href={it.body || "#"} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full gradient-hero grid place-items-center text-white hover:opacity-90"><Icon className="w-5 h-5" /></a>; })}
+        </div>
+      );
+      return (
+        <div className="text-left space-y-2">
+          {items.map((it, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <select value={it.title ?? "facebook"} onChange={(e) => setItems(items.map((x, j) => (j === i ? { ...x, title: e.target.value } : x)))} className="rounded-lg border border-border bg-background px-2 py-1.5 text-sm capitalize">{SOCIAL_OPTIONS.map((o) => <option key={o} value={o}>{o}</option>)}</select>
+              <input value={it.body ?? ""} onChange={(e) => setItems(items.map((x, j) => (j === i ? { ...x, body: e.target.value } : x)))} placeholder="https://…" className="flex-1 rounded-lg border border-border bg-background px-2.5 py-1.5 text-sm" />
+              <button onClick={() => setItems(items.filter((_, j) => j !== i))} className="p-1.5 rounded-md text-muted-foreground hover:text-destructive hover:bg-muted"><Trash2 className="w-3.5 h-3.5" /></button>
+            </div>
+          ))}
+          <button onClick={() => setItems([...items, { title: "facebook", body: "" }])} className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline"><Plus className="w-4 h-4" /> Add profile</button>
+        </div>
+      );
+    }
+
+    case "progress": {
+      const pct = Math.max(0, Math.min(100, block.num ?? 60));
+      return (
+        <div className="text-left max-w-xl mx-auto">
+          <div className="flex items-center justify-between mb-1 text-sm">
+            <span className="font-medium text-foreground"><InlineText value={block.text ?? ""} onCommit={(v) => up({ text: v })} /></span>
+            <span className="text-muted-foreground tabular-nums">{pct}%</span>
+          </div>
+          <div className="h-2.5 rounded-full bg-muted overflow-hidden"><div className="h-full rounded-full gradient-hero" style={{ width: `${pct}%` }} /></div>
+          {editing && <input type="range" min={0} max={100} value={pct} onChange={(e) => up({ num: Number(e.target.value) })} className="w-full mt-2" />}
+        </div>
+      );
+    }
 
     default:
       return null;

@@ -40,6 +40,11 @@ function newBlock(type: BlockType): PageBlock {
     case "countdown": return { ...base, text: "", subtext: "Event starts in", align: "center" };
     case "maps": return { ...base, text: "" };
     case "html": return { ...base, text: "" };
+    case "testimonial": return { ...base, text: "This service made switching to an EV effortless — highly recommended!", subtext: "Jane Doe", caption: "EV Owner", src: "", align: "center" };
+    case "alert": return { ...base, text: "Heads up — this is an important note.", variant: "info" };
+    case "rating": return { ...base, num: 5, subtext: "", align: "center" };
+    case "social": return { ...base, items: [{ title: "facebook", body: "" }, { title: "instagram", body: "" }], align: "center" };
+    case "progress": return { ...base, text: "EV adoption", num: 60 };
     default: return base; // divider
   }
 }

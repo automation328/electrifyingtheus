@@ -14,7 +14,8 @@ import { reducedEmissionsContent } from "@/data/pages/reduced-emissions";
 export type BlockType =
   | "heading" | "text" | "image" | "video" | "button" | "divider" | "spacer" | "icon"  // Tier 1
   | "accordion" | "tabs" | "columns" | "gallery" | "cta"                                // Tier 2
-  | "image-box" | "icon-box" | "counter" | "countdown" | "maps" | "html";               // Tier 3
+  | "image-box" | "icon-box" | "counter" | "countdown" | "maps" | "html"                // Tier 3
+  | "testimonial" | "alert" | "rating" | "social" | "progress";                         // Tier 4
 
 export interface PageBlock {
   id: string;
@@ -45,6 +46,7 @@ export interface PageBlock {
   style?: BlockStyle;               // per-block style (Elementor-like)
   hideMobile?: boolean;             // hidden on small screens
   hideDesktop?: boolean;            // hidden on large screens
+  num?: number;                     // rating (0-5) / progress percent (0-100)
 }
 
 export interface BlockStyle {

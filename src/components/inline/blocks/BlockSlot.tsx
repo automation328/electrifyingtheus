@@ -6,6 +6,7 @@ import {
   Plus, Heading, Type, Image as ImageIcon, Film, MousePointerClick,
   Minus, MoveVertical, Star, Rows3, LayoutPanelTop, Columns3, Images, Megaphone,
   GalleryVerticalEnd, Shapes, Hash, Timer, Map, Code,
+  Quote, AlertCircle, Share2, Gauge,
 } from "lucide-react";
 import type { PageBlock, BlockType } from "@/lib/page-content";
 import { useInlineEdit } from "@/components/inline/edit-context";
@@ -31,6 +32,11 @@ const TYPES: { type: BlockType; label: string; icon: typeof Type }[] = [
   { type: "countdown", label: "Countdown", icon: Timer },
   { type: "maps", label: "Maps", icon: Map },
   { type: "html", label: "HTML", icon: Code },
+  { type: "testimonial", label: "Testimonial", icon: Quote },
+  { type: "alert", label: "Alert", icon: AlertCircle },
+  { type: "rating", label: "Rating", icon: Star },
+  { type: "social", label: "Social", icon: Share2 },
+  { type: "progress", label: "Progress", icon: Gauge },
 ];
 
 const AddBlock = ({ slot }: { slot: string }) => {
