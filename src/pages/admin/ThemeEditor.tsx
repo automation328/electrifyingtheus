@@ -6,9 +6,9 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Save, Loader2, RotateCcw, AlertCircle, ArrowRight } from "lucide-react";
 import { listRows, insertRow, updateRow } from "@/lib/admin-api";
-import { hslTripletToHex } from "@/lib/theme-settings";
+import { hslTripletToHex, HEADING_FONTS, BODY_FONTS } from "@/lib/theme-settings";
 
-interface SettingRow { id: string; key: string; value: { primary?: string; secondary?: string } }
+interface SettingRow { id: string; key: string; value: { primary?: string; secondary?: string; headingFont?: string; bodyFont?: string } }
 
 // Read the current site colour for a CSS var (fallback if no override saved yet).
 const currentHex = (varName: string, fallback: string) => {
@@ -28,19 +28,23 @@ const ThemeEditor = () => {
 
   const [primary, setPrimary] = useState("#0057b7");
   const [secondary, setSecondary] = useState("#359c67");
+  const [headingFont, setHeadingFont] = useState("Space Grotesk");
+  const [bodyFont, setBodyFont] = useState("Inter");
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
 
   useEffect(() => {
     setPrimary(row?.value?.primary || currentHex("--primary", "#0057b7"));
     setSecondary(row?.value?.secondary || currentHex("--secondary", "#359c67"));
+    setHeadingFont(row?.value?.headingFont || "Space Grotesk");
+    setBodyFont(row?.value?.bodyFont || "Inter");
     setDirty(false);
   }, [row]);
 
   const save = async () => {
     setSaving(true);
     try {
-      const payload = { key: "theme", value: { primary, secondary }, updated_at: new Date().toISOString() };
+      const payload = { key: "theme", value: { primary, secondary, headingFont, bodyFont }, updated_at: new Date().toISOString() };
       if (row) await updateRow("site_settings", row.id, payload); else await insertRow("site_settings", payload);
       qc.invalidateQueries({ queryKey: ["admin-collection", "site_settings"] });
       qc.invalidateQueries({ queryKey: ["site-setting", "theme"] });
@@ -77,6 +81,22 @@ const ThemeEditor = () => {
           <div className="rounded-2xl border border-border bg-card p-6 space-y-5">
             <Row label="Primary" value={primary} onChange={setPrimary} />
             <Row label="Secondary" value={secondary} onChange={setSecondary} />
+          </div>
+
+          <div className="rounded-2xl border border-border bg-card p-6 grid sm:grid-cols-2 gap-5">
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">Heading font</label>
+              <select value={headingFont} onChange={(e) => { setHeadingFont(e.target.value); setDirty(true); }} className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm">
+                {HEADING_FONTS.map((f) => <option key={f} value={f}>{f}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">Body font</label>
+              <select value={bodyFont} onChange={(e) => { setBodyFont(e.target.value); setDirty(true); }} className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm">
+                {BODY_FONTS.map((f) => <option key={f} value={f}>{f}</option>)}
+              </select>
+            </div>
+            <p className="sm:col-span-2 text-xs text-muted-foreground">Fonts are loaded from Google Fonts and applied site-wide (headings vs body). Defaults keep the current look.</p>
           </div>
 
           <div className="rounded-2xl border border-border p-6">

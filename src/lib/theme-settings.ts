@@ -5,7 +5,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 
-export interface ThemeSettings { primary?: string; secondary?: string }
+export interface ThemeSettings { primary?: string; secondary?: string; headingFont?: string; bodyFont?: string }
+
+export const HEADING_FONTS = ["Space Grotesk", "Poppins", "Montserrat", "Playfair Display", "Oswald", "Sora", "Archivo"];
+export const BODY_FONTS = ["Inter", "Roboto", "Open Sans", "Lato", "Nunito Sans", "Work Sans", "Source Sans 3"];
 
 /** "#0057b7" → "214 100% 36%" (the HSL-triplet format the CSS vars use). */
 export function hexToHslTriplet(hex: string): string | null {

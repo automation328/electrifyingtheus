@@ -2,16 +2,17 @@
 // Used both at page-level insertion slots (BlockSlot) and inside container
 // columns (BlockView), so it lives on its own to avoid a circular import.
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Plus, Heading, Type, Image as ImageIcon, Film, MousePointerClick,
   Minus, MoveVertical, Star, Rows3, LayoutPanelTop, Columns3, Images, Megaphone,
   Shapes, Hash, Timer, Map, Code, GalleryVerticalEnd,
-  Quote, AlertCircle, Share2, Gauge, Bookmark, Trash2, LayoutGrid,
+  Quote, AlertCircle, Share2, Gauge, Bookmark, Trash2, LayoutGrid, ClipboardPaste,
 } from "lucide-react";
 import type { BlockType } from "@/lib/page-content";
 import { useInlineEdit } from "@/components/inline/edit-context";
 import { useBlockTemplates } from "@/lib/block-templates";
+import { readClipboardBlock } from "@/lib/block-clipboard";
 
 const TYPES: { type: BlockType; label: string; icon: typeof Type }[] = [
   { type: "container", label: "Container", icon: LayoutGrid },
@@ -45,6 +46,12 @@ const AddBlock = ({ slot, label = "Add block" }: { slot: string; label?: string 
   const ctx = useInlineEdit();
   const templates = useBlockTemplates();
   const [open, setOpen] = useState(false);
+  const [clip, setClip] = useState(() => readClipboardBlock());
+  useEffect(() => {
+    const refresh = () => setClip(readClipboardBlock());
+    window.addEventListener("cms-clipboard", refresh);
+    return () => window.removeEventListener("cms-clipboard", refresh);
+  }, []);
   if (!ctx) return null;
   return (
     <div className="relative my-4 flex justify-center">
@@ -55,6 +62,11 @@ const AddBlock = ({ slot, label = "Add block" }: { slot: string; label?: string 
         <>
           <div className="fixed inset-0 z-[80]" onClick={() => setOpen(false)} />
           <div className="absolute top-9 z-[81] grid grid-cols-4 gap-1 rounded-2xl border border-neutral-200 bg-white p-2 shadow-2xl ring-1 ring-black/5 max-h-[60vh] w-[19rem] overflow-y-auto">
+            {clip && (
+              <button onClick={() => { ctx.insertTemplate(slot, clip); setOpen(false); }} className="col-span-4 mb-1 flex items-center gap-2 rounded-xl px-2.5 py-2 text-xs font-semibold text-primary bg-primary/5 border border-dashed border-primary/40 hover:bg-primary/10">
+                <ClipboardPaste className="w-4 h-4" /> Paste copied {clip.type} block
+              </button>
+            )}
             {TYPES.map((t) => (
               <button key={t.type} onClick={() => { ctx.addBlock(slot, t.type); setOpen(false); }} className="flex flex-col items-center gap-1 rounded-xl px-1.5 py-2.5 text-[11px] font-medium text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900 transition-colors">
                 <t.icon className="w-4 h-4 text-primary" />
