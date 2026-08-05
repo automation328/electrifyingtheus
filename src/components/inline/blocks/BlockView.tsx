@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 import {
   ArrowUp, ArrowDown, Trash2, AlignLeft, AlignCenter, AlignRight,
   Image as ImageIcon, Film, X, Search, Plus, ChevronDown, ArrowRight,
-  Copy, Palette, GripVertical, Smartphone, Monitor,
+  Copy, Palette, GripVertical, Smartphone, Monitor, Bookmark,
   Star, Facebook, Twitter, Instagram, Linkedin, Youtube, Mail, Info, CheckCircle2, AlertTriangle, AlertCircle,
   type LucideIcon,
 } from "lucide-react";
@@ -685,6 +685,7 @@ const Toolbar = ({ block, ctx, onStyle, onDragHandle }: { block: PageBlock; ctx:
       )}
       <button className={btn} onClick={onStyle} title="Style"><Palette className="w-3.5 h-3.5" /></button>
       <button className={btn} onClick={() => ctx.duplicateBlock(block.id)} title="Duplicate"><Copy className="w-3.5 h-3.5" /></button>
+      <button className={btn} onClick={() => { const name = window.prompt("Save this block as a reusable template.\nName:"); if (name && name.trim()) ctx.saveTemplate(block, name.trim()); }} title="Save as template"><Bookmark className="w-3.5 h-3.5" /></button>
       <span className="w-px h-4 bg-white/20 mx-0.5" />
       <button className={btn} onClick={() => ctx.moveBlock(block.id, -1)} title="Move up"><ArrowUp className="w-3.5 h-3.5" /></button>
       <button className={btn} onClick={() => ctx.moveBlock(block.id, 1)} title="Move down"><ArrowDown className="w-3.5 h-3.5" /></button>

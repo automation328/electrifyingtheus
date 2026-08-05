@@ -16,10 +16,14 @@ import { listRows, insertRow, updateRow } from "@/lib/admin-api";
 type LayoutProps = React.ComponentProps<typeof ContentPageLayout>;
 
 interface PageRow { id: string; path: string; status: string; title?: string; content: PageOverride }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+interface SettingRow { id: string; key: string; value: { items?: any[] } }
+
+const newId = () => (typeof crypto !== "undefined" && crypto.randomUUID) ? crypto.randomUUID() : `blk_${Date.now()}_${Math.round(Math.random() * 1e6)}`;
 
 // A fresh block seeded with sensible defaults so it's immediately visible/editable.
 function newBlock(type: BlockType): PageBlock {
-  const id = (typeof crypto !== "undefined" && crypto.randomUUID) ? crypto.randomUUID() : `blk_${Date.now()}_${Math.round(Math.random() * 1e6)}`;
+  const id = newId();
   const base: PageBlock = { id, slot: "", type };
   switch (type) {
     case "heading": return { ...base, text: "New heading", level: 2, align: "center" };
@@ -145,6 +149,30 @@ const EditableContentPage = ({ path, label, ...props }: LayoutProps & { path: st
       return [...blocks.slice(0, i + 1), copy, ...blocks.slice(i + 1)];
     }),
     removeBlock: (id: string) => mutateBlocks((blocks) => blocks.filter((b) => b.id !== id)),
+    insertTemplate: (slot: string, block: PageBlock) => mutateBlocks((blocks) => [...blocks, { ...structuredClone(block), id: newId(), slot }]),
+    saveTemplate: async (block: PageBlock, name: string) => {
+      try {
+        const rows = await listRows<SettingRow>("site_settings");
+        const row = rows.find((r) => r.key === "block-templates");
+        const items = row?.value?.items ?? [];
+        const tpl = { id: newId(), name, block: { ...structuredClone(block), id: "", slot: "" } };
+        const value = { items: [...items, tpl] };
+        const payload = { key: "block-templates", value, updated_at: new Date().toISOString() };
+        if (row) await updateRow("site_settings", row.id, payload); else await insertRow("site_settings", payload);
+        qc.invalidateQueries({ queryKey: ["site-setting", "block-templates"] });
+        toast.success(`Saved "${name}" to templates`);
+      } catch (e) { toast.error(e instanceof Error ? e.message : "Couldn't save template."); }
+    },
+    deleteTemplate: async (id: string) => {
+      try {
+        const rows = await listRows<SettingRow>("site_settings");
+        const row = rows.find((r) => r.key === "block-templates");
+        if (!row) return;
+        const value = { items: (row.value?.items ?? []).filter((t) => t.id !== id) };
+        await updateRow("site_settings", row.id, { value, updated_at: new Date().toISOString() });
+        qc.invalidateQueries({ queryKey: ["site-setting", "block-templates"] });
+      } catch (e) { toast.error(e instanceof Error ? e.message : "Couldn't delete template."); }
+    },
     moveBlockRelative: (dragId: string, targetId: string, before: boolean) => mutateBlocks((blocks) => {
       if (dragId === targetId) return blocks;
       const dragged = blocks.find((b) => b.id === dragId);

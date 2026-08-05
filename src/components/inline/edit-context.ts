@@ -26,6 +26,12 @@ export interface InlineEditContextValue {
   moveBlockRelative: (dragId: string, targetId: string, before: boolean) => void;
   /** Remove a block by id. */
   removeBlock: (id: string) => void;
+  /** Save a block as a reusable template (shared across pages). */
+  saveTemplate: (block: PageBlock, name: string) => void;
+  /** Insert a saved template's block at a slot. */
+  insertTemplate: (slot: string, block: PageBlock) => void;
+  /** Delete a saved template by id. */
+  deleteTemplate: (id: string) => void;
 }
 
 export const InlineEditContext = createContext<InlineEditContextValue | null>(null);

@@ -6,10 +6,11 @@ import {
   Plus, Heading, Type, Image as ImageIcon, Film, MousePointerClick,
   Minus, MoveVertical, Star, Rows3, LayoutPanelTop, Columns3, Images, Megaphone,
   GalleryVerticalEnd, Shapes, Hash, Timer, Map, Code,
-  Quote, AlertCircle, Share2, Gauge,
+  Quote, AlertCircle, Share2, Gauge, Bookmark, Trash2,
 } from "lucide-react";
 import type { PageBlock, BlockType } from "@/lib/page-content";
 import { useInlineEdit } from "@/components/inline/edit-context";
+import { useBlockTemplates } from "@/lib/block-templates";
 import BlockView from "@/components/inline/blocks/BlockView";
 
 const TYPES: { type: BlockType; label: string; icon: typeof Type }[] = [
@@ -41,6 +42,7 @@ const TYPES: { type: BlockType; label: string; icon: typeof Type }[] = [
 
 const AddBlock = ({ slot }: { slot: string }) => {
   const ctx = useInlineEdit();
+  const templates = useBlockTemplates();
   const [open, setOpen] = useState(false);
   if (!ctx) return null;
   return (
@@ -65,6 +67,19 @@ const AddBlock = ({ slot }: { slot: string }) => {
                 {t.label}
               </button>
             ))}
+            {templates.length > 0 && (
+              <div className="col-span-4 mt-1 pt-2 border-t border-neutral-200">
+                <div className="px-1 mb-1 text-[10px] font-bold uppercase tracking-wide text-neutral-400 flex items-center gap-1"><Bookmark className="w-3 h-3" /> Saved templates</div>
+                <div className="space-y-0.5">
+                  {templates.map((tpl) => (
+                    <div key={tpl.id} className="flex items-center gap-1">
+                      <button onClick={() => { ctx.insertTemplate(slot, tpl.block); setOpen(false); }} className="flex-1 text-left rounded-lg px-2 py-1.5 text-xs font-medium text-neutral-700 hover:bg-neutral-100 truncate">{tpl.name}</button>
+                      <button onClick={() => ctx.deleteTemplate(tpl.id)} className="p-1 rounded text-neutral-400 hover:text-red-500" title="Delete template"><Trash2 className="w-3.5 h-3.5" /></button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </>
       )}
