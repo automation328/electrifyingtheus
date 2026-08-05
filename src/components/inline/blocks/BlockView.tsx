@@ -652,6 +652,14 @@ const TEXT_SWATCHES: [string, string][] = [
 const maxWClass = (w?: string) => ({ sm: "max-w-md mx-auto", md: "max-w-2xl mx-auto", lg: "max-w-4xl mx-auto", full: "" }[w ?? "full"] ?? "");
 const slugifyAnchor = (v: string) => v.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 
+const SHADOWS: Record<string, string> = {
+  none: "none",
+  sm: "0 1px 2px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.10)",
+  md: "0 4px 12px rgba(0,0,0,0.10)",
+  lg: "0 10px 30px rgba(0,0,0,0.14)",
+  xl: "0 20px 50px rgba(0,0,0,0.18)",
+};
+
 const styleToCss = (s?: BlockStyle): React.CSSProperties => {
   if (!s) return {};
   return {
@@ -659,7 +667,11 @@ const styleToCss = (s?: BlockStyle): React.CSSProperties => {
     color: s.color || undefined,
     paddingTop: s.padY || undefined,
     paddingBottom: s.padY || undefined,
+    paddingLeft: s.padX || undefined,
+    paddingRight: s.padX || undefined,
     borderRadius: s.radius || undefined,
+    boxShadow: s.shadow && s.shadow !== "none" ? SHADOWS[s.shadow] : undefined,
+    border: s.border ? `${s.border}px solid ${s.borderColor || "hsl(var(--border))"}` : undefined,
     backgroundImage: s.bgImage ? `url(${s.bgImage})` : undefined,
     backgroundSize: s.bgImage ? "cover" : undefined,
     backgroundPosition: s.bgImage ? "center" : undefined,
@@ -712,8 +724,28 @@ const StylePanel = ({ block, up, onClose }: { block: PageBlock; up: (p: Partial<
             <input type="range" min={0} max={96} value={s.padY ?? 0} onChange={(e) => setStyle({ padY: Number(e.target.value) })} className="w-full" />
           </div>
           <div>
+            <label className={lbl}>Horizontal padding: {s.padX ?? 0}px</label>
+            <input type="range" min={0} max={96} value={s.padX ?? 0} onChange={(e) => setStyle({ padX: Number(e.target.value) })} className="w-full" />
+          </div>
+          <div>
             <label className={lbl}>Rounded: {s.radius ?? 0}px</label>
             <input type="range" min={0} max={40} value={s.radius ?? 0} onChange={(e) => setStyle({ radius: Number(e.target.value) })} className="w-full" />
+          </div>
+          <div>
+            <label className={lbl}>Border: {s.border ?? 0}px</label>
+            <div className="flex items-center gap-2">
+              <input type="range" min={0} max={8} value={s.border ?? 0} onChange={(e) => setStyle({ border: Number(e.target.value) })} className="flex-1" />
+              <input type="color" value={/^#/.test(s.borderColor ?? "") ? s.borderColor : "#e5e7eb"} onChange={(e) => setStyle({ borderColor: e.target.value })} className="w-7 h-7 rounded-lg border border-border bg-transparent cursor-pointer" title="Border colour" />
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label className={lbl}>Shadow</label>
+          <div className="inline-flex gap-1">
+            {(["none", "sm", "md", "lg", "xl"] as const).map((sh) => (
+              <button key={sh} onClick={() => setStyle({ shadow: sh })} className={`px-2.5 py-1 rounded-lg text-xs capitalize ${(s.shadow ?? "none") === sh ? "gradient-hero text-white" : "border border-border text-muted-foreground hover:bg-muted"}`}>{sh}</button>
+            ))}
           </div>
         </div>
 

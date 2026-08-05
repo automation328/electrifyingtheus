@@ -61,8 +61,12 @@ export interface BlockStyle {
   bgImage?: string;   // background image URL
   color?: string;     // text color (CSS value)
   padY?: number;      // vertical padding (px)
+  padX?: number;      // horizontal padding (px)
   maxW?: "sm" | "md" | "lg" | "full";  // content width
   radius?: number;    // corner radius (px)
+  shadow?: "none" | "sm" | "md" | "lg" | "xl";  // box-shadow preset
+  border?: number;    // border width (px)
+  borderColor?: string;  // border color (CSS value)
 }
 
 /** Per-page SEO / social-share overrides. */
