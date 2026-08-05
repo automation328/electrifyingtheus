@@ -15,7 +15,8 @@ export type BlockType =
   | "heading" | "text" | "image" | "video" | "button" | "divider" | "spacer" | "icon"  // Tier 1
   | "accordion" | "tabs" | "columns" | "gallery" | "cta"                                // Tier 2
   | "image-box" | "icon-box" | "counter" | "countdown" | "maps" | "html"                // Tier 3
-  | "testimonial" | "alert" | "rating" | "social" | "progress";                         // Tier 4
+  | "testimonial" | "alert" | "rating" | "social" | "progress"                          // Tier 4
+  | "container";                                                                        // nested layout
 
 export interface PageBlock {
   id: string;
@@ -47,6 +48,10 @@ export interface PageBlock {
   hideMobile?: boolean;             // hidden on small screens
   hideDesktop?: boolean;            // hidden on large screens
   num?: number;                     // rating (0-5) / progress percent (0-100)
+  // Container (nested layout):
+  cols?: number;                    // number of columns (1-4)
+  children?: PageBlock[];           // nested child blocks
+  col?: number;                     // which column this block sits in (inside a container)
 }
 
 export interface BlockStyle {

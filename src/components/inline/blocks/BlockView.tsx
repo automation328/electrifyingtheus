@@ -13,7 +13,9 @@ import {
 import { Link } from "react-router-dom";
 import type { BlockStyle } from "@/lib/page-content";
 import type { PageBlock } from "@/lib/page-content";
-import { useInlineEdit, type InlineEditContextValue } from "@/components/inline/edit-context";
+import { useInlineEdit, InlineEditContext, type InlineEditContextValue } from "@/components/inline/edit-context";
+import { newBlock, newId } from "@/components/inline/blocks/factory";
+import AddBlock from "@/components/inline/blocks/AddBlock";
 import ImageUpload from "@/components/admin/ImageUpload";
 import { BLOCK_ICONS, BLOCK_ICON_KEYS } from "@/components/inline/blocks/icons";
 
@@ -143,6 +145,25 @@ const ALERT_CFG: Record<string, { icon: LucideIcon; cls: string }> = {
   success: { icon: CheckCircle2, cls: "bg-green-50 border-green-200 text-green-800" },
   warning: { icon: AlertTriangle, cls: "bg-amber-50 border-amber-200 text-amber-900" },
   error: { icon: AlertCircle, cls: "bg-red-50 border-red-200 text-red-800" },
+};
+
+// ── Container child reordering ────────────────────────────────────────────────
+const moveChildWithinCol = (cs: PageBlock[], id: string, dir: -1 | 1): PageBlock[] => {
+  const arr = [...cs]; const idx = arr.findIndex((c) => c.id === id); if (idx < 0) return arr;
+  const col = arr[idx].col ?? 0;
+  let j = idx + dir; while (j >= 0 && j < arr.length && (arr[j].col ?? 0) !== col) j += dir;
+  if (j < 0 || j >= arr.length) return arr;
+  [arr[idx], arr[j]] = [arr[j], arr[idx]]; return arr;
+};
+const moveChildRelative = (cs: PageBlock[], dragId: string, targetId: string, before: boolean): PageBlock[] => {
+  if (dragId === targetId) return cs;
+  const dragged = cs.find((c) => c.id === dragId); const target = cs.find((c) => c.id === targetId);
+  if (!dragged || !target) return cs;
+  const without = cs.filter((c) => c.id !== dragId);
+  const ti = without.findIndex((c) => c.id === targetId);
+  const moved: PageBlock = { ...dragged, col: target.col ?? 0 };
+  const at = before ? ti : ti + 1;
+  return [...without.slice(0, at), moved, ...without.slice(at)];
 };
 
 const parseCounter = (v: string) => {
@@ -567,6 +588,44 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
           <div className="h-2.5 rounded-full bg-muted overflow-hidden"><div className="h-full rounded-full gradient-hero" style={{ width: `${pct}%` }} /></div>
           {editing && <input type="range" min={0} max={100} value={pct} onChange={(e) => up({ num: Number(e.target.value) })} className="w-full mt-2" />}
         </div>
+      );
+    }
+
+    case "container": {
+      const children = block.children ?? [];
+      const cols = Math.min(4, Math.max(1, block.cols ?? 2));
+      const setChildren = (fn: (cs: PageBlock[]) => PageBlock[]) => up({ children: fn(children) });
+      const childCtx: InlineEditContextValue = {
+        editing,
+        set: () => {},
+        get: () => undefined,
+        addBlock: (slot, type) => { const col = Number(slot.replace("col-", "")) || 0; setChildren((cs) => [...cs, { ...newBlock(type), slot: "", col }]); },
+        updateBlock: (cid, patch) => setChildren((cs) => cs.map((c) => (c.id === cid ? { ...c, ...patch } : c))),
+        moveBlock: (cid, dir) => setChildren((cs) => moveChildWithinCol(cs, cid, dir)),
+        duplicateBlock: (cid) => setChildren((cs) => { const i = cs.findIndex((c) => c.id === cid); if (i < 0) return cs; const copy = { ...structuredClone(cs[i]), id: newId() }; return [...cs.slice(0, i + 1), copy, ...cs.slice(i + 1)]; }),
+        removeBlock: (cid) => setChildren((cs) => cs.filter((c) => c.id !== cid)),
+        moveBlockRelative: (dragId, targetId, before) => setChildren((cs) => moveChildRelative(cs, dragId, targetId, before)),
+        insertTemplate: (slot, blk) => { const col = Number(slot.replace("col-", "")) || 0; setChildren((cs) => [...cs, { ...structuredClone(blk), id: newId(), slot: "", col }]); },
+        saveTemplate: ctx.saveTemplate,
+        deleteTemplate: ctx.deleteTemplate,
+      };
+      return (
+        <InlineEditContext.Provider value={childCtx}>
+          <div className={`grid grid-cols-1 ${colsClass(cols)} gap-4 text-left`}>
+            {Array.from({ length: cols }).map((_, ci) => (
+              <div key={ci} className={`min-w-0 space-y-2 ${editing ? "rounded-xl border border-dashed border-border/60 p-2" : ""}`}>
+                {children.filter((c) => Math.min(cols - 1, Math.max(0, c.col ?? 0)) === ci).map((child) => <BlockView key={child.id} block={child} />)}
+                {editing && <AddBlock slot={`col-${ci}`} label="Add" />}
+              </div>
+            ))}
+          </div>
+          {editing && (
+            <div className="mt-2 inline-flex items-center gap-2 rounded-lg border border-border bg-background/80 px-2 py-1.5 text-xs">
+              <span className="text-muted-foreground">Columns</span>
+              {[1, 2, 3, 4].map((n) => <button key={n} onClick={() => up({ cols: n })} className={`px-2 py-0.5 rounded ${cols === n ? "gradient-hero text-white" : "text-muted-foreground hover:bg-muted"}`}>{n}</button>)}
+            </div>
+          )}
+        </InlineEditContext.Provider>
       );
     }
 
