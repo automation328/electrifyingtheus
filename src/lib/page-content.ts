@@ -68,6 +68,7 @@ export interface BlockStyle {
   border?: number;    // border width (px)
   borderColor?: string;  // border color (CSS value)
   gradient?: { from: string; to: string; angle?: number };  // gradient background
+  hover?: "none" | "lift" | "zoom" | "glow";  // hover motion effect (view mode)
 }
 
 /** Per-page SEO / social-share overrides. */

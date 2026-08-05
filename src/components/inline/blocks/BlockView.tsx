@@ -779,6 +779,15 @@ const StylePanel = ({ block, up, onClose }: { block: PageBlock; up: (p: Partial<
         </div>
 
         <div>
+          <label className={lbl}>Hover effect <span className="normal-case font-normal text-muted-foreground/70">· on the live page</span></label>
+          <div className="inline-flex gap-1">
+            {(["none", "lift", "zoom", "glow"] as const).map((hv) => (
+              <button key={hv} onClick={() => setStyle({ hover: hv })} className={`px-2.5 py-1 rounded-lg text-xs capitalize ${(s.hover ?? "none") === hv ? "gradient-hero text-white" : "border border-border text-muted-foreground hover:bg-muted"}`}>{hv}</button>
+            ))}
+          </div>
+        </div>
+
+        <div>
           <label className={lbl}>Visibility</label>
           <div className="flex flex-wrap gap-2">
             <button onClick={() => up({ hideMobile: !block.hideMobile })} className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium ${block.hideMobile ? "gradient-hero text-white" : "border border-border text-muted-foreground hover:bg-muted"}`}><Smartphone className="w-3.5 h-3.5" /> Hide on mobile</button>
@@ -834,6 +843,12 @@ const Toolbar = ({ block, ctx, onStyle, onDragHandle }: { block: PageBlock; ctx:
 const visClass = (b: PageBlock) =>
   b.hideMobile && b.hideDesktop ? "hidden" : b.hideMobile ? "hidden md:block" : b.hideDesktop ? "md:hidden" : "";
 
+const hoverClass = (h?: string) => ({
+  lift: "transition-transform duration-300 ease-out hover:-translate-y-1.5 hover:shadow-xl",
+  zoom: "transition-transform duration-300 ease-out hover:scale-[1.03]",
+  glow: "transition-shadow duration-300 ease-out hover:shadow-[0_10px_40px_hsl(var(--primary)/0.35)]",
+}[h ?? "none"] ?? "");
+
 const BlockView = ({ block }: { block: PageBlock }) => {
   const ctx = useInlineEdit();
   const [styleOpen, setStyleOpen] = useState(false);
@@ -849,7 +864,7 @@ const BlockView = ({ block }: { block: PageBlock }) => {
   const body = <div className={maxWClass(block.style?.maxW)}><BlockBody block={block} ctx={ctx} /></div>;
   const inner = fullBleed ? <div className="mx-auto max-w-6xl px-4">{body}</div> : body;
 
-  if (!ctx.editing) return <div {...anchorProps} className={`${align} ${visClass(block)}`} style={css}>{inner}</div>;
+  if (!ctx.editing) return <div {...anchorProps} className={`${align} ${visClass(block)} ${hoverClass(block.style?.hover)}`} style={css}>{inner}</div>;
 
   const up = (patch: Partial<PageBlock>) => ctx.updateBlock(block.id, patch);
   const hiddenSomewhere = block.hideMobile || block.hideDesktop;
