@@ -113,9 +113,15 @@ const EditableContentPage = ({ path, label, ...props }: LayoutProps & { path: st
   const baseOverride = (isEditor ? (editorRowQuery.data?.content ?? published) : published) as PageOverride | null;
 
   const [editing, setEditing] = useState(false);
-  const [working, setWorking] = useState<PageOverride>({});
-  const [dirty, setDirty] = useState(false);
+  const [hist, setHist] = useState<{ stack: PageOverride[]; idx: number }>({ stack: [{}], idx: 0 });
   const [saving, setSaving] = useState(false);
+  const working = hist.stack[hist.idx];
+  const dirty = hist.idx > 0;
+  const canUndo = hist.idx > 0;
+  const canRedo = hist.idx < hist.stack.length - 1;
+  const commit = (next: PageOverride) => setHist((h) => { const stack = [...h.stack.slice(0, h.idx + 1), next]; return { stack, idx: stack.length - 1 }; });
+  const undo = () => setHist((h) => (h.idx > 0 ? { ...h, idx: h.idx - 1 } : h));
+  const redo = () => setHist((h) => (h.idx < h.stack.length - 1 ? { ...h, idx: h.idx + 1 } : h));
 
   // What the layout renders: the working copy while editing, else the effective override.
   const rendered = useMemo(
@@ -129,14 +135,11 @@ const EditableContentPage = ({ path, label, ...props }: LayoutProps & { path: st
     return ["after-stats", ...Array.from({ length: n }, (_, i) => `after-section-${i}`), "end"];
   }, [props]);
 
-  const mutateBlocks = (fn: (blocks: PageBlock[]) => PageBlock[]) => {
-    setWorking((w) => ({ ...w, blocks: fn(w.blocks ?? []) }));
-    setDirty(true);
-  };
+  const mutateBlocks = (fn: (blocks: PageBlock[]) => PageBlock[]) => commit({ ...working, blocks: fn(working.blocks ?? []) });
 
   const ctx = useMemo(() => ({
     editing,
-    set: (p: string, v: unknown) => { setWorking((w) => setPath(w, p, v)); setDirty(true); },
+    set: (p: string, v: unknown) => commit(setPath(working, p, v)),
     get: (p: string) => getPath(working, p),
     addBlock: (slot: string, type: BlockType) => mutateBlocks((blocks) => [...blocks, { ...newBlock(type), slot }]),
     updateBlock: (id: string, patch: Partial<PageBlock>) => mutateBlocks((blocks) => blocks.map((b) => (b.id === id ? { ...b, ...patch } : b))),
@@ -189,12 +192,11 @@ const EditableContentPage = ({ path, label, ...props }: LayoutProps & { path: st
   const startEdit = () => {
     // Snapshot the current effective content so every field/path exists to edit.
     const effective = mergePageOverride(props as PageOverride, baseOverride) as Record<string, unknown>;
-    setWorking(pickPageOverride(effective));
-    setDirty(false);
+    setHist({ stack: [pickPageOverride(effective)], idx: 0 });
     setEditing(true);
   };
 
-  const cancel = () => { setEditing(false); setDirty(false); setWorking({}); };
+  const cancel = () => { setEditing(false); setHist({ stack: [{}], idx: 0 }); };
 
   const save = async (status: "draft" | "published") => {
     setSaving(true);
@@ -208,7 +210,7 @@ const EditableContentPage = ({ path, label, ...props }: LayoutProps & { path: st
       qc.invalidateQueries({ queryKey: ["site-page", path] });
       qc.invalidateQueries({ queryKey: ["editor-page-row", path] });
       toast.success(status === "published" ? "Page published" : "Draft saved");
-      setEditing(false); setDirty(false);
+      setEditing(false);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Save failed.");
     } finally {
@@ -224,6 +226,10 @@ const EditableContentPage = ({ path, label, ...props }: LayoutProps & { path: st
           editing={editing}
           dirty={dirty}
           saving={saving}
+          canUndo={canUndo}
+          canRedo={canRedo}
+          onUndo={undo}
+          onRedo={redo}
           onEdit={startEdit}
           onCancel={cancel}
           onSaveDraft={() => save("draft")}
