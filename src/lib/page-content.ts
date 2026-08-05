@@ -67,6 +67,7 @@ export interface BlockStyle {
   shadow?: "none" | "sm" | "md" | "lg" | "xl";  // box-shadow preset
   border?: number;    // border width (px)
   borderColor?: string;  // border color (CSS value)
+  gradient?: { from: string; to: string; angle?: number };  // gradient background
 }
 
 /** Per-page SEO / social-share overrides. */

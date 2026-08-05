@@ -649,6 +649,14 @@ const BG_SWATCHES: [string, string][] = [
 const TEXT_SWATCHES: [string, string][] = [
   ["Default", ""], ["Dark", "#0f172a"], ["White", "#ffffff"], ["Muted", "hsl(var(--muted-foreground))"], ["Primary", "hsl(var(--primary))"],
 ];
+const GRADIENT_PRESETS: NonNullable<BlockStyle["gradient"]>[] = [
+  { from: "hsl(var(--primary))", to: "hsl(var(--secondary))", angle: 135 },
+  { from: "#0b5fd4", to: "#1f9650", angle: 135 },
+  { from: "#7c3aed", to: "#2563eb", angle: 135 },
+  { from: "#f97316", to: "#db2777", angle: 135 },
+  { from: "#0ea5e9", to: "#22d3ee", angle: 135 },
+  { from: "#0f172a", to: "#334155", angle: 135 },
+];
 const maxWClass = (w?: string) => ({ sm: "max-w-md mx-auto", md: "max-w-2xl mx-auto", lg: "max-w-4xl mx-auto", full: "" }[w ?? "full"] ?? "");
 const slugifyAnchor = (v: string) => v.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 
@@ -660,10 +668,13 @@ const SHADOWS: Record<string, string> = {
   xl: "0 20px 50px rgba(0,0,0,0.18)",
 };
 
+const gradientCss = (g: NonNullable<BlockStyle["gradient"]>) => `linear-gradient(${g.angle ?? 135}deg, ${g.from}, ${g.to})`;
+
 const styleToCss = (s?: BlockStyle): React.CSSProperties => {
   if (!s) return {};
+  const bgImage = s.gradient ? gradientCss(s.gradient) : s.bgImage ? `url(${s.bgImage})` : undefined;
   return {
-    backgroundColor: s.bg || undefined,
+    backgroundColor: s.gradient ? undefined : s.bg || undefined,
     color: s.color || undefined,
     paddingTop: s.padY || undefined,
     paddingBottom: s.padY || undefined,
@@ -672,9 +683,9 @@ const styleToCss = (s?: BlockStyle): React.CSSProperties => {
     borderRadius: s.radius || undefined,
     boxShadow: s.shadow && s.shadow !== "none" ? SHADOWS[s.shadow] : undefined,
     border: s.border ? `${s.border}px solid ${s.borderColor || "hsl(var(--border))"}` : undefined,
-    backgroundImage: s.bgImage ? `url(${s.bgImage})` : undefined,
-    backgroundSize: s.bgImage ? "cover" : undefined,
-    backgroundPosition: s.bgImage ? "center" : undefined,
+    backgroundImage: bgImage,
+    backgroundSize: s.bgImage && !s.gradient ? "cover" : undefined,
+    backgroundPosition: s.bgImage && !s.gradient ? "center" : undefined,
   };
 };
 
@@ -693,12 +704,30 @@ const StylePanel = ({ block, up, onClose }: { block: PageBlock; up: (p: Partial<
         <div>
           <label className={lbl}>Background</label>
           <div className="flex flex-wrap items-center gap-1.5">
-            {BG_SWATCHES.map(([name, v]) => <Swatch key={name} value={v} active={(s.bg ?? "") === v && !s.bgImage} onClick={() => setStyle({ bg: v, bgImage: "" })} />)}
-            <input type="color" value={/^#/.test(s.bg ?? "") ? s.bg : "#ffffff"} onChange={(e) => setStyle({ bg: e.target.value, bgImage: "" })} className="w-7 h-7 rounded-lg border border-border bg-transparent cursor-pointer" title="Custom colour" />
+            {BG_SWATCHES.map(([name, v]) => <Swatch key={name} value={v} active={(s.bg ?? "") === v && !s.bgImage && !s.gradient} onClick={() => setStyle({ bg: v, bgImage: "", gradient: undefined })} />)}
+            <input type="color" value={/^#/.test(s.bg ?? "") ? s.bg : "#ffffff"} onChange={(e) => setStyle({ bg: e.target.value, bgImage: "", gradient: undefined })} className="w-7 h-7 rounded-lg border border-border bg-transparent cursor-pointer" title="Custom colour" />
             <button type="button" onClick={() => setBgImgOpen(true)} className="inline-flex items-center gap-1 rounded-lg border border-border px-2 py-1 text-xs hover:bg-muted"><ImageIcon className="w-3.5 h-3.5" /> Image</button>
           </div>
           {s.bgImage && <div className="mt-1.5 flex items-center gap-2 text-xs text-muted-foreground"><img src={s.bgImage} alt="" className="w-10 h-8 object-cover rounded" /> background image <button onClick={() => setStyle({ bgImage: "" })} className="text-destructive hover:underline">remove</button></div>}
-          {bgImgOpen && <div className="mt-2"><ImageUpload value={s.bgImage ?? ""} onChange={(url) => setStyle({ bgImage: url })} /></div>}
+          {bgImgOpen && <div className="mt-2"><ImageUpload value={s.bgImage ?? ""} onChange={(url) => setStyle({ bgImage: url, gradient: undefined })} /></div>}
+          <div className="mt-2">
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="text-[11px] text-muted-foreground mr-0.5">Gradient</span>
+              {GRADIENT_PRESETS.map((g, i) => (
+                <button key={i} type="button" title="Gradient" onClick={() => setStyle({ gradient: g, bg: "", bgImage: "" })} className={`w-7 h-7 rounded-lg border ${s.gradient?.from === g.from && s.gradient?.to === g.to ? "ring-2 ring-primary border-primary" : "border-border"}`} style={{ backgroundImage: gradientCss(g) }} />
+              ))}
+            </div>
+            {s.gradient && (
+              <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+                <input type="color" value={/^#/.test(s.gradient.from) ? s.gradient.from : "#0b5fd4"} onChange={(e) => setStyle({ gradient: { ...s.gradient!, from: e.target.value } })} className="w-7 h-7 rounded-lg border border-border bg-transparent cursor-pointer" title="From" />
+                <input type="color" value={/^#/.test(s.gradient.to) ? s.gradient.to : "#1f9650"} onChange={(e) => setStyle({ gradient: { ...s.gradient!, to: e.target.value } })} className="w-7 h-7 rounded-lg border border-border bg-transparent cursor-pointer" title="To" />
+                <span className="text-muted-foreground">Angle</span>
+                <input type="range" min={0} max={360} value={s.gradient.angle ?? 135} onChange={(e) => setStyle({ gradient: { ...s.gradient!, angle: Number(e.target.value) } })} className="flex-1 min-w-[6rem]" />
+                <span className="tabular-nums w-9 text-right text-muted-foreground">{s.gradient.angle ?? 135}°</span>
+                <button onClick={() => setStyle({ gradient: undefined })} className="text-destructive hover:underline">remove</button>
+              </div>
+            )}
+          </div>
         </div>
 
         <div>
