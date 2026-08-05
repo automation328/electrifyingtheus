@@ -69,6 +69,7 @@ export interface BlockStyle {
   borderColor?: string;  // border color (CSS value)
   gradient?: { from: string; to: string; angle?: number };  // gradient background
   hover?: "none" | "lift" | "zoom" | "glow";  // hover motion effect (view mode)
+  anim?: "none" | "fade" | "up" | "left" | "right" | "zoom";  // entrance animation on scroll-in
 }
 
 /** Per-page SEO / social-share overrides. */

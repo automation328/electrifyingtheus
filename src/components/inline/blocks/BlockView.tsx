@@ -2,7 +2,7 @@
 // inherits the site theme; Heading/Text/Button expose size + font controls, and
 // each block type has the controls it needs (divider thickness, icon picker, …).
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   ArrowUp, ArrowDown, Trash2, AlignLeft, AlignCenter, AlignRight,
   Image as ImageIcon, Film, X, Search, Plus, ChevronDown, ArrowRight,
@@ -788,6 +788,15 @@ const StylePanel = ({ block, up, onClose }: { block: PageBlock; up: (p: Partial<
         </div>
 
         <div>
+          <label className={lbl}>Entrance animation <span className="normal-case font-normal text-muted-foreground/70">· plays on scroll-in</span></label>
+          <div className="inline-flex flex-wrap gap-1">
+            {(["none", "fade", "up", "left", "right", "zoom"] as const).map((an) => (
+              <button key={an} onClick={() => setStyle({ anim: an })} className={`px-2.5 py-1 rounded-lg text-xs capitalize ${(s.anim ?? "none") === an ? "gradient-hero text-white" : "border border-border text-muted-foreground hover:bg-muted"}`}>{an === "up" ? "Slide up" : an === "left" ? "Slide L" : an === "right" ? "Slide R" : an}</button>
+            ))}
+          </div>
+        </div>
+
+        <div>
           <label className={lbl}>Visibility</label>
           <div className="flex flex-wrap gap-2">
             <button onClick={() => up({ hideMobile: !block.hideMobile })} className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium ${block.hideMobile ? "gradient-hero text-white" : "border border-border text-muted-foreground hover:bg-muted"}`}><Smartphone className="w-3.5 h-3.5" /> Hide on mobile</button>
@@ -849,11 +858,32 @@ const hoverClass = (h?: string) => ({
   glow: "transition-shadow duration-300 ease-out hover:shadow-[0_10px_40px_hsl(var(--primary)/0.35)]",
 }[h ?? "none"] ?? "");
 
+// Entrance animation: the "hidden" (pre-reveal) transform for each effect.
+const animHidden = (a?: string) => ({
+  fade: "opacity-0",
+  up: "opacity-0 translate-y-8",
+  left: "opacity-0 -translate-x-8",
+  right: "opacity-0 translate-x-8",
+  zoom: "opacity-0 scale-95",
+}[a ?? "none"] ?? "");
+
 const BlockView = ({ block }: { block: PageBlock }) => {
   const ctx = useInlineEdit();
   const [styleOpen, setStyleOpen] = useState(false);
   const [dragArmed, setDragArmed] = useState(false);
   const [dropEdge, setDropEdge] = useState<"top" | "bottom" | null>(null);
+  const revealRef = useRef<HTMLDivElement>(null);
+  const [inView, setInView] = useState(false);
+  const anim = block.style?.anim;
+  const animated = !!anim && anim !== "none" && !ctx?.editing;
+  useEffect(() => {
+    if (!animated) return;
+    const el = revealRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setInView(true); io.disconnect(); } }, { threshold: 0.12 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [animated]);
   if (!ctx) return null;
   const align = alignClass(block.align);
   const baseCss = styleToCss(block.style);
@@ -864,7 +894,10 @@ const BlockView = ({ block }: { block: PageBlock }) => {
   const body = <div className={maxWClass(block.style?.maxW)}><BlockBody block={block} ctx={ctx} /></div>;
   const inner = fullBleed ? <div className="mx-auto max-w-6xl px-4">{body}</div> : body;
 
-  if (!ctx.editing) return <div {...anchorProps} className={`${align} ${visClass(block)} ${hoverClass(block.style?.hover)}`} style={css}>{inner}</div>;
+  if (!ctx.editing) {
+    const animCls = animated ? `transition-all duration-700 ease-out ${inView ? "opacity-100 translate-x-0 translate-y-0 scale-100" : animHidden(anim)}` : "";
+    return <div ref={revealRef} {...anchorProps} className={`${align} ${visClass(block)} ${hoverClass(block.style?.hover)} ${animCls}`} style={css}>{inner}</div>;
+  }
 
   const up = (patch: Partial<PageBlock>) => ctx.updateBlock(block.id, patch);
   const hiddenSomewhere = block.hideMobile || block.hideDesktop;
