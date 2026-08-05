@@ -44,6 +44,8 @@ import ContactUs from "./pages/ContactUs.tsx";
 import ThankYou from "./pages/ThankYou.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import CustomPage from "./pages/CustomPage.tsx";
+import ThemeApplier from "./components/ThemeApplier.tsx";
+import ThemeEditor from "./pages/admin/ThemeEditor.tsx";
 import ContactWidget from "./components/ContactWidget.tsx";
 import AnalyticsTracker from "./components/AnalyticsTracker.tsx";
 import GoogleAnalytics from "./components/GoogleAnalytics.tsx";
@@ -65,6 +67,7 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
+      <ThemeApplier />
       <Toaster />
       <Sonner />
       <BrowserRouter>
@@ -130,6 +133,7 @@ const App = () => (
             <Route path="pages" element={<PagesManager />} />
             <Route path="navigation" element={<NavEditor />} />
             <Route path="footer" element={<FooterEditor />} />
+            <Route path="theme" element={<ThemeEditor />} />
             <Route path="vehicles" element={<CollectionManager config={vehiclesConfig} />} />
             <Route path="incentives" element={<CollectionManager config={incentivesConfig} />} />
             <Route path="knowledge-base" element={<KnowledgeBaseManager />} />
