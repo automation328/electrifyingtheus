@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 import {
   ArrowUp, ArrowDown, Trash2, AlignLeft, AlignCenter, AlignRight,
   Image as ImageIcon, Film, X, Search, Plus, ChevronDown, ArrowRight,
-  Copy, Palette,
+  Copy, Palette, GripVertical, Smartphone, Monitor,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { BlockStyle } from "@/lib/page-content";
@@ -557,6 +557,14 @@ const StylePanel = ({ block, up, onClose }: { block: PageBlock; up: (p: Partial<
           </div>
         </div>
 
+        <div>
+          <label className={lbl}>Visibility</label>
+          <div className="flex flex-wrap gap-2">
+            <button onClick={() => up({ hideMobile: !block.hideMobile })} className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium ${block.hideMobile ? "gradient-hero text-white" : "border border-border text-muted-foreground hover:bg-muted"}`}><Smartphone className="w-3.5 h-3.5" /> Hide on mobile</button>
+            <button onClick={() => up({ hideDesktop: !block.hideDesktop })} className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium ${block.hideDesktop ? "gradient-hero text-white" : "border border-border text-muted-foreground hover:bg-muted"}`}><Monitor className="w-3.5 h-3.5" /> Hide on desktop</button>
+          </div>
+        </div>
+
         <div className="flex justify-between pt-1">
           <button onClick={() => up({ style: {} })} className="text-xs text-muted-foreground hover:text-destructive">Clear styles</button>
           <button onClick={onClose} className="rounded-xl gradient-hero text-white font-semibold px-5 py-2 text-sm">Done</button>
@@ -566,12 +574,14 @@ const StylePanel = ({ block, up, onClose }: { block: PageBlock; up: (p: Partial<
   );
 };
 
-const Toolbar = ({ block, ctx, onStyle }: { block: PageBlock; ctx: InlineEditContextValue; onStyle: () => void }) => {
+const Toolbar = ({ block, ctx, onStyle, onDragHandle }: { block: PageBlock; ctx: InlineEditContextValue; onStyle: () => void; onDragHandle: (armed: boolean) => void }) => {
   const btn = "p-1.5 rounded-md text-white/90 hover:bg-white/15";
   const setAlign = (a: PageBlock["align"]) => ctx.updateBlock(block.id, { align: a });
   const hasAlign = ["heading", "text", "button", "image", "icon"].includes(block.type);
   return (
     <div className="absolute -top-3 right-2 z-20 hidden group-hover:flex items-center gap-0.5 rounded-lg bg-foreground/90 backdrop-blur px-1 py-0.5 shadow">
+      <button className={`${btn} cursor-grab active:cursor-grabbing`} title="Drag to reorder" onMouseDown={() => onDragHandle(true)} onMouseUp={() => onDragHandle(false)}><GripVertical className="w-3.5 h-3.5" /></button>
+      <span className="w-px h-4 bg-white/20 mx-0.5" />
       {hasAlign && (
         <>
           <button className={btn} onClick={() => setAlign("left")} title="Left"><AlignLeft className="w-3.5 h-3.5" /></button>
@@ -590,20 +600,41 @@ const Toolbar = ({ block, ctx, onStyle }: { block: PageBlock; ctx: InlineEditCon
   );
 };
 
+const visClass = (b: PageBlock) =>
+  b.hideMobile && b.hideDesktop ? "hidden" : b.hideMobile ? "hidden md:block" : b.hideDesktop ? "md:hidden" : "";
+
 const BlockView = ({ block }: { block: PageBlock }) => {
   const ctx = useInlineEdit();
   const [styleOpen, setStyleOpen] = useState(false);
+  const [dragArmed, setDragArmed] = useState(false);
+  const [dropEdge, setDropEdge] = useState<"top" | "bottom" | null>(null);
   if (!ctx) return null;
   const align = alignClass(block.align);
   const css = styleToCss(block.style);
   const inner = <div className={maxWClass(block.style?.maxW)}><BlockBody block={block} ctx={ctx} /></div>;
 
-  if (!ctx.editing) return <div className={align} style={css}>{inner}</div>;
+  if (!ctx.editing) return <div className={`${align} ${visClass(block)}`} style={css}>{inner}</div>;
 
   const up = (patch: Partial<PageBlock>) => ctx.updateBlock(block.id, patch);
+  const hiddenSomewhere = block.hideMobile || block.hideDesktop;
+
   return (
-    <div className={`group relative rounded-xl ring-1 ring-transparent hover:ring-primary/40 transition p-3 ${align}`} style={css}>
-      <Toolbar block={block} ctx={ctx} onStyle={() => setStyleOpen(true)} />
+    <div
+      className={`group relative rounded-xl ring-1 ring-transparent hover:ring-primary/40 transition p-3 ${align} ${dropEdge === "top" ? "border-t-2 border-primary" : dropEdge === "bottom" ? "border-b-2 border-primary" : ""}`}
+      style={css}
+      draggable={dragArmed}
+      onDragStart={(e) => { e.dataTransfer.setData("text/blockId", block.id); e.dataTransfer.effectAllowed = "move"; }}
+      onDragEnd={() => { setDragArmed(false); setDropEdge(null); }}
+      onDragOver={(e) => { if (!e.dataTransfer.types.includes("text/blockid") && !e.dataTransfer.types.includes("text/blockId")) return; e.preventDefault(); const r = e.currentTarget.getBoundingClientRect(); setDropEdge(e.clientY < r.top + r.height / 2 ? "top" : "bottom"); }}
+      onDragLeave={() => setDropEdge(null)}
+      onDrop={(e) => { e.preventDefault(); const id = e.dataTransfer.getData("text/blockId"); if (id && id !== block.id) { const r = e.currentTarget.getBoundingClientRect(); ctx.moveBlockRelative(id, block.id, e.clientY < r.top + r.height / 2); } setDropEdge(null); setDragArmed(false); }}
+    >
+      {hiddenSomewhere && (
+        <span className="absolute -top-2.5 left-2 z-20 hidden group-hover:inline-flex items-center gap-1 rounded-full bg-foreground/85 px-2 py-0.5 text-[10px] font-semibold text-white">
+          {block.hideMobile && <Smartphone className="w-3 h-3" />}{block.hideDesktop && <Monitor className="w-3 h-3" />} hidden
+        </span>
+      )}
+      <Toolbar block={block} ctx={ctx} onStyle={() => setStyleOpen(true)} onDragHandle={setDragArmed} />
       {inner}
       {styleOpen && <StylePanel block={block} up={up} onClose={() => setStyleOpen(false)} />}
     </div>

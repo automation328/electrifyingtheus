@@ -22,6 +22,8 @@ export interface InlineEditContextValue {
   moveBlock: (id: string, dir: -1 | 1) => void;
   /** Duplicate a block (inserted right after the original). */
   duplicateBlock: (id: string) => void;
+  /** Move a dragged block before/after a target block (drag-and-drop reorder). */
+  moveBlockRelative: (dragId: string, targetId: string, before: boolean) => void;
   /** Remove a block by id. */
   removeBlock: (id: string) => void;
 }

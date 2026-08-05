@@ -43,6 +43,8 @@ export interface PageBlock {
   buttonLabel?: string;             // cta button label
   variant?: string;                 // design variant (countdown: boxes | cards | inline | minimal)
   style?: BlockStyle;               // per-block style (Elementor-like)
+  hideMobile?: boolean;             // hidden on small screens
+  hideDesktop?: boolean;            // hidden on large screens
 }
 
 export interface BlockStyle {

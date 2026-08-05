@@ -140,6 +140,17 @@ const EditableContentPage = ({ path, label, ...props }: LayoutProps & { path: st
       return [...blocks.slice(0, i + 1), copy, ...blocks.slice(i + 1)];
     }),
     removeBlock: (id: string) => mutateBlocks((blocks) => blocks.filter((b) => b.id !== id)),
+    moveBlockRelative: (dragId: string, targetId: string, before: boolean) => mutateBlocks((blocks) => {
+      if (dragId === targetId) return blocks;
+      const dragged = blocks.find((b) => b.id === dragId);
+      const target = blocks.find((b) => b.id === targetId);
+      if (!dragged || !target) return blocks;
+      const without = blocks.filter((b) => b.id !== dragId);
+      const ti = without.findIndex((b) => b.id === targetId);
+      const moved: PageBlock = { ...dragged, slot: target.slot };
+      const at = before ? ti : ti + 1;
+      return [...without.slice(0, at), moved, ...without.slice(at)];
+    }),
   }), [editing, working, slotOrder]);
 
   const startEdit = () => {
