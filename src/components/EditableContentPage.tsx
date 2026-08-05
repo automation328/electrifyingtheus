@@ -3,7 +3,7 @@
 // editors. Pages swap `ContentPageLayout` → `EditableContentPage` and add a
 // `path`; everything else stays as passed.
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import ContentPageLayout from "@/components/ContentPageLayout";
@@ -164,6 +164,22 @@ const EditableContentPage = ({ path, label, ...props }: LayoutProps & { path: st
   };
 
   const cancel = () => { setEditing(false); setHist({ stack: [{}], idx: 0 }); };
+
+  // Keyboard undo/redo — but never when typing in a field/contentEditable (let
+  // the browser handle text undo there).
+  useEffect(() => {
+    if (!editing) return;
+    const onKey = (e: KeyboardEvent) => {
+      const el = document.activeElement as HTMLElement | null;
+      if (el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable)) return;
+      if (!(e.metaKey || e.ctrlKey)) return;
+      const k = e.key.toLowerCase();
+      if (k === "z") { e.preventDefault(); if (e.shiftKey) redo(); else undo(); }
+      else if (k === "y") { e.preventDefault(); redo(); }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [editing]);
 
   const save = async (status: "draft" | "published") => {
     setSaving(true);

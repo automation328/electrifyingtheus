@@ -620,9 +620,11 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
             ))}
           </div>
           {editing && (
-            <div className="mt-2 inline-flex items-center gap-2 rounded-lg border border-border bg-background/80 px-2 py-1.5 text-xs">
+            <div className="mt-2 inline-flex flex-wrap items-center gap-2 rounded-lg border border-border bg-background/80 px-2 py-1.5 text-xs">
               <span className="text-muted-foreground">Columns</span>
               {[1, 2, 3, 4].map((n) => <button key={n} onClick={() => up({ cols: n })} className={`px-2 py-0.5 rounded ${cols === n ? "gradient-hero text-white" : "text-muted-foreground hover:bg-muted"}`}>{n}</button>)}
+              <span className="w-px h-4 bg-border mx-0.5" />
+              <button onClick={() => up({ fullWidth: !block.fullWidth })} className={`px-2 py-0.5 rounded ${block.fullWidth ? "gradient-hero text-white" : "text-muted-foreground hover:bg-muted"}`}>Full width</button>
             </div>
           )}
         </InlineEditContext.Provider>
@@ -763,8 +765,11 @@ const BlockView = ({ block }: { block: PageBlock }) => {
   const [dropEdge, setDropEdge] = useState<"top" | "bottom" | null>(null);
   if (!ctx) return null;
   const align = alignClass(block.align);
-  const css = styleToCss(block.style);
-  const inner = <div className={maxWClass(block.style?.maxW)}><BlockBody block={block} ctx={ctx} /></div>;
+  const baseCss = styleToCss(block.style);
+  const fullBleed = block.type === "container" && !!block.fullWidth;
+  const css = fullBleed ? { ...baseCss, width: "100vw", marginLeft: "calc(50% - 50vw)" } : baseCss;
+  const body = <div className={maxWClass(block.style?.maxW)}><BlockBody block={block} ctx={ctx} /></div>;
+  const inner = fullBleed ? <div className="mx-auto max-w-6xl px-4">{body}</div> : body;
 
   if (!ctx.editing) return <div className={`${align} ${visClass(block)}`} style={css}>{inner}</div>;
 

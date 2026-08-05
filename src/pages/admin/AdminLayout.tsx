@@ -10,21 +10,29 @@ import { signOut, useEditorAuth } from "@/lib/auth";
 
 interface NavItem { to: string; label: string; icon: typeof Newspaper; end?: boolean }
 
-const NAV: NavItem[] = [
-  { to: "/admin/content", label: "Overview", icon: LayoutDashboard, end: true },
-  { to: "/admin/content/blog", label: "Blog posts", icon: Newspaper },
-  { to: "/admin/content/events", label: "Events", icon: CalendarDays },
-  { to: "/admin/content/gallery", label: "Gallery", icon: Images },
-  { to: "/admin/content/jobs", label: "Jobs", icon: Briefcase },
-  { to: "/admin/content/media", label: "Media", icon: FolderOpen },
-  { to: "/admin/content/pages", label: "Pages", icon: FileText },
-  { to: "/admin/content/navigation", label: "Navigation", icon: Menu },
-  { to: "/admin/content/footer", label: "Footer", icon: PanelBottom },
-  { to: "/admin/content/theme", label: "Theme", icon: Palette },
-  { to: "/admin/content/vehicles", label: "Vehicles", icon: Car },
-  { to: "/admin/content/incentives", label: "Incentives", icon: BadgePercent },
-  { to: "/admin/content/knowledge-base", label: "EVan knowledge", icon: Bot },
+const NAV_GROUPS: { label?: string; items: NavItem[] }[] = [
+  { items: [{ to: "/admin/content", label: "Overview", icon: LayoutDashboard, end: true }] },
+  { label: "Content", items: [
+    { to: "/admin/content/pages", label: "Pages", icon: FileText },
+    { to: "/admin/content/blog", label: "Blog posts", icon: Newspaper },
+    { to: "/admin/content/events", label: "Events", icon: CalendarDays },
+    { to: "/admin/content/gallery", label: "Gallery", icon: Images },
+    { to: "/admin/content/jobs", label: "Jobs", icon: Briefcase },
+    { to: "/admin/content/vehicles", label: "Vehicles", icon: Car },
+    { to: "/admin/content/incentives", label: "Incentives", icon: BadgePercent },
+  ] },
+  { label: "Assistant", items: [
+    { to: "/admin/content/knowledge-base", label: "EVan knowledge", icon: Bot },
+  ] },
+  { label: "Site", items: [
+    { to: "/admin/content/media", label: "Media", icon: FolderOpen },
+    { to: "/admin/content/navigation", label: "Navigation", icon: Menu },
+    { to: "/admin/content/footer", label: "Footer", icon: PanelBottom },
+    { to: "/admin/content/theme", label: "Theme", icon: Palette },
+  ] },
 ];
+
+const NAV: NavItem[] = NAV_GROUPS.flatMap((g) => g.items);
 
 const AdminLayout = () => {
   const navigate = useNavigate();
@@ -49,8 +57,11 @@ const AdminLayout = () => {
           </div>
         </div>
 
-        <nav className="flex-1 overflow-y-auto p-3 space-y-1">
-          {NAV.map((item) => (
+        <nav className="flex-1 overflow-y-auto p-3 space-y-3">
+          {NAV_GROUPS.map((group, gi) => (
+            <div key={gi} className="space-y-1">
+              {group.label && <div className="px-3 pt-1 text-[10px] font-bold uppercase tracking-wide text-muted-foreground/70">{group.label}</div>}
+              {group.items.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
@@ -66,6 +77,8 @@ const AdminLayout = () => {
               <item.icon className="w-4 h-4 shrink-0" />
               {item.label}
             </NavLink>
+              ))}
+            </div>
           ))}
         </nav>
 

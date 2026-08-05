@@ -52,6 +52,7 @@ export interface PageBlock {
   cols?: number;                    // number of columns (1-4)
   children?: PageBlock[];           // nested child blocks
   col?: number;                     // which column this block sits in (inside a container)
+  fullWidth?: boolean;              // container spans the full viewport width (full-bleed)
 }
 
 export interface BlockStyle {
