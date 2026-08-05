@@ -650,6 +650,7 @@ const TEXT_SWATCHES: [string, string][] = [
   ["Default", ""], ["Dark", "#0f172a"], ["White", "#ffffff"], ["Muted", "hsl(var(--muted-foreground))"], ["Primary", "hsl(var(--primary))"],
 ];
 const maxWClass = (w?: string) => ({ sm: "max-w-md mx-auto", md: "max-w-2xl mx-auto", lg: "max-w-4xl mx-auto", full: "" }[w ?? "full"] ?? "");
+const slugifyAnchor = (v: string) => v.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 
 const styleToCss = (s?: BlockStyle): React.CSSProperties => {
   if (!s) return {};
@@ -724,6 +725,14 @@ const StylePanel = ({ block, up, onClose }: { block: PageBlock; up: (p: Partial<
           </div>
         </div>
 
+        <div>
+          <label className={lbl}>Anchor <span className="normal-case font-normal text-muted-foreground/70">· jump link target (buttons can link to #id)</span></label>
+          <div className="flex items-center gap-1.5">
+            <span className="text-muted-foreground text-sm">#</span>
+            <input value={block.anchor ?? ""} onChange={(e) => up({ anchor: slugifyAnchor(e.target.value) })} placeholder="pricing" className="flex-1 rounded-lg border border-border bg-background px-2.5 py-1.5 text-sm font-mono" />
+          </div>
+        </div>
+
         <div className="flex justify-between pt-1">
           <button onClick={() => up({ style: {} })} className="text-xs text-muted-foreground hover:text-destructive">Clear styles</button>
           <button onClick={onClose} className="rounded-xl gradient-hero text-white font-semibold px-5 py-2 text-sm">Done</button>
@@ -773,11 +782,13 @@ const BlockView = ({ block }: { block: PageBlock }) => {
   const align = alignClass(block.align);
   const baseCss = styleToCss(block.style);
   const fullBleed = block.type === "container" && !!block.fullWidth;
-  const css = fullBleed ? { ...baseCss, width: "100vw", marginLeft: "calc(50% - 50vw)" } : baseCss;
+  const css: React.CSSProperties = fullBleed ? { ...baseCss, width: "100vw", marginLeft: "calc(50% - 50vw)" } : { ...baseCss };
+  if (block.anchor) css.scrollMarginTop = 96;
+  const anchorProps = block.anchor ? { id: block.anchor, "data-block-anchor": block.anchor } : {};
   const body = <div className={maxWClass(block.style?.maxW)}><BlockBody block={block} ctx={ctx} /></div>;
   const inner = fullBleed ? <div className="mx-auto max-w-6xl px-4">{body}</div> : body;
 
-  if (!ctx.editing) return <div className={`${align} ${visClass(block)}`} style={css}>{inner}</div>;
+  if (!ctx.editing) return <div {...anchorProps} className={`${align} ${visClass(block)}`} style={css}>{inner}</div>;
 
   const up = (patch: Partial<PageBlock>) => ctx.updateBlock(block.id, patch);
   const hiddenSomewhere = block.hideMobile || block.hideDesktop;
@@ -785,6 +796,7 @@ const BlockView = ({ block }: { block: PageBlock }) => {
   return (
     <div
       data-block-id={block.id}
+      {...anchorProps}
       className={`group relative rounded-xl ring-1 ring-transparent hover:ring-primary/40 transition p-3 ${align} ${dropEdge === "top" ? "border-t-2 border-primary" : dropEdge === "bottom" ? "border-b-2 border-primary" : ""}`}
       style={css}
       draggable={dragArmed}
@@ -797,6 +809,11 @@ const BlockView = ({ block }: { block: PageBlock }) => {
       {hiddenSomewhere && (
         <span className="absolute -top-2.5 left-2 z-20 hidden group-hover:inline-flex items-center gap-1 rounded-full bg-foreground/85 px-2 py-0.5 text-[10px] font-semibold text-white">
           {block.hideMobile && <Smartphone className="w-3 h-3" />}{block.hideDesktop && <Monitor className="w-3 h-3" />} hidden
+        </span>
+      )}
+      {block.anchor && (
+        <span className="absolute -top-2.5 left-2 z-20 hidden group-hover:inline-flex items-center gap-0.5 rounded-full bg-primary/90 px-2 py-0.5 text-[10px] font-semibold text-white" style={{ marginLeft: hiddenSomewhere ? 84 : 0 }}>
+          #{block.anchor}
         </span>
       )}
       <Toolbar block={block} ctx={ctx} onStyle={() => setStyleOpen(true)} onDragHandle={setDragArmed} />

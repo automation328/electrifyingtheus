@@ -53,6 +53,7 @@ export interface PageBlock {
   children?: PageBlock[];           // nested child blocks
   col?: number;                     // which column this block sits in (inside a container)
   fullWidth?: boolean;              // container spans the full viewport width (full-bleed)
+  anchor?: string;                  // jump-link id (buttons can link to #anchor on the same page)
 }
 
 export interface BlockStyle {
