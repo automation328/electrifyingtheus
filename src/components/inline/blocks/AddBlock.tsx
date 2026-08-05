@@ -7,12 +7,13 @@ import {
   Plus, Heading, Type, Image as ImageIcon, Film, MousePointerClick,
   Minus, MoveVertical, Star, Rows3, LayoutPanelTop, Columns3, Images, Megaphone,
   Shapes, Hash, Timer, Map, Code, GalleryVerticalEnd,
-  Quote, AlertCircle, Share2, Gauge, Bookmark, Trash2, LayoutGrid, ClipboardPaste,
+  Quote, AlertCircle, Share2, Gauge, Bookmark, Trash2, LayoutGrid, ClipboardPaste, LayoutTemplate,
 } from "lucide-react";
 import type { BlockType } from "@/lib/page-content";
 import { useInlineEdit } from "@/components/inline/edit-context";
 import { useBlockTemplates } from "@/lib/block-templates";
 import { readClipboardBlock } from "@/lib/block-clipboard";
+import { SECTION_PRESETS } from "@/components/inline/blocks/section-presets";
 
 const TYPES: { type: BlockType; label: string; icon: typeof Type }[] = [
   { type: "container", label: "Container", icon: LayoutGrid },
@@ -67,12 +68,21 @@ const AddBlock = ({ slot, label = "Add block" }: { slot: string; label?: string 
                 <ClipboardPaste className="w-4 h-4" /> Paste copied {clip.type} block
               </button>
             )}
+            <div className="col-span-4 px-1 mb-1 text-[10px] font-bold uppercase tracking-wide text-neutral-400">Blocks</div>
             {TYPES.map((t) => (
               <button key={t.type} onClick={() => { ctx.addBlock(slot, t.type); setOpen(false); }} className="flex flex-col items-center gap-1 rounded-xl px-1.5 py-2.5 text-[11px] font-medium text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900 transition-colors">
                 <t.icon className="w-4 h-4 text-primary" />
                 {t.label}
               </button>
             ))}
+            <div className="col-span-4 mt-1 pt-2 border-t border-neutral-200">
+              <div className="px-1 mb-1 text-[10px] font-bold uppercase tracking-wide text-neutral-400 flex items-center gap-1"><LayoutTemplate className="w-3 h-3" /> Sections</div>
+              <div className="grid grid-cols-2 gap-1">
+                {SECTION_PRESETS.map((p) => (
+                  <button key={p.id} onClick={() => { ctx.insertTemplate(slot, p.build()); setOpen(false); }} className="text-left rounded-lg px-2.5 py-2 text-xs font-medium text-neutral-700 bg-neutral-50 border border-neutral-200 hover:bg-primary/5 hover:border-primary/40 hover:text-primary transition-colors truncate">{p.name}</button>
+                ))}
+              </div>
+            </div>
             {templates.length > 0 && (
               <div className="col-span-4 mt-1 pt-2 border-t border-neutral-200">
                 <div className="px-1 mb-1 text-[10px] font-bold uppercase tracking-wide text-neutral-400 flex items-center gap-1"><Bookmark className="w-3 h-3" /> Saved templates</div>

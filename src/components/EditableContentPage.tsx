@@ -10,7 +10,7 @@ import ContentPageLayout from "@/components/ContentPageLayout";
 import EditBar from "@/components/inline/EditBar";
 import { InlineEditContext, setPath, getPath } from "@/components/inline/edit-context";
 import { usePageOverride, mergePageOverride, pickPageOverride, EDITABLE_PAGES, type PageOverride, type PageBlock, type BlockType } from "@/lib/page-content";
-import { newBlock, newId } from "@/components/inline/blocks/factory";
+import { newBlock, newId, regenIds } from "@/components/inline/blocks/factory";
 import { useEditorAuth } from "@/lib/auth";
 import { listRows, insertRow, updateRow } from "@/lib/admin-api";
 
@@ -114,12 +114,10 @@ const EditableContentPage = ({ path, label, ...props }: LayoutProps & { path: st
     duplicateBlock: (id: string) => mutateBlocks((blocks) => {
       const i = blocks.findIndex((b) => b.id === id);
       if (i < 0) return blocks;
-      const copy = structuredClone(blocks[i]);
-      copy.id = (typeof crypto !== "undefined" && crypto.randomUUID) ? crypto.randomUUID() : `blk_${Date.now()}_${Math.round(Math.random() * 1e6)}`;
-      return [...blocks.slice(0, i + 1), copy, ...blocks.slice(i + 1)];
+      return [...blocks.slice(0, i + 1), regenIds(blocks[i]), ...blocks.slice(i + 1)];
     }),
     removeBlock: (id: string) => mutateBlocks((blocks) => blocks.filter((b) => b.id !== id)),
-    insertTemplate: (slot: string, block: PageBlock) => mutateBlocks((blocks) => [...blocks, { ...structuredClone(block), id: newId(), slot }]),
+    insertTemplate: (slot: string, block: PageBlock) => mutateBlocks((blocks) => [...blocks, { ...regenIds(block), slot }]),
     saveTemplate: async (block: PageBlock, name: string) => {
       try {
         const rows = await listRows<SettingRow>("site_settings");

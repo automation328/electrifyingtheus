@@ -16,7 +16,7 @@ import type { BlockStyle } from "@/lib/page-content";
 import { copyBlock } from "@/lib/block-clipboard";
 import type { PageBlock } from "@/lib/page-content";
 import { useInlineEdit, InlineEditContext, type InlineEditContextValue } from "@/components/inline/edit-context";
-import { newBlock, newId } from "@/components/inline/blocks/factory";
+import { newBlock, newId, regenIds } from "@/components/inline/blocks/factory";
 import AddBlock from "@/components/inline/blocks/AddBlock";
 import ImageUpload from "@/components/admin/ImageUpload";
 import { BLOCK_ICONS, BLOCK_ICON_KEYS } from "@/components/inline/blocks/icons";
@@ -225,7 +225,7 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
       const Tag = block.level === 3 ? "h3" : "h2";
       return (
         <div>
-          <Tag className={`${fontClass(block)} ${sizeClass(block)} text-foreground`}><InlineText value={block.text ?? ""} onCommit={(v) => up({ text: v })} /></Tag>
+          <Tag className={`${fontClass(block)} ${sizeClass(block)} text-foreground`} style={block.style?.color ? { color: block.style.color } : undefined}><InlineText value={block.text ?? ""} onCommit={(v) => up({ text: v })} /></Tag>
           {editing && <StyleControls block={block} up={up} />}
         </div>
       );
@@ -234,7 +234,7 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
     case "text":
       return (
         <div>
-          <p className={`${fontClass(block)} ${sizeClass(block)} text-muted-foreground leading-[1.75]`}><InlineText block value={block.text ?? ""} onCommit={(v) => up({ text: v })} /></p>
+          <p className={`${fontClass(block)} ${sizeClass(block)} text-muted-foreground leading-[1.75]`} style={block.style?.color ? { color: block.style.color } : undefined}><InlineText block value={block.text ?? ""} onCommit={(v) => up({ text: v })} /></p>
           {editing && <StyleControls block={block} up={up} />}
         </div>
       );
@@ -604,10 +604,10 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
         addBlock: (slot, type) => { const col = Number(slot.replace("col-", "")) || 0; setChildren((cs) => [...cs, { ...newBlock(type), slot: "", col }]); },
         updateBlock: (cid, patch) => setChildren((cs) => cs.map((c) => (c.id === cid ? { ...c, ...patch } : c))),
         moveBlock: (cid, dir) => setChildren((cs) => moveChildWithinCol(cs, cid, dir)),
-        duplicateBlock: (cid) => setChildren((cs) => { const i = cs.findIndex((c) => c.id === cid); if (i < 0) return cs; const copy = { ...structuredClone(cs[i]), id: newId() }; return [...cs.slice(0, i + 1), copy, ...cs.slice(i + 1)]; }),
+        duplicateBlock: (cid) => setChildren((cs) => { const i = cs.findIndex((c) => c.id === cid); if (i < 0) return cs; return [...cs.slice(0, i + 1), regenIds(cs[i]), ...cs.slice(i + 1)]; }),
         removeBlock: (cid) => setChildren((cs) => cs.filter((c) => c.id !== cid)),
         moveBlockRelative: (dragId, targetId, before) => setChildren((cs) => moveChildRelative(cs, dragId, targetId, before)),
-        insertTemplate: (slot, blk) => { const col = Number(slot.replace("col-", "")) || 0; setChildren((cs) => [...cs, { ...structuredClone(blk), id: newId(), slot: "", col }]); },
+        insertTemplate: (slot, blk) => { const col = Number(slot.replace("col-", "")) || 0; setChildren((cs) => [...cs, { ...regenIds(blk), slot: "", col }]); },
         saveTemplate: ctx.saveTemplate,
         deleteTemplate: ctx.deleteTemplate,
       };
