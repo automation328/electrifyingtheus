@@ -18,6 +18,7 @@ import type { PageBlock } from "@/lib/page-content";
 import { useInlineEdit, InlineEditContext, type InlineEditContextValue } from "@/components/inline/edit-context";
 import { newBlock, newId, regenIds } from "@/components/inline/blocks/factory";
 import AddBlock from "@/components/inline/blocks/AddBlock";
+import LinkPicker from "@/components/inline/LinkPicker";
 import ImageUpload from "@/components/admin/ImageUpload";
 import { BLOCK_ICONS, BLOCK_ICON_KEYS } from "@/components/inline/blocks/icons";
 
@@ -288,9 +289,11 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
         <div className="inline-flex flex-col items-start gap-1.5">
           <span className={`inline-flex items-center justify-center gradient-hero text-white font-semibold rounded-xl ${sizeClass(block)} ${fontClass(block)}`}>{block.text || "Button"}</span>
           <input value={block.text ?? ""} onChange={(e) => up({ text: e.target.value })} placeholder="Button label" className="w-full min-w-[16rem] rounded-lg border border-border bg-background px-2.5 py-1.5 text-xs" />
-          <input value={block.href ?? ""} onChange={(e) => up({ href: e.target.value })} placeholder="Link (/page or https://…)" className="w-full min-w-[16rem] rounded-lg border border-border bg-background px-2.5 py-1.5 text-xs" />
+          <LinkPicker value={block.href ?? ""} onChange={(v) => up({ href: v })} className="w-full min-w-[16rem]" />
           <StyleControls block={block} up={up} />
         </div>
+      ) : (block.href && block.href.startsWith("/")) ? (
+        <Link to={block.href} className={`inline-flex items-center gap-1.5 gradient-hero text-white font-semibold rounded-xl hover:opacity-90 transition-opacity ${sizeClass(block)} ${fontClass(block)}`}>{block.text}</Link>
       ) : (
         <a href={block.href || "#"} className={`inline-flex items-center gap-1.5 gradient-hero text-white font-semibold rounded-xl hover:opacity-90 transition-opacity ${sizeClass(block)} ${fontClass(block)}`}>{block.text}</a>
       );
@@ -422,7 +425,7 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
               <div className="inline-flex flex-col items-center gap-1.5">
                 <span className="inline-flex items-center gap-1.5 bg-primary-foreground text-primary font-semibold px-6 py-3 rounded-xl">{block.buttonLabel || "Button"} <ArrowRight className="w-5 h-5" /></span>
                 <input value={block.buttonLabel ?? ""} onChange={(e) => up({ buttonLabel: e.target.value })} placeholder="Button label" className="rounded-lg border border-white/40 bg-white/10 px-2.5 py-1.5 text-xs text-white placeholder:text-white/60" />
-                <input value={block.href ?? ""} onChange={(e) => up({ href: e.target.value })} placeholder="Link (/page or https://…)" className="rounded-lg border border-white/40 bg-white/10 px-2.5 py-1.5 text-xs text-white placeholder:text-white/60" />
+                <LinkPicker value={block.href ?? ""} onChange={(v) => up({ href: v })} className="w-64 text-left" />
               </div>
             ) : (
               block.href?.startsWith("http")
