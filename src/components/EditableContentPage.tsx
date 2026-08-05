@@ -8,6 +8,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import ContentPageLayout from "@/components/ContentPageLayout";
 import EditBar from "@/components/inline/EditBar";
+import OutlinePanel from "@/components/inline/OutlinePanel";
 import { InlineEditContext, setPath, getPath } from "@/components/inline/edit-context";
 import { usePageOverride, mergePageOverride, pickPageOverride, EDITABLE_PAGES, type PageOverride, type PageBlock, type BlockType } from "@/lib/page-content";
 import { newBlock, newId, regenIds } from "@/components/inline/blocks/factory";
@@ -202,6 +203,7 @@ const EditableContentPage = ({ path, label, ...props }: LayoutProps & { path: st
   return (
     <InlineEditContext.Provider value={ctx}>
       <ContentPageLayout {...rendered} />
+      {editing && <OutlinePanel blocks={working.blocks ?? []} />}
       {isEditor && (
         <EditBar
           editing={editing}

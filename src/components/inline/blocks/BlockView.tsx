@@ -781,6 +781,7 @@ const BlockView = ({ block }: { block: PageBlock }) => {
 
   return (
     <div
+      data-block-id={block.id}
       className={`group relative rounded-xl ring-1 ring-transparent hover:ring-primary/40 transition p-3 ${align} ${dropEdge === "top" ? "border-t-2 border-primary" : dropEdge === "bottom" ? "border-b-2 border-primary" : ""}`}
       style={css}
       draggable={dragArmed}
