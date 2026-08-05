@@ -1,7 +1,7 @@
 // Floating toolbar shown to signed-in editors on an editable page. Toggles edit
 // mode and saves the working override as a draft or published.
 
-import { Pencil, Save, Rocket, X, Loader2, Circle, Undo2, Redo2 } from "lucide-react";
+import { Pencil, Save, Rocket, X, Loader2, Circle, Undo2, Redo2, Search } from "lucide-react";
 
 interface Props {
   editing: boolean;
@@ -15,9 +15,10 @@ interface Props {
   onCancel: () => void;
   onSaveDraft: () => void;
   onPublish: () => void;
+  onSeo: () => void;
 }
 
-const EditBar = ({ editing, dirty, saving, canUndo, canRedo, onUndo, onRedo, onEdit, onCancel, onSaveDraft, onPublish }: Props) => {
+const EditBar = ({ editing, dirty, saving, canUndo, canRedo, onUndo, onRedo, onEdit, onCancel, onSaveDraft, onPublish, onSeo }: Props) => {
   return (
     <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-[90]">
       {!editing ? (
@@ -35,6 +36,7 @@ const EditBar = ({ editing, dirty, saving, canUndo, canRedo, onUndo, onRedo, onE
           </span>
           <button onClick={onUndo} disabled={!canUndo || saving} className="p-2 rounded-full text-muted-foreground hover:bg-muted disabled:opacity-40" title="Undo"><Undo2 className="w-4 h-4" /></button>
           <button onClick={onRedo} disabled={!canRedo || saving} className="p-2 rounded-full text-muted-foreground hover:bg-muted disabled:opacity-40" title="Redo"><Redo2 className="w-4 h-4" /></button>
+          <button onClick={onSeo} disabled={saving} className="p-2 rounded-full text-muted-foreground hover:bg-muted disabled:opacity-40" title="Page SEO & sharing"><Search className="w-4 h-4" /></button>
           <button onClick={onSaveDraft} disabled={saving} className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-3.5 py-2 text-sm font-medium text-foreground hover:bg-muted disabled:opacity-60">
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Save draft
           </button>

@@ -64,6 +64,13 @@ export interface BlockStyle {
   radius?: number;    // corner radius (px)
 }
 
+/** Per-page SEO / social-share overrides. */
+export interface PageSeo {
+  title?: string;        // browser + social-card title (falls back to the page title)
+  description?: string;  // meta description / social summary (falls back to the intro)
+  image?: string;        // social-share image URL (falls back to the site default)
+}
+
 /** The overridable fields of a ContentPageLayout page (prose + images + blocks). */
 export interface PageOverride {
   badge?: string;
@@ -78,11 +85,12 @@ export interface PageOverride {
   heroImage?: string;
   gallery?: ContentShot[];
   blocks?: PageBlock[];
+  seo?: PageSeo;
 }
 
 export const PAGE_OVERRIDE_KEYS: (keyof PageOverride)[] = [
   "badge", "title", "highlight", "intro", "kicker", "pullQuote",
-  "stats", "sections", "sources", "heroImage", "gallery", "blocks",
+  "stats", "sections", "sources", "heroImage", "gallery", "blocks", "seo",
 ];
 
 /** Pages wired to EditableContentPage — shown in the CMS Pages editor. */

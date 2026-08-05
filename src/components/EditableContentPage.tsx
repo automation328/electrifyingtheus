@@ -9,6 +9,8 @@ import { toast } from "sonner";
 import ContentPageLayout from "@/components/ContentPageLayout";
 import EditBar from "@/components/inline/EditBar";
 import OutlinePanel from "@/components/inline/OutlinePanel";
+import SeoModal from "@/components/inline/SeoModal";
+import SeoHead from "@/components/SeoHead";
 import { InlineEditContext, setPath, getPath } from "@/components/inline/edit-context";
 import { usePageOverride, mergePageOverride, pickPageOverride, EDITABLE_PAGES, type PageOverride, type PageBlock, type BlockType } from "@/lib/page-content";
 import { newBlock, newId, regenIds } from "@/components/inline/blocks/factory";
@@ -81,6 +83,7 @@ const EditableContentPage = ({ path, label, ...props }: LayoutProps & { path: st
   const baseOverride = (isEditor ? (editorRowQuery.data?.content ?? published) : published) as PageOverride | null;
 
   const [editing, setEditing] = useState(false);
+  const [seoOpen, setSeoOpen] = useState(false);
   const [hist, setHist] = useState<{ stack: PageOverride[]; idx: number }>({ stack: [{}], idx: 0 });
   const [saving, setSaving] = useState(false);
   const working = hist.stack[hist.idx];
@@ -200,10 +203,27 @@ const EditableContentPage = ({ path, label, ...props }: LayoutProps & { path: st
     }
   };
 
+  const ov = rendered as PageOverride;
+  const fallbackTitle = ov.title;
+  const fallbackDesc = typeof ov.intro === "string" ? ov.intro : undefined;
+  const seoTitle = ov.seo?.title || (fallbackTitle ? `${fallbackTitle} — Electrifying the US` : undefined);
+  const seoDesc = ov.seo?.description || (fallbackDesc ? fallbackDesc.slice(0, 160) : undefined);
+  const seoImage = ov.seo?.image || undefined;
+
   return (
     <InlineEditContext.Provider value={ctx}>
+      <SeoHead title={seoTitle} description={seoDesc} image={seoImage} />
       <ContentPageLayout {...rendered} />
       {editing && <OutlinePanel blocks={working.blocks ?? []} />}
+      {editing && seoOpen && (
+        <SeoModal
+          seo={working.seo ?? {}}
+          fallbackTitle={fallbackTitle}
+          fallbackDescription={fallbackDesc}
+          onChange={(seo) => commit({ ...working, seo })}
+          onClose={() => setSeoOpen(false)}
+        />
+      )}
       {isEditor && (
         <EditBar
           editing={editing}
@@ -217,6 +237,7 @@ const EditableContentPage = ({ path, label, ...props }: LayoutProps & { path: st
           onCancel={cancel}
           onSaveDraft={() => save("draft")}
           onPublish={() => save("published")}
+          onSeo={() => setSeoOpen(true)}
         />
       )}
     </InlineEditContext.Provider>

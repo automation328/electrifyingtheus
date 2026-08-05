@@ -56,6 +56,38 @@ const money = (n: number) => "$" + Math.max(0, Math.round(n)).toLocaleString("en
 
 interface Meta { title: string; description: string; image: string; url: string; }
 
+// Best-effort: pull a published page's editor-set SEO (site_pages.content.seo)
+// so social crawlers get the same title/description/share-image an editor set in
+// the CMS. Fully guarded (timeout + try/catch) — any failure leaves the static
+// OG fallback untouched.
+async function fetchPageSeo(path: string): Promise<Partial<Meta> | null> {
+  const base = process.env.VITE_SUPABASE_URL;
+  const anon = process.env.VITE_SUPABASE_ANON_KEY;
+  if (!base || !anon) return null;
+  try {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 800);
+    const res = await fetch(
+      `${base}/rest/v1/site_pages?path=eq.${encodeURIComponent(path)}&status=eq.published&select=content,title`,
+      { headers: { apikey: anon, authorization: `Bearer ${anon}` }, signal: ctrl.signal },
+    );
+    clearTimeout(timer);
+    if (!res.ok) return null;
+    const rows = await res.json();
+    const row = Array.isArray(rows) ? rows[0] : null;
+    if (!row) return null;
+    const seo = row.content?.seo ?? {};
+    const out: Partial<Meta> = {};
+    if (seo.title) out.title = seo.title;
+    else if (row.content?.title) out.title = `${row.content.title} — Electrifying the US`;
+    else if (row.title) out.title = row.title;
+    if (seo.description) out.description = seo.description;
+    else if (typeof row.content?.intro === "string") out.description = row.content.intro.slice(0, 200);
+    if (seo.image) out.image = seo.image;
+    return Object.keys(out).length ? out : null;
+  } catch { return null; }
+}
+
 function calculatorMeta(url: URL, origin: string): Meta {
   const p = url.searchParams;
   const image = origin + "/og/calculator.jpg";
@@ -152,7 +184,7 @@ function gateHtml(): string {
 </body></html>`;
 }
 
-export default function middleware(request: Request) {
+export default async function middleware(request: Request) {
   const ua = request.headers.get("user-agent") || "";
 
   // Embedded tool requests (`?embed=1` on an EMBED_TOOL_PATHS route) skip the
@@ -215,6 +247,17 @@ export default function middleware(request: Request) {
       image: origin + SITE_DEFAULT.image,
       url: origin + path,
     };
+  }
+
+  // Editor-set SEO wins over the static fallback (skip the calculator, whose
+  // cards are computed from the share URL's result params).
+  if (path !== "/electricity-vs-gasoline" && path !== "/gm-ev-vs-gas") {
+    const override = await fetchPageSeo(path);
+    if (override) {
+      if (override.title) meta.title = override.title;
+      if (override.description) meta.description = override.description;
+      if (override.image) meta.image = override.image.startsWith("http") ? override.image : origin + override.image;
+    }
   }
 
   const html = `<!doctype html><html lang="en"><head><meta charset="utf-8">
