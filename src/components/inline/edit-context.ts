@@ -20,6 +20,8 @@ export interface InlineEditContextValue {
   updateBlock: (id: string, patch: Partial<PageBlock>) => void;
   /** Move a block up/down among the blocks sharing its slot. */
   moveBlock: (id: string, dir: -1 | 1) => void;
+  /** Duplicate a block (inserted right after the original). */
+  duplicateBlock: (id: string) => void;
   /** Remove a block by id. */
   removeBlock: (id: string) => void;
 }

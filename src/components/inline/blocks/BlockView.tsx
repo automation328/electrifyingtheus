@@ -6,8 +6,10 @@ import { useState, useEffect } from "react";
 import {
   ArrowUp, ArrowDown, Trash2, AlignLeft, AlignCenter, AlignRight,
   Image as ImageIcon, Film, X, Search, Plus, ChevronDown, ArrowRight,
+  Copy, Palette,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import type { BlockStyle } from "@/lib/page-content";
 import type { PageBlock } from "@/lib/page-content";
 import { useInlineEdit, type InlineEditContextValue } from "@/components/inline/edit-context";
 import ImageUpload from "@/components/admin/ImageUpload";
@@ -480,7 +482,91 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
   }
 };
 
-const Toolbar = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextValue }) => {
+/* ── Per-block style (Elementor-like) ─────────────────────────────────────── */
+const BG_SWATCHES: [string, string][] = [
+  ["None", ""], ["White", "#ffffff"], ["Light", "hsl(var(--muted))"], ["Dark", "#0f172a"],
+  ["Primary", "hsl(var(--primary))"], ["Secondary", "hsl(var(--secondary))"],
+];
+const TEXT_SWATCHES: [string, string][] = [
+  ["Default", ""], ["Dark", "#0f172a"], ["White", "#ffffff"], ["Muted", "hsl(var(--muted-foreground))"], ["Primary", "hsl(var(--primary))"],
+];
+const maxWClass = (w?: string) => ({ sm: "max-w-md mx-auto", md: "max-w-2xl mx-auto", lg: "max-w-4xl mx-auto", full: "" }[w ?? "full"] ?? "");
+
+const styleToCss = (s?: BlockStyle): React.CSSProperties => {
+  if (!s) return {};
+  return {
+    backgroundColor: s.bg || undefined,
+    color: s.color || undefined,
+    paddingTop: s.padY || undefined,
+    paddingBottom: s.padY || undefined,
+    borderRadius: s.radius || undefined,
+    backgroundImage: s.bgImage ? `url(${s.bgImage})` : undefined,
+    backgroundSize: s.bgImage ? "cover" : undefined,
+    backgroundPosition: s.bgImage ? "center" : undefined,
+  };
+};
+
+const Swatch = ({ value, active, onClick }: { value: string; active: boolean; onClick: () => void }) => (
+  <button type="button" onClick={onClick} title={value || "none"} className={`w-7 h-7 rounded-lg border ${active ? "ring-2 ring-primary border-primary" : "border-border"} ${value ? "" : "bg-[repeating-conic-gradient(#ccc_0_25%,#fff_0_50%)] bg-[length:10px_10px]"}`} style={value ? { backgroundColor: value } : undefined} />
+);
+
+const StylePanel = ({ block, up, onClose }: { block: PageBlock; up: (p: Partial<PageBlock>) => void; onClose: () => void }) => {
+  const s = block.style ?? {};
+  const setStyle = (patch: Partial<BlockStyle>) => up({ style: { ...s, ...patch } });
+  const [bgImgOpen, setBgImgOpen] = useState(false);
+  const lbl = "block text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1.5";
+  return (
+    <Modal title="Block style" onClose={onClose}>
+      <div className="space-y-4 text-left">
+        <div>
+          <label className={lbl}>Background</label>
+          <div className="flex flex-wrap items-center gap-1.5">
+            {BG_SWATCHES.map(([name, v]) => <Swatch key={name} value={v} active={(s.bg ?? "") === v && !s.bgImage} onClick={() => setStyle({ bg: v, bgImage: "" })} />)}
+            <input type="color" value={/^#/.test(s.bg ?? "") ? s.bg : "#ffffff"} onChange={(e) => setStyle({ bg: e.target.value, bgImage: "" })} className="w-7 h-7 rounded-lg border border-border bg-transparent cursor-pointer" title="Custom colour" />
+            <button type="button" onClick={() => setBgImgOpen(true)} className="inline-flex items-center gap-1 rounded-lg border border-border px-2 py-1 text-xs hover:bg-muted"><ImageIcon className="w-3.5 h-3.5" /> Image</button>
+          </div>
+          {s.bgImage && <div className="mt-1.5 flex items-center gap-2 text-xs text-muted-foreground"><img src={s.bgImage} alt="" className="w-10 h-8 object-cover rounded" /> background image <button onClick={() => setStyle({ bgImage: "" })} className="text-destructive hover:underline">remove</button></div>}
+          {bgImgOpen && <div className="mt-2"><ImageUpload value={s.bgImage ?? ""} onChange={(url) => setStyle({ bgImage: url })} /></div>}
+        </div>
+
+        <div>
+          <label className={lbl}>Text colour</label>
+          <div className="flex flex-wrap items-center gap-1.5">
+            {TEXT_SWATCHES.map(([name, v]) => <Swatch key={name} value={v} active={(s.color ?? "") === v} onClick={() => setStyle({ color: v })} />)}
+            <input type="color" value={/^#/.test(s.color ?? "") ? s.color : "#0f172a"} onChange={(e) => setStyle({ color: e.target.value })} className="w-7 h-7 rounded-lg border border-border bg-transparent cursor-pointer" title="Custom colour" />
+          </div>
+        </div>
+
+        <div>
+          <label className={lbl}>Content width</label>
+          <div className="inline-flex gap-1">
+            {(["sm", "md", "lg", "full"] as const).map((w) => (
+              <button key={w} onClick={() => setStyle({ maxW: w })} className={`px-2.5 py-1 rounded-lg text-xs capitalize ${(s.maxW ?? "full") === w ? "gradient-hero text-white" : "border border-border text-muted-foreground hover:bg-muted"}`}>{w}</button>
+            ))}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className={lbl}>Vertical padding: {s.padY ?? 0}px</label>
+            <input type="range" min={0} max={96} value={s.padY ?? 0} onChange={(e) => setStyle({ padY: Number(e.target.value) })} className="w-full" />
+          </div>
+          <div>
+            <label className={lbl}>Rounded: {s.radius ?? 0}px</label>
+            <input type="range" min={0} max={40} value={s.radius ?? 0} onChange={(e) => setStyle({ radius: Number(e.target.value) })} className="w-full" />
+          </div>
+        </div>
+
+        <div className="flex justify-between pt-1">
+          <button onClick={() => up({ style: {} })} className="text-xs text-muted-foreground hover:text-destructive">Clear styles</button>
+          <button onClick={onClose} className="rounded-xl gradient-hero text-white font-semibold px-5 py-2 text-sm">Done</button>
+        </div>
+      </div>
+    </Modal>
+  );
+};
+
+const Toolbar = ({ block, ctx, onStyle }: { block: PageBlock; ctx: InlineEditContextValue; onStyle: () => void }) => {
   const btn = "p-1.5 rounded-md text-white/90 hover:bg-white/15";
   const setAlign = (a: PageBlock["align"]) => ctx.updateBlock(block.id, { align: a });
   const hasAlign = ["heading", "text", "button", "image", "icon"].includes(block.type);
@@ -494,6 +580,9 @@ const Toolbar = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextValue
           <span className="w-px h-4 bg-white/20 mx-0.5" />
         </>
       )}
+      <button className={btn} onClick={onStyle} title="Style"><Palette className="w-3.5 h-3.5" /></button>
+      <button className={btn} onClick={() => ctx.duplicateBlock(block.id)} title="Duplicate"><Copy className="w-3.5 h-3.5" /></button>
+      <span className="w-px h-4 bg-white/20 mx-0.5" />
       <button className={btn} onClick={() => ctx.moveBlock(block.id, -1)} title="Move up"><ArrowUp className="w-3.5 h-3.5" /></button>
       <button className={btn} onClick={() => ctx.moveBlock(block.id, 1)} title="Move down"><ArrowDown className="w-3.5 h-3.5" /></button>
       <button className={`${btn} hover:bg-red-500/60`} onClick={() => ctx.removeBlock(block.id)} title="Delete"><Trash2 className="w-3.5 h-3.5" /></button>
@@ -503,13 +592,20 @@ const Toolbar = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextValue
 
 const BlockView = ({ block }: { block: PageBlock }) => {
   const ctx = useInlineEdit();
+  const [styleOpen, setStyleOpen] = useState(false);
   if (!ctx) return null;
   const align = alignClass(block.align);
-  if (!ctx.editing) return <div className={align}><BlockBody block={block} ctx={ctx} /></div>;
+  const css = styleToCss(block.style);
+  const inner = <div className={maxWClass(block.style?.maxW)}><BlockBody block={block} ctx={ctx} /></div>;
+
+  if (!ctx.editing) return <div className={align} style={css}>{inner}</div>;
+
+  const up = (patch: Partial<PageBlock>) => ctx.updateBlock(block.id, patch);
   return (
-    <div className={`group relative rounded-xl ring-1 ring-transparent hover:ring-primary/40 transition p-3 ${align}`}>
-      <Toolbar block={block} ctx={ctx} />
-      <BlockBody block={block} ctx={ctx} />
+    <div className={`group relative rounded-xl ring-1 ring-transparent hover:ring-primary/40 transition p-3 ${align}`} style={css}>
+      <Toolbar block={block} ctx={ctx} onStyle={() => setStyleOpen(true)} />
+      {inner}
+      {styleOpen && <StylePanel block={block} up={up} onClose={() => setStyleOpen(false)} />}
     </div>
   );
 };

@@ -42,6 +42,16 @@ export interface PageBlock {
   subtext?: string;                 // cta subtext
   buttonLabel?: string;             // cta button label
   variant?: string;                 // design variant (countdown: boxes | cards | inline | minimal)
+  style?: BlockStyle;               // per-block style (Elementor-like)
+}
+
+export interface BlockStyle {
+  bg?: string;        // background color (CSS value) or ""
+  bgImage?: string;   // background image URL
+  color?: string;     // text color (CSS value)
+  padY?: number;      // vertical padding (px)
+  maxW?: "sm" | "md" | "lg" | "full";  // content width
+  radius?: number;    // corner radius (px)
 }
 
 /** The overridable fields of a ContentPageLayout page (prose + images + blocks). */

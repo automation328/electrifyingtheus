@@ -132,6 +132,13 @@ const EditableContentPage = ({ path, label, ...props }: LayoutProps & { path: st
     addBlock: (slot: string, type: BlockType) => mutateBlocks((blocks) => [...blocks, { ...newBlock(type), slot }]),
     updateBlock: (id: string, patch: Partial<PageBlock>) => mutateBlocks((blocks) => blocks.map((b) => (b.id === id ? { ...b, ...patch } : b))),
     moveBlock: (id: string, dir: -1 | 1) => mutateBlocks((blocks) => moveBlockInList(blocks, id, dir, slotOrder)),
+    duplicateBlock: (id: string) => mutateBlocks((blocks) => {
+      const i = blocks.findIndex((b) => b.id === id);
+      if (i < 0) return blocks;
+      const copy = structuredClone(blocks[i]);
+      copy.id = (typeof crypto !== "undefined" && crypto.randomUUID) ? crypto.randomUUID() : `blk_${Date.now()}_${Math.round(Math.random() * 1e6)}`;
+      return [...blocks.slice(0, i + 1), copy, ...blocks.slice(i + 1)];
+    }),
     removeBlock: (id: string) => mutateBlocks((blocks) => blocks.filter((b) => b.id !== id)),
   }), [editing, working, slotOrder]);
 
