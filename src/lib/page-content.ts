@@ -70,6 +70,7 @@ export interface BlockStyle {
   gradient?: { from: string; to: string; angle?: number };  // gradient background
   hover?: "none" | "lift" | "zoom" | "glow";  // hover motion effect (view mode)
   anim?: "none" | "fade" | "up" | "left" | "right" | "zoom";  // entrance animation on scroll-in
+  animDelay?: number;  // entrance animation delay (ms) — used for staggering
 }
 
 /** Per-page SEO / social-share overrides. */

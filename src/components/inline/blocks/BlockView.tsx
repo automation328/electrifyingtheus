@@ -630,6 +630,8 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
               {[1, 2, 3, 4].map((n) => <button key={n} onClick={() => up({ cols: n })} className={`px-2 py-0.5 rounded ${cols === n ? "gradient-hero text-white" : "text-muted-foreground hover:bg-muted"}`}>{n}</button>)}
               <span className="w-px h-4 bg-border mx-0.5" />
               <button onClick={() => up({ fullWidth: !block.fullWidth })} className={`px-2 py-0.5 rounded ${block.fullWidth ? "gradient-hero text-white" : "text-muted-foreground hover:bg-muted"}`}>Full width</button>
+              <span className="w-px h-4 bg-border mx-0.5" />
+              <button onClick={() => up({ children: children.map((c, i) => ({ ...c, style: { ...(c.style ?? {}), anim: c.style?.anim && c.style.anim !== "none" ? c.style.anim : "up", animDelay: i * 120 } })) })} className="px-2 py-0.5 rounded text-muted-foreground hover:bg-muted" title="Give each child a staggered entrance animation">Stagger children</button>
             </div>
           )}
         </InlineEditContext.Provider>
@@ -794,6 +796,12 @@ const StylePanel = ({ block, up, onClose }: { block: PageBlock; up: (p: Partial<
               <button key={an} onClick={() => setStyle({ anim: an })} className={`px-2.5 py-1 rounded-lg text-xs capitalize ${(s.anim ?? "none") === an ? "gradient-hero text-white" : "border border-border text-muted-foreground hover:bg-muted"}`}>{an === "up" ? "Slide up" : an === "left" ? "Slide L" : an === "right" ? "Slide R" : an}</button>
             ))}
           </div>
+          {s.anim && s.anim !== "none" && (
+            <div className="mt-2">
+              <label className={lbl}>Delay: {s.animDelay ?? 0}ms</label>
+              <input type="range" min={0} max={1000} step={50} value={s.animDelay ?? 0} onChange={(e) => setStyle({ animDelay: Number(e.target.value) })} className="w-full" />
+            </div>
+          )}
         </div>
 
         <div>
@@ -896,7 +904,8 @@ const BlockView = ({ block }: { block: PageBlock }) => {
 
   if (!ctx.editing) {
     const animCls = animated ? `transition-all duration-700 ease-out ${inView ? "opacity-100 translate-x-0 translate-y-0 scale-100" : animHidden(anim)}` : "";
-    return <div ref={revealRef} {...anchorProps} className={`${align} ${visClass(block)} ${hoverClass(block.style?.hover)} ${animCls}`} style={css}>{inner}</div>;
+    const animStyle = animated && block.style?.animDelay ? { ...css, transitionDelay: `${block.style.animDelay}ms` } : css;
+    return <div ref={revealRef} {...anchorProps} className={`${align} ${visClass(block)} ${hoverClass(block.style?.hover)} ${animCls}`} style={animStyle}>{inner}</div>;
   }
 
   const up = (patch: Partial<PageBlock>) => ctx.updateBlock(block.id, patch);
