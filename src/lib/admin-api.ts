@@ -38,13 +38,18 @@ async function call<T>(payload: Record<string, unknown>): Promise<T> {
 export type EditorRole = "admin" | "editor" | "author" | "viewer";
 export interface EditorRow { id: string; email: string; role: EditorRole; created_at: string }
 
+export interface AddEditorResult { row: EditorRow; tempPassword?: string; loginExists?: boolean; loginError?: string }
+
 export async function listEditors(): Promise<EditorRow[]> {
   const { rows } = await call<{ rows: EditorRow[] }>({ op: "editors", action: "list" });
   return rows;
 }
-export async function addEditor(email: string, role: EditorRole): Promise<EditorRow> {
-  const { row } = await call<{ row: EditorRow }>({ op: "editors", action: "add", email, role });
-  return row;
+export async function addEditor(email: string, role: EditorRole, opts?: { createLogin?: boolean; password?: string }): Promise<AddEditorResult> {
+  return call<AddEditorResult>({ op: "editors", action: "add", email, role, createLogin: opts?.createLogin ?? false, password: opts?.password });
+}
+/** Create/reset the Supabase Auth login for an email. Returns the temp password if one was generated. */
+export async function setEditorPassword(email: string, password?: string): Promise<{ tempPassword?: string }> {
+  return call<{ tempPassword?: string }>({ op: "editors", action: "set-password", email, password });
 }
 export async function setEditorRole(id: string, role: EditorRole): Promise<EditorRow> {
   const { row } = await call<{ row: EditorRow }>({ op: "editors", action: "role", id, role });

@@ -7,7 +7,8 @@
 //   POST /api/admin
 //   { op: "me" }                                            → { email, role }
 //   { op: "editors", action: "list" }                       → { rows }        (admin only)
-//   { op: "editors", action: "add",    email, role }        → { row }
+//   { op: "editors", action: "add",    email, role, createLogin?, password? } → { row, tempPassword?, loginExists? }
+//   { op: "editors", action: "set-password", email, password? }              → { ok, tempPassword? }
 //   { op: "editors", action: "role",   id, role }           → { row }
 //   { op: "editors", action: "remove", id }                 → { ok }
 //   { op: "editors", action: "invite", email }              → { ok }
@@ -21,6 +22,7 @@
 //
 // Env (server-only): SUPABASE_SERVICE_ROLE_KEY, VITE_SUPABASE_URL/ANON, GEMINI_API_KEY.
 
+import { randomBytes } from "node:crypto";
 import { getEditor, requireEditor, adminSupabase } from "./_admin-auth.js";
 // NOTE: mammoth / pdf-parse are imported LAZILY inside handleKbUpload — a top-level
 // import of pdf-parse (pdfjs) crashes the whole serverless function at load, which
@@ -45,6 +47,8 @@ const canPublish = (r: string) => r === "admin" || r === "editor";   // publish 
 const canSettings = (r: string) => r === "admin" || r === "editor";  // site_settings (theme/nav/footer)
 const canKb = (r: string) => r === "admin" || r === "editor";        // EVan knowledge base
 const validEmail = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
+// A strong, url-safe temporary password (admin shares it; user changes it later).
+const genPassword = () => randomBytes(12).toString("base64url");
 const forbid = (res: { status: (n: number) => { json: (o: unknown) => void } }, detail: string) => res.status(403).json({ error: "forbidden", detail });
 
 // ── upload ───────────────────────────────────────────────────────────────────
@@ -202,7 +206,50 @@ async function handleEditors(b: Record<string, unknown>, res: any, role: string,
       res.status(dup ? 409 : 400).json({ error: dup ? "already_exists" : "insert_failed", detail: dup ? "That email is already a user." : error.message });
       return;
     }
-    res.status(200).json({ row: data });
+    // Optionally provision the Supabase Auth login so no dashboard trip is needed.
+    let tempPassword: string | undefined;
+    let loginExists = false;
+    let loginError: string | undefined;
+    if (b.createLogin === true) {
+      const provided = typeof b.password === "string" && b.password.length >= 8 ? b.password : "";
+      const pwd = provided || genPassword();
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { error: cErr } = await (db as any).auth.admin.createUser({ email, password: pwd, email_confirm: true });
+        if (cErr) {
+          if (/registered|already|exists/i.test(cErr.message)) loginExists = true;
+          else loginError = cErr.message;
+        } else if (!provided) {
+          tempPassword = pwd; // reveal only the generated one
+        }
+      } catch (e) { loginError = e instanceof Error ? e.message : String(e); }
+    }
+    res.status(200).json({ row: data, tempPassword, loginExists, loginError });
+    return;
+  }
+  if (action === "set-password") {
+    const email = String(b.email ?? "").trim().toLowerCase();
+    if (!validEmail(email)) { res.status(400).json({ error: "bad_email" }); return; }
+    const provided = typeof b.password === "string" && b.password.length >= 8 ? b.password : "";
+    const pwd = provided || genPassword();
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const list = await (db as any).auth.admin.listUsers({ page: 1, perPage: 200 });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const user = list?.data?.users?.find((u: any) => String(u.email || "").toLowerCase() === email);
+      if (user) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { error } = await (db as any).auth.admin.updateUserById(user.id, { password: pwd });
+        if (error) { res.status(400).json({ error: "set_password_failed", detail: error.message }); return; }
+      } else {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { error } = await (db as any).auth.admin.createUser({ email, password: pwd, email_confirm: true });
+        if (error) { res.status(400).json({ error: "set_password_failed", detail: error.message }); return; }
+      }
+      res.status(200).json({ ok: true, tempPassword: provided ? undefined : pwd });
+    } catch (e) {
+      res.status(400).json({ error: "set_password_failed", detail: e instanceof Error ? e.message : String(e) });
+    }
     return;
   }
   if (action === "role") {

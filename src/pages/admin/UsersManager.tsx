@@ -6,8 +6,8 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Loader2, UserPlus, Trash2, Mail, ShieldCheck, AlertCircle, Users } from "lucide-react";
-import { listEditors, addEditor, setEditorRole, removeEditor, inviteEditor, type EditorRow, type EditorRole } from "@/lib/admin-api";
+import { Loader2, UserPlus, Trash2, Mail, ShieldCheck, AlertCircle, Users, KeyRound, Copy, Check, X } from "lucide-react";
+import { listEditors, addEditor, setEditorRole, removeEditor, inviteEditor, setEditorPassword, type EditorRow, type EditorRole } from "@/lib/admin-api";
 import { useEditorAuth } from "@/lib/auth";
 
 const ROLE_INFO: { value: EditorRole; label: string; desc: string }[] = [
@@ -35,24 +35,44 @@ const UsersManager = () => {
 
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<EditorRole>("editor");
+  const [createLogin, setCreateLogin] = useState(true);
   const [busy, setBusy] = useState(false);
+  // A just-created/reset password to show once so the admin can copy + share it.
+  const [cred, setCred] = useState<{ email: string; password: string } | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const invalidate = () => qc.invalidateQueries({ queryKey: ["admin-editors"] });
+
+  const copyCred = async () => {
+    if (!cred) return;
+    try { await navigator.clipboard.writeText(cred.password); setCopied(true); setTimeout(() => setCopied(false), 1500); }
+    catch { toast.error("Couldn't copy — select and copy manually."); }
+  };
 
   const add = async () => {
     const e = email.trim().toLowerCase();
     if (!e) return;
     setBusy(true);
     try {
-      await addEditor(e, role);
+      const r = await addEditor(e, role, { createLogin });
       invalidate();
       setEmail("");
-      // Best-effort invite so they can set a password; not fatal if email isn't set up.
-      try { await inviteEditor(e); toast.success(`Added ${e} and sent an invite email`); }
-      catch { toast.success(`Added ${e}`, { description: "They'll need a login — use Invite, or create their account in Supabase." }); }
+      if (r.tempPassword) { setCred({ email: e, password: r.tempPassword }); toast.success(`Login created for ${e}`); }
+      else if (r.loginExists) toast.success(`Added ${e}`, { description: "They already have a login and can sign in." });
+      else if (r.loginError) toast.warning(`Added ${e}`, { description: `Couldn't create login: ${r.loginError}` });
+      else toast.success(`Added ${e}`, { description: "Use “Set password” to give them a login." });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Couldn't add user.");
     } finally { setBusy(false); }
+  };
+
+  const setPassword = async (row: EditorRow) => {
+    if (!window.confirm(`Set a new temporary password for ${row.email}? Their current password (if any) will stop working.`)) return;
+    try {
+      const { tempPassword } = await setEditorPassword(row.email);
+      if (tempPassword) { setCred({ email: row.email, password: tempPassword }); toast.success(`New password set for ${row.email}`); }
+      else toast.success(`Password updated for ${row.email}`);
+    } catch (err) { toast.error(err instanceof Error ? err.message : "Couldn't set password."); }
   };
 
   const changeRole = async (row: EditorRow, next: EditorRole) => {
@@ -99,8 +119,31 @@ const UsersManager = () => {
             {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserPlus className="w-4 h-4" />} Add
           </button>
         </div>
-        <p className="text-xs text-muted-foreground mt-2">We'll email them an invite to set a password. If email isn't set up, create their account in Supabase — then this allow-list grants access.</p>
+        <label className="mt-3 flex items-center gap-2 text-sm text-foreground">
+          <input type="checkbox" checked={createLogin} onChange={(e) => setCreateLogin(e.target.checked)} />
+          Create their login now &amp; show a temporary password to share
+        </label>
+        <p className="text-xs text-muted-foreground mt-1.5">No Supabase trip needed. Leave this on to provision their account instantly — you'll get a one-time password to send them (they can change it after signing in). Turn it off to only add them to the allow-list.</p>
       </div>
+
+      {cred && (
+        <div className="rounded-2xl border border-primary/40 bg-primary/5 p-5 mb-5">
+          <div className="flex items-start gap-2">
+            <KeyRound className="w-5 h-5 text-primary mt-0.5 shrink-0" />
+            <div className="min-w-0 flex-1">
+              <div className="font-semibold text-foreground">Login ready for {cred.email}</div>
+              <p className="text-xs text-muted-foreground mt-0.5">Share this one-time password securely. It won't be shown again — ask them to change it after signing in.</p>
+              <div className="mt-2 flex items-center gap-2">
+                <code className="rounded-lg border border-border bg-background px-3 py-2 text-sm font-mono text-foreground select-all break-all">{cred.password}</code>
+                <button onClick={copyCred} className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-muted">
+                  {copied ? <Check className="w-4 h-4 text-primary" /> : <Copy className="w-4 h-4" />} {copied ? "Copied" : "Copy"}
+                </button>
+              </div>
+            </div>
+            <button onClick={() => setCred(null)} className="p-1.5 rounded-lg text-muted-foreground hover:bg-muted" title="Dismiss"><X className="w-4 h-4" /></button>
+          </div>
+        </div>
+      )}
 
       {error && (
         <div className="rounded-xl border border-amber-300 bg-amber-50 text-amber-900 px-4 py-3 text-sm mb-4 flex items-start gap-2">
@@ -126,6 +169,7 @@ const UsersManager = () => {
                 <select value={row.role} onChange={(e) => changeRole(row, e.target.value as EditorRole)} disabled={isMe} title={isMe ? "You can't change your own role" : "Change role"} className="rounded-lg border border-border bg-background px-2 py-1.5 text-sm disabled:opacity-50">
                   {ROLE_INFO.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
                 </select>
+                <button onClick={() => setPassword(row)} className="p-2 rounded-lg text-muted-foreground hover:text-primary hover:bg-muted" title="Set a new temporary password"><KeyRound className="w-4 h-4" /></button>
                 <button onClick={() => invite(row)} className="p-2 rounded-lg text-muted-foreground hover:text-primary hover:bg-muted" title="Email an invite / password link"><Mail className="w-4 h-4" /></button>
                 <button onClick={() => remove(row)} disabled={isMe} className="p-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-muted disabled:opacity-40" title={isMe ? "You can't remove yourself" : "Remove user"}><Trash2 className="w-4 h-4" /></button>
               </li>
