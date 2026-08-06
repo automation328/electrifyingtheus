@@ -77,6 +77,25 @@ function moveBlockInList(blocks: PageBlock[], id: string, dir: -1 | 1, slotOrder
   return without;
 }
 
+// Recursive block ops that also descend into container children, so edits from
+// the Layers panel / Inspector act on nested blocks (not just top-level ones).
+function patchBlockDeep(blocks: PageBlock[], id: string, patch: Partial<PageBlock>): PageBlock[] {
+  return blocks.map((b) =>
+    b.id === id ? { ...b, ...patch }
+      : b.children?.length ? { ...b, children: patchBlockDeep(b.children, id, patch) }
+        : b);
+}
+function removeBlockDeep(blocks: PageBlock[], id: string): PageBlock[] {
+  return blocks
+    .filter((b) => b.id !== id)
+    .map((b) => (b.children?.length ? { ...b, children: removeBlockDeep(b.children, id) } : b));
+}
+function duplicateBlockDeep(blocks: PageBlock[], id: string): PageBlock[] {
+  const i = blocks.findIndex((b) => b.id === id);
+  if (i >= 0) return [...blocks.slice(0, i + 1), regenIds(blocks[i]), ...blocks.slice(i + 1)];
+  return blocks.map((b) => (b.children?.length ? { ...b, children: duplicateBlockDeep(b.children, id) } : b));
+}
+
 const EditableContentPage = ({ path, label, ...props }: LayoutProps & { path: string; label?: string }) => {
   const qc = useQueryClient();
   const auth = useEditorAuth();
@@ -131,14 +150,10 @@ const EditableContentPage = ({ path, label, ...props }: LayoutProps & { path: st
     set: (p: string, v: unknown) => commit(trackCleared(setPath(working, p, v), p, v)),
     get: (p: string) => getPath(working, p),
     addBlock: (slot: string, type: BlockType) => mutateBlocks((blocks) => [...blocks, { ...newBlock(type), slot }]),
-    updateBlock: (id: string, patch: Partial<PageBlock>) => mutateBlocks((blocks) => blocks.map((b) => (b.id === id ? { ...b, ...patch } : b))),
+    updateBlock: (id: string, patch: Partial<PageBlock>) => mutateBlocks((blocks) => patchBlockDeep(blocks, id, patch)),
     moveBlock: (id: string, dir: -1 | 1) => mutateBlocks((blocks) => moveBlockInList(blocks, id, dir, slotOrder)),
-    duplicateBlock: (id: string) => mutateBlocks((blocks) => {
-      const i = blocks.findIndex((b) => b.id === id);
-      if (i < 0) return blocks;
-      return [...blocks.slice(0, i + 1), regenIds(blocks[i]), ...blocks.slice(i + 1)];
-    }),
-    removeBlock: (id: string) => mutateBlocks((blocks) => blocks.filter((b) => b.id !== id)),
+    duplicateBlock: (id: string) => mutateBlocks((blocks) => duplicateBlockDeep(blocks, id)),
+    removeBlock: (id: string) => mutateBlocks((blocks) => removeBlockDeep(blocks, id)),
     insertTemplate: (slot: string, block: PageBlock) => mutateBlocks((blocks) => [...blocks, { ...regenIds(block), slot }]),
     saveTemplate: async (block: PageBlock, name: string) => {
       try {

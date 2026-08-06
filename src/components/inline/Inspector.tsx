@@ -11,10 +11,10 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import {
   ListTree, SlidersHorizontal, ChevronRight, ChevronDown, Layers as LayersIcon,
-  X, MousePointerClick,
+  X, MousePointerClick, Eye, EyeOff, Copy, Trash2,
 } from "lucide-react";
 import type { PageBlock } from "@/lib/page-content";
-import { useInlineEdit } from "@/components/inline/edit-context";
+import { useInlineEdit, type InlineEditContextValue } from "@/components/inline/edit-context";
 
 export const INSPECTOR_BODY_ID = "cms-inspector-body";
 
@@ -69,25 +69,34 @@ const flash = (el: Element) => {
   window.setTimeout(() => { node.style.boxShadow = prev; }, 900);
 };
 
-const Node = ({ block, depth, activeId, onSelect }: { block: PageBlock; depth: number; activeId: string | null; onSelect: (id: string) => void }) => {
+const Node = ({ block, depth, activeId, onSelect, ctx }: { block: PageBlock; depth: number; activeId: string | null; onSelect: (id: string) => void; ctx: InlineEditContextValue }) => {
   const [open, setOpen] = useState(true);
   const kids = block.children ?? [];
   const hasKids = block.type === "container" && kids.length > 0;
   const isActive = activeId === block.id;
+  const hidden = !!(block.hideMobile && block.hideDesktop);
+  const abtn = "p-1 rounded text-neutral-400 hover:text-neutral-700 hover:bg-neutral-200/70";
   return (
     <div>
-      <div className={`flex items-center gap-1 rounded-md ${isActive ? "bg-primary/10" : "hover:bg-neutral-100"}`} style={{ paddingLeft: depth * 12 }}>
+      <div className={`group/row flex items-center gap-1 rounded-md ${isActive ? "bg-primary/10" : "hover:bg-neutral-100"}`} style={{ paddingLeft: depth * 12 }}>
         {hasKids ? (
           <button onClick={() => setOpen((o) => !o)} className="p-0.5 text-neutral-400 hover:text-neutral-700">
             {open ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
           </button>
         ) : <span className="w-4" />}
-        <button onClick={() => onSelect(block.id)} className={`flex-1 flex items-center gap-1.5 py-1 pr-2 text-left text-xs truncate ${isActive ? "text-primary font-semibold" : "text-neutral-700 hover:text-primary"}`}>
+        <button onClick={() => onSelect(block.id)} className={`flex-1 flex items-center gap-1.5 py-1 pr-1 text-left text-xs truncate ${isActive ? "text-primary font-semibold" : hidden ? "text-neutral-400 line-through" : "text-neutral-700 hover:text-primary"}`}>
           {block.type === "container" && <LayersIcon className="w-3 h-3 shrink-0 text-neutral-400" />}
           <span className="truncate">{rowLabel(block)}</span>
         </button>
+        <div className="flex items-center pr-1 opacity-0 group-hover/row:opacity-100 transition-opacity">
+          <button className={abtn} title={hidden ? "Show block" : "Hide block"} onClick={() => ctx.updateBlock(block.id, { hideMobile: !hidden, hideDesktop: !hidden })}>
+            {hidden ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+          </button>
+          <button className={abtn} title="Duplicate" onClick={() => ctx.duplicateBlock(block.id)}><Copy className="w-3.5 h-3.5" /></button>
+          <button className="p-1 rounded text-neutral-400 hover:text-red-600 hover:bg-red-50" title="Delete" onClick={() => { ctx.removeBlock(block.id); if (activeId === block.id) ctx.setActive(null); }}><Trash2 className="w-3.5 h-3.5" /></button>
+        </div>
       </div>
-      {hasKids && open && kids.map((c) => <Node key={c.id} block={c} depth={depth + 1} activeId={activeId} onSelect={onSelect} />)}
+      {hasKids && open && kids.map((c) => <Node key={c.id} block={c} depth={depth + 1} activeId={activeId} onSelect={onSelect} ctx={ctx} />)}
     </div>
   );
 };
@@ -152,7 +161,7 @@ const Inspector = ({ blocks }: { blocks: PageBlock[] }) => {
           groups.map((g) => (
             <div key={g.slot} className="mb-2">
               <div className="px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-neutral-400">{slotName(g.slot)}</div>
-              {g.items.map((b) => <Node key={b.id} block={b} depth={0} activeId={ctx.activeId} onSelect={selectAndJump} />)}
+              {g.items.map((b) => <Node key={b.id} block={b} depth={0} activeId={ctx.activeId} onSelect={selectAndJump} ctx={ctx} />)}
             </div>
           ))
         )}
