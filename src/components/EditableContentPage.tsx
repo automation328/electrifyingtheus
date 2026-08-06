@@ -81,6 +81,9 @@ const EditableContentPage = ({ path, label, ...props }: LayoutProps & { path: st
   const qc = useQueryClient();
   const auth = useEditorAuth();
   const isEditor = auth.status === "editor";
+  const role = auth.status === "editor" ? auth.editor.role : "viewer";
+  const canEdit = isEditor && role !== "viewer";        // viewers are read-only
+  const canPublish = role === "admin" || role === "editor"; // authors save drafts only
   const published = usePageOverride(path);
 
   // Editors also load the DB row at ANY status (so drafts are visible/editable).
@@ -269,7 +272,7 @@ const EditableContentPage = ({ path, label, ...props }: LayoutProps & { path: st
           onClose={() => setSeoOpen(false)}
         />
       )}
-      {isEditor && (
+      {canEdit && (
         <EditBar
           editing={editing}
           previewing={preview}
@@ -277,6 +280,7 @@ const EditableContentPage = ({ path, label, ...props }: LayoutProps & { path: st
           saving={saving}
           canUndo={canUndo}
           canRedo={canRedo}
+          canPublish={canPublish}
           onUndo={undo}
           onRedo={redo}
           onEdit={startEdit}
