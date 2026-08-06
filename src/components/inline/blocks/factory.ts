@@ -7,9 +7,12 @@ import type { PageBlock, BlockType } from "@/lib/page-content";
 export const newId = () =>
   (typeof crypto !== "undefined" && crypto.randomUUID) ? crypto.randomUUID() : `blk_${Date.now()}_${Math.round(Math.random() * 1e6)}`;
 
-/** Deep-clone a block with fresh ids on it AND all nested children. */
+/** Deep-clone a block with fresh ids on it AND all nested children. The anchor
+ * (jump-link id) is dropped on clones so duplicating never yields two DOM
+ * elements sharing the same id. */
 export function regenIds(block: PageBlock): PageBlock {
   const copy: PageBlock = { ...structuredClone(block), id: newId() };
+  delete copy.anchor;
   if (copy.children) copy.children = copy.children.map(regenIds);
   return copy;
 }

@@ -148,20 +148,16 @@ export function pickPageOverride(source: Record<string, unknown>): PageOverride 
   return out;
 }
 
-function isEmpty(v: unknown): boolean {
-  if (v === undefined || v === null) return true;
-  if (typeof v === "string") return v.trim() === "";
-  if (Array.isArray(v)) return v.length === 0;
-  return false;
-}
-
-/** Merge an override onto static props: a non-empty override field wins. */
+/** Merge an override onto static props. A key that is PRESENT in the override
+ * wins — including an intentionally-cleared value (empty string / empty array),
+ * so an editor can blank a field. Keys absent from the override fall back to the
+ * static default. (`null`/`undefined` are treated as "not set" and fall back.) */
 export function mergePageOverride<T extends PageOverride>(base: T, override: PageOverride | null | undefined): T {
   if (!override) return base;
   const out = { ...base };
   for (const key of PAGE_OVERRIDE_KEYS) {
     const v = override[key];
-    if (!isEmpty(v)) {
+    if (v !== undefined && v !== null) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (out as any)[key] = v;
     }

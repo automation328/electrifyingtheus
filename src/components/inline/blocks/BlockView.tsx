@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
+import DOMPurify from "dompurify";
 import type { BlockStyle } from "@/lib/page-content";
 import { copyBlock, copyStyle, readStyleClipboard } from "@/lib/block-clipboard";
 import type { PageBlock } from "@/lib/page-content";
@@ -23,6 +24,22 @@ import ImageUpload from "@/components/admin/ImageUpload";
 import { BLOCK_ICONS, BLOCK_ICON_KEYS } from "@/components/inline/blocks/icons";
 
 const alignClass = (a?: string) => (a === "left" ? "text-left" : a === "right" ? "text-right" : "text-center");
+
+// Sanitize editor-supplied HTML (the "html" block) before it hits the DOM, so a
+// malicious/compromised editor can't plant stored XSS on public pages. Strips
+// scripts, event handlers, and dangerous URIs while keeping ordinary markup.
+const cleanHtml = (html: string) =>
+  DOMPurify.sanitize(html ?? "", { USE_PROFILES: { html: true }, ADD_ATTR: ["target"] });
+
+// Only allow safe link schemes; block javascript:/data:/vbscript: hrefs which
+// would execute on click. Relative paths and #anchors pass through.
+const safeHref = (href?: string): string => {
+  const h = (href ?? "").trim();
+  if (!h) return "#";
+  if (/^(\/|#|mailto:|tel:)/i.test(h)) return h;
+  if (/^https?:\/\//i.test(h)) return h;
+  return "#"; // reject javascript:, data:, and other unexpected schemes
+};
 
 const fontClass = (block: PageBlock) => {
   const f = block.font ?? (block.type === "heading" ? "display" : "sans");
@@ -170,10 +187,14 @@ const ALERT_CFG: Record<string, { icon: LucideIcon; cls: string }> = {
 };
 
 // ── Container child reordering ────────────────────────────────────────────────
-const moveChildWithinCol = (cs: PageBlock[], id: string, dir: -1 | 1): PageBlock[] => {
+// Compare against the CLAMPED column a child actually renders in (see the
+// container render), so reducing the column count doesn't strand children whose
+// stored `col` now exceeds the visible column count.
+const moveChildWithinCol = (cs: PageBlock[], id: string, dir: -1 | 1, cols = 4): PageBlock[] => {
+  const colOf = (c: PageBlock) => Math.min(cols - 1, Math.max(0, c.col ?? 0));
   const arr = [...cs]; const idx = arr.findIndex((c) => c.id === id); if (idx < 0) return arr;
-  const col = arr[idx].col ?? 0;
-  let j = idx + dir; while (j >= 0 && j < arr.length && (arr[j].col ?? 0) !== col) j += dir;
+  const col = colOf(arr[idx]);
+  let j = idx + dir; while (j >= 0 && j < arr.length && colOf(arr[j]) !== col) j += dir;
   if (j < 0 || j >= arr.length) return arr;
   [arr[idx], arr[j]] = [arr[j], arr[idx]]; return arr;
 };
@@ -314,7 +335,7 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
       ) : (block.href && block.href.startsWith("/")) ? (
         <Link to={block.href} className={`inline-flex items-center gap-1.5 gradient-hero text-white font-semibold rounded-xl hover:opacity-90 transition-opacity ${sizeClass(block)} ${fontClass(block)}`}>{block.text}</Link>
       ) : (
-        <a href={block.href || "#"} className={`inline-flex items-center gap-1.5 gradient-hero text-white font-semibold rounded-xl hover:opacity-90 transition-opacity ${sizeClass(block)} ${fontClass(block)}`}>{block.text}</a>
+        <a href={safeHref(block.href)} className={`inline-flex items-center gap-1.5 gradient-hero text-white font-semibold rounded-xl hover:opacity-90 transition-opacity ${sizeClass(block)} ${fontClass(block)}`}>{block.text}</a>
       );
 
     case "divider":
@@ -448,8 +469,8 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
               </div>
             ) : (
               block.href?.startsWith("http")
-                ? <a href={block.href} className="inline-flex items-center gap-1.5 bg-primary-foreground text-primary font-semibold px-6 py-3 rounded-xl hover:opacity-90 transition-opacity">{block.buttonLabel} <ArrowRight className="w-5 h-5" /></a>
-                : <Link to={block.href || "#"} className="inline-flex items-center gap-1.5 bg-primary-foreground text-primary font-semibold px-6 py-3 rounded-xl hover:opacity-90 transition-opacity">{block.buttonLabel} <ArrowRight className="w-5 h-5" /></Link>
+                ? <a href={safeHref(block.href)} className="inline-flex items-center gap-1.5 bg-primary-foreground text-primary font-semibold px-6 py-3 rounded-xl hover:opacity-90 transition-opacity">{block.buttonLabel} <ArrowRight className="w-5 h-5" /></a>
+                : <Link to={safeHref(block.href)} className="inline-flex items-center gap-1.5 bg-primary-foreground text-primary font-semibold px-6 py-3 rounded-xl hover:opacity-90 transition-opacity">{block.buttonLabel} <ArrowRight className="w-5 h-5" /></Link>
             )}
           </div>
         </div>
@@ -525,12 +546,12 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
     case "html":
       return editing ? (
         <div className="text-left">
-          <div className="rounded-xl border border-dashed border-border p-3 mb-2 overflow-x-auto" dangerouslySetInnerHTML={{ __html: block.text || "<em>Custom HTML preview</em>" }} />
+          <div className="rounded-xl border border-dashed border-border p-3 mb-2 overflow-x-auto" dangerouslySetInnerHTML={{ __html: cleanHtml(block.text || "<em>Custom HTML preview</em>") }} />
           <textarea value={block.text ?? ""} onChange={(e) => up({ text: e.target.value })} placeholder="<div>your HTML…</div>" rows={6} className="w-full rounded-lg border border-border bg-background px-2.5 py-1.5 text-sm font-mono resize-y" />
-          <p className="text-xs text-muted-foreground mt-1">Rendered as-is on the page. Use trusted HTML only.</p>
+          <p className="text-xs text-muted-foreground mt-1">Rendered on the page. Scripts and event handlers are stripped for safety.</p>
         </div>
       ) : (
-        <div dangerouslySetInnerHTML={{ __html: block.text || "" }} />
+        <div dangerouslySetInnerHTML={{ __html: cleanHtml(block.text || "") }} />
       );
 
     case "testimonial":
@@ -584,7 +605,7 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
       const setItems = (it: NonNullable<PageBlock["items"]>) => up({ items: it });
       if (!editing) return (
         <div className="inline-flex items-center gap-3">
-          {items.map((it, i) => { const Icon = SOCIAL_ICONS[it.title ?? ""] ?? Mail; return <a key={i} href={it.body || "#"} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full gradient-hero grid place-items-center text-white hover:opacity-90"><Icon className="w-5 h-5" /></a>; })}
+          {items.map((it, i) => { const Icon = SOCIAL_ICONS[it.title ?? ""] ?? Mail; return <a key={i} href={safeHref(it.body)} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full gradient-hero grid place-items-center text-white hover:opacity-90"><Icon className="w-5 h-5" /></a>; })}
         </div>
       );
       return (
@@ -625,7 +646,7 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
         get: () => undefined,
         addBlock: (slot, type) => { const col = Number(slot.replace("col-", "")) || 0; setChildren((cs) => [...cs, { ...newBlock(type), slot: "", col }]); },
         updateBlock: (cid, patch) => setChildren((cs) => cs.map((c) => (c.id === cid ? { ...c, ...patch } : c))),
-        moveBlock: (cid, dir) => setChildren((cs) => moveChildWithinCol(cs, cid, dir)),
+        moveBlock: (cid, dir) => setChildren((cs) => moveChildWithinCol(cs, cid, dir, cols)),
         duplicateBlock: (cid) => setChildren((cs) => { const i = cs.findIndex((c) => c.id === cid); if (i < 0) return cs; return [...cs.slice(0, i + 1), regenIds(cs[i]), ...cs.slice(i + 1)]; }),
         removeBlock: (cid) => setChildren((cs) => cs.filter((c) => c.id !== cid)),
         moveBlockRelative: (dragId, targetId, before) => setChildren((cs) => moveChildRelative(cs, dragId, targetId, before)),
@@ -639,7 +660,7 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
           <div className={`grid grid-cols-1 ${gridCols} gap-4 text-left`}>
             {Array.from({ length: cols }).map((_, ci) => (
               <div key={ci} className={`min-w-0 space-y-2 ${editing ? "rounded-xl border border-dashed border-border/60 p-2" : ""}`}>
-                {children.filter((c) => Math.min(cols - 1, Math.max(0, c.col ?? 0)) === ci).map((child) => <BlockView key={child.id} block={child} />)}
+                {children.filter((c) => Math.min(cols - 1, Math.max(0, c.col ?? 0)) === ci).map((child) => <BlockView key={child.id} block={child} nested />)}
                 {editing && <AddBlock slot={`col-${ci}`} label="Add" />}
               </div>
             ))}
@@ -928,7 +949,7 @@ const animHidden = (a?: string) => ({
   zoom: "opacity-0 scale-95",
 }[a ?? "none"] ?? "");
 
-const BlockView = ({ block }: { block: PageBlock }) => {
+const BlockView = ({ block, nested = false }: { block: PageBlock; nested?: boolean }) => {
   const ctx = useInlineEdit();
   const [styleOpen, setStyleOpen] = useState(false);
   const [dragArmed, setDragArmed] = useState(false);
@@ -939,16 +960,23 @@ const BlockView = ({ block }: { block: PageBlock }) => {
   const animated = !!anim && anim !== "none" && !ctx?.editing;
   useEffect(() => {
     if (!animated) return;
+    // Honor reduced-motion: reveal immediately rather than gate content behind
+    // an animation the user has opted out of.
+    if (typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) { setInView(true); return; }
     const el = revealRef.current;
     if (!el) return;
-    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setInView(true); io.disconnect(); } }, { threshold: 0.12 });
+    // threshold:0 reveals as soon as ANY part intersects — a non-zero threshold
+    // never fires for elements taller than ~1/threshold viewports.
+    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setInView(true); io.disconnect(); } }, { threshold: 0, rootMargin: "0px 0px -8% 0px" });
     io.observe(el);
     return () => io.disconnect();
   }, [animated]);
   if (!ctx) return null;
   const align = alignClass(block.align);
   const baseCss = styleToCss(block.style);
-  const fullBleed = block.type === "container" && !!block.fullWidth;
+  // Full-bleed (100vw) only makes sense for a top-level container; nested inside
+  // a column it would overflow the column and the page.
+  const fullBleed = block.type === "container" && !!block.fullWidth && !nested;
   const css: React.CSSProperties = fullBleed ? { ...baseCss, width: "100vw", marginLeft: "calc(50% - 50vw)" } : { ...baseCss };
   if (block.anchor) css.scrollMarginTop = 96;
   const anchorProps = block.anchor ? { id: block.anchor, "data-block-anchor": block.anchor } : {};
@@ -956,13 +984,20 @@ const BlockView = ({ block }: { block: PageBlock }) => {
   const inner = fullBleed ? <div className="mx-auto max-w-6xl px-4">{body}</div> : body;
 
   if (!ctx.editing) {
-    const animCls = animated ? `transition-all duration-700 ease-out ${inView ? "opacity-100 translate-x-0 translate-y-0 scale-100" : animHidden(anim)}` : "";
     const finalStyle: React.CSSProperties = {
       ...css,
-      ...(animated && block.style?.animDelay ? { transitionDelay: `${block.style.animDelay}ms` } : {}),
       ...(block.style?.sticky ? { position: "sticky", top: 88, zIndex: 30 } : {}),
     };
-    return <div ref={revealRef} {...anchorProps} className={`${align} ${visClass(block)} ${hoverClass(block.style?.hover)} ${animCls}`} style={finalStyle}>{inner}</div>;
+    // The entrance animation lives on an INNER wrapper so its transition never
+    // collides with the hover transition on the outer element.
+    const content = animated ? (
+      <div
+        ref={revealRef}
+        className={`transition-all duration-700 ease-out ${inView ? "opacity-100 translate-x-0 translate-y-0 scale-100" : animHidden(anim)}`}
+        style={block.style?.animDelay ? { transitionDelay: `${block.style.animDelay}ms` } : undefined}
+      >{inner}</div>
+    ) : inner;
+    return <div {...anchorProps} className={`${align} ${visClass(block)} ${hoverClass(block.style?.hover)}`} style={finalStyle}>{content}</div>;
   }
 
   const up = (patch: Partial<PageBlock>) => ctx.updateBlock(block.id, patch);
