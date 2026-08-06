@@ -5,7 +5,7 @@ import { useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Newspaper, CalendarDays, Images, Briefcase,
-  FileText, Car, BadgePercent, Bot, LogOut, ExternalLink, Zap, FolderOpen, Menu, PanelBottom, Palette, Users, KeyRound, Activity,
+  FileText, Car, BadgePercent, Bot, LogOut, ExternalLink, Zap, FolderOpen, Menu, PanelBottom, Palette, Users, KeyRound, Activity, BarChart3,
 } from "lucide-react";
 import { signOut, useEditorAuth } from "@/lib/auth";
 import type { EditorRole } from "@/lib/admin-api";
@@ -16,7 +16,10 @@ import ChangePasswordModal from "@/components/admin/ChangePasswordModal";
 interface NavItem { to: string; label: string; icon: typeof Newspaper; end?: boolean; roles?: EditorRole[] }
 
 const NAV_GROUPS: { label?: string; items: NavItem[] }[] = [
-  { items: [{ to: "/admin/content", label: "Overview", icon: LayoutDashboard, end: true }] },
+  { items: [
+    { to: "/admin/content", label: "Overview", icon: LayoutDashboard, end: true },
+    { to: "/admin", label: "Statistics", icon: BarChart3, end: true, roles: ["admin", "editor"] },
+  ] },
   { label: "Content", items: [
     { to: "/admin/content/pages", label: "Pages", icon: FileText },
     { to: "/admin/content/blog", label: "Blog posts", icon: Newspaper },
