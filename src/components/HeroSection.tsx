@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import heroBg from "@/assets/hero-bg.jpg";
 import logo from "@/assets/hero-logo.png";
-import pumpToPlugFlyer from "@/assets/from-pump-to-plug-flyer.jpg";
+import pumpToPlugFlyer from "@/assets/general-flyer.jpg";
 import { type EventItem } from "@/data/events";
 import { JOBS, type Job } from "@/data/careers";
 import { type BlogPost } from "@/data/blog-posts";

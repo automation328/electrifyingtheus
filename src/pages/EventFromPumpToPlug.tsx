@@ -9,7 +9,7 @@ import ShareGate from "@/components/forms/ShareGate";
 import EventActionGate from "@/components/forms/EventActionGate";
 import WebinarRegisterForm from "@/components/forms/WebinarRegisterForm";
 import { EVENTS, eventFullDate, gcalLink } from "@/data/events";
-import flyer from "@/assets/event-pump-to-plug.jpg";
+import flyer from "@/assets/general-flyer.jpg";
 
 const SLUG = "from-pump-to-plug";
 
