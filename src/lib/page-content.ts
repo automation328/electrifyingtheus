@@ -29,11 +29,13 @@ export interface PageBlock {
   font?: "display" | "sans" | "mono";      // heading / text / button font
   // Per-type fields (only the relevant ones are set):
   text?: string;                    // heading / text / button label / cta heading
-  level?: 2 | 3;                    // heading size
+  level?: 1 | 2 | 3 | 4 | 5 | 6;    // heading level (h1–h6)
+  gradientText?: boolean;           // heading: gradient-colored text
   src?: string;                     // image URL
   caption?: string;                 // image caption
   alt?: string;                     // image alt text (a11y/SEO; falls back to caption)
   href?: string;                    // button / cta link
+  newTab?: boolean;                 // button: open link in a new tab
   provider?: "youtube" | "vimeo" | "file"; // video
   videoId?: string;                 // video id (youtube/vimeo) or file URL
   autoplay?: boolean;               // video: start playing automatically (implies muted)

@@ -397,11 +397,23 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
 
   switch (block.type) {
     case "heading": {
-      const Tag = block.level === 3 ? "h3" : "h2";
+      const lvl = Math.min(6, Math.max(1, block.level ?? 2));
+      const Tag = `h${lvl}` as "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
+      const textCls = block.gradientText ? "text-gradient-primary" : "text-foreground";
       return (
         <div>
-          <Tag className={`${fontClass(block)} ${sizeClass(block)} text-foreground`} style={block.style?.color ? { color: block.style.color } : undefined}><RichText value={block.text ?? ""} onCommit={(v) => up({ text: v })} /></Tag>
-          {editing && <StyleControls block={block} up={up} />}
+          <Tag className={`${fontClass(block)} ${sizeClass(block)} ${textCls}`} style={block.style?.color && !block.gradientText ? { color: block.style.color } : undefined}><RichText value={block.text ?? ""} onCommit={(v) => up({ text: v })} /></Tag>
+          {editing && (
+            <>
+              <StyleControls block={block} up={up} />
+              <div className="mt-2 inline-flex flex-wrap items-center gap-2 rounded-lg border border-border bg-background/80 px-2 py-1.5 text-xs">
+                <span className="text-muted-foreground">Level</span>
+                {[1, 2, 3, 4, 5, 6].map((n) => <button key={n} onClick={() => up({ level: n as PageBlock["level"] })} className={`px-1.5 py-0.5 rounded ${lvl === n ? "gradient-hero text-white" : "text-muted-foreground hover:bg-muted"}`}>H{n}</button>)}
+                <span className="w-px h-4 bg-border mx-0.5" />
+                <button onClick={() => up({ gradientText: !block.gradientText })} className={`px-2 py-0.5 rounded ${block.gradientText ? "gradient-hero text-white" : "text-muted-foreground hover:bg-muted"}`}>Gradient</button>
+              </div>
+            </>
+          )}
         </div>
       );
     }
@@ -488,33 +500,61 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
         </div>
       );
 
-    case "button":
+    case "button": {
+      const bcls = `inline-flex items-center gap-1.5 font-semibold rounded-xl transition-opacity ${block.variant === "outline" ? "border-2 border-primary text-primary hover:bg-primary/5" : block.variant === "ghost" ? "text-primary hover:bg-primary/10" : "gradient-hero text-white hover:opacity-90"} ${sizeClass(block)} ${fontClass(block)}`;
+      const BIcon = block.icon ? (BLOCK_ICONS[block.icon] ?? null) : null;
+      const inner = <>{BIcon && <BIcon aria-hidden="true" className="w-[1.1em] h-[1.1em]" />}{block.text}</>;
       return editing ? (
         <div className="inline-flex flex-col items-start gap-1.5">
-          <span className={`inline-flex items-center justify-center gradient-hero text-white font-semibold rounded-xl ${sizeClass(block)} ${fontClass(block)}`}>{block.text || "Button"}</span>
+          <span className={bcls}>{BIcon && <BIcon className="w-[1.1em] h-[1.1em]" />}{block.text || "Button"}</span>
           <input value={block.text ?? ""} onChange={(e) => up({ text: e.target.value })} placeholder="Button label" className="w-full min-w-[16rem] rounded-lg border border-border bg-background px-2.5 py-1.5 text-xs" />
           <LinkPicker value={block.href ?? ""} onChange={(v) => up({ href: v })} className="w-full min-w-[16rem]" />
+          <div className="inline-flex flex-wrap items-center gap-1.5 text-xs">
+            {(["solid", "outline", "ghost"] as const).map((v) => <button key={v} onClick={() => up({ variant: v })} className={`px-2 py-0.5 rounded capitalize ${(block.variant ?? "solid") === v ? "gradient-hero text-white" : "border border-border text-muted-foreground hover:bg-muted"}`}>{v}</button>)}
+            <label className="inline-flex items-center gap-1 text-muted-foreground ml-1"><input type="checkbox" checked={!!block.newTab} onChange={(e) => up({ newTab: e.target.checked })} /> New tab</label>
+            <button onClick={() => up({ icon: block.icon ? "" : "zap" })} className="text-primary hover:underline">{block.icon ? "Remove icon" : "Add icon"}</button>
+          </div>
+          {block.icon && <IconPicker block={block} up={up} />}
           <StyleControls block={block} up={up} />
         </div>
       ) : (block.href && block.href.startsWith("/")) ? (
-        <Link to={block.href} className={`inline-flex items-center gap-1.5 gradient-hero text-white font-semibold rounded-xl hover:opacity-90 transition-opacity ${sizeClass(block)} ${fontClass(block)}`}>{block.text}</Link>
+        <Link to={block.href} className={bcls}>{inner}</Link>
       ) : (
-        <a href={safeHref(block.href)} className={`inline-flex items-center gap-1.5 gradient-hero text-white font-semibold rounded-xl hover:opacity-90 transition-opacity ${sizeClass(block)} ${fontClass(block)}`}>{block.text}</a>
+        <a href={safeHref(block.href)} target={block.newTab ? "_blank" : undefined} rel={block.newTab ? "noopener noreferrer" : undefined} className={bcls}>{inner}</a>
       );
+    }
 
-    case "divider":
+    case "divider": {
+      const thick = block.thickness ?? 1;
+      const dstyle = block.variant === "dashed" ? "dashed" : block.variant === "dotted" ? "dotted" : "solid";
+      const DIcon = block.icon ? (BLOCK_ICONS[block.icon] ?? null) : null;
+      const lineStyle: React.CSSProperties = { borderTopWidth: thick, borderTopStyle: dstyle, borderColor: "hsl(var(--border))" };
       return (
         <div>
-          <hr className="border-0 bg-border w-full" style={{ height: block.thickness ?? 1 }} />
+          {DIcon ? (
+            <div className="flex items-center gap-3">
+              <span className="flex-1" style={lineStyle} />
+              <DIcon aria-hidden="true" className="w-5 h-5 text-muted-foreground shrink-0" />
+              <span className="flex-1" style={lineStyle} />
+            </div>
+          ) : (
+            <hr className="border-0" style={{ borderTop: `${thick}px ${dstyle} hsl(var(--border))` }} />
+          )}
           {editing && (
-            <div className="mt-2 inline-flex items-center gap-2 rounded-lg border border-border bg-background/80 px-2 py-1.5 text-xs">
+            <div className="mt-2 inline-flex flex-wrap items-center gap-2 rounded-lg border border-border bg-background/80 px-2 py-1.5 text-xs">
               <span className="text-muted-foreground">Thickness</span>
-              <input type="range" min={1} max={16} value={block.thickness ?? 1} onChange={(e) => up({ thickness: Number(e.target.value) })} />
-              <span className="tabular-nums w-8 text-right">{block.thickness ?? 1}px</span>
+              <input type="range" min={1} max={16} value={thick} onChange={(e) => up({ thickness: Number(e.target.value) })} />
+              <span className="w-px h-4 bg-border mx-0.5" />
+              <span className="text-muted-foreground">Style</span>
+              {(["solid", "dashed", "dotted"] as const).map((v) => <button key={v} onClick={() => up({ variant: v })} className={`px-1.5 py-0.5 rounded capitalize ${(block.variant ?? "solid") === v ? "gradient-hero text-white" : "text-muted-foreground hover:bg-muted"}`}>{v}</button>)}
+              <span className="w-px h-4 bg-border mx-0.5" />
+              <button onClick={() => up({ icon: block.icon ? "" : "zap" })} className="text-primary hover:underline">{block.icon ? "Remove icon" : "Add icon"}</button>
             </div>
           )}
+          {editing && block.icon && <IconPicker block={block} up={up} />}
         </div>
       );
+    }
 
     case "spacer":
       return (
