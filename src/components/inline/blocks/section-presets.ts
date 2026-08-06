@@ -89,4 +89,61 @@ export const SECTION_PRESETS: SectionPreset[] = [
       ],
     }),
   },
+  {
+    id: "pricing", name: "Pricing (3 tiers)",
+    build: () => ({
+      ...newBlock("container"), cols: 3, style: { padY: 40 },
+      children: [
+        child("heading", { text: "Starter", level: 3, align: "center" }, 0),
+        child("counter", { text: "$0", subtext: "per month" }, 0),
+        child("text", { text: "Everything to get started.\nFeature one\nFeature two", align: "center" }, 0),
+        child("button", { text: "Choose Starter", href: "/", align: "center" }, 0),
+        child("heading", { text: "Pro", level: 3, align: "center" }, 1),
+        child("counter", { text: "$29", subtext: "per month" }, 1),
+        child("text", { text: "For growing needs.\nEverything in Starter\nFeature three", align: "center" }, 1),
+        child("button", { text: "Choose Pro", href: "/", align: "center" }, 1),
+        child("heading", { text: "Enterprise", level: 3, align: "center" }, 2),
+        child("counter", { text: "Custom", subtext: "contact us" }, 2),
+        child("text", { text: "For large teams.\nEverything in Pro\nPriority support", align: "center" }, 2),
+        child("button", { text: "Contact sales", href: "/contact-us", align: "center" }, 2),
+      ],
+    }),
+  },
+  {
+    id: "logos", name: "Logo strip",
+    build: () => ({
+      ...newBlock("container"), cols: 1, style: { padY: 32, bg: "hsl(var(--muted))" },
+      children: [
+        child("heading", { text: "Trusted by teams across the country", level: 3, size: "sm", align: "center" }, 0),
+        { ...newBlock("container"), col: 0, cols: 4, children: [
+          child("image", { src: "", caption: "" }, 0),
+          child("image", { src: "", caption: "" }, 1),
+          child("image", { src: "", caption: "" }, 2),
+          child("image", { src: "", caption: "" }, 3),
+        ] },
+      ],
+    }),
+  },
+  {
+    id: "team", name: "Team grid",
+    build: () => ({
+      ...newBlock("container"), cols: 3, style: { padY: 40 },
+      children: [
+        child("image-box", { src: "", text: "Full Name", subtext: "Role / Title" }, 0),
+        child("image-box", { src: "", text: "Full Name", subtext: "Role / Title" }, 1),
+        child("image-box", { src: "", text: "Full Name", subtext: "Role / Title" }, 2),
+      ],
+    }),
+  },
+  {
+    id: "newsletter", name: "Newsletter",
+    build: () => ({
+      ...newBlock("container"), cols: 1, fullWidth: true, style: { bg: "hsl(var(--primary))", padY: 64 },
+      children: [
+        child("heading", { text: "Stay in the loop", level: 2, align: "center", style: { color: WHITE } }),
+        child("text", { text: "Get EV news, incentives, and events straight to your inbox.", align: "center", style: { color: SOFT_WHITE } }),
+        child("button", { text: "Subscribe", href: "/contact-us", align: "center" }),
+      ],
+    }),
+  },
 ];
