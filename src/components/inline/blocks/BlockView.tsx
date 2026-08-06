@@ -874,9 +874,11 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
         deleteTemplate: ctx.deleteTemplate,
       };
       const gridCols = (block.colRatio && RATIO_CLASS[cols]?.[block.colRatio]) || colsClass(cols);
+      const itemsClass = block.alignItems === "center" ? "items-center" : block.alignItems === "end" ? "items-end" : block.alignItems === "start" ? "items-start" : "";
+      const gapStyle = block.gap != null ? { gap: block.gap } : undefined;
       return (
         <InlineEditContext.Provider value={childCtx}>
-          <div className={`grid grid-cols-1 ${gridCols} gap-4 text-left`}>
+          <div className={`grid grid-cols-1 ${gridCols} ${itemsClass} ${block.gap != null ? "" : "gap-4"} text-left`} style={gapStyle}>
             {Array.from({ length: cols }).map((_, ci) => (
               <div key={ci} className={`min-w-0 space-y-2 ${editing ? "rounded-xl border border-dashed border-border/60 p-2" : ""}`}>
                 {children.filter((c) => Math.min(cols - 1, Math.max(0, c.col ?? 0)) === ci).map((child) => <BlockView key={child.id} block={child} nested />)}
@@ -899,6 +901,12 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
               <button onClick={() => up({ fullWidth: !block.fullWidth })} className={`px-2 py-0.5 rounded ${block.fullWidth ? "gradient-hero text-white" : "text-muted-foreground hover:bg-muted"}`}>Full width</button>
               <span className="w-px h-4 bg-border mx-0.5" />
               <button onClick={() => up({ children: children.map((c, i) => ({ ...c, style: { ...(c.style ?? {}), anim: c.style?.anim && c.style.anim !== "none" ? c.style.anim : "up", animDelay: i * 120 } })) })} className="px-2 py-0.5 rounded text-muted-foreground hover:bg-muted" title="Give each child a staggered entrance animation">Stagger children</button>
+              <span className="w-px h-4 bg-border mx-0.5" />
+              <span className="text-muted-foreground">Align</span>
+              {(["start", "center", "end"] as const).map((a) => <button key={a} onClick={() => up({ alignItems: a })} className={`px-1.5 py-0.5 rounded ${block.alignItems === a ? "gradient-hero text-white" : "text-muted-foreground hover:bg-muted"}`}>{a === "start" ? "Top" : a === "center" ? "Middle" : "Bottom"}</button>)}
+              <span className="w-px h-4 bg-border mx-0.5" />
+              <span className="text-muted-foreground">Gap {block.gap ?? 16}</span>
+              <input type="range" min={0} max={48} value={block.gap ?? 16} onChange={(e) => up({ gap: Number(e.target.value) })} className="w-20" />
             </div>
           )}
         </InlineEditContext.Provider>
@@ -939,9 +947,24 @@ const SHADOWS: Record<string, string> = {
 
 const gradientCss = (g: NonNullable<BlockStyle["gradient"]>) => `linear-gradient(${g.angle ?? 135}deg, ${g.from}, ${g.to})`;
 
+// A semi-transparent tint layer for a background image (keeps overlaid text readable).
+const overlayColor = (s: BlockStyle): string | undefined => {
+  if (!s.bgImage || !s.overlay || s.overlay === "none") return undefined;
+  const a = Math.max(0, Math.min(100, s.overlayOpacity ?? 45)) / 100;
+  if (s.overlay === "dark") return `rgba(0,0,0,${a})`;
+  if (s.overlay === "light") return `rgba(255,255,255,${a})`;
+  return `hsl(var(--${s.overlay === "secondary" ? "secondary" : "primary"}) / ${a})`;
+};
+
 const styleToCss = (s?: BlockStyle): React.CSSProperties => {
   if (!s) return {};
-  const bgImage = s.gradient ? gradientCss(s.gradient) : s.bgImage ? `url(${s.bgImage})` : undefined;
+  const tint = overlayColor(s);
+  const imgLayer = s.bgImage ? `url(${s.bgImage})` : undefined;
+  const bgImage = s.gradient
+    ? gradientCss(s.gradient)
+    : tint
+      ? `linear-gradient(${tint}, ${tint}), ${imgLayer}`  // tint sits above the image
+      : imgLayer;
   return {
     backgroundColor: s.gradient ? undefined : s.bg || undefined,
     color: s.color || undefined,
@@ -949,6 +972,8 @@ const styleToCss = (s?: BlockStyle): React.CSSProperties => {
     paddingBottom: s.padY || undefined,
     paddingLeft: s.padX || undefined,
     paddingRight: s.padX || undefined,
+    marginTop: s.mt || undefined,
+    marginBottom: s.mb || undefined,
     borderRadius: s.radius || undefined,
     boxShadow: s.shadow && s.shadow !== "none" ? SHADOWS[s.shadow] : undefined,
     border: s.border ? `${s.border}px solid ${s.borderColor || "hsl(var(--border))"}` : undefined,
@@ -979,6 +1004,22 @@ const StylePanel = ({ block, up, onClose }: { block: PageBlock; up: (p: Partial<
           </div>
           {s.bgImage && <div className="mt-1.5 flex items-center gap-2 text-xs text-muted-foreground"><img src={s.bgImage} alt="" className="w-10 h-8 object-cover rounded" /> background image <button onClick={() => setStyle({ bgImage: "" })} className="text-destructive hover:underline">remove</button></div>}
           {bgImgOpen && <div className="mt-2"><ImageUpload value={s.bgImage ?? ""} onChange={(url) => setStyle({ bgImage: url, gradient: undefined })} /></div>}
+          {s.bgImage && (
+            <div className="mt-2">
+              <div className="flex flex-wrap items-center gap-1.5 text-xs">
+                <span className="text-muted-foreground mr-0.5">Overlay</span>
+                {(["none", "dark", "light", "primary", "secondary"] as const).map((o) => (
+                  <button key={o} onClick={() => setStyle({ overlay: o })} className={`px-2 py-0.5 rounded capitalize ${(s.overlay ?? "none") === o ? "gradient-hero text-white" : "border border-border text-muted-foreground hover:bg-muted"}`}>{o}</button>
+                ))}
+              </div>
+              {s.overlay && s.overlay !== "none" && (
+                <div className="mt-1.5 flex items-center gap-2 text-xs">
+                  <span className="text-muted-foreground whitespace-nowrap">Strength {s.overlayOpacity ?? 45}%</span>
+                  <input type="range" min={0} max={100} value={s.overlayOpacity ?? 45} onChange={(e) => setStyle({ overlayOpacity: Number(e.target.value) })} className="flex-1" />
+                </div>
+              )}
+            </div>
+          )}
           <div className="mt-2">
             <div className="flex flex-wrap items-center gap-1.5">
               <span className="text-[11px] text-muted-foreground mr-0.5">Gradient</span>
@@ -1035,6 +1076,14 @@ const StylePanel = ({ block, up, onClose }: { block: PageBlock; up: (p: Partial<
               <input type="range" min={0} max={8} value={s.border ?? 0} onChange={(e) => setStyle({ border: Number(e.target.value) })} className="flex-1" />
               <input type="color" value={/^#/.test(s.borderColor ?? "") ? s.borderColor : "#e5e7eb"} onChange={(e) => setStyle({ borderColor: e.target.value })} className="w-7 h-7 rounded-lg border border-border bg-transparent cursor-pointer" title="Border colour" />
             </div>
+          </div>
+          <div>
+            <label className={lbl}>Margin top: {s.mt ?? 0}px</label>
+            <input type="range" min={0} max={96} value={s.mt ?? 0} onChange={(e) => setStyle({ mt: Number(e.target.value) })} className="w-full" />
+          </div>
+          <div>
+            <label className={lbl}>Margin bottom: {s.mb ?? 0}px</label>
+            <input type="range" min={0} max={96} value={s.mb ?? 0} onChange={(e) => setStyle({ mb: Number(e.target.value) })} className="w-full" />
           </div>
         </div>
 

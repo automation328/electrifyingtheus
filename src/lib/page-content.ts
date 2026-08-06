@@ -59,6 +59,8 @@ export interface PageBlock {
   // Container (nested layout):
   cols?: number;                    // number of columns (1-4)
   colRatio?: string;                // column width ratio key (e.g. "1-2", "2-1-1"); equal if unset
+  alignItems?: "start" | "center" | "end"; // container: vertical alignment of columns
+  gap?: number;                     // container: gap between columns (px)
   children?: PageBlock[];           // nested child blocks
   col?: number;                     // which column this block sits in (inside a container)
   fullWidth?: boolean;              // container spans the full viewport width (full-bleed)
@@ -77,6 +79,10 @@ export interface BlockStyle {
   border?: number;    // border width (px)
   borderColor?: string;  // border color (CSS value)
   gradient?: { from: string; to: string; angle?: number };  // gradient background
+  overlay?: "none" | "dark" | "light" | "primary" | "secondary"; // tint over a bg image
+  overlayOpacity?: number;  // overlay strength 0-100
+  mt?: number;        // margin top (px)
+  mb?: number;        // margin bottom (px)
   hover?: "none" | "lift" | "zoom" | "glow";  // hover motion effect (view mode)
   anim?: "none" | "fade" | "up" | "left" | "right" | "zoom";  // entrance animation on scroll-in
   animDelay?: number;  // entrance animation delay (ms) — used for staggering
