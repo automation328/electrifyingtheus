@@ -3,6 +3,7 @@
 // columns (BlockView), so it lives on its own to avoid a circular import.
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   Plus, Heading, Type, Image as ImageIcon, Film, MousePointerClick,
   Minus, MoveVertical, Star, Rows3, LayoutPanelTop, Columns3, Images, Megaphone,
@@ -71,11 +72,13 @@ const AddBlock = ({ slot, label = "Add block" }: { slot: string; label?: string 
       <button onClick={() => (open ? close() : setOpen(true))} className="inline-flex items-center gap-1.5 rounded-full border border-dashed border-primary/50 bg-primary/5 px-4 py-1.5 text-xs font-semibold text-primary hover:bg-primary/10 transition-colors">
         <Plus className="w-3.5 h-3.5" /> {label}
       </button>
-      {open && (
+      {open && typeof document !== "undefined" && createPortal(
         <>
-          <div className="fixed inset-0 z-[80] bg-black/20" onClick={close} />
-          {/* Docked left sidebar — the block inserter (Elementor-style). */}
-          <aside className="fixed left-0 top-0 z-[81] flex h-screen w-72 sm:w-80 flex-col border-r border-neutral-200 bg-white shadow-2xl">
+          <div className="fixed inset-0 z-[90] bg-black/20" onClick={close} />
+          {/* Docked left sidebar — the block inserter (Elementor-style). Portaled to
+              <body> and given a high z so it sits ABOVE the Inspector panel (which
+              is also left-docked) regardless of stacking context. */}
+          <aside className="fixed left-0 top-0 z-[91] flex h-screen w-72 sm:w-80 flex-col border-r border-neutral-200 bg-white shadow-2xl">
             <div className="flex items-center gap-2 px-3 h-12 shrink-0 border-b border-neutral-200">
               <Plus className="w-4 h-4 text-primary" />
               <span className="text-sm font-bold text-neutral-800">Add block</span>
@@ -130,7 +133,8 @@ const AddBlock = ({ slot, label = "Add block" }: { slot: string; label?: string 
               {nothing && <div className="px-2 py-4 text-center text-xs text-neutral-400">No blocks match “{q.trim()}”.</div>}
             </div>
           </aside>
-        </>
+        </>,
+        document.body,
       )}
     </div>
   );
