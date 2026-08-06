@@ -193,6 +193,14 @@ const EditableContentPage = ({ path, label, ...props }: LayoutProps & { path: st
     return () => window.removeEventListener("keydown", onKey);
   }, [editing]);
 
+  // Warn before a refresh/tab-close would discard unsaved edits.
+  useEffect(() => {
+    if (!(editing && dirty)) return;
+    const onBeforeUnload = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = ""; };
+    window.addEventListener("beforeunload", onBeforeUnload);
+    return () => window.removeEventListener("beforeunload", onBeforeUnload);
+  }, [editing, dirty]);
+
   const save = async (status: "draft" | "published", contentOverride?: PageOverride) => {
     setSaving(true);
     try {
