@@ -211,6 +211,11 @@ html[data-theme="glass"] body {
 /* Let the body mesh show through full-page wrappers */
 html[data-theme="glass"] .bg-background { background-color: transparent !important; }
 
+/* Opaque surface for overlays — modals, drawers, popovers, the edit bar. Uses a
+   dedicated class so the glass theme's transparent .bg-background override above
+   can't make these see-through. */
+.surface { background-color: hsl(var(--background)); }
+
 /* =========================================================================
    EMBEDDED TOOLS — `?embed=1` (html.embed is set by useEmbedFrame)
    Strip the themed backdrop (glass gradient mesh) and the decorative

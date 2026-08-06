@@ -161,7 +161,7 @@ const KnowledgeBaseManager = () => {
 
       {(isNew || editing) && (
         <div className="fixed inset-0 z-50 flex justify-end bg-black/40 backdrop-blur-sm" onClick={close}>
-          <div className="w-full max-w-2xl h-full bg-background border-l border-border shadow-elevated flex flex-col" onClick={(e) => e.stopPropagation()}>
+          <div className="w-full max-w-2xl h-full surface border-l border-border shadow-elevated flex flex-col" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center gap-3 px-5 h-16 border-b border-border shrink-0">
               <h2 className="font-bold font-display text-foreground truncate">{isNew ? "New document" : "Edit document"}</h2>
               <button onClick={close} className="ml-auto p-2 rounded-lg text-muted-foreground hover:bg-muted"><X className="w-5 h-5" /></button>

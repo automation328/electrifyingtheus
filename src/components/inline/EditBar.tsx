@@ -40,7 +40,7 @@ const EditBar = ({ editing, previewing, dirty, saving, canUndo, canRedo, canPubl
           <PencilRuler className="w-4 h-4" /> Previewing — back to editing
         </button>
       ) : (
-        <div className="flex items-center gap-1.5 rounded-full border border-border bg-background/95 backdrop-blur px-2 py-2 shadow-elevated">
+        <div className="flex items-center gap-1.5 rounded-full border border-border surface backdrop-blur px-2 py-2 shadow-elevated">
           <span className="flex items-center gap-1.5 pl-2 pr-1 text-xs text-muted-foreground">
             <Circle className={`w-2 h-2 ${dirty ? "fill-amber-500 text-amber-500" : "fill-muted text-muted"}`} />
             {dirty ? "Unsaved" : "Editing"}

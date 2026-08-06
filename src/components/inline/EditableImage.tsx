@@ -38,7 +38,7 @@ const EditableImage = ({ path, src, alt, className, onError, loading }: Props) =
 
       {open && (
         <div className="fixed inset-0 z-[100] grid place-items-center bg-black/50 backdrop-blur-sm p-4" onClick={() => setOpen(false)}>
-          <div className="w-full max-w-md rounded-2xl border border-border bg-background p-5 shadow-elevated" onClick={(e) => e.stopPropagation()}>
+          <div className="w-full max-w-md rounded-2xl border border-border surface p-5 shadow-elevated" onClick={(e) => e.stopPropagation()}>
             <h3 className="font-bold font-display text-foreground mb-3">Change photo</h3>
             <ImageUpload value={src} onChange={(url) => ctx.set(path, url)} />
             <div className="mt-4 flex justify-end">

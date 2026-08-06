@@ -1,4 +1,4 @@
-import pumpToPlug from "@/assets/event-pump-to-plug.jpg";
+import pumpToPlug from "@/assets/general-flyer.jpg";
 import demoDaysLa from "@/assets/event-demo-days-la.jpg";
 import emobilitySummit from "@/assets/events/emobility-summit.webp";
 // Real event flyers/photos for the industry-event listings.

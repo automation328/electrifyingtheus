@@ -347,7 +347,7 @@ const PagesManager = () => {
 
       {newOpen && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 backdrop-blur-sm p-4" onClick={() => setNewOpen(false)}>
-          <div className="w-full max-w-md rounded-2xl border border-border bg-background p-5 shadow-elevated" onClick={(e) => e.stopPropagation()}>
+          <div className="w-full max-w-md rounded-2xl border border-border surface p-5 shadow-elevated" onClick={(e) => e.stopPropagation()}>
             <h3 className="font-bold font-display text-foreground mb-3">New page</h3>
             <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">Page title</label>
             <input autoFocus value={newTitle} onChange={(e) => setNewTitle(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") createPage(); }} placeholder="e.g. Fleet Solutions" className="w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-sm" />

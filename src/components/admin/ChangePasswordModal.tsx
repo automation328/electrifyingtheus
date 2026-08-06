@@ -25,7 +25,7 @@ const ChangePasswordModal = ({ onClose }: { onClose: () => void }) => {
 
   return (
     <div className="fixed inset-0 z-[100] grid place-items-center bg-black/50 backdrop-blur-sm p-4" onClick={onClose}>
-      <div className="w-full max-w-sm rounded-2xl border border-border bg-background p-5 shadow-elevated" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full max-w-sm rounded-2xl border border-border surface p-5 shadow-elevated" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center mb-3">
           <h3 className="font-bold font-display text-foreground flex items-center gap-2"><KeyRound className="w-4 h-4 text-primary" /> Change password</h3>
           <button onClick={onClose} className="ml-auto p-1.5 rounded-lg text-muted-foreground hover:bg-muted"><X className="w-4 h-4" /></button>

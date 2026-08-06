@@ -51,7 +51,7 @@ export interface CollectionConfig {
   /** One-line description shown under the section title. */
   description?: string;
   /** If set, enables an "Add from library" button that maps a media item to a row. */
-  mediaImport?: (m: { name: string; url: string; kind: "image" | "video" }) => Record<string, unknown>;
+  mediaImport?: (m: { name: string; url: string; kind: "image" | "video" | "audio" }) => Record<string, unknown>;
   fields: FieldDef[];
   /** Optional row → default sort key (desc). Falls back to created_at. */
   sortRows?: (a: Record<string, unknown>, b: Record<string, unknown>) => number;

@@ -295,7 +295,7 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
       {(isNew || editing) && (
         <div className="fixed inset-0 z-50 flex justify-end bg-black/40 backdrop-blur-sm" onClick={close}>
           <div
-            className="w-full max-w-xl h-full bg-background border-l border-border shadow-elevated flex flex-col"
+            className="w-full max-w-xl h-full surface border-l border-border shadow-elevated flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center gap-3 px-5 h-16 border-b border-border shrink-0">

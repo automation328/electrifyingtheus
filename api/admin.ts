@@ -56,8 +56,9 @@ const forbid = (res: { status: (n: number) => { json: (o: unknown) => void } }, 
 const BUCKET = "site-media";
 const MAX_BYTES = 50 * 1024 * 1024; // 50 MB (bucket limit raised in 0009_media_bucket.sql)
 const ALLOWED_MIME = new Set([
-  "image/png", "image/jpeg", "image/webp", "image/gif",
+  "image/png", "image/jpeg", "image/webp", "image/gif", "image/svg+xml",
   "video/mp4", "video/webm", "video/quicktime",
+  "audio/mpeg", "audio/mp3", "audio/wav", "audio/ogg", "audio/mp4", "audio/aac", "audio/webm",
 ]);
 
 // ── kb re-embed ──────────────────────────────────────────────────────────────
@@ -377,12 +378,14 @@ async function handleMediaList(res: any) {
   });
   if (error) { res.status(500).json({ error: "list_failed", detail: error.message }); return; }
   const VIDEO = /\.(mp4|webm|mov|m4v)$/i;
+  const AUDIO = /\.(mp3|wav|ogg|m4a|aac)$/i;
   const items = (data ?? [])
     .filter((f) => f.name && !f.name.startsWith(".")) // skip folder placeholders
     .map((f) => {
       const path = `cms/${f.name}`;
       const url = db.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
-      return { name: f.name, url, kind: VIDEO.test(f.name) ? "video" : "image" };
+      const kind = AUDIO.test(f.name) ? "audio" : VIDEO.test(f.name) ? "video" : "image";
+      return { name: f.name, url, kind };
     });
   res.status(200).json({ items });
 }

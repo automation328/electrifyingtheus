@@ -117,7 +117,7 @@ export async function uploadImage(file: File): Promise<string> {
   return (data as { url: string }).url;
 }
 
-export interface MediaItem { name: string; url: string; kind: "image" | "video" }
+export interface MediaItem { name: string; url: string; kind: "image" | "video" | "audio" }
 
 /** List everything in the media bucket (images + video files) for the picker. */
 export async function listMedia(): Promise<MediaItem[]> {

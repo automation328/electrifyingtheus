@@ -27,7 +27,7 @@ const MediaPickerModal = ({ kind = "all", onClose, onAdd }: Props) => {
 
   return (
     <div className="fixed inset-0 z-[100] grid place-items-center bg-black/50 backdrop-blur-sm p-4" onClick={onClose}>
-      <div className="w-full max-w-2xl max-h-[85vh] flex flex-col rounded-2xl border border-border bg-background shadow-elevated" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full max-w-2xl max-h-[85vh] flex flex-col rounded-2xl border border-border surface shadow-elevated" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center gap-2 px-5 h-14 border-b border-border shrink-0">
           <FolderOpen className="w-4 h-4 text-primary" />
           <h3 className="font-bold font-display text-foreground">Add from media library</h3>
