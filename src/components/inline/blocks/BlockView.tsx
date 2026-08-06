@@ -291,19 +291,42 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
         </div>
       );
 
-    case "image":
+    case "image": {
+      const imgEl = block.src
+        ? <img src={block.src} alt={block.alt || block.caption || ""} className="max-w-full h-auto rounded-2xl mx-auto" />
+        : <div className="grid h-40 w-72 max-w-full place-items-center rounded-2xl border border-dashed border-border bg-muted/40 text-muted-foreground"><ImageIcon className="w-8 h-8" /></div>;
+      // On the live page, wrap a linked image in an anchor/Link (safe href).
+      const linked = !editing && block.src && block.href
+        ? (block.href.startsWith("/")
+            ? <Link to={safeHref(block.href)}>{imgEl}</Link>
+            : <a href={safeHref(block.href)}>{imgEl}</a>)
+        : imgEl;
       return (
         <figure>
           <div className="relative inline-block">
-            {block.src
-              ? <img src={block.src} alt={block.caption || ""} className="max-w-full h-auto rounded-2xl mx-auto" />
-              : <div className="grid h-40 w-72 max-w-full place-items-center rounded-2xl border border-dashed border-border bg-muted/40 text-muted-foreground"><ImageIcon className="w-8 h-8" /></div>}
+            {linked}
             {editing && <button onClick={() => setImgOpen(true)} className="absolute top-2 right-2 inline-flex items-center gap-1.5 rounded-lg bg-black/70 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-black/85"><ImageIcon className="w-3.5 h-3.5" /> Change</button>}
           </div>
           {(block.caption || editing) && <figcaption className="text-xs text-muted-foreground mt-2"><InlineText value={block.caption ?? ""} onCommit={(v) => up({ caption: v })} /></figcaption>}
-          {imgOpen && <Modal title="Choose image" onClose={() => setImgOpen(false)}><ImageUpload value={block.src ?? ""} onChange={(url) => up({ src: url })} /><div className="mt-4 flex justify-end"><button onClick={() => setImgOpen(false)} className="rounded-xl gradient-hero text-white font-semibold px-5 py-2.5 text-sm">Done</button></div></Modal>}
+          {imgOpen && (
+            <Modal title="Image" onClose={() => setImgOpen(false)}>
+              <ImageUpload value={block.src ?? ""} onChange={(url) => up({ src: url })} />
+              <div className="mt-4 space-y-3">
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">Alt text <span className="normal-case font-normal text-muted-foreground/70">· describes the image for screen readers &amp; SEO</span></label>
+                  <input value={block.alt ?? ""} onChange={(e) => up({ alt: e.target.value })} placeholder="e.g. An electric bus charging at a depot" className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">Link <span className="normal-case font-normal text-muted-foreground/70">· optional — make the image clickable</span></label>
+                  <LinkPicker value={block.href ?? ""} onChange={(v) => up({ href: v })} />
+                </div>
+              </div>
+              <div className="mt-4 flex justify-end"><button onClick={() => setImgOpen(false)} className="rounded-xl gradient-hero text-white font-semibold px-5 py-2.5 text-sm">Done</button></div>
+            </Modal>
+          )}
         </figure>
       );
+    }
 
     case "video":
       return (

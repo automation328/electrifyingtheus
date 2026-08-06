@@ -32,6 +32,7 @@ export interface PageBlock {
   level?: 2 | 3;                    // heading size
   src?: string;                     // image URL
   caption?: string;                 // image caption
+  alt?: string;                     // image alt text (a11y/SEO; falls back to caption)
   href?: string;                    // button / cta link
   provider?: "youtube" | "vimeo" | "file"; // video
   videoId?: string;                 // video id (youtube/vimeo) or file URL
