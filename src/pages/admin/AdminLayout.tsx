@@ -1,13 +1,15 @@
 // CMS shell — sidebar navigation + routed content area. Wrapped by RequireEditor,
 // so anything rendered here is for an authorized editor.
 
+import { useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Newspaper, CalendarDays, Images, Briefcase,
-  FileText, Car, BadgePercent, Bot, LogOut, ExternalLink, Zap, FolderOpen, Menu, PanelBottom, Palette, Users,
+  FileText, Car, BadgePercent, Bot, LogOut, ExternalLink, Zap, FolderOpen, Menu, PanelBottom, Palette, Users, KeyRound,
 } from "lucide-react";
 import { signOut, useEditorAuth } from "@/lib/auth";
 import type { EditorRole } from "@/lib/admin-api";
+import ChangePasswordModal from "@/components/admin/ChangePasswordModal";
 
 // `roles` limits an item to those roles (omit = visible to everyone). Server-side
 // enforcement in api/admin.ts is the real gate; this just hides what a role can't use.
@@ -41,6 +43,7 @@ const NAV_GROUPS: { label?: string; items: NavItem[] }[] = [
 const AdminLayout = () => {
   const navigate = useNavigate();
   const auth = useEditorAuth();
+  const [pwOpen, setPwOpen] = useState(false);
   const role: EditorRole = auth.status === "editor" ? (auth.editor.role as EditorRole) : "viewer";
   const visibleGroups = NAV_GROUPS
     .map((g) => ({ ...g, items: g.items.filter((it) => !it.roles || it.roles.includes(role)) }))
@@ -101,6 +104,12 @@ const AdminLayout = () => {
             <ExternalLink className="w-4 h-4 shrink-0" /> View site
           </a>
           <button
+            onClick={() => setPwOpen(true)}
+            className="w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+          >
+            <KeyRound className="w-4 h-4 shrink-0" /> Change password
+          </button>
+          <button
             onClick={doSignOut}
             className="w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
           >
@@ -121,6 +130,9 @@ const AdminLayout = () => {
             <Zap className="w-4 h-4 text-white" />
           </div>
           <span className="font-bold font-display text-foreground text-sm mr-auto">Content editor</span>
+          <button onClick={() => setPwOpen(true)} className="p-2 rounded-lg text-muted-foreground hover:bg-muted" title="Change password">
+            <KeyRound className="w-4 h-4" />
+          </button>
           <button onClick={doSignOut} className="p-2 rounded-lg text-muted-foreground hover:bg-muted" title="Sign out">
             <LogOut className="w-4 h-4" />
           </button>
@@ -149,6 +161,8 @@ const AdminLayout = () => {
           <Outlet />
         </main>
       </div>
+
+      {pwOpen && <ChangePasswordModal onClose={() => setPwOpen(false)} />}
     </div>
   );
 };

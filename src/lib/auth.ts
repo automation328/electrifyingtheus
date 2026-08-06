@@ -24,6 +24,13 @@ export async function signOut(): Promise<void> {
   await supabase.auth.signOut();
 }
 
+/** Change the signed-in user's own password (uses the active session — no email). */
+export async function changePassword(newPassword: string): Promise<{ error: string | null }> {
+  if (!supabase) return { error: "Auth is not configured." };
+  const { error } = await supabase.auth.updateUser({ password: newPassword });
+  return { error: error ? error.message : null };
+}
+
 /** Current Supabase access token (JWT) for authorizing /api/admin/* calls. */
 export async function getAccessToken(): Promise<string | null> {
   if (!supabase) return null;
