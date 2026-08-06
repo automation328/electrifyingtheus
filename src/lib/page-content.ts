@@ -39,6 +39,8 @@ export interface PageBlock {
   fit?: "cover" | "contain";        // image object-fit when a ratio is set
   href?: string;                    // button / cta link
   newTab?: boolean;                 // button: open link in a new tab
+  wide?: boolean;                   // button: full-width
+  iconRight?: boolean;              // button: place the icon after the label
   provider?: "youtube" | "vimeo" | "file"; // video
   videoId?: string;                 // video id (youtube/vimeo) or file URL
   autoplay?: boolean;               // video: start playing automatically (implies muted)

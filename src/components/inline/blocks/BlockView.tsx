@@ -558,18 +558,21 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
       );
 
     case "button": {
-      const bcls = `inline-flex items-center gap-1.5 font-semibold rounded-xl transition-opacity ${block.variant === "outline" ? "border-2 border-primary text-primary hover:bg-primary/5" : block.variant === "ghost" ? "text-primary hover:bg-primary/10" : "gradient-hero text-white hover:opacity-90"} ${sizeClass(block)} ${fontClass(block)}`;
+      const bcls = `inline-flex items-center justify-center gap-1.5 font-semibold rounded-xl transition-opacity ${block.variant === "outline" ? "border-2 border-primary text-primary hover:bg-primary/5" : block.variant === "ghost" ? "text-primary hover:bg-primary/10" : "gradient-hero text-white hover:opacity-90"} ${block.wide ? "w-full" : ""} ${sizeClass(block)} ${fontClass(block)}`;
       const BIcon = block.icon ? (BLOCK_ICONS[block.icon] ?? null) : null;
-      const inner = <>{BIcon && <BIcon aria-hidden="true" className="w-[1.1em] h-[1.1em]" />}{block.text}</>;
+      const iconEl = BIcon ? <BIcon aria-hidden="true" className="w-[1.1em] h-[1.1em]" /> : null;
+      const inner = block.iconRight ? <>{block.text}{iconEl}</> : <>{iconEl}{block.text}</>;
       return editing ? (
-        <div className="inline-flex flex-col items-start gap-1.5">
-          <span className={bcls}>{BIcon && <BIcon className="w-[1.1em] h-[1.1em]" />}{block.text || "Button"}</span>
+        <div className={`inline-flex flex-col items-start gap-1.5 ${block.wide ? "w-full" : ""}`}>
+          <span className={bcls}>{block.iconRight ? <>{block.text || "Button"}{iconEl}</> : <>{iconEl}{block.text || "Button"}</>}</span>
           <input value={block.text ?? ""} onChange={(e) => up({ text: e.target.value })} placeholder="Button label" className="w-full min-w-[16rem] rounded-lg border border-border bg-background px-2.5 py-1.5 text-xs" />
           <LinkPicker value={block.href ?? ""} onChange={(v) => up({ href: v })} className="w-full min-w-[16rem]" />
           <div className="inline-flex flex-wrap items-center gap-1.5 text-xs">
             {(["solid", "outline", "ghost"] as const).map((v) => <button key={v} onClick={() => up({ variant: v })} className={`px-2 py-0.5 rounded capitalize ${(block.variant ?? "solid") === v ? "gradient-hero text-white" : "border border-border text-muted-foreground hover:bg-muted"}`}>{v}</button>)}
-            <label className="inline-flex items-center gap-1 text-muted-foreground ml-1"><input type="checkbox" checked={!!block.newTab} onChange={(e) => up({ newTab: e.target.checked })} /> New tab</label>
+            <label className="inline-flex items-center gap-1 text-muted-foreground ml-1"><input type="checkbox" checked={!!block.wide} onChange={(e) => up({ wide: e.target.checked })} /> Full width</label>
+            <label className="inline-flex items-center gap-1 text-muted-foreground"><input type="checkbox" checked={!!block.newTab} onChange={(e) => up({ newTab: e.target.checked })} /> New tab</label>
             <button onClick={() => up({ icon: block.icon ? "" : "zap" })} className="text-primary hover:underline">{block.icon ? "Remove icon" : "Add icon"}</button>
+            {block.icon && <label className="inline-flex items-center gap-1 text-muted-foreground"><input type="checkbox" checked={!!block.iconRight} onChange={(e) => up({ iconRight: e.target.checked })} /> Icon right</label>}
           </div>
           {block.icon && <IconPicker block={block} up={up} />}
           <StyleControls block={block} up={up} />
