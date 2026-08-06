@@ -13,6 +13,7 @@ import News from "./pages/News.tsx";
 import BlogPost from "./pages/BlogPost.tsx";
 import Events from "./pages/Events.tsx";
 import EventFromPumpToPlug from "./pages/EventFromPumpToPlug.tsx";
+import EvSafetyWebinar from "./pages/EvSafetyWebinar.tsx";
 import EventDetail from "./pages/EventDetail.tsx";
 import Gallery from "./pages/Gallery.tsx";
 import ListYourEvent from "./pages/ListYourEvent.tsx";
@@ -61,6 +62,7 @@ import FooterEditor from "./pages/admin/FooterEditor.tsx";
 import KnowledgeBaseManager from "./pages/admin/KnowledgeBaseManager.tsx";
 import UsersManager from "./pages/admin/UsersManager.tsx";
 import ActivityManager from "./pages/admin/ActivityManager.tsx";
+import StatisticsManager from "./pages/admin/StatisticsManager.tsx";
 import CollectionManager from "./components/admin/CollectionManager.tsx";
 import { blogConfig, eventsConfig, galleryConfig, jobsConfig, vehiclesConfig, incentivesConfig } from "./pages/admin/collections/configs.ts";
 
@@ -121,12 +123,15 @@ const App = () => (
           <Route path="/thank-you" element={<ThankYou />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/terms" element={<TermsConditions />} />
+          {/* Webinar recap (coded page; replaces the earlier CMS page at this path). */}
+          <Route path="/evsafetywebinar" element={<EvSafetyWebinar />} />
           {/* Internal analytics dashboard — password-gated (ANALYTICS_PASSWORD). */}
           <Route path="/admin" element={<AdminDashboard />} />
           {/* CMS content editor — Supabase Auth, invite-only editors. */}
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin/content" element={<RequireEditor><AdminLayout /></RequireEditor>}>
             <Route index element={<AdminHome />} />
+            <Route path="statistics" element={<StatisticsManager />} />
             <Route path="blog" element={<CollectionManager config={blogConfig} />} />
             <Route path="events" element={<CollectionManager config={eventsConfig} />} />
             <Route path="gallery" element={<CollectionManager config={galleryConfig} />} />

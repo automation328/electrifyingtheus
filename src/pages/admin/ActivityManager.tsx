@@ -55,7 +55,7 @@ const ActivityManager = () => {
 
       {error && (
         <div className="rounded-xl border border-amber-300 bg-amber-50 text-amber-900 px-4 py-3 text-sm mb-4 flex items-start gap-2">
-          <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" /><span>Couldn't load activity — the <span className="font-mono">site_activity</span> table may not exist yet (run migration 0011).</span>
+          <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" /><span>Couldn't load the activity log right now — try refreshing in a moment.</span>
         </div>
       )}
 

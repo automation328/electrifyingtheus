@@ -69,6 +69,46 @@ export async function listActivity(): Promise<ActivityRow[]> {
   return rows;
 }
 
+// ── statistics / analytics (editor/admin) ────────────────────────────────────
+// Same data the password-gated /admin dashboard shows, but authorized by the
+// editor session so it can render inside the CMS (see AnalyticsView).
+export interface AnalyticsTotals {
+  pageviews: number; clicks: number; sessions: number; visitors: number;
+  knownVisitors: number; leads: number; knownViews: number; anonViews: number;
+}
+export interface AnalyticsBar { key: string; count: number }
+export interface AnalyticsPageRow { key: string; count: number; visitors: number }
+export interface AnalyticsVisitorRow {
+  visitorId: string; isKnown: boolean; name: string | null; email: string | null;
+  views: number; clicks: number; sessions: number; lastSeen: string; firstSeen: string;
+  lastPage: string; place: string;
+}
+export interface AnalyticsData {
+  range: string;
+  totals: AnalyticsTotals;
+  series: { date: string; views: number; sessions: number }[];
+  pages: AnalyticsPageRow[];
+  visitors: AnalyticsVisitorRow[];
+  topReferrers: AnalyticsBar[]; topCountries: AnalyticsBar[]; topCities: AnalyticsBar[]; topClicks: AnalyticsBar[];
+  recentKnown: { name: string; email: string; path: string; place: string; when: string }[];
+}
+export interface AnalyticsJourneyEvent { when: string; type: string; path: string; label: string | null; referrer: string }
+export interface AnalyticsJourneySession { sessionId: string; start: string; end: string; events: AnalyticsJourneyEvent[] }
+export interface AnalyticsJourney {
+  visitor: {
+    visitorId: string; isKnown: boolean; name: string | null; email: string | null;
+    views: number; clicks: number; sessions: number; place: string; firstSeen: string | null; lastSeen: string | null;
+  };
+  sessions: AnalyticsJourneySession[];
+}
+
+export async function fetchAdminAnalytics(range: string): Promise<AnalyticsData> {
+  return call<AnalyticsData>({ op: "analytics", range });
+}
+export async function fetchAdminJourney(visitorId: string): Promise<AnalyticsJourney> {
+  return call<AnalyticsJourney>({ op: "analytics", visitorId });
+}
+
 /** Fetch every row (including drafts) for a collection — admin-only view. */
 export async function listRows<T = Record<string, unknown>>(table: AdminTable): Promise<T[]> {
   const { rows } = await call<{ rows: T[] }>({ op: "collection", action: "list", table });

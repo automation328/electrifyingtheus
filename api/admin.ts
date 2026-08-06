@@ -13,6 +13,7 @@
 //   { op: "editors", action: "remove", id }                 → { ok }
 //   { op: "editors", action: "invite", email }              → { ok }
 //   { op: "activity" }                                       → { rows }        (editor/admin)
+//   { op: "analytics", range? | visitorId? }                 → analytics data (editor/admin)
 //   { op: "collection", action: "list",   table }          → { rows }
 //   { op: "collection", action: "insert", table, row }     → { row }
 //   { op: "collection", action: "update", table, id, row } → { row }
@@ -25,6 +26,8 @@
 
 import { randomBytes } from "node:crypto";
 import { getEditor, requireEditor, adminSupabase } from "./_admin-auth.js";
+import { appendActivity, readActivity } from "./_activity-log.js";
+import { analyticsSummary, visitorJourney } from "./_analytics-core.js";
 // NOTE: mammoth / pdf-parse are imported LAZILY inside handleKbUpload — a top-level
 // import of pdf-parse (pdfjs) crashes the whole serverless function at load, which
 // would break every /api/admin op (including the auth check). Keep them lazy.
@@ -72,12 +75,12 @@ function safeJson(s: string): unknown {
   try { return JSON.parse(s); } catch { return null; }
 }
 
-// Best-effort audit log — never throws, so a missing table or write error can't
-// break the actual mutation the caller just performed.
+// Best-effort audit log → self-provisioning private Storage bucket (see
+// _activity-log.ts). Never throws, so a logging failure can't break the actual
+// mutation the caller just performed.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function logActivity(db: any, actor: string, role: string, action: string, target?: string, summary?: string) {
-  try { await db.from("site_activity").insert({ actor, role, action, target: target ?? null, summary: summary ?? null }); }
-  catch { /* table may not exist yet — ignore */ }
+  await appendActivity(db, actor, role, action, target, summary);
 }
 
 function slugName(name: string): string {
@@ -213,15 +216,34 @@ async function findAuthUserByEmail(db: any, email: string) {
   return null;
 }
 
-// Recent activity log (editors + admins). Read-only view.
+// Recent activity log (editors + admins). Read-only view, backed by the private
+// Storage-bucket log in _activity-log.ts.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function handleActivity(res: any, role: string) {
   if (!canPublish(role)) { forbid(res, "Only editors and admins can view activity."); return; }
   const db = adminSupabase();
   if (!db) { res.status(500).json({ error: "not_configured" }); return; }
-  const { data, error } = await db.from("site_activity").select("id,created_at,actor,role,action,target,summary").order("created_at", { ascending: false }).limit(200);
-  if (error) { res.status(500).json({ error: "query_failed", detail: error.message }); return; }
-  res.status(200).json({ rows: data ?? [] });
+  const rows = await readActivity(db, 200);
+  res.status(200).json({ rows });
+}
+
+// Editor-gated analytics for the CMS-embedded Statistics view. Same aggregation
+// the /admin dashboard uses (api/_analytics-core.ts), but authorized by the
+// editor session instead of the separate analytics password.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function handleAnalytics(b: Record<string, unknown>, res: any, role: string) {
+  if (!canPublish(role)) { forbid(res, "Only editors and admins can view statistics."); return; }
+  const db = adminSupabase();
+  if (!db) { res.status(500).json({ error: "not_configured" }); return; }
+  if (b.visitorId) {
+    const out = await visitorJourney(db, String(b.visitorId));
+    if ("error" in out) { res.status(500).json({ error: "query_failed", detail: out.error }); return; }
+    res.status(200).json(out.data);
+    return;
+  }
+  const out = await analyticsSummary(db, b.range);
+  if ("error" in out) { res.status(500).json({ error: "query_failed", detail: out.error }); return; }
+  res.status(200).json(out.data);
 }
 
 // ── users / editors allow-list (admin only) ───────────────────────────────────
@@ -575,6 +597,7 @@ export default async function handler(req: any, res: any) {
   try {
     if (op === "editors") return void (await handleEditors(b, res, role, editor.email));
     if (op === "activity") return void (await handleActivity(res, role));
+    if (op === "analytics") return void (await handleAnalytics(b, res, role));
     if (op === "collection") return void (await handleCollection(b, res, role, editor.email));
     if (op === "upload") { if (role === "viewer") return void forbid(res, "Your account has read-only access."); return void (await handleUpload(b, res)); }
     if (op === "media-list") return void (await handleMediaList(res));
