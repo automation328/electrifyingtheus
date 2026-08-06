@@ -908,13 +908,20 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
     case "social": {
       const items = block.items ?? [];
       const setItems = (it: NonNullable<PageBlock["items"]>) => up({ items: it });
+      const sz = block.size ?? "md";
+      const chip = { sm: "w-8 h-8", md: "w-10 h-10", lg: "w-12 h-12", xl: "w-14 h-14" }[sz];
+      const gly = { sm: "w-4 h-4", md: "w-5 h-5", lg: "w-6 h-6", xl: "w-7 h-7" }[sz];
       if (!editing) return (
         <div className="inline-flex flex-wrap items-center justify-center gap-3">
-          {items.map((it, i) => { const Icon = SOCIAL_ICONS[it.title ?? ""] ?? Mail; return <a key={i} href={safeHref(it.body)} target="_blank" rel="noopener noreferrer" aria-label={`${it.title ? it.title.charAt(0).toUpperCase() + it.title.slice(1) : "Social"} (opens in a new tab)`} className="w-10 h-10 rounded-full gradient-hero grid place-items-center text-white hover:opacity-90"><Icon aria-hidden="true" className="w-5 h-5" /></a>; })}
+          {items.map((it, i) => { const Icon = SOCIAL_ICONS[it.title ?? ""] ?? Mail; return <a key={i} href={safeHref(it.body)} target="_blank" rel="noopener noreferrer" aria-label={`${it.title ? it.title.charAt(0).toUpperCase() + it.title.slice(1) : "Social"} (opens in a new tab)`} className={`${chip} rounded-full gradient-hero grid place-items-center text-white hover:opacity-90`}><Icon aria-hidden="true" className={gly} /></a>; })}
         </div>
       );
       return (
         <div className="text-left space-y-2">
+          <div className="inline-flex items-center gap-2 text-xs mb-1">
+            <span className="text-muted-foreground">Size</span>
+            {(["sm", "md", "lg", "xl"] as const).map((z) => <button key={z} onClick={() => up({ size: z })} className={`px-1.5 py-0.5 rounded uppercase ${sz === z ? "gradient-hero text-white" : "text-muted-foreground hover:bg-muted"}`}>{z}</button>)}
+          </div>
           {items.map((it, i) => (
             <div key={i} className="flex items-center gap-2">
               <select value={it.title ?? "facebook"} onChange={(e) => setItems(items.map((x, j) => (j === i ? { ...x, title: e.target.value } : x)))} className="rounded-lg border border-border bg-background px-2 py-1.5 text-sm capitalize">{SOCIAL_OPTIONS.map((o) => <option key={o} value={o}>{o}</option>)}</select>
