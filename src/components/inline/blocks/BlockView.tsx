@@ -129,7 +129,9 @@ const videoEmbed = (b: PageBlock) => {
     const qs = p.toString();
     return <iframe className="absolute inset-0 w-full h-full" src={`https://player.vimeo.com/video/${b.videoId}${qs ? `?${qs}` : ""}`} title={b.text || "Video"} allow="autoplay; fullscreen; picture-in-picture" allowFullScreen />;
   }
-  return <video className="absolute inset-0 w-full h-full" src={b.videoId} controls autoPlay={b.autoplay} loop={b.loop} muted={mute} playsInline />;
+  // React doesn't reliably reflect the `muted` prop to the DOM element, so set
+  // it imperatively on attach — otherwise the browser blocks muted autoplay.
+  return <video className="absolute inset-0 w-full h-full" src={b.videoId} controls autoPlay={b.autoplay} loop={b.loop} muted={mute} playsInline ref={(el) => { if (el) el.muted = mute; }} />;
 };
 
 const IconPicker = ({ block, up }: { block: PageBlock; up: (p: Partial<PageBlock>) => void }) => {
