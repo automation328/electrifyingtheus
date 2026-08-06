@@ -3,7 +3,7 @@
 // replaces the earlier CMS placeholder page that lived at this path. It renders
 // ContentPageLayout directly — no CMS overlay — so this content is authoritative.
 
-import { ShieldCheck, MessageCircle, CalendarDays, ClipboardCheck } from "lucide-react";
+import { ShieldCheck, MessageCircle, CalendarDays, Calculator } from "lucide-react";
 import ContentPageLayout, { type ContentSection, type ContentLinkCard } from "@/components/ContentPageLayout";
 import SeoHead from "@/components/SeoHead";
 
@@ -12,11 +12,6 @@ const video = {
   youtubeId: "j2Ekl1vltkw",
   title: "EV Safety and First Responders: Demystifying the Myths and Misinformation about Electric Vehicles",
 };
-
-// Post-event survey link. A full https:// URL renders as an external button
-// automatically (see ContentPageLayout link cards). Until the real survey link is
-// provided it points to Contact, which is a valid feedback channel.
-const SURVEY_URL = "/contact-us";
 
 const sections: ContentSection[] = [
   {
@@ -45,16 +40,16 @@ const sections: ContentSection[] = [
     ],
   },
   {
-    heading: "We'd like to hear from you",
+    heading: "Keep the conversation going",
     body: [
-      "Your feedback shapes what we do next. If you have a moment, we'd be grateful if you'd share your thoughts in our short post-event survey — it helps us improve future events and tailor them to the topics that matter most to you.",
-      "Thank you again for taking part. We look forward to seeing you at future events — explore what's coming up and stay connected using the links below.",
+      "Have a question or feedback from the session? We'd love to hear it — reach out any time using the contact button and our team will follow up.",
+      "And if you're weighing the switch, the EV vs Gas Calculator below shows exactly what you'd save. Thank you again for taking part — we look forward to seeing you at future events.",
     ],
   },
 ];
 
 const linkCards: ContentLinkCard[] = [
-  { icon: ClipboardCheck, title: "Post-event survey", desc: "Two minutes of feedback helps us make the next event even better.", to: SURVEY_URL, bgCls: "gradient-hero" },
+  { icon: Calculator, title: "EV vs Gas Calculator", desc: "See exactly what you'd save switching to an EV — real U.S. energy prices, state by state.", to: "/electricity-vs-gasoline", bgCls: "gradient-hero" },
   { icon: CalendarDays, title: "Upcoming events", desc: "Ride & Drives, webinars, and expos happening across the country.", to: "/events", bgCls: "gradient-hero-rev" },
   { icon: ShieldCheck, title: "EV Road Safety", desc: "Resources on EV and AFV safety for first responders and the public.", to: "/ev-road-safety", bgCls: "gradient-hero" },
   { icon: MessageCircle, title: "Ask EVan", desc: "Your EV Advisor — instant answers on EVs, charging, and safety, 24/7.", to: "/#agent-chat", bgCls: "gradient-hero-rev" },

@@ -94,8 +94,8 @@ export const OG_ENTRIES: OgEntry[] = [
     path: "/events/from-pump-to-plug",
     title: "Part 2: From The Pump To The Plug - How Electric Vehicles Can Save You Thousands",
     description:
-      "A free one-hour webinar on how switching from gas to electric saves drivers thousands — on fuel, maintenance, and incentives. June 25, 2026 · Online.",
-    image: "/og/events-from-pump-to-plug.jpg",
+      "A free one-hour webinar on how switching from gas to electric saves drivers thousands — on fuel, maintenance, and incentives. Thursday, August 27, 2026 · Online.",
+    image: "/og/events-from-pump-to-plug-v2.jpg",
   },
 
   // Section landing pages (shared from cards that link to the section).
