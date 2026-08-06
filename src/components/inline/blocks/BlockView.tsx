@@ -19,6 +19,7 @@ import type { PageBlock } from "@/lib/page-content";
 import { useInlineEdit, InlineEditContext, type InlineEditContextValue } from "@/components/inline/edit-context";
 import { newBlock, newId, regenIds } from "@/components/inline/blocks/factory";
 import AddBlock from "@/components/inline/blocks/AddBlock";
+import { InspectorPortal } from "@/components/inline/Inspector";
 import LinkPicker from "@/components/inline/LinkPicker";
 import ImageUpload from "@/components/admin/ImageUpload";
 import { BLOCK_ICONS, BLOCK_ICON_KEYS } from "@/components/inline/blocks/icons";
@@ -453,7 +454,7 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
         <div>
           <Tag className={`${fontClass(block)} ${sizeClass(block)} ${textCls}`} style={block.style?.color && !block.gradientText ? { color: block.style.color } : undefined}><RichText value={block.text ?? ""} onCommit={(v) => up({ text: v })} /></Tag>
           {editing && (
-            <>
+            <InspectorPortal blockId={block.id}>
               <StyleControls block={block} up={up} />
               <div className="mt-2 inline-flex flex-wrap items-center gap-2 rounded-lg border border-border bg-background/80 px-2 py-1.5 text-xs">
                 <span className="text-muted-foreground">Level</span>
@@ -461,7 +462,7 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
                 <span className="w-px h-4 bg-border mx-0.5" />
                 <button onClick={() => up({ gradientText: !block.gradientText })} className={`px-2 py-0.5 rounded ${block.gradientText ? "gradient-hero text-white" : "text-muted-foreground hover:bg-muted"}`}>Gradient</button>
               </div>
-            </>
+            </InspectorPortal>
           )}
         </div>
       );
@@ -471,7 +472,7 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
       return (
         <div>
           <p className={`${fontClass(block)} ${sizeClass(block)} text-muted-foreground leading-[1.75]`} style={block.style?.color ? { color: block.style.color } : undefined}><RichText value={block.text ?? ""} onCommit={(v) => up({ text: v })} /></p>
-          {editing && <StyleControls block={block} up={up} />}
+          {editing && <InspectorPortal blockId={block.id}><StyleControls block={block} up={up} /></InspectorPortal>}
         </div>
       );
 
@@ -575,15 +576,17 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
           <span className={bcls}>{block.iconRight ? <>{block.text || "Button"}{iconEl}</> : <>{iconEl}{block.text || "Button"}</>}</span>
           <input value={block.text ?? ""} onChange={(e) => up({ text: e.target.value })} placeholder="Button label" className="w-full min-w-[16rem] rounded-lg border border-border bg-background px-2.5 py-1.5 text-xs" />
           <LinkPicker value={block.href ?? ""} onChange={(v) => up({ href: v })} className="w-full min-w-[16rem]" />
-          <div className="inline-flex flex-wrap items-center gap-1.5 text-xs">
-            {(["solid", "outline", "ghost"] as const).map((v) => <button key={v} onClick={() => up({ variant: v })} className={`px-2 py-0.5 rounded capitalize ${(block.variant ?? "solid") === v ? "gradient-hero text-white" : "border border-border text-muted-foreground hover:bg-muted"}`}>{v}</button>)}
-            <label className="inline-flex items-center gap-1 text-muted-foreground ml-1"><input type="checkbox" checked={!!block.wide} onChange={(e) => up({ wide: e.target.checked })} /> Full width</label>
-            <label className="inline-flex items-center gap-1 text-muted-foreground"><input type="checkbox" checked={!!block.newTab} onChange={(e) => up({ newTab: e.target.checked })} /> New tab</label>
-            <button onClick={() => up({ icon: block.icon ? "" : "zap" })} className="text-primary hover:underline">{block.icon ? "Remove icon" : "Add icon"}</button>
-            {block.icon && <label className="inline-flex items-center gap-1 text-muted-foreground"><input type="checkbox" checked={!!block.iconRight} onChange={(e) => up({ iconRight: e.target.checked })} /> Icon right</label>}
-          </div>
-          {block.icon && <IconPicker block={block} up={up} />}
-          <StyleControls block={block} up={up} />
+          <InspectorPortal blockId={block.id}>
+            <div className="inline-flex flex-wrap items-center gap-1.5 text-xs">
+              {(["solid", "outline", "ghost"] as const).map((v) => <button key={v} onClick={() => up({ variant: v })} className={`px-2 py-0.5 rounded capitalize ${(block.variant ?? "solid") === v ? "gradient-hero text-white" : "border border-border text-muted-foreground hover:bg-muted"}`}>{v}</button>)}
+              <label className="inline-flex items-center gap-1 text-muted-foreground ml-1"><input type="checkbox" checked={!!block.wide} onChange={(e) => up({ wide: e.target.checked })} /> Full width</label>
+              <label className="inline-flex items-center gap-1 text-muted-foreground"><input type="checkbox" checked={!!block.newTab} onChange={(e) => up({ newTab: e.target.checked })} /> New tab</label>
+              <button onClick={() => up({ icon: block.icon ? "" : "zap" })} className="text-primary hover:underline">{block.icon ? "Remove icon" : "Add icon"}</button>
+              {block.icon && <label className="inline-flex items-center gap-1 text-muted-foreground"><input type="checkbox" checked={!!block.iconRight} onChange={(e) => up({ iconRight: e.target.checked })} /> Icon right</label>}
+            </div>
+            {block.icon && <IconPicker block={block} up={up} />}
+            <StyleControls block={block} up={up} />
+          </InspectorPortal>
         </div>
       ) : (block.href && block.href.startsWith("/")) ? (
         <Link to={block.href} className={bcls}>{inner}</Link>
@@ -609,25 +612,33 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
             <hr className="border-0" style={{ borderTop: `${thick}px ${dstyle} hsl(var(--border))` }} />
           )}
           {editing && (
-            <div className="mt-2 inline-flex flex-wrap items-center gap-2 rounded-lg border border-border bg-background/80 px-2 py-1.5 text-xs">
-              <span className="text-muted-foreground">Thickness</span>
-              <input type="range" min={1} max={16} value={thick} onChange={(e) => up({ thickness: Number(e.target.value) })} />
-              <span className="w-px h-4 bg-border mx-0.5" />
-              <span className="text-muted-foreground">Style</span>
-              {(["solid", "dashed", "dotted"] as const).map((v) => <button key={v} onClick={() => up({ variant: v })} className={`px-1.5 py-0.5 rounded capitalize ${(block.variant ?? "solid") === v ? "gradient-hero text-white" : "text-muted-foreground hover:bg-muted"}`}>{v}</button>)}
-              <span className="w-px h-4 bg-border mx-0.5" />
-              <button onClick={() => up({ icon: block.icon ? "" : "zap" })} className="text-primary hover:underline">{block.icon ? "Remove icon" : "Add icon"}</button>
-            </div>
+            <InspectorPortal blockId={block.id}>
+              <div className="inline-flex flex-wrap items-center gap-2 rounded-lg border border-border bg-background/80 px-2 py-1.5 text-xs">
+                <span className="text-muted-foreground">Thickness</span>
+                <input type="range" min={1} max={16} value={thick} onChange={(e) => up({ thickness: Number(e.target.value) })} />
+                <span className="w-px h-4 bg-border mx-0.5" />
+                <span className="text-muted-foreground">Style</span>
+                {(["solid", "dashed", "dotted"] as const).map((v) => <button key={v} onClick={() => up({ variant: v })} className={`px-1.5 py-0.5 rounded capitalize ${(block.variant ?? "solid") === v ? "gradient-hero text-white" : "text-muted-foreground hover:bg-muted"}`}>{v}</button>)}
+                <span className="w-px h-4 bg-border mx-0.5" />
+                <button onClick={() => up({ icon: block.icon ? "" : "zap" })} className="text-primary hover:underline">{block.icon ? "Remove icon" : "Add icon"}</button>
+              </div>
+              {block.icon && <IconPicker block={block} up={up} />}
+            </InspectorPortal>
           )}
-          {editing && block.icon && <IconPicker block={block} up={up} />}
         </div>
       );
     }
 
     case "spacer":
       return (
-        <div style={{ height: block.height ?? 40 }} className={editing ? "relative bg-primary/5 rounded" : ""}>
-          {editing && <div className="absolute inset-0 grid place-items-center"><input type="range" min={8} max={240} value={block.height ?? 40} onChange={(e) => up({ height: Number(e.target.value) })} className="w-1/2" /></div>}
+        <div style={{ height: block.height ?? 40 }} className={editing ? "relative bg-primary/5 rounded grid place-items-center" : ""}>
+          {editing && <span className="text-[10px] font-semibold uppercase tracking-wide text-primary/60">Spacer · {block.height ?? 40}px</span>}
+          {editing && (
+            <InspectorPortal blockId={block.id}>
+              <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">Height: {block.height ?? 40}px</label>
+              <input type="range" min={8} max={240} value={block.height ?? 40} onChange={(e) => up({ height: Number(e.target.value) })} className="w-full" />
+            </InspectorPortal>
+          )}
         </div>
       );
 
@@ -638,8 +649,8 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
         <div>
           <Icon className={`${isz} inline-block`} strokeWidth={2} style={{ color: block.iconColor || "hsl(var(--primary))" }} />
           {editing && (
-            <>
-              <div className="mt-2 inline-flex flex-wrap items-center gap-2 rounded-lg border border-border bg-background/80 px-2 py-1.5 text-xs">
+            <InspectorPortal blockId={block.id}>
+              <div className="inline-flex flex-wrap items-center gap-2 rounded-lg border border-border bg-background/80 px-2 py-1.5 text-xs">
                 <span className="text-muted-foreground">Size</span>
                 {(["sm", "md", "lg", "xl"] as const).map((z) => <button key={z} onClick={() => up({ iconSize: z })} className={`px-1.5 py-0.5 rounded uppercase ${(block.iconSize ?? "md") === z ? "gradient-hero text-white" : "text-muted-foreground hover:bg-muted"}`}>{z}</button>)}
                 <span className="w-px h-4 bg-border mx-0.5" />
@@ -648,7 +659,7 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
                 {block.iconColor && <button onClick={() => up({ iconColor: "" })} className="text-muted-foreground hover:text-destructive">reset</button>}
               </div>
               <IconPicker block={block} up={up} />
-            </>
+            </InspectorPortal>
           )}
         </div>
       );
@@ -1057,6 +1068,8 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
       const setChildren = (fn: (cs: PageBlock[]) => PageBlock[]) => up({ children: fn(children) });
       const childCtx: InlineEditContextValue = {
         editing,
+        activeId: ctx.activeId,       // selection is page-global, shared with nested blocks
+        setActive: ctx.setActive,
         set: () => {},
         get: () => undefined,
         addBlock: (slot, type) => { const col = Number(slot.replace("col-", "")) || 0; setChildren((cs) => [...cs, { ...newBlock(type), slot: "", col }]); },
@@ -1204,13 +1217,12 @@ const Swatch = ({ value, active, onClick }: { value: string; active: boolean; on
   <button type="button" onClick={onClick} title={value || "none"} className={`w-7 h-7 rounded-lg border ${active ? "ring-2 ring-primary border-primary" : "border-border"} ${value ? "" : "bg-[repeating-conic-gradient(#ccc_0_25%,#fff_0_50%)] bg-[length:10px_10px]"}`} style={value ? { backgroundColor: value } : undefined} />
 );
 
-const StylePanel = ({ block, up, onClose }: { block: PageBlock; up: (p: Partial<PageBlock>) => void; onClose: () => void }) => {
+const StyleFields = ({ block, up }: { block: PageBlock; up: (p: Partial<PageBlock>) => void }) => {
   const s = block.style ?? {};
   const setStyle = (patch: Partial<BlockStyle>) => up({ style: { ...s, ...patch } });
   const [bgImgOpen, setBgImgOpen] = useState(false);
   const lbl = "block text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1.5";
   return (
-    <Modal title="Block style" onClose={onClose}>
       <div className="space-y-4 text-left">
         <div>
           <label className={lbl}>Background</label>
@@ -1364,12 +1376,34 @@ const StylePanel = ({ block, up, onClose }: { block: PageBlock; up: (p: Partial<
           </div>
         </div>
 
-        <div className="flex justify-between pt-1">
-          <button onClick={() => up({ style: {} })} className="text-xs text-muted-foreground hover:text-destructive">Clear styles</button>
-          <button onClick={onClose} className="rounded-xl gradient-hero text-white font-semibold px-5 py-2 text-sm">Done</button>
+        <div className="pt-1">
+          <button onClick={() => up({ style: {} })} className="text-xs text-muted-foreground hover:text-destructive">Clear all styles</button>
         </div>
       </div>
-    </Modal>
+  );
+};
+
+// Block actions shown at the top of the Inspector's Settings panel. Uses the
+// block's OWN ctx (page-level for top-level blocks, the container's childCtx for
+// nested ones) so duplicate/move/delete/align act on the correct scope.
+const BlockActions = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextValue }) => {
+  const hasAlign = ["heading", "text", "button", "image", "icon", "icon-list", "toc"].includes(block.type);
+  const btn = "p-1.5 rounded-md text-neutral-500 hover:bg-neutral-100 hover:text-neutral-800";
+  return (
+    <div className="flex items-center gap-0.5 flex-wrap border-b border-neutral-100 pb-2 -mt-1">
+      {hasAlign && (
+        <>
+          <button className={btn} title="Align left" onClick={() => ctx.updateBlock(block.id, { align: "left" })}><AlignLeft className="w-3.5 h-3.5" /></button>
+          <button className={btn} title="Align center" onClick={() => ctx.updateBlock(block.id, { align: "center" })}><AlignCenter className="w-3.5 h-3.5" /></button>
+          <button className={btn} title="Align right" onClick={() => ctx.updateBlock(block.id, { align: "right" })}><AlignRight className="w-3.5 h-3.5" /></button>
+          <span className="w-px h-4 bg-neutral-200 mx-0.5" />
+        </>
+      )}
+      <button className={btn} title="Duplicate" onClick={() => ctx.duplicateBlock(block.id)}><Copy className="w-3.5 h-3.5" /></button>
+      <button className={btn} title="Move up" onClick={() => ctx.moveBlock(block.id, -1)}><ArrowUp className="w-3.5 h-3.5" /></button>
+      <button className={btn} title="Move down" onClick={() => ctx.moveBlock(block.id, 1)}><ArrowDown className="w-3.5 h-3.5" /></button>
+      <button className="p-1.5 rounded-md text-neutral-500 hover:bg-red-50 hover:text-red-600" title="Delete" onClick={() => { ctx.removeBlock(block.id); ctx.setActive(null); }}><Trash2 className="w-3.5 h-3.5" /></button>
+    </div>
   );
 };
 
@@ -1446,7 +1480,6 @@ const animHidden = (a?: string) => ({
 
 const BlockView = ({ block, nested = false }: { block: PageBlock; nested?: boolean }) => {
   const ctx = useInlineEdit();
-  const [styleOpen, setStyleOpen] = useState(false);
   const [dragArmed, setDragArmed] = useState(false);
   const [dropEdge, setDropEdge] = useState<"top" | "bottom" | null>(null);
   const revealRef = useRef<HTMLDivElement>(null);
@@ -1497,12 +1530,14 @@ const BlockView = ({ block, nested = false }: { block: PageBlock; nested?: boole
 
   const up = (patch: Partial<PageBlock>) => ctx.updateBlock(block.id, patch);
   const hiddenSomewhere = block.hideMobile || block.hideDesktop;
+  const isActive = ctx.activeId === block.id;
 
   return (
     <div
       data-block-id={block.id}
       {...anchorProps}
-      className={`group relative rounded-xl ring-1 ring-transparent hover:ring-primary/40 transition p-3 ${align} ${dropEdge === "top" ? "border-t-2 border-primary" : dropEdge === "bottom" ? "border-b-2 border-primary" : ""}`}
+      onClick={(e) => { e.stopPropagation(); ctx.setActive(block.id); }}
+      className={`group relative rounded-xl ring-1 transition p-3 ${isActive ? "ring-2 ring-primary" : "ring-transparent hover:ring-primary/40"} ${align} ${dropEdge === "top" ? "border-t-2 border-primary" : dropEdge === "bottom" ? "border-b-2 border-primary" : ""}`}
       style={css}
       draggable={dragArmed}
       onDragStart={(e) => { e.dataTransfer.setData("text/blockId", block.id); e.dataTransfer.effectAllowed = "move"; }}
@@ -1521,9 +1556,16 @@ const BlockView = ({ block, nested = false }: { block: PageBlock; nested?: boole
           #{block.anchor}
         </span>
       )}
-      <Toolbar block={block} ctx={ctx} onStyle={() => setStyleOpen(true)} onDragHandle={setDragArmed} />
+      <Toolbar block={block} ctx={ctx} onStyle={() => ctx.setActive(block.id)} onDragHandle={setDragArmed} />
+      {/* Block actions dock at the top of the Inspector (correct scope via this block's ctx). */}
+      <InspectorPortal blockId={block.id}>
+        <BlockActions block={block} ctx={ctx} />
+      </InspectorPortal>
       {inner}
-      {styleOpen && <StylePanel block={block} up={up} onClose={() => setStyleOpen(false)} />}
+      {/* The block's full style controls live in the left Inspector while selected. */}
+      <InspectorPortal blockId={block.id}>
+        <StyleFields block={block} up={up} />
+      </InspectorPortal>
     </div>
   );
 };

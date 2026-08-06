@@ -6,7 +6,7 @@ import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
-  Plus, Pencil, Trash2, Loader2, X, Save, AlertCircle, Eye, EyeOff, Image as ImageIcon, FolderOpen,
+  Plus, Pencil, Trash2, Loader2, X, Save, AlertCircle, Eye, EyeOff, Image as ImageIcon, FolderOpen, ExternalLink,
 } from "lucide-react";
 import { listRows, insertRow, updateRow, deleteRow, type MediaItem } from "@/lib/admin-api";
 import AdminField from "@/components/admin/AdminField";
@@ -199,6 +199,7 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
     const isStatic = !!row.__static;
     const status = String(row[config.statusField] ?? "");
     const published = status === "published";
+    const viewUrl = config.viewUrl?.(row);
     return (
       <li key={isStatic ? `s:${config.keyOf?.(row)}` : String(row.id)} className="group flex items-center gap-3.5 rounded-2xl border border-border/70 bg-card px-4 py-3 shadow-sm transition-all hover:shadow-md hover:border-primary/30">
         {config.imageField && (
@@ -215,6 +216,11 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
           </div>
           {subtitleOf(row) && <p className="text-xs text-muted-foreground truncate mt-0.5">{subtitleOf(row)}</p>}
         </div>
+        {viewUrl && (
+          <a href={viewUrl} target="_blank" rel="noreferrer" className="p-2 rounded-lg text-muted-foreground hover:text-primary hover:bg-muted transition-colors" title={`View live ${config.singular.toLowerCase()} page`}>
+            <ExternalLink className="w-4 h-4" />
+          </a>
+        )}
         {isStatic ? (
           canWrite && (
             <button onClick={() => openEdit(row)} className="inline-flex items-center gap-1.5 rounded-lg border border-primary/50 text-primary text-xs font-semibold px-3 py-2 hover:bg-primary/10" title="Edit — adds an editable copy to your library">

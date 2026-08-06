@@ -8,7 +8,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import ContentPageLayout from "@/components/ContentPageLayout";
 import EditBar from "@/components/inline/EditBar";
-import OutlinePanel from "@/components/inline/OutlinePanel";
+import Inspector from "@/components/inline/Inspector";
 import SeoModal from "@/components/inline/SeoModal";
 import SeoHead from "@/components/SeoHead";
 import { InlineEditContext, setPath, getPath } from "@/components/inline/edit-context";
@@ -97,6 +97,7 @@ const EditableContentPage = ({ path, label, ...props }: LayoutProps & { path: st
 
   const [editing, setEditing] = useState(false);
   const [preview, setPreview] = useState(false);
+  const [activeId, setActiveId] = useState<string | null>(null);
   const [seoOpen, setSeoOpen] = useState(false);
   const saveDraftRef = useRef<() => void>(() => {});   // latest save-draft action for the Ctrl+S shortcut
   const [hist, setHist] = useState<{ stack: PageOverride[]; idx: number }>({ stack: [{}], idx: 0 });
@@ -125,6 +126,8 @@ const EditableContentPage = ({ path, label, ...props }: LayoutProps & { path: st
 
   const ctx = useMemo(() => ({
     editing: editing && !preview,   // preview renders blocks in visitor (view) mode
+    activeId,
+    setActive: setActiveId,
     set: (p: string, v: unknown) => commit(trackCleared(setPath(working, p, v), p, v)),
     get: (p: string) => getPath(working, p),
     addBlock: (slot: string, type: BlockType) => mutateBlocks((blocks) => [...blocks, { ...newBlock(type), slot }]),
@@ -171,7 +174,7 @@ const EditableContentPage = ({ path, label, ...props }: LayoutProps & { path: st
       const at = before ? ti : ti + 1;
       return [...without.slice(0, at), moved, ...without.slice(at)];
     }),
-  }), [editing, preview, working, slotOrder]);
+  }), [editing, preview, working, slotOrder, activeId]);
 
   const startEdit = () => {
     // Snapshot the current effective content so every field/path exists to edit.
@@ -180,7 +183,7 @@ const EditableContentPage = ({ path, label, ...props }: LayoutProps & { path: st
     setEditing(true);
   };
 
-  const cancel = () => { setEditing(false); setPreview(false); setHist({ stack: [{}], idx: 0 }); };
+  const cancel = () => { setEditing(false); setPreview(false); setActiveId(null); setHist({ stack: [{}], idx: 0 }); };
 
   // Keyboard undo/redo — but never when typing in a field/contentEditable (let
   // the browser handle text undo there).
@@ -262,7 +265,7 @@ const EditableContentPage = ({ path, label, ...props }: LayoutProps & { path: st
     <InlineEditContext.Provider value={ctx}>
       <SeoHead title={seoTitle} description={seoDesc} image={seoImage} />
       <ContentPageLayout {...rendered} />
-      {editing && !preview && <OutlinePanel blocks={working.blocks ?? []} />}
+      {editing && !preview && <Inspector blocks={working.blocks ?? []} />}
       {editing && !preview && seoOpen && (
         <SeoModal
           seo={working.seo ?? {}}

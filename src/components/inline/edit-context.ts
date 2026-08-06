@@ -9,6 +9,11 @@ import type { PageBlock, BlockType } from "@/lib/page-content";
 export interface InlineEditContextValue {
   /** True while the page is in edit mode. */
   editing: boolean;
+  /** Id of the block currently selected in the editor (its settings show in the
+   *  left Inspector). null when nothing is selected. */
+  activeId: string | null;
+  /** Select a block (or null to clear) — used by block click + the Layers panel. */
+  setActive: (id: string | null) => void;
   /** Set a value at a dotted path in the working override (e.g. "sections.0.body.1"). */
   set: (path: string, value: unknown) => void;
   /** Read the current value at a dotted path (for image controls). */

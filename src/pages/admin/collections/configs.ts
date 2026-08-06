@@ -23,6 +23,7 @@ export const blogConfig: CollectionConfig = {
   statusOptions: STATUS,
   staticRows: blogStaticRows,
   keyOf: (r) => str(r.slug),
+  viewUrl: (r) => (r.slug ? `/blog/${str(r.slug)}` : "/news"),
   sortRows: (a, b) => asStr(b.published_at).localeCompare(asStr(a.published_at)),
   fields: [
     { name: "title", label: "Title", type: "text", required: true, width: "full" },
@@ -50,6 +51,7 @@ export const eventsConfig: CollectionConfig = {
   statusOptions: STATUS,
   staticRows: eventStaticRows,
   keyOf: (r) => `${str(r.title)}|${str(r.event_date)}`,
+  viewUrl: () => "/events",
   sortRows: (a, b) => asStr(b.event_date).localeCompare(asStr(a.event_date)),
   fields: [
     { name: "title", label: "Title", type: "text", required: true },
@@ -73,6 +75,7 @@ export const galleryConfig: CollectionConfig = {
   imageField: "url",
   description: "Your public gallery page — curate it from the Media library, or add items by hand.",
   mediaImport: (m) => ({ kind: m.kind, url: m.url, title: m.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " "), album: "", poster: "", provider: m.kind === "video" ? "file" : "", sort: 0, status: "published" }),
+  viewUrl: () => "/gallery",
   statusField,
   statusOptions: STATUS,
   staticRows: galleryStaticRows,
@@ -98,6 +101,7 @@ export const jobsConfig: CollectionConfig = {
   imageField: "image",
   statusField,
   statusOptions: STATUS,
+  viewUrl: () => "/careers",
   sortRows: (a, b) => asNum(a.sort) - asNum(b.sort),
   fields: [
     { name: "title", label: "Title", type: "text", required: true },
@@ -127,6 +131,7 @@ export const vehiclesConfig: CollectionConfig = {
   splitBy: { field: "type", left: "ev", leftLabel: "Electric cars", right: ["gas", "hybrid"], rightLabel: "Gas cars" },
   staticRows: vehicleStaticRows,
   keyOf: (r) => str(r.vehicle_id),
+  viewUrl: () => "/electricity-vs-gasoline",
   statusField,
   statusOptions: STATUS,
   sortRows: (a, b) => asNum(a.sort) - asNum(b.sort),
@@ -165,6 +170,7 @@ export const incentivesConfig: CollectionConfig = {
   statusOptions: STATUS,
   staticRows: incentiveStaticRows,
   keyOf: (r) => `${str(r.scope)}|${str(r.state) || ""}|${str(r.name)}`,
+  viewUrl: () => "/rebates-incentives",
   sortRows: (a, b) => asNum(a.sort) - asNum(b.sort),
   fields: [
     { name: "name", label: "Program name", type: "text", required: true },
