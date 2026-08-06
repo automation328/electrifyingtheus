@@ -146,4 +146,51 @@ export const SECTION_PRESETS: SectionPreset[] = [
       ],
     }),
   },
+  {
+    id: "split-hero", name: "Split hero",
+    build: () => ({
+      ...newBlock("container"), cols: 2, fullWidth: true, style: { bg: "hsl(var(--primary))", padY: 72 },
+      children: [
+        child("image", { src: "", caption: "" }, 0),
+        child("heading", { text: "A headline beside an image", level: 2, size: "lg", align: "left", style: { color: WHITE } }, 1),
+        child("text", { text: "Explain the value in a sentence or two, right next to a supporting image.", align: "left", style: { color: SOFT_WHITE } }, 1),
+        child("button", { text: "Get started", href: "/", align: "left" }, 1),
+      ],
+    }),
+  },
+  {
+    id: "video-text", name: "Video + text",
+    build: () => ({
+      ...newBlock("container"), cols: 2, style: { padY: 40 },
+      children: [
+        child("video", { provider: "youtube", videoId: "" }, 0),
+        child("heading", { text: "Section heading", level: 2, align: "left" }, 1),
+        child("text", { text: "Describe what the video covers and why it matters.", align: "left" }, 1),
+        child("button", { text: "Learn more", href: "/", align: "left" }, 1),
+      ],
+    }),
+  },
+  {
+    id: "quote", name: "Featured quote",
+    build: () => ({
+      ...newBlock("container"), cols: 1, fullWidth: true, style: { bg: "hsl(var(--muted))", padY: 56 },
+      children: [
+        child("testimonial", { text: "A standout quote that builds trust and credibility with your audience.", subtext: "Jordan Lee", caption: "City Transit Director" }),
+      ],
+    }),
+  },
+  {
+    id: "cta-2btn", name: "CTA (2 buttons)",
+    build: () => ({
+      ...newBlock("container"), cols: 1, style: { padY: 48, maxW: "md" },
+      children: [
+        child("heading", { text: "Ready to get started?", level: 2, align: "center" }, 0),
+        child("text", { text: "Pick the path that fits you best.", align: "center" }, 0),
+        { ...newBlock("container"), col: 0, cols: 2, children: [
+          child("button", { text: "Primary action", href: "/", align: "center" }, 0),
+          child("button", { text: "Secondary", href: "/", align: "center" }, 1),
+        ] },
+      ],
+    }),
+  },
 ];
