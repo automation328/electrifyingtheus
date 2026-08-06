@@ -97,11 +97,15 @@ export interface PageOverride {
   gallery?: ContentShot[];
   blocks?: PageBlock[];
   seo?: PageSeo;
+  /** Fields the editor intentionally blanked. Only these override the static
+   * default with an empty value; an empty value NOT listed here (e.g. in a
+   * legacy row) still falls back to the default. */
+  cleared?: string[];
 }
 
 export const PAGE_OVERRIDE_KEYS: (keyof PageOverride)[] = [
   "badge", "title", "highlight", "intro", "kicker", "pullQuote",
-  "stats", "sections", "sources", "heroImage", "gallery", "blocks", "seo",
+  "stats", "sections", "sources", "heroImage", "gallery", "blocks", "seo", "cleared",
 ];
 
 /** Pages wired to EditableContentPage — shown in the CMS Pages editor. */
@@ -148,16 +152,25 @@ export function pickPageOverride(source: Record<string, unknown>): PageOverride 
   return out;
 }
 
-/** Merge an override onto static props. A key that is PRESENT in the override
- * wins — including an intentionally-cleared value (empty string / empty array),
- * so an editor can blank a field. Keys absent from the override fall back to the
- * static default. (`null`/`undefined` are treated as "not set" and fall back.) */
+function isEmpty(v: unknown): boolean {
+  if (v === undefined || v === null) return true;
+  if (typeof v === "string") return v.trim() === "";
+  if (Array.isArray(v)) return v.length === 0;
+  return false;
+}
+
+/** Merge an override onto static props. A non-empty override field wins; an
+ * EMPTY field wins only if the editor intentionally cleared it (listed in
+ * `override.cleared`), so a legacy row with a stray empty value still falls back
+ * to the static default. */
 export function mergePageOverride<T extends PageOverride>(base: T, override: PageOverride | null | undefined): T {
   if (!override) return base;
   const out = { ...base };
+  const cleared = new Set(override.cleared ?? []);
   for (const key of PAGE_OVERRIDE_KEYS) {
     const v = override[key];
-    if (v !== undefined && v !== null) {
+    if (v === undefined || v === null) continue;
+    if (key === "cleared" || !isEmpty(v) || cleared.has(key)) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (out as any)[key] = v;
     }

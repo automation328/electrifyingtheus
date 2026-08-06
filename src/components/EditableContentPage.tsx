@@ -12,7 +12,7 @@ import OutlinePanel from "@/components/inline/OutlinePanel";
 import SeoModal from "@/components/inline/SeoModal";
 import SeoHead from "@/components/SeoHead";
 import { InlineEditContext, setPath, getPath } from "@/components/inline/edit-context";
-import { usePageOverride, mergePageOverride, pickPageOverride, EDITABLE_PAGES, type PageOverride, type PageBlock, type BlockType } from "@/lib/page-content";
+import { usePageOverride, mergePageOverride, pickPageOverride, EDITABLE_PAGES, PAGE_OVERRIDE_KEYS, type PageOverride, type PageBlock, type BlockType } from "@/lib/page-content";
 import { newBlock, newId, regenIds } from "@/components/inline/blocks/factory";
 import { useEditorAuth } from "@/lib/auth";
 import { listRows, insertRow, updateRow } from "@/lib/admin-api";
@@ -22,6 +22,16 @@ type LayoutProps = React.ComponentProps<typeof ContentPageLayout>;
 interface PageRow { id: string; path: string; status: string; title?: string; content: PageOverride }
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 interface SettingRow { id: string; key: string; value: { items?: any[] } }
+
+// Track intentionally-cleared top-level fields so an editor's blank wins over
+// the static default (see mergePageOverride's `cleared` tombstone).
+const trackCleared = (next: PageOverride, path: string, v: unknown): PageOverride => {
+  if (typeof path !== "string" || path.includes(".") || path === "cleared" || !(PAGE_OVERRIDE_KEYS as string[]).includes(path)) return next;
+  const emptied = v === "" || v === null || v === undefined || (Array.isArray(v) && v.length === 0);
+  const set = new Set(next.cleared ?? []);
+  if (emptied) set.add(path); else set.delete(path);
+  return { ...next, cleared: set.size ? Array.from(set) : undefined };
+};
 
 const lastIndexWhere = <T,>(arr: T[], pred: (x: T) => boolean): number => {
   for (let i = arr.length - 1; i >= 0; i--) if (pred(arr[i])) return i;
@@ -110,7 +120,7 @@ const EditableContentPage = ({ path, label, ...props }: LayoutProps & { path: st
 
   const ctx = useMemo(() => ({
     editing,
-    set: (p: string, v: unknown) => commit(setPath(working, p, v)),
+    set: (p: string, v: unknown) => commit(trackCleared(setPath(working, p, v), p, v)),
     get: (p: string) => getPath(working, p),
     addBlock: (slot: string, type: BlockType) => mutateBlocks((blocks) => [...blocks, { ...newBlock(type), slot }]),
     updateBlock: (id: string, patch: Partial<PageBlock>) => mutateBlocks((blocks) => blocks.map((b) => (b.id === id ? { ...b, ...patch } : b))),

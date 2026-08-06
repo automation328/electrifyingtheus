@@ -25,20 +25,31 @@ import { BLOCK_ICONS, BLOCK_ICON_KEYS } from "@/components/inline/blocks/icons";
 
 const alignClass = (a?: string) => (a === "left" ? "text-left" : a === "right" ? "text-right" : "text-center");
 
+// Ensure any target=_blank link the html block produces can't reach window.opener.
+if (typeof window !== "undefined") {
+  DOMPurify.addHook("afterSanitizeAttributes", (node) => {
+    if (node.nodeName === "A" && node.getAttribute("target") === "_blank") {
+      node.setAttribute("rel", "noopener noreferrer");
+    }
+  });
+}
+
 // Sanitize editor-supplied HTML (the "html" block) before it hits the DOM, so a
 // malicious/compromised editor can't plant stored XSS on public pages. Strips
 // scripts, event handlers, and dangerous URIs while keeping ordinary markup.
 const cleanHtml = (html: string) =>
   DOMPurify.sanitize(html ?? "", { USE_PROFILES: { html: true }, ADD_ATTR: ["target"] });
 
-// Only allow safe link schemes; block javascript:/data:/vbscript: hrefs which
-// would execute on click. Relative paths and #anchors pass through.
+// Only allow safe link schemes; block javascript:/data:/vbscript: hrefs (would
+// execute on click) and protocol-relative //host (silent off-site redirect).
+// Relative paths, #anchors, mailto:, tel:, and http(s): pass through.
 const safeHref = (href?: string): string => {
   const h = (href ?? "").trim();
   if (!h) return "#";
+  if (/^\/\//.test(h.replace(/\\/g, "/"))) return "#"; // protocol-relative (incl. backslash forms)
   if (/^(\/|#|mailto:|tel:)/i.test(h)) return h;
   if (/^https?:\/\//i.test(h)) return h;
-  return "#"; // reject javascript:, data:, and other unexpected schemes
+  return "#"; // reject javascript:, data:, vbscript:, and other unexpected schemes
 };
 
 const fontClass = (block: PageBlock) => {
@@ -548,7 +559,7 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
         <div className="text-left">
           <div className="rounded-xl border border-dashed border-border p-3 mb-2 overflow-x-auto" dangerouslySetInnerHTML={{ __html: cleanHtml(block.text || "<em>Custom HTML preview</em>") }} />
           <textarea value={block.text ?? ""} onChange={(e) => up({ text: e.target.value })} placeholder="<div>your HTML…</div>" rows={6} className="w-full rounded-lg border border-border bg-background px-2.5 py-1.5 text-sm font-mono resize-y" />
-          <p className="text-xs text-muted-foreground mt-1">Rendered on the page. Scripts and event handlers are stripped for safety.</p>
+          <p className="text-xs text-muted-foreground mt-1">Rendered on the page. Scripts, event handlers, and iframes are stripped for safety — use the Video or Maps block for embeds.</p>
         </div>
       ) : (
         <div dangerouslySetInnerHTML={{ __html: cleanHtml(block.text || "") }} />
@@ -956,13 +967,13 @@ const BlockView = ({ block, nested = false }: { block: PageBlock; nested?: boole
   const [dropEdge, setDropEdge] = useState<"top" | "bottom" | null>(null);
   const revealRef = useRef<HTMLDivElement>(null);
   const [inView, setInView] = useState(false);
+  // Resolved synchronously (before first paint) so reduced-motion users never
+  // see the entrance transition play at all — the block just renders revealed.
+  const [reduceMotion] = useState(() => typeof window !== "undefined" && !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches);
   const anim = block.style?.anim;
-  const animated = !!anim && anim !== "none" && !ctx?.editing;
+  const animated = !!anim && anim !== "none" && !ctx?.editing && !reduceMotion;
   useEffect(() => {
     if (!animated) return;
-    // Honor reduced-motion: reveal immediately rather than gate content behind
-    // an animation the user has opted out of.
-    if (typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) { setInView(true); return; }
     const el = revealRef.current;
     if (!el) return;
     // threshold:0 reveals as soon as ANY part intersects — a non-zero threshold
