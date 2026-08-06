@@ -27,7 +27,7 @@ interface SettingRow { id: string; key: string; value: { items?: any[] } }
 // the static default (see mergePageOverride's `cleared` tombstone).
 const trackCleared = (next: PageOverride, path: string, v: unknown): PageOverride => {
   if (typeof path !== "string" || path.includes(".") || path === "cleared" || !(PAGE_OVERRIDE_KEYS as string[]).includes(path)) return next;
-  const emptied = v === "" || v === null || v === undefined || (Array.isArray(v) && v.length === 0);
+  const emptied = v === null || v === undefined || (typeof v === "string" && v.trim() === "") || (Array.isArray(v) && v.length === 0);
   const set = new Set(next.cleared ?? []);
   if (emptied) set.add(path); else set.delete(path);
   return { ...next, cleared: set.size ? Array.from(set) : undefined };
