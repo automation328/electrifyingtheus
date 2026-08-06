@@ -111,9 +111,25 @@ const Modal = ({ title, onClose, children }: { title: string; onClose: () => voi
 );
 
 const videoEmbed = (b: PageBlock) => {
-  if (b.provider === "youtube") return <iframe className="absolute inset-0 w-full h-full" src={`https://www.youtube-nocookie.com/embed/${b.videoId}`} title={b.text || "Video"} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen />;
-  if (b.provider === "vimeo") return <iframe className="absolute inset-0 w-full h-full" src={`https://player.vimeo.com/video/${b.videoId}`} title={b.text || "Video"} allow="autoplay; fullscreen; picture-in-picture" allowFullScreen />;
-  return <video className="absolute inset-0 w-full h-full" src={b.videoId} controls />;
+  // Autoplay is only permitted muted, so autoplay implies mute for embeds.
+  const mute = b.muted || b.autoplay;
+  if (b.provider === "youtube") {
+    const p = new URLSearchParams();
+    if (b.autoplay) p.set("autoplay", "1");
+    if (mute) p.set("mute", "1");
+    if (b.loop) { p.set("loop", "1"); if (b.videoId) p.set("playlist", b.videoId); } // loop needs playlist
+    const qs = p.toString();
+    return <iframe className="absolute inset-0 w-full h-full" src={`https://www.youtube-nocookie.com/embed/${b.videoId}${qs ? `?${qs}` : ""}`} title={b.text || "Video"} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen />;
+  }
+  if (b.provider === "vimeo") {
+    const p = new URLSearchParams();
+    if (b.autoplay) p.set("autoplay", "1");
+    if (mute) p.set("muted", "1");
+    if (b.loop) p.set("loop", "1");
+    const qs = p.toString();
+    return <iframe className="absolute inset-0 w-full h-full" src={`https://player.vimeo.com/video/${b.videoId}${qs ? `?${qs}` : ""}`} title={b.text || "Video"} allow="autoplay; fullscreen; picture-in-picture" allowFullScreen />;
+  }
+  return <video className="absolute inset-0 w-full h-full" src={b.videoId} controls autoPlay={b.autoplay} loop={b.loop} muted={mute} playsInline />;
 };
 
 const IconPicker = ({ block, up }: { block: PageBlock; up: (p: Partial<PageBlock>) => void }) => {
@@ -386,6 +402,12 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
                   <p className="text-xs text-muted-foreground mt-1">Paste just the video ID from the share URL.</p>
                 </>
               )}
+              <div className="mt-4 flex flex-wrap gap-4">
+                <label className="inline-flex items-center gap-1.5 text-sm text-foreground"><input type="checkbox" checked={!!block.autoplay} onChange={(e) => up({ autoplay: e.target.checked })} /> Autoplay</label>
+                <label className="inline-flex items-center gap-1.5 text-sm text-foreground"><input type="checkbox" checked={!!block.loop} onChange={(e) => up({ loop: e.target.checked })} /> Loop</label>
+                <label className="inline-flex items-center gap-1.5 text-sm text-foreground"><input type="checkbox" checked={!!block.muted || !!block.autoplay} disabled={!!block.autoplay} onChange={(e) => up({ muted: e.target.checked })} /> Muted</label>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">Autoplay requires muted (browsers block sound-on autoplay).</p>
               <div className="mt-4 flex justify-end"><button onClick={() => setVidOpen(false)} className="rounded-xl gradient-hero text-white font-semibold px-5 py-2.5 text-sm">Done</button></div>
             </Modal>
           )}

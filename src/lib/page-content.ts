@@ -36,6 +36,9 @@ export interface PageBlock {
   href?: string;                    // button / cta link
   provider?: "youtube" | "vimeo" | "file"; // video
   videoId?: string;                 // video id (youtube/vimeo) or file URL
+  autoplay?: boolean;               // video: start playing automatically (implies muted)
+  loop?: boolean;                   // video: loop playback
+  muted?: boolean;                  // video: start muted
   height?: number;                  // spacer height (px)
   icon?: string;                    // icon key (see block icon set)
   thickness?: number;               // divider thickness (px)
