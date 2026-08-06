@@ -707,6 +707,39 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
       );
     }
 
+    case "icon-list": {
+      const items = block.items ?? [];
+      const setItems = (it: NonNullable<PageBlock["items"]>) => up({ items: it });
+      const Icon = BLOCK_ICONS[block.icon ?? "check"] ?? BLOCK_ICONS.check ?? BLOCK_ICONS.zap;
+      if (!editing) {
+        return (
+          <ul className="inline-block text-left space-y-2.5">
+            {items.map((it, i) => (
+              <li key={i} className="flex items-start gap-2.5">
+                <Icon className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                <span className="text-foreground">{it.body}</span>
+              </li>
+            ))}
+          </ul>
+        );
+      }
+      return (
+        <div className="text-left max-w-xl mx-auto">
+          <ul className="space-y-2">
+            {items.map((it, i) => (
+              <li key={i} className="flex items-center gap-2">
+                <Icon className="w-5 h-5 text-primary shrink-0" />
+                <input value={it.body ?? ""} onChange={(e) => setItems(items.map((x, j) => (j === i ? { ...x, body: e.target.value } : x)))} placeholder="List item" className="flex-1 rounded-lg border border-border bg-background px-2.5 py-1.5 text-sm" />
+                <button onClick={() => setItems(items.filter((_, j) => j !== i))} className="p-1.5 rounded-md text-muted-foreground hover:text-destructive hover:bg-muted"><Trash2 className="w-3.5 h-3.5" /></button>
+              </li>
+            ))}
+          </ul>
+          <button onClick={() => setItems([...items, { body: "New item" }])} className="mt-2 inline-flex items-center gap-1.5 text-sm text-primary hover:underline"><Plus className="w-4 h-4" /> Add item</button>
+          <IconPicker block={block} up={up} />
+        </div>
+      );
+    }
+
     case "container": {
       const children = block.children ?? [];
       const cols = Math.min(4, Math.max(1, block.cols ?? 2));

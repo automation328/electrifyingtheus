@@ -45,6 +45,7 @@ export function newBlock(type: BlockType): PageBlock {
     case "social": return { ...base, items: [{ title: "facebook", body: "" }, { title: "instagram", body: "" }], align: "center" };
     case "progress": return { ...base, text: "EV adoption", num: 60 };
     case "table": return { ...base, header: true, rows: [["Feature", "Value"], ["Range", "300 mi"], ["Price", "$39,000"]] };
+    case "icon-list": return { ...base, icon: "check", align: "left", items: [{ body: "First benefit or feature" }, { body: "Second benefit or feature" }, { body: "Third benefit or feature" }] };
     case "container": return { ...base, cols: 2, children: [] };
     default: return base; // divider
   }
