@@ -2,7 +2,7 @@
 // inherits the site theme; Heading/Text/Button expose size + font controls, and
 // each block type has the controls it needs (divider thickness, icon picker, …).
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useId } from "react";
 import {
   ArrowUp, ArrowDown, Trash2, AlignLeft, AlignCenter, AlignRight,
   Image as ImageIcon, Film, X, Search, Plus, ChevronDown, ArrowRight,
@@ -155,15 +155,16 @@ const IconPicker = ({ block, up }: { block: PageBlock; up: (p: Partial<PageBlock
 /* View-mode (published) renderers for Tier 2 blocks that need local state. */
 const AccordionView = ({ items }: { items: NonNullable<PageBlock["items"]> }) => {
   const [open, setOpen] = useState<number | null>(0);
+  const uid = useId();
   return (
     <div className="text-left divide-y divide-border rounded-2xl border border-border overflow-hidden">
       {items.map((it, i) => (
         <div key={i}>
-          <button onClick={() => setOpen(open === i ? null : i)} className="w-full flex items-center gap-3 px-5 py-4 text-left hover:bg-muted/40 transition-colors">
+          <button id={`${uid}-btn-${i}`} aria-expanded={open === i} aria-controls={`${uid}-panel-${i}`} onClick={() => setOpen(open === i ? null : i)} className="w-full flex items-center gap-3 px-5 py-4 text-left hover:bg-muted/40 transition-colors">
             <span className="font-semibold text-foreground flex-1">{it.title}</span>
-            <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${open === i ? "rotate-180" : ""}`} />
+            <ChevronDown aria-hidden="true" className={`w-4 h-4 text-muted-foreground transition-transform ${open === i ? "rotate-180" : ""}`} />
           </button>
-          {open === i && <div className="px-5 pb-4 text-muted-foreground leading-relaxed whitespace-pre-line">{it.body}</div>}
+          {open === i && <div id={`${uid}-panel-${i}`} role="region" aria-labelledby={`${uid}-btn-${i}`} className="px-5 pb-4 text-muted-foreground leading-relaxed whitespace-pre-line">{it.body}</div>}
         </div>
       ))}
     </div>
@@ -172,15 +173,28 @@ const AccordionView = ({ items }: { items: NonNullable<PageBlock["items"]> }) =>
 
 const TabsView = ({ items }: { items: NonNullable<PageBlock["items"]> }) => {
   const [active, setActive] = useState(0);
+  const uid = useId();
   const cur = items[active] ?? items[0];
+  const onTabKey = (e: React.KeyboardEvent, i: number) => {
+    const last = items.length - 1;
+    let next = i;
+    if (e.key === "ArrowRight") next = i >= last ? 0 : i + 1;
+    else if (e.key === "ArrowLeft") next = i <= 0 ? last : i - 1;
+    else if (e.key === "Home") next = 0;
+    else if (e.key === "End") next = last;
+    else return;
+    e.preventDefault();
+    setActive(next);
+    (e.currentTarget.parentElement?.children[next] as HTMLElement | undefined)?.focus();
+  };
   return (
     <div className="text-left">
-      <div className="flex flex-wrap gap-1 border-b border-border mb-4">
+      <div role="tablist" aria-orientation="horizontal" className="flex flex-wrap gap-1 border-b border-border mb-4">
         {items.map((it, i) => (
-          <button key={i} onClick={() => setActive(i)} className={`px-4 py-2 text-sm font-semibold -mb-px border-b-2 transition-colors ${active === i ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}>{it.title || `Tab ${i + 1}`}</button>
+          <button key={i} role="tab" id={`${uid}-tab-${i}`} aria-selected={active === i} aria-controls={`${uid}-tabpanel-${i}`} tabIndex={active === i ? 0 : -1} onKeyDown={(e) => onTabKey(e, i)} onClick={() => setActive(i)} className={`px-4 py-2 text-sm font-semibold -mb-px border-b-2 transition-colors ${active === i ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}>{it.title || `Tab ${i + 1}`}</button>
         ))}
       </div>
-      <div className="text-muted-foreground leading-relaxed whitespace-pre-line">{cur?.body}</div>
+      <div role="tabpanel" id={`${uid}-tabpanel-${active}`} aria-labelledby={`${uid}-tab-${active}`} tabIndex={0} className="text-muted-foreground leading-relaxed whitespace-pre-line">{cur?.body}</div>
     </div>
   );
 };
@@ -279,7 +293,13 @@ const CountdownView = ({ target, label, variant = "boxes" }: { target: string; l
       <div className="inline-flex gap-4 md:gap-6">{parts.map(([n, l]) => <div key={l} className="text-center"><div className="font-brief text-3xl md:text-4xl text-foreground tabular-nums">{pad(n)}</div><div className="text-[11px] uppercase tracking-wide text-muted-foreground">{l}</div></div>)}</div>
     );
 
-  return <div>{label && <div className="text-sm text-muted-foreground mb-2">{label}</div>}{body}</div>;
+  const spoken = `${label ? label + ": " : ""}${d} days, ${h} hours, ${m} minutes, ${s} seconds remaining`;
+  return (
+    <div role="timer" aria-label={spoken}>
+      {label && <div aria-hidden="true" className="text-sm text-muted-foreground mb-2">{label}</div>}
+      <div aria-hidden="true">{body}</div>
+    </div>
+  );
 };
 
 // Table of contents: auto-built from the anchored blocks on the page (each
@@ -300,7 +320,7 @@ const TocView = ({ title, editing }: { title?: string; editing: boolean }) => {
   };
   useEffect(() => { const t = setTimeout(scan, 50); return () => clearTimeout(t); }, []);
   return (
-    <nav className="inline-block text-left">
+    <nav aria-label={title || "Table of contents"} className="inline-block text-left">
       {title && <div className="text-xs font-bold uppercase tracking-wide text-muted-foreground mb-2">{title}</div>}
       {items.length === 0 ? (
         editing ? <div className="text-sm text-muted-foreground">No anchored blocks yet — give a block an Anchor (in its Style panel) to list it here.</div> : null
@@ -348,10 +368,11 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
         ? <img src={block.src} alt={block.alt || block.caption || ""} className="max-w-full h-auto rounded-2xl mx-auto" />
         : <div className="grid h-40 w-72 max-w-full place-items-center rounded-2xl border border-dashed border-border bg-muted/40 text-muted-foreground"><ImageIcon className="w-8 h-8" /></div>;
       // On the live page, wrap a linked image in an anchor/Link (safe href).
+      const linkLabel = block.alt || block.caption || "Image link";
       const linked = !editing && block.src && block.href
         ? (block.href.startsWith("/")
-            ? <Link to={safeHref(block.href)}>{imgEl}</Link>
-            : <a href={safeHref(block.href)}>{imgEl}</a>)
+            ? <Link to={safeHref(block.href)} aria-label={linkLabel}>{imgEl}</Link>
+            : <a href={safeHref(block.href)} aria-label={linkLabel}>{imgEl}</a>)
         : imgEl;
       return (
         <figure>
@@ -573,7 +594,7 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
         <div className="mx-auto max-w-sm">
           <figure className="rounded-2xl border border-border bg-card overflow-hidden shadow-card">
             <div className="relative">
-              {block.src ? <img src={block.src} alt="" className="w-full aspect-video object-cover" /> : <div className="aspect-video grid place-items-center bg-muted text-muted-foreground"><ImageIcon className="w-8 h-8" /></div>}
+              {block.src ? <img src={block.src} alt={block.alt || block.text || ""} className="w-full aspect-video object-cover" /> : <div className="aspect-video grid place-items-center bg-muted text-muted-foreground"><ImageIcon className="w-8 h-8" /></div>}
               {editing && <button onClick={() => setImgOpen(true)} className="absolute top-2 right-2 inline-flex items-center gap-1 rounded-lg bg-black/70 px-2.5 py-1.5 text-xs font-semibold text-white"><ImageIcon className="w-3.5 h-3.5" /> Change</button>}
             </div>
             <figcaption className="p-4 text-center">
@@ -589,7 +610,7 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
       const Icon = BLOCK_ICONS[block.icon ?? "zap"] ?? BLOCK_ICONS.zap;
       return (
         <div className="mx-auto max-w-sm">
-          <div className="w-12 h-12 rounded-2xl gradient-hero grid place-items-center mx-auto mb-3"><Icon className="w-6 h-6 text-white" /></div>
+          <div className="w-12 h-12 rounded-2xl gradient-hero grid place-items-center mx-auto mb-3"><Icon aria-hidden="true" className="w-6 h-6 text-white" /></div>
           <h3 className="font-brief text-xl text-foreground mb-1"><InlineText value={block.text ?? ""} onCommit={(v) => up({ text: v })} /></h3>
           <p className="text-sm text-muted-foreground"><InlineText block value={block.subtext ?? ""} onCommit={(v) => up({ subtext: v })} /></p>
           {editing && <IconPicker block={block} up={up} />}
@@ -629,7 +650,7 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
       return (
         <div>
           <div className="aspect-video rounded-2xl overflow-hidden border border-border">
-            {block.text ? <iframe title="Map" className="w-full h-full" src={`https://www.google.com/maps?q=${encodeURIComponent(block.text)}&output=embed`} loading="lazy" /> : <div className="w-full h-full grid place-items-center bg-muted text-muted-foreground text-sm">Enter an address below</div>}
+            {block.text ? <iframe title={`Map of ${block.text}`} className="w-full h-full" src={`https://www.google.com/maps?q=${encodeURIComponent(block.text)}&output=embed`} loading="lazy" /> : <div className="w-full h-full grid place-items-center bg-muted text-muted-foreground text-sm">Enter an address below</div>}
           </div>
           {editing && <input value={block.text ?? ""} onChange={(e) => up({ text: e.target.value })} placeholder="Address or place, e.g. Detroit, MI" className="mt-2 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" />}
         </div>
@@ -665,13 +686,16 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
       );
 
     case "alert": {
-      const cfg = ALERT_CFG[block.variant ?? "info"] ?? ALERT_CFG.info;
+      const variant = block.variant ?? "info";
+      const cfg = ALERT_CFG[variant] ?? ALERT_CFG.info;
       const Icon = cfg.icon;
+      const role = variant === "warning" || variant === "error" ? "alert" : "status";
+      const sevLabel = ({ info: "Note", success: "Success", warning: "Warning", error: "Error" } as Record<string, string>)[variant] ?? "Note";
       return (
         <div>
-          <div className={`flex items-start gap-3 rounded-xl border px-4 py-3 text-left ${cfg.cls}`}>
-            <Icon className="w-5 h-5 mt-0.5 shrink-0" />
-            <div className="flex-1"><InlineText block value={block.text ?? ""} onCommit={(v) => up({ text: v })} /></div>
+          <div role={role} className={`flex items-start gap-3 rounded-xl border px-4 py-3 text-left ${cfg.cls}`}>
+            <Icon aria-hidden="true" className="w-5 h-5 mt-0.5 shrink-0" />
+            <div className="flex-1"><span className="sr-only">{sevLabel}: </span><InlineText block value={block.text ?? ""} onCommit={(v) => up({ text: v })} /></div>
           </div>
           {editing && <div className="mt-2 inline-flex gap-1">{["info", "success", "warning", "error"].map((v) => <button key={v} onClick={() => up({ variant: v })} className={`px-2 py-0.5 rounded text-xs capitalize ${(block.variant ?? "info") === v ? "gradient-hero text-white" : "border border-border text-muted-foreground hover:bg-muted"}`}>{v}</button>)}</div>}
         </div>
@@ -682,10 +706,10 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
       const val = block.num ?? 5;
       return (
         <div>
-          <div className="inline-flex items-center gap-1">
+          <div className="inline-flex items-center gap-1" role={!editing ? "img" : undefined} aria-label={!editing ? `${val} out of 5 stars` : undefined}>
             {[1, 2, 3, 4, 5].map((i) => editing
-              ? <button key={i} onClick={() => up({ num: i })}><Star className={`w-6 h-6 ${i <= val ? "fill-amber-400 text-amber-400" : "text-muted-foreground"}`} /></button>
-              : <Star key={i} className={`w-6 h-6 ${i <= val ? "fill-amber-400 text-amber-400" : "text-muted-foreground"}`} />)}
+              ? <button key={i} aria-label={`Rate ${i} of 5`} onClick={() => up({ num: i })}><Star aria-hidden="true" className={`w-6 h-6 ${i <= val ? "fill-amber-400 text-amber-400" : "text-muted-foreground"}`} /></button>
+              : <Star key={i} aria-hidden="true" className={`w-6 h-6 ${i <= val ? "fill-amber-400 text-amber-400" : "text-muted-foreground"}`} />)}
           </div>
           {(block.subtext || editing) && <div className="text-sm text-muted-foreground mt-1"><InlineText value={block.subtext ?? ""} onCommit={(v) => up({ subtext: v })} /></div>}
         </div>
@@ -697,7 +721,7 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
       const setItems = (it: NonNullable<PageBlock["items"]>) => up({ items: it });
       if (!editing) return (
         <div className="inline-flex items-center gap-3">
-          {items.map((it, i) => { const Icon = SOCIAL_ICONS[it.title ?? ""] ?? Mail; return <a key={i} href={safeHref(it.body)} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full gradient-hero grid place-items-center text-white hover:opacity-90"><Icon className="w-5 h-5" /></a>; })}
+          {items.map((it, i) => { const Icon = SOCIAL_ICONS[it.title ?? ""] ?? Mail; return <a key={i} href={safeHref(it.body)} target="_blank" rel="noopener noreferrer" aria-label={`${it.title ? it.title.charAt(0).toUpperCase() + it.title.slice(1) : "Social"} (opens in a new tab)`} className="w-10 h-10 rounded-full gradient-hero grid place-items-center text-white hover:opacity-90"><Icon aria-hidden="true" className="w-5 h-5" /></a>; })}
         </div>
       );
       return (
@@ -722,7 +746,7 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
             <span className="font-medium text-foreground"><InlineText value={block.text ?? ""} onCommit={(v) => up({ text: v })} /></span>
             <span className="text-muted-foreground tabular-nums">{pct}%</span>
           </div>
-          <div className="h-2.5 rounded-full bg-muted overflow-hidden"><div className="h-full rounded-full gradient-hero" style={{ width: `${pct}%` }} /></div>
+          <div role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label={block.text || "Progress"} className="h-2.5 rounded-full bg-muted overflow-hidden"><div className="h-full rounded-full gradient-hero" style={{ width: `${pct}%` }} /></div>
           {editing && <input type="range" min={0} max={100} value={pct} onChange={(e) => up({ num: Number(e.target.value) })} className="w-full mt-2" />}
         </div>
       );
@@ -797,7 +821,7 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
           <ul className="inline-block text-left space-y-2.5">
             {items.map((it, i) => (
               <li key={i} className="flex items-start gap-2.5">
-                <Icon className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                <Icon aria-hidden="true" className="w-5 h-5 text-primary shrink-0 mt-0.5" />
                 <span className="text-foreground">{it.body}</span>
               </li>
             ))}
