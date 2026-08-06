@@ -6,7 +6,7 @@ import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
-  Plus, Pencil, Trash2, Loader2, X, Save, AlertCircle, Eye, EyeOff, Image as ImageIcon, FolderOpen, ExternalLink,
+  Plus, Pencil, Trash2, Loader2, X, Save, AlertCircle, Eye, EyeOff, Image as ImageIcon, FolderOpen, ExternalLink, Search,
 } from "lucide-react";
 import { listRows, insertRow, updateRow, deleteRow, type MediaItem } from "@/lib/admin-api";
 import AdminField from "@/components/admin/AdminField";
@@ -79,16 +79,7 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
     return copy;
   }, [merged, config]);
 
-  const groups = useMemo(() => {
-    if (!config.groupField) return null;
-    const map = new Map<string, Row[]>();
-    for (const r of sorted) {
-      const g = String(r[config.groupField] ?? "");
-      if (!map.has(g)) map.set(g, []);
-      map.get(g)!.push(r);
-    }
-    return [...map.entries()];
-  }, [sorted, config]);
+  const [query, setQuery] = useState("");
 
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: adminKey });
@@ -195,6 +186,21 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
       .map(String)
       .join(" · ");
 
+  // Client-side search over title + subtitle. `groups` (when a collection groups
+  // by a field) recomputes from the filtered set.
+  const q = query.trim().toLowerCase();
+  const filtered = q ? sorted.filter((r) => `${titleOf(r)} ${subtitleOf(r)}`.toLowerCase().includes(q)) : sorted;
+  const groups = (() => {
+    if (!config.groupField) return null;
+    const map = new Map<string, Row[]>();
+    for (const r of filtered) {
+      const g = String(r[config.groupField] ?? "");
+      if (!map.has(g)) map.set(g, []);
+      map.get(g)!.push(r);
+    }
+    return [...map.entries()];
+  })();
+
   const renderRow = (row: Row) => {
     const isStatic = !!row.__static;
     const status = String(row[config.statusField] ?? "");
@@ -263,6 +269,13 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
           </div>
         </div>
         {config.description && <p className="text-sm text-muted-foreground mt-2 max-w-2xl leading-relaxed">{config.description}</p>}
+        {!isLoading && sorted.length > 4 && (
+          <div className="mt-3 flex items-center gap-1.5 rounded-lg border border-border bg-background px-2.5 py-1.5 max-w-xs focus-within:ring-2 focus-within:ring-primary/40">
+            <Search className="w-4 h-4 text-muted-foreground shrink-0" />
+            <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={`Search ${config.plural.toLowerCase()}…`} className="w-full bg-transparent text-sm text-foreground outline-none" />
+            {query && <button onClick={() => setQuery("")} className="text-muted-foreground hover:text-foreground" title="Clear search"><X className="w-3.5 h-3.5" /></button>}
+          </div>
+        )}
       </div>
 
       {error && (
@@ -281,11 +294,15 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
           <p className="text-sm text-muted-foreground mt-1">{canWrite ? `Create your first ${config.singular.toLowerCase()} to get started.` : "Nothing here yet."}</p>
           {canWrite && <button onClick={openNew} className="mt-4 inline-flex items-center gap-2 rounded-xl gradient-hero text-white font-semibold px-4 py-2.5 text-sm hover:opacity-90"><Plus className="w-4 h-4" /> New {config.singular.toLowerCase()}</button>}
         </div>
+      ) : filtered.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-border bg-card/60 p-12 text-center text-muted-foreground">
+          No {config.plural.toLowerCase()} match “{query}”. <button onClick={() => setQuery("")} className="text-primary hover:underline ml-1">Clear</button>
+        </div>
       ) : config.splitBy ? (
         <div className="grid md:grid-cols-2 gap-5 items-start">
           {([
-            { label: config.splitBy.leftLabel, tone: "bg-primary", rows: sorted.filter((r) => String(r[config.splitBy!.field]) === config.splitBy!.left) },
-            { label: config.splitBy.rightLabel, tone: "bg-amber-500", rows: sorted.filter((r) => config.splitBy!.right.includes(String(r[config.splitBy!.field]))) },
+            { label: config.splitBy.leftLabel, tone: "bg-primary", rows: filtered.filter((r) => String(r[config.splitBy!.field]) === config.splitBy!.left) },
+            { label: config.splitBy.rightLabel, tone: "bg-amber-500", rows: filtered.filter((r) => config.splitBy!.right.includes(String(r[config.splitBy!.field]))) },
           ]).map((col) => (
             <div key={col.label} className="rounded-2xl border border-border/60 bg-card/40 p-3 sm:p-4">
               <h2 className="flex items-center gap-2 text-sm font-bold text-foreground mb-3 px-1">
@@ -306,7 +323,7 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
           ))}
         </div>
       ) : (
-        <ul className="space-y-2">{sorted.map(renderRow)}</ul>
+        <ul className="space-y-2">{filtered.map(renderRow)}</ul>
       )}
 
       {/* Editor drawer */}
