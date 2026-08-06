@@ -846,9 +846,18 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
         <div className="overflow-x-auto" dangerouslySetInnerHTML={{ __html: cleanHtml(block.text || "") }} />
       );
 
-    case "testimonial":
+    case "testimonial": {
+      const stars = Math.max(0, Math.min(5, block.num ?? 0));
       return (
         <figure className="mx-auto max-w-xl rounded-2xl border border-border bg-card p-6 shadow-card">
+          {(stars > 0 || editing) && (
+            <div className="mb-3 inline-flex items-center gap-0.5" role={!editing && stars > 0 ? "img" : undefined} aria-label={!editing && stars > 0 ? `${stars} out of 5 stars` : undefined}>
+              {[1, 2, 3, 4, 5].map((i) => editing
+                ? <button key={i} onClick={() => up({ num: stars === i ? 0 : i })} title={`${i} star${i > 1 ? "s" : ""} (click again to clear)`}><Star aria-hidden="true" className={`w-5 h-5 ${i <= stars ? "fill-amber-400 text-amber-400" : "text-muted-foreground/50"}`} /></button>
+                : <Star key={i} aria-hidden="true" className={`w-5 h-5 ${i <= stars ? "fill-amber-400 text-amber-400" : "text-muted-foreground/30"}`} />)}
+              {editing && <span className="ml-2 text-xs text-muted-foreground">Rating {stars || "off"}</span>}
+            </div>
+          )}
           <blockquote className="text-foreground text-lg leading-relaxed"><RichText value={block.text ?? ""} onCommit={(v) => up({ text: v })} /></blockquote>
           <figcaption className="mt-4 flex items-center gap-3">
             <div className="relative">
@@ -863,6 +872,7 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
           {imgOpen && <Modal title="Avatar" onClose={() => setImgOpen(false)}><ImageUpload value={block.src ?? ""} onChange={(url) => up({ src: url })} /><div className="mt-4 flex justify-end"><button onClick={() => setImgOpen(false)} className="rounded-xl gradient-hero text-white font-semibold px-5 py-2.5 text-sm">Done</button></div></Modal>}
         </figure>
       );
+    }
 
     case "alert": {
       const variant = block.variant ?? "info";
