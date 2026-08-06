@@ -3,7 +3,7 @@
 // Supabase isn't configured the site falls back to the static content unchanged.
 
 import { supabase } from "@/lib/supabase";
-import { EVENTS, type EventItem } from "@/data/events";
+import { EVENTS, slugify, type EventItem } from "@/data/events";
 import { BLOG_POSTS, type BlogPost } from "@/data/blog-posts";
 import type { GalleryPhoto, GalleryVideo } from "@/data/gallery";
 import type { Job } from "@/data/careers";
@@ -83,10 +83,28 @@ export async function fetchPosts(): Promise<BlogPost[]> {
   return (data as PostRow[]).map(rowToPost);
 }
 
+// A stable detail-page slug for a DB event (which carries none from the row), so
+// its "More info" link works. Self-consistent — EventDetail looks it up in this
+// same merged list.
+const fallbackSlug = (e: EventItem) => `${slugify(e.title)}-${e.month.toLowerCase()}-${e.day}-${e.year}`;
+
 // ── Merge dynamic + curated static (dynamic wins on conflicts) ────────────────
 export function mergeEvents(dynamic: EventItem[]): EventItem[] {
-  const seen = new Set(dynamic.map(eventDedupe));
-  const merged = [...dynamic, ...EVENTS.filter((e) => !seen.has(eventDedupe(e)))];
+  const staticByKey = new Map(EVENTS.map((e) => [eventDedupe(e), e]));
+  // Ensure every dynamic event has a working detail link. When a DB event
+  // overrides a curated one (same title + date), it ADOPTS the curated slug +
+  // register link so its dedicated /events/<slug> page keeps working after an
+  // edit; a brand-new DB event gets a generated slug.
+  const dyn = dynamic.map((e) => {
+    const s = staticByKey.get(eventDedupe(e));
+    return {
+      ...e,
+      slug: e.slug || s?.slug || fallbackSlug(e),
+      registerUrl: e.registerUrl || s?.registerUrl,
+    };
+  });
+  const seen = new Set(dyn.map(eventDedupe));
+  const merged = [...dyn, ...EVENTS.filter((e) => !seen.has(eventDedupe(e)))];
   return merged.sort((a, b) => eventKey(a) - eventKey(b));
 }
 
