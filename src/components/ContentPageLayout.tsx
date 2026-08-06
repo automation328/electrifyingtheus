@@ -4,9 +4,10 @@ import { ArrowRight, ArrowUpRight, ExternalLink, Play, Calculator, type LucideIc
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Editable from "@/components/inline/Editable";
+import EditableText, { PageStylesContext } from "@/components/inline/EditableText";
 import EditableImage from "@/components/inline/EditableImage";
 import BlockSlot from "@/components/inline/blocks/BlockSlot";
-import type { PageBlock } from "@/lib/page-content";
+import type { PageBlock, ElemStyle } from "@/lib/page-content";
 
 export interface ContentStat {
   value: string;
@@ -77,12 +78,14 @@ interface ContentPageLayoutProps {
   linkCards?: ContentLinkCard[];
   /** Builder blocks inserted between sections (on-page editor). */
   blocks?: PageBlock[];
+  /** Per-element typography overrides (font/size/color/bold/italic), keyed by path. */
+  styles?: Record<string, ElemStyle>;
 }
 
 const ContentPageLayout = ({
   badge, title, highlight, intro, heroImage, icon: Icon,
   stats, sections, sources = [], kicker, pullQuote, gallery, video, statsCta, compactTitle, extraCta,
-  extraCtaImage, hideMeta, hideCta, linkCards, blocks,
+  extraCtaImage, hideMeta, hideCta, linkCards, blocks, styles,
 }: ContentPageLayoutProps) => {
   const [playing, setPlaying] = useState(false);
 
@@ -118,6 +121,7 @@ const ContentPageLayout = ({
   );
 
   return (
+    <PageStylesContext.Provider value={styles}>
     <div className="brief min-h-screen flex flex-col bg-background">
       <div className="brief-atmos" aria-hidden />
       <Navbar />
@@ -156,8 +160,8 @@ const ContentPageLayout = ({
                 }`}
                 style={{ animationDelay: "0.08s" }}
               >
-                <Editable path="title">{title}</Editable>{" "}
-                <span className="text-gradient-primary"><Editable path="highlight">{highlight}</Editable></span>
+                <EditableText path="title">{title}</EditableText>{" "}
+                <span className="text-gradient-primary"><EditableText path="highlight">{highlight}</EditableText></span>
               </h1>
 
               <div className="relative mb-6 max-w-2xl animate-fade-up" style={{ animationDelay: "0.14s" }}>
@@ -168,7 +172,7 @@ const ContentPageLayout = ({
                 className="text-base md:text-lg text-foreground/80 max-w-2xl leading-relaxed animate-fade-up"
                 style={{ animationDelay: "0.2s" }}
               >
-                <Editable path="intro">{intro}</Editable>
+                <EditableText path="intro">{intro}</EditableText>
               </p>
 
               {!hideMeta && (
@@ -311,12 +315,12 @@ const ContentPageLayout = ({
                 <span className="brief-index brief-mono text-sm font-bold shrink-0">
                   {String(i + 1).padStart(2, "0")}
                 </span>
-                <h2 className="font-brief text-2xl md:text-3xl text-foreground"><Editable path={`sections.${i}.heading`}>{s.heading}</Editable></h2>
+                <h2 className="font-brief text-2xl md:text-3xl text-foreground"><EditableText path={`sections.${i}.heading`}>{s.heading}</EditableText></h2>
               </div>
               <div className="md:pl-10">
                 {s.body.map((p, j) => (
                   <p key={j} className="text-muted-foreground leading-[1.75] mb-4 text-[15px] md:text-base">
-                    <Editable path={`sections.${i}.body.${j}`}>{p}</Editable>
+                    <EditableText path={`sections.${i}.body.${j}`}>{p}</EditableText>
                   </p>
                 ))}
                 {s.list && (
@@ -324,7 +328,7 @@ const ContentPageLayout = ({
                     {s.list.map((li, k) => (
                       <li key={k} className="flex gap-3 text-muted-foreground leading-relaxed text-[15px] md:text-base">
                         <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-gradient-to-br from-primary to-secondary" aria-hidden />
-                        <span><Editable path={`sections.${i}.list.${k}`}>{li}</Editable></span>
+                        <span><EditableText path={`sections.${i}.list.${k}`}>{li}</EditableText></span>
                       </li>
                     ))}
                   </ul>
@@ -466,6 +470,7 @@ const ContentPageLayout = ({
       </main>
       <Footer />
     </div>
+    </PageStylesContext.Provider>
   );
 };
 

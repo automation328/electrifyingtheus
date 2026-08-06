@@ -102,6 +102,17 @@ export interface BlockStyle {
   sticky?: boolean;    // pin the block while its section scrolls (view mode)
 }
 
+/** Typography/style override for a single native page element (title, intro,
+ *  a section heading/paragraph, a stat card…), keyed by its path in `styles`. */
+export interface ElemStyle {
+  font?: "display" | "sans" | "mono";
+  size?: "sm" | "md" | "lg" | "xl";
+  color?: string;      // CSS color for the text (or the stat accent)
+  bold?: boolean;
+  italic?: boolean;
+  align?: "left" | "center" | "right";
+}
+
 /** Per-page SEO / social-share overrides. */
 export interface PageSeo {
   title?: string;        // browser + social-card title (falls back to the page title)
@@ -124,6 +135,11 @@ export interface PageOverride {
   gallery?: ContentShot[];
   blocks?: PageBlock[];
   seo?: PageSeo;
+  /** Optional override for the WATCH video (heroImage override already exists above). */
+  video?: { youtubeId: string; title?: string } | null;
+  /** Per-element typography overrides, keyed by element path (e.g. "intro",
+   *  "sections.0.heading", "stats.1"). Applied in both view + edit mode. */
+  styles?: Record<string, ElemStyle>;
   /** Fields the editor intentionally blanked. Only these override the static
    * default with an empty value; an empty value NOT listed here (e.g. in a
    * legacy row) still falls back to the default. */
@@ -132,7 +148,7 @@ export interface PageOverride {
 
 export const PAGE_OVERRIDE_KEYS: (keyof PageOverride)[] = [
   "badge", "title", "highlight", "intro", "kicker", "pullQuote",
-  "stats", "sections", "sources", "heroImage", "gallery", "blocks", "seo", "cleared",
+  "stats", "sections", "sources", "heroImage", "gallery", "blocks", "seo", "video", "styles", "cleared",
 ];
 
 /** Pages wired to EditableContentPage — shown in the CMS Pages editor. */
