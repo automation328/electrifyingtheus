@@ -9,6 +9,7 @@ import ShareGate from "@/components/forms/ShareGate";
 import EventActionGate from "@/components/forms/EventActionGate";
 import WebinarRegisterForm from "@/components/forms/WebinarRegisterForm";
 import { EVENTS, eventFullDate, gcalLink } from "@/data/events";
+import { useEvents } from "@/hooks/use-content";
 import flyer from "@/assets/general-flyer.jpg";
 
 const SLUG = "from-pump-to-plug";
@@ -20,7 +21,10 @@ const LEARN = [
 ];
 
 const EventFromPumpToPlug = () => {
-  const event = EVENTS.find((e) => e.slug === SLUG) ?? EVENTS[0];
+  // Prefer the merged (CMS-override-aware) event so edits made in the CMS reflect
+  // on this dedicated page too; fall back to the curated static event.
+  const { events } = useEvents();
+  const event = events.find((e) => e.slug === SLUG) ?? EVENTS.find((e) => e.slug === SLUG) ?? EVENTS[0];
   const registerUrl = event.registerUrl ?? "https://us06web.zoom.us/webinar/register/WN_PtzGLoOyQqmDMg8lXpKRlw#/registration";
   const eventSummary = `${event.location} · ${event.month} ${event.day}, ${event.year}`;
   const scrollToRegister = () =>
@@ -39,7 +43,7 @@ const EventFromPumpToPlug = () => {
             {/* Flyer */}
             <div className="relative animate-fade-up">
               <div className="overflow-hidden rounded-3xl shadow-elevated ring-1 ring-border">
-                <img src={flyer} alt={event.title} className="w-full h-auto object-cover" width={900} height={600} />
+                <img src={event.image || flyer} alt={event.title} className="w-full h-auto object-cover" width={900} height={600} />
               </div>
               {/* Date badge */}
               <div className="absolute -top-4 -left-4 w-20 rounded-2xl bg-white text-center shadow-lg overflow-hidden">
