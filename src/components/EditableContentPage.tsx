@@ -93,6 +93,7 @@ const EditableContentPage = ({ path, label, ...props }: LayoutProps & { path: st
   const baseOverride = (isEditor ? (editorRowQuery.data?.content ?? published) : published) as PageOverride | null;
 
   const [editing, setEditing] = useState(false);
+  const [preview, setPreview] = useState(false);
   const [seoOpen, setSeoOpen] = useState(false);
   const [hist, setHist] = useState<{ stack: PageOverride[]; idx: number }>({ stack: [{}], idx: 0 });
   const [saving, setSaving] = useState(false);
@@ -119,7 +120,7 @@ const EditableContentPage = ({ path, label, ...props }: LayoutProps & { path: st
   const mutateBlocks = (fn: (blocks: PageBlock[]) => PageBlock[]) => commit({ ...working, blocks: fn(working.blocks ?? []) });
 
   const ctx = useMemo(() => ({
-    editing,
+    editing: editing && !preview,   // preview renders blocks in visitor (view) mode
     set: (p: string, v: unknown) => commit(trackCleared(setPath(working, p, v), p, v)),
     get: (p: string) => getPath(working, p),
     addBlock: (slot: string, type: BlockType) => mutateBlocks((blocks) => [...blocks, { ...newBlock(type), slot }]),
@@ -166,7 +167,7 @@ const EditableContentPage = ({ path, label, ...props }: LayoutProps & { path: st
       const at = before ? ti : ti + 1;
       return [...without.slice(0, at), moved, ...without.slice(at)];
     }),
-  }), [editing, working, slotOrder]);
+  }), [editing, preview, working, slotOrder]);
 
   const startEdit = () => {
     // Snapshot the current effective content so every field/path exists to edit.
@@ -175,7 +176,7 @@ const EditableContentPage = ({ path, label, ...props }: LayoutProps & { path: st
     setEditing(true);
   };
 
-  const cancel = () => { setEditing(false); setHist({ stack: [{}], idx: 0 }); };
+  const cancel = () => { setEditing(false); setPreview(false); setHist({ stack: [{}], idx: 0 }); };
 
   // Keyboard undo/redo — but never when typing in a field/contentEditable (let
   // the browser handle text undo there).
@@ -214,6 +215,7 @@ const EditableContentPage = ({ path, label, ...props }: LayoutProps & { path: st
       qc.invalidateQueries({ queryKey: ["editor-page-row", path] });
       toast.success(status === "published" ? "Page published" : "Draft saved");
       setEditing(false);
+      setPreview(false);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Save failed.");
     } finally {
@@ -239,8 +241,8 @@ const EditableContentPage = ({ path, label, ...props }: LayoutProps & { path: st
     <InlineEditContext.Provider value={ctx}>
       <SeoHead title={seoTitle} description={seoDesc} image={seoImage} />
       <ContentPageLayout {...rendered} />
-      {editing && <OutlinePanel blocks={working.blocks ?? []} />}
-      {editing && seoOpen && (
+      {editing && !preview && <OutlinePanel blocks={working.blocks ?? []} />}
+      {editing && !preview && seoOpen && (
         <SeoModal
           seo={working.seo ?? {}}
           fallbackTitle={fallbackTitle}
@@ -252,6 +254,7 @@ const EditableContentPage = ({ path, label, ...props }: LayoutProps & { path: st
       {isEditor && (
         <EditBar
           editing={editing}
+          previewing={preview}
           dirty={dirty}
           saving={saving}
           canUndo={canUndo}
@@ -264,6 +267,7 @@ const EditableContentPage = ({ path, label, ...props }: LayoutProps & { path: st
           onPublish={() => save("published")}
           onSeo={() => setSeoOpen(true)}
           onReset={resetPage}
+          onTogglePreview={() => setPreview((p) => !p)}
         />
       )}
     </InlineEditContext.Provider>
