@@ -183,6 +183,21 @@ async function handleCollection(b: Record<string, unknown>, res: any, role: stri
   res.status(400).json({ error: "unknown_action" });
 }
 
+// Find a Supabase Auth user by email, paging through the admin list (not just
+// the first page — otherwise set-password silently misses users past page 1).
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function findAuthUserByEmail(db: any, email: string) {
+  for (let page = 1; page <= 25; page++) {
+    const { data } = await db.auth.admin.listUsers({ page, perPage: 200 });
+    const users = data?.users ?? [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const u = users.find((x: any) => String(x.email || "").toLowerCase() === email);
+    if (u) return u;
+    if (users.length < 200) break; // last page reached
+  }
+  return null;
+}
+
 // ── users / editors allow-list (admin only) ───────────────────────────────────
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function handleEditors(b: Record<string, unknown>, res: any, role: string, selfEmail: string) {
@@ -230,13 +245,14 @@ async function handleEditors(b: Record<string, unknown>, res: any, role: string,
   if (action === "set-password") {
     const email = String(b.email ?? "").trim().toLowerCase();
     if (!validEmail(email)) { res.status(400).json({ error: "bad_email" }); return; }
+    // Defense-in-depth: only manage passwords for users in the allow-list, so an
+    // admin can't reset arbitrary (possibly shared-pool) accounts from here.
+    const { data: ed } = await db.from("editors").select("id").eq("email", email).maybeSingle();
+    if (!ed) { res.status(400).json({ error: "not_an_editor", detail: "That email isn't in the users list — add them first." }); return; }
     const provided = typeof b.password === "string" && b.password.length >= 8 ? b.password : "";
     const pwd = provided || genPassword();
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const list = await (db as any).auth.admin.listUsers({ page: 1, perPage: 200 });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const user = list?.data?.users?.find((u: any) => String(u.email || "").toLowerCase() === email);
+      const user = await findAuthUserByEmail(db, email);
       if (user) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { error } = await (db as any).auth.admin.updateUserById(user.id, { password: pwd });
