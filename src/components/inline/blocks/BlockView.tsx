@@ -141,6 +141,25 @@ const TabsView = ({ items }: { items: NonNullable<PageBlock["items"]> }) => {
 
 const colsClass = (n: number) => ({ 1: "", 2: "md:grid-cols-2", 3: "md:grid-cols-3", 4: "md:grid-cols-4" }[Math.min(4, Math.max(1, n))] ?? "md:grid-cols-2");
 
+// Column width ratios (only for 2- and 3-column containers). Class strings are
+// hardcoded so Tailwind's JIT emits them.
+const RATIO_CLASS: Record<number, Record<string, string>> = {
+  2: {
+    "1-1": "md:grid-cols-2",
+    "1-2": "md:grid-cols-[1fr_2fr]",
+    "2-1": "md:grid-cols-[2fr_1fr]",
+    "1-3": "md:grid-cols-[1fr_3fr]",
+    "3-1": "md:grid-cols-[3fr_1fr]",
+  },
+  3: {
+    "1-1-1": "md:grid-cols-3",
+    "2-1-1": "md:grid-cols-[2fr_1fr_1fr]",
+    "1-2-1": "md:grid-cols-[1fr_2fr_1fr]",
+    "1-1-2": "md:grid-cols-[1fr_1fr_2fr]",
+  },
+};
+const RATIO_KEYS: Record<number, string[]> = { 2: ["1-1", "1-2", "2-1", "1-3", "3-1"], 3: ["1-1-1", "2-1-1", "1-2-1", "1-1-2"] };
+
 const SOCIAL_ICONS: Record<string, LucideIcon> = { facebook: Facebook, twitter: Twitter, x: Twitter, instagram: Instagram, linkedin: Linkedin, youtube: Youtube, email: Mail };
 const SOCIAL_OPTIONS = ["facebook", "twitter", "instagram", "linkedin", "youtube", "email"];
 const ALERT_CFG: Record<string, { icon: LucideIcon; cls: string }> = {
@@ -614,9 +633,10 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
         saveTemplate: ctx.saveTemplate,
         deleteTemplate: ctx.deleteTemplate,
       };
+      const gridCols = (block.colRatio && RATIO_CLASS[cols]?.[block.colRatio]) || colsClass(cols);
       return (
         <InlineEditContext.Provider value={childCtx}>
-          <div className={`grid grid-cols-1 ${colsClass(cols)} gap-4 text-left`}>
+          <div className={`grid grid-cols-1 ${gridCols} gap-4 text-left`}>
             {Array.from({ length: cols }).map((_, ci) => (
               <div key={ci} className={`min-w-0 space-y-2 ${editing ? "rounded-xl border border-dashed border-border/60 p-2" : ""}`}>
                 {children.filter((c) => Math.min(cols - 1, Math.max(0, c.col ?? 0)) === ci).map((child) => <BlockView key={child.id} block={child} />)}
@@ -627,7 +647,14 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
           {editing && (
             <div className="mt-2 inline-flex flex-wrap items-center gap-2 rounded-lg border border-border bg-background/80 px-2 py-1.5 text-xs">
               <span className="text-muted-foreground">Columns</span>
-              {[1, 2, 3, 4].map((n) => <button key={n} onClick={() => up({ cols: n })} className={`px-2 py-0.5 rounded ${cols === n ? "gradient-hero text-white" : "text-muted-foreground hover:bg-muted"}`}>{n}</button>)}
+              {[1, 2, 3, 4].map((n) => <button key={n} onClick={() => up({ cols: n, colRatio: undefined })} className={`px-2 py-0.5 rounded ${cols === n ? "gradient-hero text-white" : "text-muted-foreground hover:bg-muted"}`}>{n}</button>)}
+              {RATIO_KEYS[cols] && (
+                <>
+                  <span className="w-px h-4 bg-border mx-0.5" />
+                  <span className="text-muted-foreground">Ratio</span>
+                  {RATIO_KEYS[cols].map((r) => <button key={r} onClick={() => up({ colRatio: r })} className={`px-1.5 py-0.5 rounded tabular-nums ${(block.colRatio ?? RATIO_KEYS[cols][0]) === r ? "gradient-hero text-white" : "text-muted-foreground hover:bg-muted"}`}>{r.replace(/-/g, ":")}</button>)}
+                </>
+              )}
               <span className="w-px h-4 bg-border mx-0.5" />
               <button onClick={() => up({ fullWidth: !block.fullWidth })} className={`px-2 py-0.5 rounded ${block.fullWidth ? "gradient-hero text-white" : "text-muted-foreground hover:bg-muted"}`}>Full width</button>
               <span className="w-px h-4 bg-border mx-0.5" />

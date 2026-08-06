@@ -50,6 +50,7 @@ export interface PageBlock {
   num?: number;                     // rating (0-5) / progress percent (0-100)
   // Container (nested layout):
   cols?: number;                    // number of columns (1-4)
+  colRatio?: string;                // column width ratio key (e.g. "1-2", "2-1-1"); equal if unset
   children?: PageBlock[];           // nested child blocks
   col?: number;                     // which column this block sits in (inside a container)
   fullWidth?: boolean;              // container spans the full viewport width (full-bleed)
