@@ -183,13 +183,13 @@ const EditableContentPage = ({ path, label, ...props }: LayoutProps & { path: st
     return () => window.removeEventListener("keydown", onKey);
   }, [editing]);
 
-  const save = async (status: "draft" | "published") => {
+  const save = async (status: "draft" | "published", contentOverride?: PageOverride) => {
     setSaving(true);
     try {
       const rows = await listRows<PageRow>("site_pages");
       const existing = rows.find((r) => r.path === path);
       const title = label ?? EDITABLE_PAGES.find((p) => p.path === path)?.label ?? existing?.title ?? path;
-      const payload = { path, title, status, content: working, updated_at: new Date().toISOString() };
+      const payload = { path, title, status, content: contentOverride ?? working, updated_at: new Date().toISOString() };
       if (existing) await updateRow("site_pages", existing.id, payload);
       else await insertRow("site_pages", payload);
       qc.invalidateQueries({ queryKey: ["site-page", path] });
@@ -201,6 +201,13 @@ const EditableContentPage = ({ path, label, ...props }: LayoutProps & { path: st
     } finally {
       setSaving(false);
     }
+  };
+
+  // Discard every CMS override for this page and restore the built-in content.
+  const resetPage = async () => {
+    if (!window.confirm("Reset this page to its original content?\n\nThis clears ALL CMS edits for this page — text, blocks, styles, and SEO — and restores the built-in content. This can't be undone.")) return;
+    await save("published", {});
+    setHist({ stack: [{}], idx: 0 });
   };
 
   const ov = rendered as PageOverride;
@@ -238,6 +245,7 @@ const EditableContentPage = ({ path, label, ...props }: LayoutProps & { path: st
           onSaveDraft={() => save("draft")}
           onPublish={() => save("published")}
           onSeo={() => setSeoOpen(true)}
+          onReset={resetPage}
         />
       )}
     </InlineEditContext.Provider>
