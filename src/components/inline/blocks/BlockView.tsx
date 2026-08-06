@@ -565,10 +565,23 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
 
     case "icon": {
       const Icon = BLOCK_ICONS[block.icon ?? "zap"] ?? BLOCK_ICONS.zap;
+      const isz = { sm: "w-8 h-8", md: "w-10 h-10", lg: "w-14 h-14", xl: "w-20 h-20" }[block.iconSize ?? "md"];
       return (
         <div>
-          <Icon className="w-10 h-10 text-primary inline-block" strokeWidth={2} />
-          {editing && <IconPicker block={block} up={up} />}
+          <Icon className={`${isz} inline-block`} strokeWidth={2} style={{ color: block.iconColor || "hsl(var(--primary))" }} />
+          {editing && (
+            <>
+              <div className="mt-2 inline-flex flex-wrap items-center gap-2 rounded-lg border border-border bg-background/80 px-2 py-1.5 text-xs">
+                <span className="text-muted-foreground">Size</span>
+                {(["sm", "md", "lg", "xl"] as const).map((z) => <button key={z} onClick={() => up({ iconSize: z })} className={`px-1.5 py-0.5 rounded uppercase ${(block.iconSize ?? "md") === z ? "gradient-hero text-white" : "text-muted-foreground hover:bg-muted"}`}>{z}</button>)}
+                <span className="w-px h-4 bg-border mx-0.5" />
+                <span className="text-muted-foreground">Color</span>
+                <input type="color" value={/^#/.test(block.iconColor ?? "") ? block.iconColor : "#0057b7"} onChange={(e) => up({ iconColor: e.target.value })} className="w-6 h-6 rounded border border-border bg-transparent cursor-pointer" />
+                {block.iconColor && <button onClick={() => up({ iconColor: "" })} className="text-muted-foreground hover:text-destructive">reset</button>}
+              </div>
+              <IconPicker block={block} up={up} />
+            </>
+          )}
         </div>
       );
     }

@@ -43,6 +43,8 @@ export interface PageBlock {
   muted?: boolean;                  // video: start muted
   height?: number;                  // spacer height (px)
   icon?: string;                    // icon key (see block icon set)
+  iconSize?: "sm" | "md" | "lg" | "xl"; // icon block size
+  iconColor?: string;               // icon block color (CSS value)
   thickness?: number;               // divider thickness (px)
   // Tier 2:
   items?: { title?: string; body?: string }[];                        // accordion / tabs
