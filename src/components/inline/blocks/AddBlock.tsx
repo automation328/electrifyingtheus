@@ -7,7 +7,7 @@ import {
   Plus, Heading, Type, Image as ImageIcon, Film, MousePointerClick,
   Minus, MoveVertical, Star, Rows3, LayoutPanelTop, Columns3, Images, Megaphone,
   Shapes, Hash, Timer, Map, Code, GalleryVerticalEnd,
-  Quote, AlertCircle, Share2, Gauge, Bookmark, Trash2, LayoutGrid, ClipboardPaste, LayoutTemplate, Table, ListChecks, List,
+  Quote, AlertCircle, Share2, Gauge, Bookmark, Trash2, LayoutGrid, ClipboardPaste, LayoutTemplate, Table, ListChecks, List, Search,
 } from "lucide-react";
 import type { BlockType } from "@/lib/page-content";
 import { useInlineEdit } from "@/components/inline/edit-context";
@@ -50,6 +50,7 @@ const AddBlock = ({ slot, label = "Add block" }: { slot: string; label?: string 
   const ctx = useInlineEdit();
   const templates = useBlockTemplates();
   const [open, setOpen] = useState(false);
+  const [q, setQ] = useState("");
   const [clip, setClip] = useState(() => readClipboardBlock());
   useEffect(() => {
     const refresh = () => setClip(readClipboardBlock());
@@ -57,48 +58,65 @@ const AddBlock = ({ slot, label = "Add block" }: { slot: string; label?: string 
     return () => window.removeEventListener("cms-clipboard", refresh);
   }, []);
   if (!ctx) return null;
+
+  const close = () => { setOpen(false); setQ(""); };
+  const term = q.trim().toLowerCase();
+  const types = term ? TYPES.filter((t) => t.label.toLowerCase().includes(term) || t.type.includes(term)) : TYPES;
+  const sections = term ? SECTION_PRESETS.filter((p) => p.name.toLowerCase().includes(term)) : SECTION_PRESETS;
+  const tpls = term ? templates.filter((t) => t.name.toLowerCase().includes(term)) : templates;
+  const nothing = term && !types.length && !sections.length && !tpls.length;
+
   return (
     <div className="relative my-4 flex justify-center">
-      <button onClick={() => setOpen((o) => !o)} className="inline-flex items-center gap-1.5 rounded-full border border-dashed border-primary/50 bg-primary/5 px-4 py-1.5 text-xs font-semibold text-primary hover:bg-primary/10 transition-colors">
+      <button onClick={() => (open ? close() : setOpen(true))} className="inline-flex items-center gap-1.5 rounded-full border border-dashed border-primary/50 bg-primary/5 px-4 py-1.5 text-xs font-semibold text-primary hover:bg-primary/10 transition-colors">
         <Plus className="w-3.5 h-3.5" /> {label}
       </button>
       {open && (
         <>
-          <div className="fixed inset-0 z-[80]" onClick={() => setOpen(false)} />
+          <div className="fixed inset-0 z-[80]" onClick={close} />
           <div className="absolute top-9 z-[81] grid grid-cols-4 gap-1 rounded-2xl border border-neutral-200 bg-white p-2 shadow-2xl ring-1 ring-black/5 max-h-[60vh] w-[19rem] overflow-y-auto">
-            {clip && (
-              <button onClick={() => { ctx.insertTemplate(slot, clip); setOpen(false); }} className="col-span-4 mb-1 flex items-center gap-2 rounded-xl px-2.5 py-2 text-xs font-semibold text-primary bg-primary/5 border border-dashed border-primary/40 hover:bg-primary/10">
+            <div className="col-span-4 sticky top-0 bg-white pb-1 z-10">
+              <div className="flex items-center gap-1.5 rounded-lg border border-neutral-200 bg-neutral-50 px-2 py-1">
+                <Search className="w-3.5 h-3.5 text-neutral-400" />
+                <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search blocks…" className="w-full bg-transparent text-xs outline-none" />
+              </div>
+            </div>
+            {clip && !term && (
+              <button onClick={() => { ctx.insertTemplate(slot, clip); close(); }} className="col-span-4 mb-1 flex items-center gap-2 rounded-xl px-2.5 py-2 text-xs font-semibold text-primary bg-primary/5 border border-dashed border-primary/40 hover:bg-primary/10">
                 <ClipboardPaste className="w-4 h-4" /> Paste copied {clip.type} block
               </button>
             )}
-            <div className="col-span-4 px-1 mb-1 text-[10px] font-bold uppercase tracking-wide text-neutral-400">Blocks</div>
-            {TYPES.map((t) => (
-              <button key={t.type} onClick={() => { ctx.addBlock(slot, t.type); setOpen(false); }} className="flex flex-col items-center gap-1 rounded-xl px-1.5 py-2.5 text-[11px] font-medium text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900 transition-colors">
+            {types.length > 0 && <div className="col-span-4 px-1 mb-1 text-[10px] font-bold uppercase tracking-wide text-neutral-400">Blocks</div>}
+            {types.map((t) => (
+              <button key={t.type} onClick={() => { ctx.addBlock(slot, t.type); close(); }} className="flex flex-col items-center gap-1 rounded-xl px-1.5 py-2.5 text-[11px] font-medium text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900 transition-colors">
                 <t.icon className="w-4 h-4 text-primary" />
                 {t.label}
               </button>
             ))}
-            <div className="col-span-4 mt-1 pt-2 border-t border-neutral-200">
-              <div className="px-1 mb-1 text-[10px] font-bold uppercase tracking-wide text-neutral-400 flex items-center gap-1"><LayoutTemplate className="w-3 h-3" /> Sections</div>
-              <div className="grid grid-cols-2 gap-1">
-                {SECTION_PRESETS.map((p) => (
-                  <button key={p.id} onClick={() => { ctx.insertTemplate(slot, p.build()); setOpen(false); }} className="text-left rounded-lg px-2.5 py-2 text-xs font-medium text-neutral-700 bg-neutral-50 border border-neutral-200 hover:bg-primary/5 hover:border-primary/40 hover:text-primary transition-colors truncate">{p.name}</button>
-                ))}
+            {sections.length > 0 && (
+              <div className="col-span-4 mt-1 pt-2 border-t border-neutral-200">
+                <div className="px-1 mb-1 text-[10px] font-bold uppercase tracking-wide text-neutral-400 flex items-center gap-1"><LayoutTemplate className="w-3 h-3" /> Sections</div>
+                <div className="grid grid-cols-2 gap-1">
+                  {sections.map((p) => (
+                    <button key={p.id} onClick={() => { ctx.insertTemplate(slot, p.build()); close(); }} className="text-left rounded-lg px-2.5 py-2 text-xs font-medium text-neutral-700 bg-neutral-50 border border-neutral-200 hover:bg-primary/5 hover:border-primary/40 hover:text-primary transition-colors truncate">{p.name}</button>
+                  ))}
+                </div>
               </div>
-            </div>
-            {templates.length > 0 && (
+            )}
+            {tpls.length > 0 && (
               <div className="col-span-4 mt-1 pt-2 border-t border-neutral-200">
                 <div className="px-1 mb-1 text-[10px] font-bold uppercase tracking-wide text-neutral-400 flex items-center gap-1"><Bookmark className="w-3 h-3" /> Saved templates</div>
                 <div className="space-y-0.5">
-                  {templates.map((tpl) => (
+                  {tpls.map((tpl) => (
                     <div key={tpl.id} className="flex items-center gap-1">
-                      <button onClick={() => { ctx.insertTemplate(slot, tpl.block); setOpen(false); }} className="flex-1 text-left rounded-lg px-2 py-1.5 text-xs font-medium text-neutral-700 hover:bg-neutral-100 truncate">{tpl.name}</button>
+                      <button onClick={() => { ctx.insertTemplate(slot, tpl.block); close(); }} className="flex-1 text-left rounded-lg px-2 py-1.5 text-xs font-medium text-neutral-700 hover:bg-neutral-100 truncate">{tpl.name}</button>
                       <button onClick={() => ctx.deleteTemplate(tpl.id)} className="p-1 rounded text-neutral-400 hover:text-red-500" title="Delete template"><Trash2 className="w-3.5 h-3.5" /></button>
                     </div>
                   ))}
                 </div>
               </div>
             )}
+            {nothing && <div className="col-span-4 px-2 py-4 text-center text-xs text-neutral-400">No blocks match “{q.trim()}”.</div>}
           </div>
         </>
       )}
