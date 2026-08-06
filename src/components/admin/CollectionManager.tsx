@@ -12,6 +12,7 @@ import { listRows, insertRow, updateRow, deleteRow, type MediaItem } from "@/lib
 import AdminField from "@/components/admin/AdminField";
 import MediaPickerModal from "@/components/admin/MediaPickerModal";
 import { type CollectionConfig, emptyRecord } from "@/pages/admin/collections/types";
+import { useEditorAuth } from "@/lib/auth";
 
 type Row = Record<string, unknown> & { id?: string };
 
@@ -33,6 +34,10 @@ const publicKeyFor: Record<string, string> = {
 
 const CollectionManager = ({ config }: { config: CollectionConfig }) => {
   const qc = useQueryClient();
+  const auth = useEditorAuth();
+  const role = auth.status === "editor" ? auth.editor.role : "viewer";
+  const canWrite = role !== "viewer";                       // authors/editors/admins
+  const canPublish = role === "admin" || role === "editor"; // authors save drafts only
   const adminKey = ["admin-collection", config.table];
 
   const { data: rows = [], isLoading, error } = useQuery({
@@ -136,7 +141,8 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
     // Only persist configured fields + status (drop client-only keys like id on insert).
     const payload: Record<string, unknown> = {};
     for (const f of config.fields) payload[f.name] = draft[f.name];
-    payload[config.statusField] = draft[config.statusField] ?? config.statusOptions[0];
+    // Authors can only save drafts — force it (a published default would 403).
+    payload[config.statusField] = canPublish ? (draft[config.statusField] ?? config.statusOptions[0]) : "draft";
     try {
       if (isNew) {
         await insertRow(config.table, payload);
@@ -210,16 +216,20 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
           {subtitleOf(row) && <p className="text-xs text-muted-foreground truncate mt-0.5">{subtitleOf(row)}</p>}
         </div>
         {isStatic ? (
-          <button onClick={() => openEdit(row)} className="inline-flex items-center gap-1.5 rounded-lg border border-primary/50 text-primary text-xs font-semibold px-3 py-2 hover:bg-primary/10" title="Edit — adds an editable copy to your library">
-            <Pencil className="w-3.5 h-3.5" /> Edit
-          </button>
+          canWrite && (
+            <button onClick={() => openEdit(row)} className="inline-flex items-center gap-1.5 rounded-lg border border-primary/50 text-primary text-xs font-semibold px-3 py-2 hover:bg-primary/10" title="Edit — adds an editable copy to your library">
+              <Pencil className="w-3.5 h-3.5" /> Edit
+            </button>
+          )
         ) : (
           <>
-            <button onClick={() => toggleStatus(row)} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors" title={published ? "Unpublish" : "Publish"}>
-              {published ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-            </button>
-            <button onClick={() => openEdit(row)} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors" title="Edit"><Pencil className="w-4 h-4" /></button>
-            <button onClick={() => remove(row)} className="p-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-muted transition-colors" title="Delete"><Trash2 className="w-4 h-4" /></button>
+            {canPublish && (
+              <button onClick={() => toggleStatus(row)} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors" title={published ? "Unpublish" : "Publish"}>
+                {published ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+              </button>
+            )}
+            {canWrite && <button onClick={() => openEdit(row)} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors" title="Edit"><Pencil className="w-4 h-4" /></button>}
+            {canPublish && <button onClick={() => remove(row)} className="p-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-muted transition-colors" title="Delete"><Trash2 className="w-4 h-4" /></button>}
           </>
         )}
       </li>
@@ -233,10 +243,11 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
           <h1 className="text-2xl font-bold font-display text-foreground">{config.plural}</h1>
           <p className="text-sm text-muted-foreground">
             {isLoading ? "Loading…" : `${sorted.length} item${sorted.length === 1 ? "" : "s"}`}
+            {!canWrite && <span className="ml-2 text-xs rounded-full bg-muted px-2 py-0.5">Read-only</span>}
           </p>
           {config.description && <p className="text-xs text-muted-foreground mt-1 max-w-lg">{config.description}</p>}
         </div>
-        {config.mediaImport && (
+        {canWrite && config.mediaImport && (
           <button
             onClick={() => setMediaOpen(true)}
             className="ml-auto inline-flex items-center gap-2 rounded-xl border border-primary/50 text-primary font-semibold px-4 py-2.5 text-sm hover:bg-primary/10 transition-colors"
@@ -244,12 +255,14 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
             <FolderOpen className="w-4 h-4" /> Add from library
           </button>
         )}
-        <button
-          onClick={openNew}
-          className={`${config.mediaImport ? "" : "ml-auto"} inline-flex items-center gap-2 rounded-xl gradient-hero text-white font-semibold px-4 py-2.5 text-sm hover:opacity-90 transition-opacity`}
-        >
-          <Plus className="w-4 h-4" /> New {config.singular.toLowerCase()}
-        </button>
+        {canWrite && (
+          <button
+            onClick={openNew}
+            className={`${config.mediaImport ? "" : "ml-auto"} inline-flex items-center gap-2 rounded-xl gradient-hero text-white font-semibold px-4 py-2.5 text-sm hover:opacity-90 transition-opacity`}
+          >
+            <Plus className="w-4 h-4" /> New {config.singular.toLowerCase()}
+          </button>
+        )}
       </div>
 
       {error && (
@@ -326,6 +339,7 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
                 >
                   Cancel
                 </button>
+                {!canPublish && <span className="text-xs text-muted-foreground ml-auto">Saved as a draft — an editor can publish it.</span>}
               </div>
             </div>
           </div>
