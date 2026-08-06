@@ -264,6 +264,40 @@ const CountdownView = ({ target, label, variant = "boxes" }: { target: string; l
   return <div>{label && <div className="text-sm text-muted-foreground mb-2">{label}</div>}{body}</div>;
 };
 
+// Table of contents: auto-built from the anchored blocks on the page (each
+// carries data-block-anchor + a matching id). Scans the DOM after paint.
+const TocView = ({ title, editing }: { title?: string; editing: boolean }) => {
+  const [items, setItems] = useState<{ id: string; label: string }[]>([]);
+  const scan = () => {
+    const seen = new Set<string>();
+    const out: { id: string; label: string }[] = [];
+    document.querySelectorAll<HTMLElement>("[data-block-anchor]").forEach((el) => {
+      const id = el.getAttribute("data-block-anchor") || "";
+      if (!id || seen.has(id)) return;
+      seen.add(id);
+      const label = (el.textContent || "").trim().replace(/\s+/g, " ").slice(0, 60) || id;
+      out.push({ id, label });
+    });
+    setItems(out);
+  };
+  useEffect(() => { const t = setTimeout(scan, 50); return () => clearTimeout(t); }, []);
+  return (
+    <nav className="inline-block text-left">
+      {title && <div className="text-xs font-bold uppercase tracking-wide text-muted-foreground mb-2">{title}</div>}
+      {items.length === 0 ? (
+        editing ? <div className="text-sm text-muted-foreground">No anchored blocks yet — give a block an Anchor (in its Style panel) to list it here.</div> : null
+      ) : (
+        <ul className="space-y-1.5">
+          {items.map((it) => (
+            <li key={it.id}><a href={`#${it.id}`} className="text-primary hover:underline text-sm">{it.label}</a></li>
+          ))}
+        </ul>
+      )}
+      {editing && <button onClick={scan} className="mt-2 block text-xs text-primary hover:underline">Refresh list</button>}
+    </nav>
+  );
+};
+
 const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextValue }) => {
   const [imgOpen, setImgOpen] = useState(false);
   const [vidOpen, setVidOpen] = useState(false);
@@ -763,6 +797,16 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
       );
     }
 
+    case "toc":
+      return editing ? (
+        <div className="text-left">
+          <input value={block.text ?? ""} onChange={(e) => up({ text: e.target.value })} placeholder="Title (optional, e.g. On this page)" className="mb-2 block rounded-lg border border-border bg-background px-2.5 py-1.5 text-sm w-64" />
+          <TocView title={block.text} editing />
+        </div>
+      ) : (
+        <TocView title={block.text} editing={false} />
+      );
+
     case "container": {
       const children = block.children ?? [];
       const cols = Math.min(4, Math.max(1, block.cols ?? 2));
@@ -1008,7 +1052,7 @@ const StylePanel = ({ block, up, onClose }: { block: PageBlock; up: (p: Partial<
 const Toolbar = ({ block, ctx, onStyle, onDragHandle }: { block: PageBlock; ctx: InlineEditContextValue; onStyle: () => void; onDragHandle: (armed: boolean) => void }) => {
   const btn = "p-1.5 rounded-md text-white/90 hover:bg-white/15";
   const setAlign = (a: PageBlock["align"]) => ctx.updateBlock(block.id, { align: a });
-  const hasAlign = ["heading", "text", "button", "image", "icon", "icon-list"].includes(block.type);
+  const hasAlign = ["heading", "text", "button", "image", "icon", "icon-list", "toc"].includes(block.type);
   const [styleClip, setStyleClip] = useState<BlockStyle | null>(() => readStyleClipboard());
   const [quickOpen, setQuickOpen] = useState(false);
   const s = block.style ?? {};

@@ -16,7 +16,7 @@ export type BlockType =
   | "accordion" | "tabs" | "columns" | "gallery" | "cta"                                // Tier 2
   | "image-box" | "icon-box" | "counter" | "countdown" | "maps" | "html"                // Tier 3
   | "testimonial" | "alert" | "rating" | "social" | "progress"                          // Tier 4
-  | "table" | "icon-list"                                                               // Tier 5
+  | "table" | "icon-list" | "toc"                                                       // Tier 5
   | "container";                                                                        // nested layout
 
 export interface PageBlock {
