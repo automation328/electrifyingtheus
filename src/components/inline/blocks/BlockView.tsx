@@ -8,12 +8,12 @@ import {
   Image as ImageIcon, Film, X, Search, Plus, ChevronDown, ArrowRight,
   Copy, Palette, GripVertical, Smartphone, Monitor, Bookmark, Pin,
   Star, Facebook, Twitter, Instagram, Linkedin, Youtube, Mail, Info, CheckCircle2, AlertTriangle, AlertCircle,
-  ClipboardCopy, type LucideIcon,
+  ClipboardCopy, Paintbrush, Paintbrush2, type LucideIcon,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import type { BlockStyle } from "@/lib/page-content";
-import { copyBlock } from "@/lib/block-clipboard";
+import { copyBlock, copyStyle, readStyleClipboard } from "@/lib/block-clipboard";
 import type { PageBlock } from "@/lib/page-content";
 import { useInlineEdit, InlineEditContext, type InlineEditContextValue } from "@/components/inline/edit-context";
 import { newBlock, newId, regenIds } from "@/components/inline/blocks/factory";
@@ -834,6 +834,12 @@ const Toolbar = ({ block, ctx, onStyle, onDragHandle }: { block: PageBlock; ctx:
   const btn = "p-1.5 rounded-md text-white/90 hover:bg-white/15";
   const setAlign = (a: PageBlock["align"]) => ctx.updateBlock(block.id, { align: a });
   const hasAlign = ["heading", "text", "button", "image", "icon"].includes(block.type);
+  const [styleClip, setStyleClip] = useState<BlockStyle | null>(() => readStyleClipboard());
+  useEffect(() => {
+    const r = () => setStyleClip(readStyleClipboard());
+    window.addEventListener("cms-style-clipboard", r);
+    return () => window.removeEventListener("cms-style-clipboard", r);
+  }, []);
   return (
     <div className="absolute -top-3 right-2 z-20 hidden group-hover:flex items-center gap-0.5 rounded-lg bg-foreground/90 backdrop-blur px-1 py-0.5 shadow">
       <button className={`${btn} cursor-grab active:cursor-grabbing`} title="Drag to reorder" onMouseDown={() => onDragHandle(true)} onMouseUp={() => onDragHandle(false)}><GripVertical className="w-3.5 h-3.5" /></button>
@@ -847,6 +853,8 @@ const Toolbar = ({ block, ctx, onStyle, onDragHandle }: { block: PageBlock; ctx:
         </>
       )}
       <button className={btn} onClick={onStyle} title="Style"><Palette className="w-3.5 h-3.5" /></button>
+      <button className={btn} onClick={() => { copyStyle(block.style); toast.success("Style copied — paste it onto another block"); }} title="Copy style"><Paintbrush className="w-3.5 h-3.5" /></button>
+      {styleClip && <button className={btn} onClick={() => { ctx.updateBlock(block.id, { style: { ...styleClip } }); toast.success("Style pasted"); }} title="Paste style"><Paintbrush2 className="w-3.5 h-3.5" /></button>}
       <button className={btn} onClick={() => ctx.duplicateBlock(block.id)} title="Duplicate"><Copy className="w-3.5 h-3.5" /></button>
       <button className={btn} onClick={() => { copyBlock(block); toast.success("Block copied — paste it on any page"); }} title="Copy (paste on any page)"><ClipboardCopy className="w-3.5 h-3.5" /></button>
       <button className={btn} onClick={() => { const name = window.prompt("Save this block as a reusable template.\nName:"); if (name && name.trim()) ctx.saveTemplate(block, name.trim()); }} title="Save as template"><Bookmark className="w-3.5 h-3.5" /></button>
