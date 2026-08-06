@@ -7,7 +7,7 @@ import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
-  Loader2, Save, Plus, Trash2, ArrowUp, ArrowDown, RotateCcw, AlertCircle, FileText, ExternalLink,
+  Loader2, Save, Plus, Trash2, ArrowUp, ArrowDown, RotateCcw, AlertCircle, FileText, ExternalLink, Copy,
 } from "lucide-react";
 import { listRows, insertRow, updateRow, deleteRow } from "@/lib/admin-api";
 import {
@@ -229,6 +229,26 @@ const PagesManager = () => {
     }
   };
 
+  const duplicatePage = async (row: PageRow) => {
+    const title = window.prompt("Duplicate page — title for the copy:", `${row.title || "Page"} (copy)`);
+    if (title === null) return;
+    const t = title.trim();
+    const s = t.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+    if (!s) { toast.error("Enter a valid title."); return; }
+    const path = `/${s}`;
+    if (rows.some((r) => r.path === path) || EDITABLE_PAGES.some((p) => p.path === path)) {
+      toast.error("A page with that address already exists."); return;
+    }
+    try {
+      const content: PageOverride = { ...structuredClone(row.content ?? {}), title: t };
+      await insertRow("site_pages", { path, title: t, status: "draft", content, updated_at: new Date().toISOString() });
+      toast.success("Page duplicated as a draft");
+      qc.invalidateQueries({ queryKey: ["admin-collection", "site_pages"] });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Duplicate failed.");
+    }
+  };
+
   const deletePage = async (row: PageRow) => {
     if (!window.confirm(`Delete the page "${row.title || row.path}"? This can't be undone.`)) return;
     try {
@@ -284,6 +304,7 @@ const PagesManager = () => {
                   </div>
                   <span className={`text-[10px] uppercase font-bold tracking-wide rounded-full px-2 py-0.5 ${tone}`}>{state}</span>
                   <a href={row.path} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 rounded-lg gradient-hero text-white text-xs font-semibold px-3 py-2 hover:opacity-90" title="Edit on the live page">Edit on page <ExternalLink className="w-3.5 h-3.5" /></a>
+                  <button onClick={() => duplicatePage(row)} className="p-2 rounded-lg text-muted-foreground hover:text-primary hover:bg-muted" title="Duplicate page"><Copy className="w-4 h-4" /></button>
                   <button onClick={() => deletePage(row)} className="p-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-muted" title="Delete page"><Trash2 className="w-4 h-4" /></button>
                 </li>
               );
