@@ -25,6 +25,7 @@ export interface PageBlock {
   slot: string;
   type: BlockType;
   align?: "left" | "center" | "right";
+  alignMobile?: "left" | "center" | "right"; // responsive: alignment on mobile (< md)
   size?: "sm" | "md" | "lg" | "xl";        // heading / text / button size
   font?: "display" | "sans" | "mono";      // heading / text / button font
   // Per-type fields (only the relevant ones are set):
@@ -64,6 +65,7 @@ export interface PageBlock {
   header?: boolean;                 // treat the first table row as a header
   // Container (nested layout):
   cols?: number;                    // number of columns (1-4)
+  colsMobile?: number;              // container: columns on mobile (1-2); defaults to 1
   colRatio?: string;                // column width ratio key (e.g. "1-2", "2-1-1"); equal if unset
   alignItems?: "start" | "center" | "end"; // container: vertical alignment of columns
   gap?: number;                     // container: gap between columns (px)

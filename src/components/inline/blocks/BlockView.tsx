@@ -25,6 +25,17 @@ import { BLOCK_ICONS, BLOCK_ICON_KEYS } from "@/components/inline/blocks/icons";
 
 const alignClass = (a?: string) => (a === "left" ? "text-left" : a === "right" ? "text-right" : "text-center");
 
+// Responsive alignment: literal class maps so Tailwind's JIT emits them. When a
+// mobile alignment differs from the desktop one, the base class is the mobile
+// value and md: restores the desktop value.
+const ALIGN_BASE: Record<string, string> = { left: "text-left", center: "text-center", right: "text-right" };
+const ALIGN_MD: Record<string, string> = { left: "md:text-left", center: "md:text-center", right: "md:text-right" };
+const alignClassResponsive = (b: PageBlock) => {
+  const d = b.align === "left" ? "left" : b.align === "right" ? "right" : "center";
+  const m = b.alignMobile;
+  return !m || m === d ? ALIGN_BASE[d] : `${ALIGN_BASE[m]} ${ALIGN_MD[d]}`;
+};
+
 // Ensure any target=_blank link the html block produces can't reach window.opener.
 if (typeof window !== "undefined") {
   DOMPurify.addHook("afterSanitizeAttributes", (node) => {
@@ -1029,7 +1040,7 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
       const gapStyle = block.gap != null ? { gap: block.gap } : undefined;
       return (
         <InlineEditContext.Provider value={childCtx}>
-          <div className={`grid grid-cols-1 ${gridCols} ${itemsClass} ${block.gap != null ? "" : "gap-4"} text-left`} style={gapStyle}>
+          <div className={`grid ${block.colsMobile === 2 ? "grid-cols-2" : "grid-cols-1"} ${gridCols} ${itemsClass} ${block.gap != null ? "" : "gap-4"} text-left`} style={gapStyle}>
             {Array.from({ length: cols }).map((_, ci) => (
               <div key={ci} style={styleToCss(block.colStyles?.[ci])} className={`min-w-0 space-y-2 ${editing ? "rounded-xl border border-dashed border-border/60 p-2" : ""}`}>
                 {children.filter((c) => Math.min(cols - 1, Math.max(0, c.col ?? 0)) === ci).map((child) => <BlockView key={child.id} block={child} nested />)}
@@ -1041,6 +1052,8 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
             <div className="mt-2 inline-flex flex-wrap items-center gap-2 rounded-lg border border-border bg-background/80 px-2 py-1.5 text-xs">
               <span className="text-muted-foreground">Columns</span>
               {[1, 2, 3, 4].map((n) => <button key={n} onClick={() => up({ cols: n, colRatio: undefined })} className={`px-2 py-0.5 rounded ${cols === n ? "gradient-hero text-white" : "text-muted-foreground hover:bg-muted"}`}>{n}</button>)}
+              <span className="text-muted-foreground/70" title="Columns on mobile"><Smartphone className="w-3 h-3 inline" /></span>
+              {[1, 2].map((n) => <button key={n} onClick={() => up({ colsMobile: n })} className={`px-1.5 py-0.5 rounded ${(block.colsMobile ?? 1) === n ? "gradient-hero text-white" : "text-muted-foreground hover:bg-muted"}`}>{n}</button>)}
               {RATIO_KEYS[cols] && (
                 <>
                   <span className="w-px h-4 bg-border mx-0.5" />
@@ -1291,6 +1304,16 @@ const StylePanel = ({ block, up, onClose }: { block: PageBlock; up: (p: Partial<
         </div>
 
         <div>
+          <label className={lbl}>Mobile alignment <span className="normal-case font-normal text-muted-foreground/70">· overrides alignment on small screens</span></label>
+          <div className="inline-flex gap-1">
+            <button onClick={() => up({ alignMobile: undefined })} className={`px-2.5 py-1 rounded-lg text-xs ${!block.alignMobile ? "gradient-hero text-white" : "border border-border text-muted-foreground hover:bg-muted"}`}>Same</button>
+            {(["left", "center", "right"] as const).map((a) => (
+              <button key={a} onClick={() => up({ alignMobile: a })} className={`px-2.5 py-1 rounded-lg text-xs capitalize ${block.alignMobile === a ? "gradient-hero text-white" : "border border-border text-muted-foreground hover:bg-muted"}`}>{a}</button>
+            ))}
+          </div>
+        </div>
+
+        <div>
           <label className={lbl}>Visibility</label>
           <div className="flex flex-wrap gap-2">
             <button onClick={() => up({ hideMobile: !block.hideMobile })} className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium ${block.hideMobile ? "gradient-hero text-white" : "border border-border text-muted-foreground hover:bg-muted"}`}><Smartphone className="w-3.5 h-3.5" /> Hide on mobile</button>
@@ -1410,7 +1433,7 @@ const BlockView = ({ block, nested = false }: { block: PageBlock; nested?: boole
     return () => io.disconnect();
   }, [animated]);
   if (!ctx) return null;
-  const align = alignClass(block.align);
+  const align = alignClassResponsive(block);
   const baseCss = styleToCss(block.style);
   // Full-bleed (100vw) only makes sense for a top-level container; nested inside
   // a column it would overflow the column and the page.
