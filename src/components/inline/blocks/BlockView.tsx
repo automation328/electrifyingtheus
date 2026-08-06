@@ -1008,7 +1008,7 @@ const StylePanel = ({ block, up, onClose }: { block: PageBlock; up: (p: Partial<
 const Toolbar = ({ block, ctx, onStyle, onDragHandle }: { block: PageBlock; ctx: InlineEditContextValue; onStyle: () => void; onDragHandle: (armed: boolean) => void }) => {
   const btn = "p-1.5 rounded-md text-white/90 hover:bg-white/15";
   const setAlign = (a: PageBlock["align"]) => ctx.updateBlock(block.id, { align: a });
-  const hasAlign = ["heading", "text", "button", "image", "icon"].includes(block.type);
+  const hasAlign = ["heading", "text", "button", "image", "icon", "icon-list"].includes(block.type);
   const [styleClip, setStyleClip] = useState<BlockStyle | null>(() => readStyleClipboard());
   const [quickOpen, setQuickOpen] = useState(false);
   const s = block.style ?? {};
