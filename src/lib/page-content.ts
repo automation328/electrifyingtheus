@@ -53,6 +53,8 @@ export interface PageBlock {
   thickness?: number;               // divider thickness (px)
   // Tier 2:
   items?: { title?: string; body?: string }[];                        // accordion / tabs
+  multiOpen?: boolean;              // accordion: allow multiple panels open
+  startClosed?: boolean;            // accordion: start with all panels collapsed
   columns?: { heading?: string; body?: string; image?: string }[];    // columns
   images?: { src: string; caption?: string }[];                       // gallery
   subtext?: string;                 // cta subtext

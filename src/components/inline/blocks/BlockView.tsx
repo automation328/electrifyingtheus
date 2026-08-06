@@ -215,20 +215,28 @@ const IconPicker = ({ block, up }: { block: PageBlock; up: (p: Partial<PageBlock
 };
 
 /* View-mode (published) renderers for Tier 2 blocks that need local state. */
-const AccordionView = ({ items }: { items: NonNullable<PageBlock["items"]> }) => {
-  const [open, setOpen] = useState<number | null>(0);
+const AccordionView = ({ items, multiOpen, startClosed }: { items: NonNullable<PageBlock["items"]>; multiOpen?: boolean; startClosed?: boolean }) => {
+  const [open, setOpen] = useState<Set<number>>(() => (startClosed ? new Set<number>() : new Set([0])));
   const uid = useId();
+  const toggle = (i: number) => setOpen((prev) => {
+    const next = new Set<number>(multiOpen ? prev : []);
+    if (prev.has(i)) next.delete(i); else next.add(i);
+    return next;
+  });
   return (
     <div className="text-left divide-y divide-border rounded-2xl border border-border overflow-hidden">
-      {items.map((it, i) => (
-        <div key={i}>
-          <button id={`${uid}-btn-${i}`} aria-expanded={open === i} aria-controls={`${uid}-panel-${i}`} onClick={() => setOpen(open === i ? null : i)} className="w-full flex items-center gap-3 px-5 py-4 text-left hover:bg-muted/40 transition-colors">
-            <span className="font-semibold text-foreground flex-1">{it.title}</span>
-            <ChevronDown aria-hidden="true" className={`w-4 h-4 text-muted-foreground transition-transform ${open === i ? "rotate-180" : ""}`} />
-          </button>
-          {open === i && <div id={`${uid}-panel-${i}`} role="region" aria-labelledby={`${uid}-btn-${i}`} className="px-5 pb-4 text-muted-foreground leading-relaxed whitespace-pre-line">{it.body}</div>}
-        </div>
-      ))}
+      {items.map((it, i) => {
+        const isOpen = open.has(i);
+        return (
+          <div key={i}>
+            <button id={`${uid}-btn-${i}`} aria-expanded={isOpen} aria-controls={`${uid}-panel-${i}`} onClick={() => toggle(i)} className="w-full flex items-center gap-3 px-5 py-4 text-left hover:bg-muted/40 transition-colors">
+              <span className="font-semibold text-foreground flex-1">{it.title}</span>
+              <ChevronDown aria-hidden="true" className={`w-4 h-4 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`} />
+            </button>
+            {isOpen && <div id={`${uid}-panel-${i}`} role="region" aria-labelledby={`${uid}-btn-${i}`} className="px-5 pb-4 text-muted-foreground leading-relaxed whitespace-pre-line">{it.body}</div>}
+          </div>
+        );
+      })}
     </div>
   );
 };
@@ -650,7 +658,7 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
     case "tabs": {
       const items = block.items ?? [];
       const setItems = (it: NonNullable<PageBlock["items"]>) => up({ items: it });
-      if (!editing) return block.type === "tabs" ? <TabsView items={items} /> : <AccordionView items={items} />;
+      if (!editing) return block.type === "tabs" ? <TabsView items={items} /> : <AccordionView items={items} multiOpen={block.multiOpen} startClosed={block.startClosed} />;
       return (
         <div className="text-left space-y-2">
           {items.map((it, i) => (
@@ -663,6 +671,12 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
             </div>
           ))}
           <button onClick={() => setItems([...items, { title: block.type === "tabs" ? `Tab ${items.length + 1}` : "New item", body: "" }])} className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline"><Plus className="w-4 h-4" /> Add {block.type === "tabs" ? "tab" : "item"}</button>
+          {block.type === "accordion" && (
+            <div className="flex flex-wrap gap-4 pt-1 text-xs text-muted-foreground">
+              <label className="inline-flex items-center gap-1.5"><input type="checkbox" checked={!!block.multiOpen} onChange={(e) => up({ multiOpen: e.target.checked })} /> Allow multiple open</label>
+              <label className="inline-flex items-center gap-1.5"><input type="checkbox" checked={!!block.startClosed} onChange={(e) => up({ startClosed: e.target.checked })} /> Start all collapsed</label>
+            </div>
+          )}
         </div>
       );
     }
