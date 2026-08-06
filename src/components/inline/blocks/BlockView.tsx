@@ -103,13 +103,21 @@ const RichText = ({ value, onCommit, className }: { value: string; onCommit: (v:
   const commit = () => {
     setFocused(false);
     const html = cleanHtml(ref.current?.innerHTML || "");
-    if (html !== value) onCommit(html);
+    // Compare like-for-like (both sanitized) so an unchanged plain-text value
+    // with & < > " doesn't spuriously "change" into its encoded form.
+    if (html !== cleanHtml(value || "")) onCommit(html);
+  };
+  // Paste as plain text — avoids messy markup and closes the transient window
+  // where pasted <img onerror> etc. could run in the editor before blur.
+  const onPaste = (e: React.ClipboardEvent) => {
+    e.preventDefault();
+    document.execCommand("insertText", false, e.clipboardData.getData("text/plain"));
   };
   return (
     <span className="relative inline-block">
       <span ref={ref} contentEditable suppressContentEditableWarning spellCheck={false}
         className={`${className ?? ""} outline-none focus:bg-primary/5 rounded px-0.5`}
-        onFocus={() => setFocused(true)} onBlur={commit} />
+        onPaste={onPaste} onFocus={() => setFocused(true)} onBlur={commit} />
       {focused && (
         <span className="absolute -top-9 left-0 z-30 inline-flex items-center gap-0.5 rounded-lg bg-foreground/90 backdrop-blur px-1 py-0.5 shadow text-white text-xs" onMouseDown={(e) => e.preventDefault()}>
           <button onClick={() => exec("bold")} className="px-1.5 py-0.5 rounded hover:bg-white/15 font-bold">B</button>
