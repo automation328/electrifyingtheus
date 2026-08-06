@@ -14,6 +14,7 @@ import {
   EDITABLE_PAGES, PAGE_DEFAULTS, type PageOverride,
 } from "@/lib/page-content";
 import type { ContentStat, ContentSection, ContentSource } from "@/components/ContentPageLayout";
+import { useEditorAuth } from "@/lib/auth";
 
 interface PageRow { id: string; path: string; title: string; status: string; content: PageOverride }
 
@@ -40,9 +41,9 @@ const RowTools = ({ onUp, onDown, onDelete }: { onUp: () => void; onDown: () => 
 
 /* ── editor ──────────────────────────────────────────────────────────────── */
 const PageEditor = ({
-  path, initial, existing, onSaved,
+  path, initial, existing, onSaved, canWrite, canPublish,
 }: {
-  path: string; initial: PageOverride; existing: PageRow | undefined; onSaved: () => void;
+  path: string; initial: PageOverride; existing: PageRow | undefined; onSaved: () => void; canWrite: boolean; canPublish: boolean;
 }) => {
   const [form, setForm] = useState<PageOverride>(() => structuredClone(initial));
   const [status, setStatus] = useState(existing?.status ?? "draft");
@@ -69,7 +70,8 @@ const PageEditor = ({
       (content as any)[k] = v;
     }
     const label = EDITABLE_PAGES.find((p) => p.path === path)?.label ?? path;
-    const payload = { path, title: label, status, content, updated_at: new Date().toISOString() };
+    // Authors can only save drafts.
+    const payload = { path, title: label, status: canPublish ? status : "draft", content, updated_at: new Date().toISOString() };
     try {
       if (existing) await updateRow("site_pages", existing.id, payload);
       else await insertRow("site_pages", payload);
@@ -161,13 +163,14 @@ const PageEditor = ({
       <div className="sticky bottom-0 -mx-4 md:mx-0 border-t border-border bg-background/95 backdrop-blur px-4 md:px-0 py-3">
         {error && <p className="text-sm text-destructive mb-2 flex items-center gap-1.5"><AlertCircle className="w-4 h-4" /> {error}</p>}
         <div className="flex flex-wrap items-center gap-2">
-          <select value={status} onChange={(e) => setStatus(e.target.value)} className="rounded-xl border border-border bg-background px-3 py-2.5 text-sm">
+          <select value={canPublish ? status : "draft"} onChange={(e) => setStatus(e.target.value)} disabled={!canPublish} className="rounded-xl border border-border bg-background px-3 py-2.5 text-sm disabled:opacity-60">
             <option value="draft">Draft (hidden)</option>
-            <option value="published">Published (live)</option>
+            {canPublish && <option value="published">Published (live)</option>}
           </select>
-          <button onClick={save} disabled={saving} className="inline-flex items-center gap-2 rounded-xl gradient-hero text-white font-semibold px-5 py-2.5 text-sm hover:opacity-90 disabled:opacity-60">
+          <button onClick={save} disabled={saving || !canWrite} className="inline-flex items-center gap-2 rounded-xl gradient-hero text-white font-semibold px-5 py-2.5 text-sm hover:opacity-90 disabled:opacity-60">
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Save
           </button>
+          {!canPublish && canWrite && <span className="text-xs text-muted-foreground">Saved as a draft — an editor can publish.</span>}
           <button onClick={resetToDefault} className="inline-flex items-center gap-2 rounded-xl border border-border bg-background px-4 py-2.5 text-sm font-medium text-foreground hover:bg-muted">
             <RotateCcw className="w-4 h-4" /> Load default copy
           </button>
@@ -181,6 +184,10 @@ const PageEditor = ({
 /* ── manager (page picker → editor) ──────────────────────────────────────── */
 const PagesManager = () => {
   const qc = useQueryClient();
+  const auth = useEditorAuth();
+  const role = auth.status === "editor" ? auth.editor.role : "viewer";
+  const canWrite = role !== "viewer";
+  const canPublish = role === "admin" || role === "editor";
   const [selected, setSelected] = useState<string | null>(null);
 
   const { data: rows = [], isLoading } = useQuery({
@@ -269,7 +276,7 @@ const PagesManager = () => {
         <button onClick={() => setSelected(null)} className="text-sm text-muted-foreground hover:text-foreground mb-4">← All pages</button>
         <h1 className="text-2xl font-bold font-display text-foreground mb-1">{label}</h1>
         <p className="text-sm text-muted-foreground mb-6">{selected}</p>
-        <PageEditor key={selected} path={selected} initial={initial} existing={existing} onSaved={onSaved} />
+        <PageEditor key={selected} path={selected} initial={initial} existing={existing} onSaved={onSaved} canWrite={canWrite} canPublish={canPublish} />
       </div>
     );
   }
@@ -283,9 +290,11 @@ const PagesManager = () => {
             <strong className="text-foreground">Edit on page</strong> opens the live page to edit text and add blocks in place. Or create a brand-new page built entirely from blocks.
           </p>
         </div>
-        <button onClick={() => setNewOpen(true)} className="ml-auto shrink-0 inline-flex items-center gap-2 rounded-xl gradient-hero text-white font-semibold px-4 py-2.5 text-sm hover:opacity-90 transition-opacity">
-          <Plus className="w-4 h-4" /> New page
-        </button>
+        {canWrite && (
+          <button onClick={() => setNewOpen(true)} className="ml-auto shrink-0 inline-flex items-center gap-2 rounded-xl gradient-hero text-white font-semibold px-4 py-2.5 text-sm hover:opacity-90 transition-opacity">
+            <Plus className="w-4 h-4" /> New page
+          </button>
+        )}
       </div>
 
       {customPages.length > 0 && (
@@ -304,8 +313,8 @@ const PagesManager = () => {
                   </div>
                   <span className={`text-[10px] uppercase font-bold tracking-wide rounded-full px-2 py-0.5 ${tone}`}>{state}</span>
                   <a href={row.path} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 rounded-lg gradient-hero text-white text-xs font-semibold px-3 py-2 hover:opacity-90" title="Edit on the live page">Edit on page <ExternalLink className="w-3.5 h-3.5" /></a>
-                  <button onClick={() => duplicatePage(row)} className="p-2 rounded-lg text-muted-foreground hover:text-primary hover:bg-muted" title="Duplicate page"><Copy className="w-4 h-4" /></button>
-                  <button onClick={() => deletePage(row)} className="p-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-muted" title="Delete page"><Trash2 className="w-4 h-4" /></button>
+                  {canWrite && <button onClick={() => duplicatePage(row)} className="p-2 rounded-lg text-muted-foreground hover:text-primary hover:bg-muted" title="Duplicate page"><Copy className="w-4 h-4" /></button>}
+                  {canPublish && <button onClick={() => deletePage(row)} className="p-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-muted" title="Delete page"><Trash2 className="w-4 h-4" /></button>}
                 </li>
               );
             })}
