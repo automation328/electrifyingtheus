@@ -5,7 +5,7 @@ import { useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Newspaper, CalendarDays, Images, Briefcase,
-  FileText, Car, BadgePercent, Bot, LogOut, ExternalLink, Zap, FolderOpen, Menu, PanelBottom, Palette, Users, KeyRound,
+  FileText, Car, BadgePercent, Bot, LogOut, ExternalLink, Zap, FolderOpen, Menu, PanelBottom, Palette, Users, KeyRound, Activity,
 } from "lucide-react";
 import { signOut, useEditorAuth } from "@/lib/auth";
 import type { EditorRole } from "@/lib/admin-api";
@@ -37,6 +37,7 @@ const NAV_GROUPS: { label?: string; items: NavItem[] }[] = [
   ] },
   { label: "Team", items: [
     { to: "/admin/content/users", label: "Users", icon: Users, roles: ["admin"] },
+    { to: "/admin/content/activity", label: "Activity", icon: Activity, roles: ["admin", "editor"] },
   ] },
 ];
 

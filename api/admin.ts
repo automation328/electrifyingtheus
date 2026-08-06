@@ -12,6 +12,7 @@
 //   { op: "editors", action: "role",   id, role }           → { row }
 //   { op: "editors", action: "remove", id }                 → { ok }
 //   { op: "editors", action: "invite", email }              → { ok }
+//   { op: "activity" }                                       → { rows }        (editor/admin)
 //   { op: "collection", action: "list",   table }          → { rows }
 //   { op: "collection", action: "insert", table, row }     → { row }
 //   { op: "collection", action: "update", table, id, row } → { row }
@@ -70,6 +71,14 @@ function safeJson(s: string): unknown {
   try { return JSON.parse(s); } catch { return null; }
 }
 
+// Best-effort audit log — never throws, so a missing table or write error can't
+// break the actual mutation the caller just performed.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function logActivity(db: any, actor: string, role: string, action: string, target?: string, summary?: string) {
+  try { await db.from("site_activity").insert({ actor, role, action, target: target ?? null, summary: summary ?? null }); }
+  catch { /* table may not exist yet — ignore */ }
+}
+
 function slugName(name: string): string {
   const dot = name.lastIndexOf(".");
   const base = (dot > 0 ? name.slice(0, dot) : name).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60) || "image";
@@ -124,7 +133,7 @@ async function embed(text: string, key: string): Promise<number[]> {
 /* ── op handlers ─────────────────────────────────────────────────────────── */
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function handleCollection(b: Record<string, unknown>, res: any, role: string) {
+async function handleCollection(b: Record<string, unknown>, res: any, role: string, actor: string) {
   const action = String(b.action ?? "");
   const table = String(b.table ?? "");
   if (!ALLOWED_TABLES.has(table)) { res.status(400).json({ error: "table_not_allowed" }); return; }
@@ -160,6 +169,8 @@ async function handleCollection(b: Record<string, unknown>, res: any, role: stri
     if (action === "insert") {
       const { data, error } = await db.from(table).insert(row).select().single();
       if (error) { res.status(400).json({ error: "insert_failed", detail: error.message }); return; }
+      const published = String(data?.status ?? "") === "published";
+      await logActivity(db, actor, role, published ? "publish" : "insert", table, String(data?.id ?? ""));
       res.status(200).json({ row: data });
       return;
     }
@@ -167,6 +178,8 @@ async function handleCollection(b: Record<string, unknown>, res: any, role: stri
     if (!id) { res.status(400).json({ error: "missing_id" }); return; }
     const { data, error } = await db.from(table).update(row).eq("id", id).select().single();
     if (error) { res.status(400).json({ error: "update_failed", detail: error.message }); return; }
+    const nowPublished = String(data?.status ?? "") === "published";
+    await logActivity(db, actor, role, nowPublished && "status" in row ? "publish" : "update", table, id);
     res.status(200).json({ row: data });
     return;
   }
@@ -177,6 +190,7 @@ async function handleCollection(b: Record<string, unknown>, res: any, role: stri
     if (!id) { res.status(400).json({ error: "missing_id" }); return; }
     const { error } = await db.from(table).delete().eq("id", id);
     if (error) { res.status(400).json({ error: "delete_failed", detail: error.message }); return; }
+    await logActivity(db, actor, role, "delete", table, id);
     res.status(200).json({ ok: true });
     return;
   }
@@ -196,6 +210,17 @@ async function findAuthUserByEmail(db: any, email: string) {
     if (users.length < 200) break; // last page reached
   }
   return null;
+}
+
+// Recent activity log (editors + admins). Read-only view.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function handleActivity(res: any, role: string) {
+  if (!canPublish(role)) { forbid(res, "Only editors and admins can view activity."); return; }
+  const db = adminSupabase();
+  if (!db) { res.status(500).json({ error: "not_configured" }); return; }
+  const { data, error } = await db.from("site_activity").select("id,created_at,actor,role,action,target,summary").order("created_at", { ascending: false }).limit(200);
+  if (error) { res.status(500).json({ error: "query_failed", detail: error.message }); return; }
+  res.status(200).json({ rows: data ?? [] });
 }
 
 // ── users / editors allow-list (admin only) ───────────────────────────────────
@@ -239,6 +264,7 @@ async function handleEditors(b: Record<string, unknown>, res: any, role: string,
         }
       } catch (e) { loginError = e instanceof Error ? e.message : String(e); }
     }
+    await logActivity(db, selfEmail, role, "user.add", email, `role ${normalizeRole(b.role)}`);
     res.status(200).json({ row: data, tempPassword, loginExists, loginError });
     return;
   }
@@ -262,6 +288,7 @@ async function handleEditors(b: Record<string, unknown>, res: any, role: string,
         const { error } = await (db as any).auth.admin.createUser({ email, password: pwd, email_confirm: true });
         if (error) { res.status(400).json({ error: "set_password_failed", detail: error.message }); return; }
       }
+      await logActivity(db, selfEmail, role, "user.password", email);
       res.status(200).json({ ok: true, tempPassword: provided ? undefined : pwd });
     } catch (e) {
       res.status(400).json({ error: "set_password_failed", detail: e instanceof Error ? e.message : String(e) });
@@ -279,6 +306,7 @@ async function handleEditors(b: Record<string, unknown>, res: any, role: string,
     }
     const { data, error } = await db.from("editors").update({ role: roleVal }).eq("id", id).select("id,email,role,created_at").single();
     if (error) { res.status(400).json({ error: "update_failed", detail: error.message }); return; }
+    await logActivity(db, selfEmail, role, "user.role", String(data?.email ?? ""), `→ ${roleVal}`);
     res.status(200).json({ row: data });
     return;
   }
@@ -294,6 +322,7 @@ async function handleEditors(b: Record<string, unknown>, res: any, role: string,
     }
     const { error } = await db.from("editors").delete().eq("id", id);
     if (error) { res.status(400).json({ error: "delete_failed", detail: error.message }); return; }
+    await logActivity(db, selfEmail, role, "user.remove", String(target.email ?? ""));
     res.status(200).json({ ok: true });
     return;
   }
@@ -371,7 +400,7 @@ async function handleMediaDelete(b: Record<string, unknown>, res: any) {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function handleKb(b: Record<string, unknown>, res: any) {
+async function handleKb(b: Record<string, unknown>, res: any, role: string, actor: string) {
   const action = String(b.action ?? "");
   const source = String(b.source ?? "").trim();
   if (!source) { res.status(400).json({ error: "missing_source" }); return; }
@@ -382,7 +411,7 @@ async function handleKb(b: Record<string, unknown>, res: any) {
   const del = await db.from(KB_TABLE).delete().filter("metadata->>source", "eq", source);
   if (del.error) { res.status(500).json({ error: "clear_failed", detail: del.error.message }); return; }
 
-  if (action === "remove") { res.status(200).json({ ok: true }); return; }
+  if (action === "remove") { await logActivity(db, actor, role, "kb", source, "removed"); res.status(200).json({ ok: true }); return; }
   if (action !== "reembed") { res.status(400).json({ error: "unknown_action" }); return; }
 
   const key = process.env.GEMINI_API_KEY;
@@ -411,6 +440,7 @@ async function handleKb(b: Record<string, unknown>, res: any) {
     res.status(500).json({ error: "embed_failed", detail: e instanceof Error ? e.message : String(e), inserted: ok });
     return;
   }
+  await logActivity(db, actor, role, "kb", source, `re-embedded (${ok} chunks)`);
   res.status(200).json({ chunkCount: ok });
 }
 
@@ -435,7 +465,7 @@ async function reembedSource(db: any, source: string, title: string, body: strin
 // Upload a document (PDF / DOCX / TXT / MD): extract text, upsert a KB source doc,
 // and (if published) re-embed it into the live vector store.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function handleKbUpload(b: Record<string, unknown>, res: any) {
+async function handleKbUpload(b: Record<string, unknown>, res: any, role: string, actor: string) {
   const filename = String(b.filename ?? "document");
   const contentType = String(b.contentType ?? "").toLowerCase();
   const dataUrl = String(b.dataUrl ?? "");
@@ -513,6 +543,7 @@ async function handleKbUpload(b: Record<string, unknown>, res: any) {
     await db.from(KB_TABLE).delete().filter("metadata->>source", "eq", source);
   }
 
+  await logActivity(db, actor, role, "kb", source, `uploaded ${title} (${chunkCount} chunks)`);
   res.status(200).json({ source, title, chars: text.length, chunkCount });
 }
 
@@ -540,12 +571,13 @@ export default async function handler(req: any, res: any) {
 
   try {
     if (op === "editors") return void (await handleEditors(b, res, role, editor.email));
-    if (op === "collection") return void (await handleCollection(b, res, role));
+    if (op === "activity") return void (await handleActivity(res, role));
+    if (op === "collection") return void (await handleCollection(b, res, role, editor.email));
     if (op === "upload") { if (role === "viewer") return void forbid(res, "Your account has read-only access."); return void (await handleUpload(b, res)); }
     if (op === "media-list") return void (await handleMediaList(res));
     if (op === "media-delete") { if (!canPublish(role)) return void forbid(res, "Only editors and admins can delete media."); return void (await handleMediaDelete(b, res)); }
-    if (op === "kb") { if (!canKb(role)) return void forbid(res, "Only editors and admins can change the knowledge base."); return void (await handleKb(b, res)); }
-    if (op === "kb-upload") { if (!canKb(role)) return void forbid(res, "Only editors and admins can change the knowledge base."); return void (await handleKbUpload(b, res)); }
+    if (op === "kb") { if (!canKb(role)) return void forbid(res, "Only editors and admins can change the knowledge base."); return void (await handleKb(b, res, role, editor.email)); }
+    if (op === "kb-upload") { if (!canKb(role)) return void forbid(res, "Only editors and admins can change the knowledge base."); return void (await handleKbUpload(b, res, role, editor.email)); }
     res.status(400).json({ error: "unknown_op" });
   } catch (e) {
     res.status(500).json({ error: "server_error", detail: e instanceof Error ? e.message : String(e) });

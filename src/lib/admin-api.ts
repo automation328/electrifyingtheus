@@ -62,6 +62,13 @@ export async function inviteEditor(email: string): Promise<void> {
   await call<{ ok: true }>({ op: "editors", action: "invite", email });
 }
 
+// ── activity log (editor/admin) ──────────────────────────────────────────────
+export interface ActivityRow { id: string; created_at: string; actor: string; role?: string; action: string; target?: string; summary?: string }
+export async function listActivity(): Promise<ActivityRow[]> {
+  const { rows } = await call<{ rows: ActivityRow[] }>({ op: "activity" });
+  return rows;
+}
+
 /** Fetch every row (including drafts) for a collection — admin-only view. */
 export async function listRows<T = Record<string, unknown>>(table: AdminTable): Promise<T[]> {
   const { rows } = await call<{ rows: T[] }>({ op: "collection", action: "list", table });
