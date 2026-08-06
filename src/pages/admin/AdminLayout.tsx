@@ -4,11 +4,14 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Newspaper, CalendarDays, Images, Briefcase,
-  FileText, Car, BadgePercent, Bot, LogOut, ExternalLink, Zap, FolderOpen, Menu, PanelBottom, Palette,
+  FileText, Car, BadgePercent, Bot, LogOut, ExternalLink, Zap, FolderOpen, Menu, PanelBottom, Palette, Users,
 } from "lucide-react";
 import { signOut, useEditorAuth } from "@/lib/auth";
+import type { EditorRole } from "@/lib/admin-api";
 
-interface NavItem { to: string; label: string; icon: typeof Newspaper; end?: boolean }
+// `roles` limits an item to those roles (omit = visible to everyone). Server-side
+// enforcement in api/admin.ts is the real gate; this just hides what a role can't use.
+interface NavItem { to: string; label: string; icon: typeof Newspaper; end?: boolean; roles?: EditorRole[] }
 
 const NAV_GROUPS: { label?: string; items: NavItem[] }[] = [
   { items: [{ to: "/admin/content", label: "Overview", icon: LayoutDashboard, end: true }] },
@@ -22,21 +25,27 @@ const NAV_GROUPS: { label?: string; items: NavItem[] }[] = [
     { to: "/admin/content/incentives", label: "Incentives", icon: BadgePercent },
   ] },
   { label: "Assistant", items: [
-    { to: "/admin/content/knowledge-base", label: "EVan knowledge", icon: Bot },
+    { to: "/admin/content/knowledge-base", label: "EVan knowledge", icon: Bot, roles: ["admin", "editor"] },
   ] },
   { label: "Site", items: [
-    { to: "/admin/content/media", label: "Media", icon: FolderOpen },
-    { to: "/admin/content/navigation", label: "Navigation", icon: Menu },
-    { to: "/admin/content/footer", label: "Footer", icon: PanelBottom },
-    { to: "/admin/content/theme", label: "Theme", icon: Palette },
+    { to: "/admin/content/media", label: "Media", icon: FolderOpen, roles: ["admin", "editor", "author"] },
+    { to: "/admin/content/navigation", label: "Navigation", icon: Menu, roles: ["admin", "editor"] },
+    { to: "/admin/content/footer", label: "Footer", icon: PanelBottom, roles: ["admin", "editor"] },
+    { to: "/admin/content/theme", label: "Theme", icon: Palette, roles: ["admin", "editor"] },
+  ] },
+  { label: "Team", items: [
+    { to: "/admin/content/users", label: "Users", icon: Users, roles: ["admin"] },
   ] },
 ];
-
-const NAV: NavItem[] = NAV_GROUPS.flatMap((g) => g.items);
 
 const AdminLayout = () => {
   const navigate = useNavigate();
   const auth = useEditorAuth();
+  const role: EditorRole = auth.status === "editor" ? (auth.editor.role as EditorRole) : "viewer";
+  const visibleGroups = NAV_GROUPS
+    .map((g) => ({ ...g, items: g.items.filter((it) => !it.roles || it.roles.includes(role)) }))
+    .filter((g) => g.items.length > 0);
+  const NAV: NavItem[] = visibleGroups.flatMap((g) => g.items);
 
   const doSignOut = async () => {
     await signOut();
@@ -58,7 +67,7 @@ const AdminLayout = () => {
         </div>
 
         <nav className="flex-1 overflow-y-auto p-3 space-y-3">
-          {NAV_GROUPS.map((group, gi) => (
+          {visibleGroups.map((group, gi) => (
             <div key={gi} className="space-y-1">
               {group.label && <div className="px-3 pt-1 text-[10px] font-bold uppercase tracking-wide text-muted-foreground/70">{group.label}</div>}
               {group.items.map((item) => (
@@ -99,7 +108,7 @@ const AdminLayout = () => {
           </button>
           {auth.status === "editor" && (
             <p className="px-3 pt-1 text-[11px] text-muted-foreground truncate" title={auth.editor.email}>
-              {auth.editor.email}{auth.editor.role === "admin" ? " · admin" : ""}
+              {auth.editor.email} · {auth.editor.role}
             </p>
           )}
         </div>

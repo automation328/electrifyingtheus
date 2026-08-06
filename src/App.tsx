@@ -59,6 +59,7 @@ import MediaManager from "./pages/admin/MediaManager.tsx";
 import NavEditor from "./pages/admin/NavEditor.tsx";
 import FooterEditor from "./pages/admin/FooterEditor.tsx";
 import KnowledgeBaseManager from "./pages/admin/KnowledgeBaseManager.tsx";
+import UsersManager from "./pages/admin/UsersManager.tsx";
 import CollectionManager from "./components/admin/CollectionManager.tsx";
 import { blogConfig, eventsConfig, galleryConfig, jobsConfig, vehiclesConfig, incentivesConfig } from "./pages/admin/collections/configs.ts";
 
@@ -137,6 +138,7 @@ const App = () => (
             <Route path="vehicles" element={<CollectionManager config={vehiclesConfig} />} />
             <Route path="incentives" element={<CollectionManager config={incentivesConfig} />} />
             <Route path="knowledge-base" element={<KnowledgeBaseManager />} />
+            <Route path="users" element={<UsersManager />} />
           </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           {/* Catch-all: renders a CMS-created custom page if one exists, else 404. */}

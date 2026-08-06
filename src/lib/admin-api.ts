@@ -34,6 +34,29 @@ async function call<T>(payload: Record<string, unknown>): Promise<T> {
   return data as T;
 }
 
+// ── users / editors allow-list (admin only) ──────────────────────────────────
+export type EditorRole = "admin" | "editor" | "author" | "viewer";
+export interface EditorRow { id: string; email: string; role: EditorRole; created_at: string }
+
+export async function listEditors(): Promise<EditorRow[]> {
+  const { rows } = await call<{ rows: EditorRow[] }>({ op: "editors", action: "list" });
+  return rows;
+}
+export async function addEditor(email: string, role: EditorRole): Promise<EditorRow> {
+  const { row } = await call<{ row: EditorRow }>({ op: "editors", action: "add", email, role });
+  return row;
+}
+export async function setEditorRole(id: string, role: EditorRole): Promise<EditorRow> {
+  const { row } = await call<{ row: EditorRow }>({ op: "editors", action: "role", id, role });
+  return row;
+}
+export async function removeEditor(id: string): Promise<void> {
+  await call<{ ok: true }>({ op: "editors", action: "remove", id });
+}
+export async function inviteEditor(email: string): Promise<void> {
+  await call<{ ok: true }>({ op: "editors", action: "invite", email });
+}
+
 /** Fetch every row (including drafts) for a collection — admin-only view. */
 export async function listRows<T = Record<string, unknown>>(table: AdminTable): Promise<T[]> {
   const { rows } = await call<{ rows: T[] }>({ op: "collection", action: "list", table });

@@ -6,6 +6,11 @@
 //
 //   POST /api/admin
 //   { op: "me" }                                            → { email, role }
+//   { op: "editors", action: "list" }                       → { rows }        (admin only)
+//   { op: "editors", action: "add",    email, role }        → { row }
+//   { op: "editors", action: "role",   id, role }           → { row }
+//   { op: "editors", action: "remove", id }                 → { ok }
+//   { op: "editors", action: "invite", email }              → { ok }
 //   { op: "collection", action: "list",   table }          → { rows }
 //   { op: "collection", action: "insert", table, row }     → { row }
 //   { op: "collection", action: "update", table, id, row } → { row }
@@ -26,6 +31,19 @@ const ALLOWED_TABLES = new Set<string>([
   "site_blog_posts", "site_events", "site_gallery", "site_jobs",
   "site_vehicles", "site_incentives", "site_pages", "kb_source_documents", "site_settings",
 ]);
+
+// ── roles / capabilities ──────────────────────────────────────────────────────
+// admin  — everything, incl. managing users
+// editor — all content + publish + settings + KB; no user management
+// author — create/edit content as DRAFTS only; no delete/settings/KB
+// viewer — read-only (no writes at all)
+const ROLES = new Set(["admin", "editor", "author", "viewer"]);
+const normalizeRole = (r: unknown) => { const s = String(r ?? "").toLowerCase(); return ROLES.has(s) ? s : "editor"; };
+const canPublish = (r: string) => r === "admin" || r === "editor";   // publish + delete content
+const canSettings = (r: string) => r === "admin" || r === "editor";  // site_settings (theme/nav/footer)
+const canKb = (r: string) => r === "admin" || r === "editor";        // EVan knowledge base
+const validEmail = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
+const forbid = (res: { status: (n: number) => { json: (o: unknown) => void } }, detail: string) => res.status(403).json({ error: "forbidden", detail });
 
 // ── upload ───────────────────────────────────────────────────────────────────
 const BUCKET = "site-media";
@@ -100,29 +118,42 @@ async function embed(text: string, key: string): Promise<number[]> {
 /* ── op handlers ─────────────────────────────────────────────────────────── */
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function handleCollection(b: Record<string, unknown>, res: any) {
+async function handleCollection(b: Record<string, unknown>, res: any, role: string) {
   const action = String(b.action ?? "");
   const table = String(b.table ?? "");
   if (!ALLOWED_TABLES.has(table)) { res.status(400).json({ error: "table_not_allowed" }); return; }
   const db = adminSupabase();
   if (!db) { res.status(500).json({ error: "not_configured" }); return; }
 
+  const isSettings = table === "site_settings";
+  const isKbTable = table === "kb_source_documents";
+
   if (action === "list") {
+    // Reading is allowed for any authorized role (incl. viewer).
     const { data, error } = await db.from(table).select("*").order("created_at", { ascending: false });
     if (error) { res.status(500).json({ error: "query_failed", detail: error.message }); return; }
     res.status(200).json({ rows: data ?? [] });
     return;
   }
-  if (action === "insert") {
+
+  // ── writes: gate by role ──
+  if (role === "viewer") { forbid(res, "Your account has read-only access."); return; }
+  if (isSettings && !canSettings(role)) { forbid(res, "Only editors and admins can change site settings."); return; }
+  if (isKbTable && !canKb(role)) { forbid(res, "Only editors and admins can change the knowledge base."); return; }
+
+  if (action === "insert" || action === "update") {
     const row = (b.row && typeof b.row === "object" ? b.row : {}) as Record<string, unknown>;
-    const { data, error } = await db.from(table).insert(row).select().single();
-    if (error) { res.status(400).json({ error: "insert_failed", detail: error.message }); return; }
-    res.status(200).json({ row: data });
-    return;
-  }
-  if (action === "update") {
+    // Authors may save content only as drafts.
+    if (!isSettings && !isKbTable && role === "author" && String(row.status ?? "") === "published") {
+      forbid(res, "Authors can save drafts only — an editor can publish it."); return;
+    }
+    if (action === "insert") {
+      const { data, error } = await db.from(table).insert(row).select().single();
+      if (error) { res.status(400).json({ error: "insert_failed", detail: error.message }); return; }
+      res.status(200).json({ row: data });
+      return;
+    }
     const id = String(b.id ?? "");
-    const row = (b.row && typeof b.row === "object" ? b.row : {}) as Record<string, unknown>;
     if (!id) { res.status(400).json({ error: "missing_id" }); return; }
     const { data, error } = await db.from(table).update(row).eq("id", id).select().single();
     if (error) { res.status(400).json({ error: "update_failed", detail: error.message }); return; }
@@ -130,11 +161,84 @@ async function handleCollection(b: Record<string, unknown>, res: any) {
     return;
   }
   if (action === "delete") {
+    // Deleting content requires publish rights; settings/KB deletes gated above.
+    if (!isSettings && !isKbTable && !canPublish(role)) { forbid(res, "Only editors and admins can delete content."); return; }
     const id = String(b.id ?? "");
     if (!id) { res.status(400).json({ error: "missing_id" }); return; }
     const { error } = await db.from(table).delete().eq("id", id);
     if (error) { res.status(400).json({ error: "delete_failed", detail: error.message }); return; }
     res.status(200).json({ ok: true });
+    return;
+  }
+  res.status(400).json({ error: "unknown_action" });
+}
+
+// ── users / editors allow-list (admin only) ───────────────────────────────────
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function handleEditors(b: Record<string, unknown>, res: any, role: string, selfEmail: string) {
+  if (role !== "admin") { forbid(res, "Only admins can manage users."); return; }
+  const db = adminSupabase();
+  if (!db) { res.status(500).json({ error: "not_configured" }); return; }
+  const action = String(b.action ?? "");
+
+  if (action === "list") {
+    const { data, error } = await db.from("editors").select("id,email,role,created_at").order("created_at", { ascending: true });
+    if (error) { res.status(500).json({ error: "query_failed", detail: error.message }); return; }
+    res.status(200).json({ rows: data ?? [] });
+    return;
+  }
+  if (action === "add") {
+    const email = String(b.email ?? "").trim().toLowerCase();
+    if (!validEmail(email)) { res.status(400).json({ error: "bad_email", detail: "Enter a valid email address." }); return; }
+    const { data, error } = await db.from("editors").insert({ email, role: normalizeRole(b.role) }).select("id,email,role,created_at").single();
+    if (error) {
+      const dup = /duplicate|unique/i.test(error.message);
+      res.status(dup ? 409 : 400).json({ error: dup ? "already_exists" : "insert_failed", detail: dup ? "That email is already a user." : error.message });
+      return;
+    }
+    res.status(200).json({ row: data });
+    return;
+  }
+  if (action === "role") {
+    const id = String(b.id ?? "");
+    if (!id) { res.status(400).json({ error: "missing_id" }); return; }
+    const roleVal = normalizeRole(b.role);
+    const { data: target } = await db.from("editors").select("email,role").eq("id", id).maybeSingle();
+    if (target && target.role === "admin" && roleVal !== "admin") {
+      const { count } = await db.from("editors").select("id", { count: "exact", head: true }).eq("role", "admin");
+      if ((count ?? 0) <= 1) { res.status(400).json({ error: "last_admin", detail: "There must be at least one admin." }); return; }
+    }
+    const { data, error } = await db.from("editors").update({ role: roleVal }).eq("id", id).select("id,email,role,created_at").single();
+    if (error) { res.status(400).json({ error: "update_failed", detail: error.message }); return; }
+    res.status(200).json({ row: data });
+    return;
+  }
+  if (action === "remove") {
+    const id = String(b.id ?? "");
+    if (!id) { res.status(400).json({ error: "missing_id" }); return; }
+    const { data: target } = await db.from("editors").select("email,role").eq("id", id).maybeSingle();
+    if (!target) { res.status(404).json({ error: "not_found" }); return; }
+    if (String(target.email).toLowerCase() === selfEmail.toLowerCase()) { res.status(400).json({ error: "cant_remove_self", detail: "You can't remove your own access." }); return; }
+    if (target.role === "admin") {
+      const { count } = await db.from("editors").select("id", { count: "exact", head: true }).eq("role", "admin");
+      if ((count ?? 0) <= 1) { res.status(400).json({ error: "last_admin", detail: "There must be at least one admin." }); return; }
+    }
+    const { error } = await db.from("editors").delete().eq("id", id);
+    if (error) { res.status(400).json({ error: "delete_failed", detail: error.message }); return; }
+    res.status(200).json({ ok: true });
+    return;
+  }
+  if (action === "invite") {
+    const email = String(b.email ?? "").trim().toLowerCase();
+    if (!validEmail(email)) { res.status(400).json({ error: "bad_email" }); return; }
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await (db as any).auth.admin.inviteUserByEmail(email);
+      if (error) { res.status(400).json({ error: "invite_failed", detail: error.message }); return; }
+      res.status(200).json({ ok: true });
+    } catch (e) {
+      res.status(400).json({ error: "invite_failed", detail: e instanceof Error ? e.message : String(e) });
+    }
     return;
   }
   res.status(400).json({ error: "unknown_action" });
@@ -361,14 +465,16 @@ export default async function handler(req: any, res: any) {
 
   const editor = await requireEditor(req, res);
   if (!editor) return; // 401 already sent
+  const role = normalizeRole(editor.role);
 
   try {
-    if (op === "collection") return void (await handleCollection(b, res));
-    if (op === "upload") return void (await handleUpload(b, res));
+    if (op === "editors") return void (await handleEditors(b, res, role, editor.email));
+    if (op === "collection") return void (await handleCollection(b, res, role));
+    if (op === "upload") { if (role === "viewer") return void forbid(res, "Your account has read-only access."); return void (await handleUpload(b, res)); }
     if (op === "media-list") return void (await handleMediaList(res));
-    if (op === "media-delete") return void (await handleMediaDelete(b, res));
-    if (op === "kb") return void (await handleKb(b, res));
-    if (op === "kb-upload") return void (await handleKbUpload(b, res));
+    if (op === "media-delete") { if (role === "viewer") return void forbid(res, "Your account has read-only access."); return void (await handleMediaDelete(b, res)); }
+    if (op === "kb") { if (!canKb(role)) return void forbid(res, "Only editors and admins can change the knowledge base."); return void (await handleKb(b, res)); }
+    if (op === "kb-upload") { if (!canKb(role)) return void forbid(res, "Only editors and admins can change the knowledge base."); return void (await handleKbUpload(b, res)); }
     res.status(400).json({ error: "unknown_op" });
   } catch (e) {
     res.status(500).json({ error: "server_error", detail: e instanceof Error ? e.message : String(e) });
