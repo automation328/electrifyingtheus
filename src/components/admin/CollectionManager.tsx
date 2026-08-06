@@ -200,11 +200,11 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
     const status = String(row[config.statusField] ?? "");
     const published = status === "published";
     return (
-      <li key={isStatic ? `s:${config.keyOf?.(row)}` : String(row.id)} className="flex items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3 shadow-card">
+      <li key={isStatic ? `s:${config.keyOf?.(row)}` : String(row.id)} className="group flex items-center gap-3.5 rounded-2xl border border-border/70 bg-card px-4 py-3 shadow-sm transition-all hover:shadow-md hover:border-primary/30">
         {config.imageField && (
           String(row[config.imageField] ?? "")
-            ? <img src={String(row[config.imageField])} alt="" className="w-12 h-12 rounded-lg object-cover border border-border shrink-0" loading="lazy" />
-            : <div className="w-12 h-12 rounded-lg bg-muted grid place-items-center text-muted-foreground shrink-0"><ImageIcon className="w-4 h-4" /></div>
+            ? <img src={String(row[config.imageField])} alt="" className="w-14 h-14 rounded-xl object-cover border border-border shrink-0" loading="lazy" />
+            : <div className="w-14 h-14 rounded-xl bg-muted grid place-items-center text-muted-foreground shrink-0"><ImageIcon className="w-5 h-5" /></div>
         )}
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
@@ -237,32 +237,26 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
   };
 
   return (
-    <div className="max-w-5xl">
-      <div className="flex items-center gap-3 mb-6">
-        <div>
-          <h1 className="text-2xl font-bold font-display text-foreground">{config.plural}</h1>
-          <p className="text-sm text-muted-foreground">
-            {isLoading ? "Loading…" : `${sorted.length} item${sorted.length === 1 ? "" : "s"}`}
-            {!canWrite && <span className="ml-2 text-xs rounded-full bg-muted px-2 py-0.5">Read-only</span>}
-          </p>
-          {config.description && <p className="text-xs text-muted-foreground mt-1 max-w-lg">{config.description}</p>}
+    <div className={config.splitBy ? "max-w-6xl" : "max-w-5xl"}>
+      <div className="mb-6">
+        <div className="flex flex-wrap items-center gap-2.5">
+          <h1 className="text-[1.7rem] font-bold font-display tracking-tight text-foreground">{config.plural}</h1>
+          {!isLoading && <span className="rounded-full bg-primary/10 text-primary text-xs font-bold px-2.5 py-1">{sorted.length}</span>}
+          {!canWrite && <span className="text-[11px] font-semibold rounded-full bg-muted px-2.5 py-1 text-muted-foreground">Read-only</span>}
+          <div className="ml-auto flex items-center gap-2">
+            {canWrite && config.mediaImport && (
+              <button onClick={() => setMediaOpen(true)} className="inline-flex items-center gap-2 rounded-xl border border-primary/40 text-primary font-semibold px-4 py-2.5 text-sm hover:bg-primary/10 transition-colors">
+                <FolderOpen className="w-4 h-4" /> Add from library
+              </button>
+            )}
+            {canWrite && (
+              <button onClick={openNew} className="inline-flex items-center gap-2 rounded-xl gradient-hero text-white font-semibold px-4 py-2.5 text-sm shadow-sm hover:opacity-90 transition-opacity">
+                <Plus className="w-4 h-4" /> New {config.singular.toLowerCase()}
+              </button>
+            )}
+          </div>
         </div>
-        {canWrite && config.mediaImport && (
-          <button
-            onClick={() => setMediaOpen(true)}
-            className="ml-auto inline-flex items-center gap-2 rounded-xl border border-primary/50 text-primary font-semibold px-4 py-2.5 text-sm hover:bg-primary/10 transition-colors"
-          >
-            <FolderOpen className="w-4 h-4" /> Add from library
-          </button>
-        )}
-        {canWrite && (
-          <button
-            onClick={openNew}
-            className={`${config.mediaImport ? "" : "ml-auto"} inline-flex items-center gap-2 rounded-xl gradient-hero text-white font-semibold px-4 py-2.5 text-sm hover:opacity-90 transition-opacity`}
-          >
-            <Plus className="w-4 h-4" /> New {config.singular.toLowerCase()}
-          </button>
-        )}
+        {config.description && <p className="text-sm text-muted-foreground mt-2 max-w-2xl leading-relaxed">{config.description}</p>}
       </div>
 
       {error && (
@@ -275,8 +269,26 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
       {isLoading ? (
         <div className="py-20 text-center text-muted-foreground"><Loader2 className="w-6 h-6 animate-spin mx-auto" /></div>
       ) : sorted.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-border bg-card p-10 text-center text-muted-foreground">
-          No {config.plural.toLowerCase()} yet. Create the first one.
+        <div className="rounded-2xl border border-dashed border-border bg-card/60 p-14 text-center">
+          <div className="w-12 h-12 rounded-2xl bg-primary/10 grid place-items-center mx-auto mb-3"><Plus className="w-6 h-6 text-primary" /></div>
+          <p className="font-semibold text-foreground">No {config.plural.toLowerCase()} yet</p>
+          <p className="text-sm text-muted-foreground mt-1">{canWrite ? `Create your first ${config.singular.toLowerCase()} to get started.` : "Nothing here yet."}</p>
+          {canWrite && <button onClick={openNew} className="mt-4 inline-flex items-center gap-2 rounded-xl gradient-hero text-white font-semibold px-4 py-2.5 text-sm hover:opacity-90"><Plus className="w-4 h-4" /> New {config.singular.toLowerCase()}</button>}
+        </div>
+      ) : config.splitBy ? (
+        <div className="grid md:grid-cols-2 gap-5 items-start">
+          {([
+            { label: config.splitBy.leftLabel, tone: "bg-primary", rows: sorted.filter((r) => String(r[config.splitBy!.field]) === config.splitBy!.left) },
+            { label: config.splitBy.rightLabel, tone: "bg-amber-500", rows: sorted.filter((r) => config.splitBy!.right.includes(String(r[config.splitBy!.field]))) },
+          ]).map((col) => (
+            <div key={col.label} className="rounded-2xl border border-border/60 bg-card/40 p-3 sm:p-4">
+              <h2 className="flex items-center gap-2 text-sm font-bold text-foreground mb-3 px-1">
+                <span className={`w-2.5 h-2.5 rounded-full ${col.tone}`} />{col.label}
+                <span className="ml-auto text-xs font-semibold text-muted-foreground rounded-full bg-muted px-2 py-0.5">{col.rows.length}</span>
+              </h2>
+              {col.rows.length === 0 ? <p className="text-sm text-muted-foreground px-1 py-6 text-center">None yet.</p> : <ul className="space-y-2">{col.rows.map(renderRow)}</ul>}
+            </div>
+          ))}
         </div>
       ) : groups ? (
         <div className="space-y-6">
@@ -299,9 +311,15 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center gap-3 px-5 h-16 border-b border-border shrink-0">
-              <h2 className="font-bold font-display text-foreground truncate">
-                {isNew ? `New ${config.singular.toLowerCase()}` : `Edit ${config.singular.toLowerCase()}`}
-              </h2>
+              <div className="w-9 h-9 rounded-xl gradient-hero grid place-items-center text-white shrink-0">
+                {isNew ? <Plus className="w-4 h-4" /> : <Pencil className="w-4 h-4" />}
+              </div>
+              <div className="min-w-0">
+                <h2 className="font-bold font-display text-foreground truncate leading-tight">
+                  {isNew ? `New ${config.singular.toLowerCase()}` : `Edit ${config.singular.toLowerCase()}`}
+                </h2>
+                <p className="text-[11px] text-muted-foreground">{config.plural}</p>
+              </div>
               <button onClick={close} className="ml-auto p-2 rounded-lg text-muted-foreground hover:bg-muted" title="Close">
                 <X className="w-5 h-5" />
               </button>

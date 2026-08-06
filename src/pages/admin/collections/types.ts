@@ -44,6 +44,8 @@ export interface CollectionConfig {
   groupField?: string;
   /** Pretty labels for group values (e.g. { ev: "Electric", gas: "Gas" }). */
   groupLabels?: Record<string, string>;
+  /** Optional two-column split by a field value (e.g. Electric | Gas). Overrides grouping. */
+  splitBy?: { field: string; left: string; leftLabel: string; right: string[]; rightLabel: string };
   /** Built-in (curated) items to show alongside DB rows (the merged view). */
   staticRows?: () => Record<string, unknown>[];
   /** Stable identity for de-duping built-in items against DB overrides. */

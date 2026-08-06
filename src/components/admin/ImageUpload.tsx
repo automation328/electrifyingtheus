@@ -61,7 +61,7 @@ const ImageUpload = ({ value, onChange, kind = "image" }: Props) => {
         </div>
       )}
 
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex items-center gap-2">
         <button type="button" onClick={() => fileRef.current?.click()} disabled={busy} className="inline-flex items-center gap-1.5 rounded-lg gradient-hero text-white px-3.5 py-2 text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-60">
           {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />} Upload
         </button>
@@ -69,10 +69,10 @@ const ImageUpload = ({ value, onChange, kind = "image" }: Props) => {
           <FolderOpen className="w-4 h-4" /> Library
         </button>
         <input ref={fileRef} type="file" accept={kind === "video" ? "video/*" : "image/*"} className="hidden" onChange={(e) => onPick(e.target.files?.[0])} />
-        <div className="flex items-center gap-1.5 flex-1 min-w-[12rem]">
-          <Link2 className="w-4 h-4 text-muted-foreground shrink-0" />
-          <input type="text" value={value} onChange={(e) => onChange(e.target.value)} placeholder="…or paste a URL" className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:ring-2 focus:ring-primary/40" />
-        </div>
+      </div>
+      <div className="flex items-center gap-1.5 rounded-lg border border-border bg-background px-2.5 focus-within:ring-2 focus-within:ring-primary/40">
+        <Link2 className="w-4 h-4 text-muted-foreground shrink-0" />
+        <input type="text" value={value} onChange={(e) => onChange(e.target.value)} placeholder="…or paste a URL" className="w-full bg-transparent py-2 text-sm text-foreground outline-none" />
       </div>
 
       {libOpen && (

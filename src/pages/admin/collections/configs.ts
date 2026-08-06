@@ -124,6 +124,7 @@ export const vehiclesConfig: CollectionConfig = {
   imageField: "image",
   groupField: "type",
   groupLabels: { ev: "Electric", hybrid: "Hybrid", gas: "Gas" },
+  splitBy: { field: "type", left: "ev", leftLabel: "Electric cars", right: ["gas", "hybrid"], rightLabel: "Gas cars" },
   staticRows: vehicleStaticRows,
   keyOf: (r) => str(r.vehicle_id),
   statusField,
