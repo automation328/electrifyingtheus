@@ -11,6 +11,7 @@ import {
   Plus, Pencil, Trash2, Loader2, X, Save, AlertCircle, Bot, Eye, Sparkles, Upload,
 } from "lucide-react";
 import { listRows, insertRow, updateRow, deleteRow, kbReembed, kbRemove, kbUpload } from "@/lib/admin-api";
+import PageHeader from "@/components/admin/PageHeader";
 
 interface KbRow {
   id?: string; source: string; title: string; body: string; status: string;
@@ -107,21 +108,21 @@ const KnowledgeBaseManager = () => {
 
   return (
     <div className="max-w-4xl">
-      <div className="flex items-center gap-3 mb-2">
-        <div>
-          <h1 className="text-2xl font-bold font-display text-foreground">EVan knowledge base</h1>
-          <p className="text-sm text-muted-foreground">
-            {isLoading ? "Loading…" : `${rows.length} document${rows.length === 1 ? "" : "s"}`}
-          </p>
-        </div>
-        <button onClick={() => fileRef.current?.click()} disabled={uploading} className="ml-auto inline-flex items-center gap-2 rounded-xl border border-primary/50 text-primary font-semibold px-4 py-2.5 text-sm hover:bg-primary/10 disabled:opacity-60">
-          {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />} Upload document
-        </button>
-        <input ref={fileRef} type="file" accept=".pdf,.docx,.txt,.md,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,text/markdown" multiple className="hidden" onChange={(e) => onUpload(e.target.files)} />
-        <button onClick={openNew} className="inline-flex items-center gap-2 rounded-xl gradient-hero text-white font-semibold px-4 py-2.5 text-sm hover:opacity-90">
-          <Plus className="w-4 h-4" /> New document
-        </button>
-      </div>
+      <PageHeader
+        icon={Bot}
+        title="EVan knowledge base"
+        count={isLoading ? undefined : rows.length}
+        subtitle="Source documents that power EVan's answers."
+        actions={<>
+          <button onClick={() => fileRef.current?.click()} disabled={uploading} className="inline-flex items-center gap-2 rounded-xl border border-primary/50 text-primary font-semibold px-4 py-2.5 text-sm hover:bg-primary/10 disabled:opacity-60">
+            {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />} Upload document
+          </button>
+          <button onClick={openNew} className="inline-flex items-center gap-2 rounded-xl gradient-hero text-white font-semibold px-4 py-2.5 text-sm hover:opacity-90">
+            <Plus className="w-4 h-4" /> New document
+          </button>
+        </>}
+      />
+      <input ref={fileRef} type="file" accept=".pdf,.docx,.txt,.md,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,text/markdown" multiple className="hidden" onChange={(e) => onUpload(e.target.files)} />
       <p className="text-xs text-muted-foreground mb-6 flex items-start gap-1.5">
         <Sparkles className="w-3.5 h-3.5 mt-0.5 shrink-0 text-primary" />
         Upload a PDF, DOCX, or text file — the text is extracted, chunked, and embedded into EVan's knowledge base automatically. Publishing a document re-embeds it; drafts are held out of the assistant.

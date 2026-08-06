@@ -5,8 +5,9 @@
 import { useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Upload, Trash2, Link2, Loader2, Film, Image as ImageIcon, Music } from "lucide-react";
+import { Upload, Trash2, Link2, Loader2, Film, Image as ImageIcon, Music, FolderOpen } from "lucide-react";
 import { listMedia, uploadImage, deleteMedia, type MediaItem } from "@/lib/admin-api";
+import PageHeader from "@/components/admin/PageHeader";
 
 type Filter = "all" | "image" | "video" | "audio";
 
@@ -66,17 +67,18 @@ const MediaManager = () => {
 
   return (
     <div className="max-w-5xl">
-      <div className="flex items-center gap-3 mb-6">
-        <div>
-          <h1 className="text-2xl font-bold font-display text-foreground">Media</h1>
-          <p className="text-sm text-muted-foreground">{isLoading ? "Loading…" : `${items.length} file${items.length === 1 ? "" : "s"}`} · your shared asset store</p>
-          <p className="text-xs text-muted-foreground mt-1 max-w-lg">Every image/video picker in the editor — and the <strong className="text-foreground">Gallery</strong> page — pulls from here.</p>
-        </div>
-        <button onClick={() => fileRef.current?.click()} disabled={busy} className="ml-auto inline-flex items-center gap-2 rounded-xl gradient-hero text-white font-semibold px-4 py-2.5 text-sm hover:opacity-90 disabled:opacity-60">
-          {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />} Upload
-        </button>
-        <input ref={fileRef} type="file" accept="image/*,video/*,audio/*" multiple className="hidden" onChange={(e) => onFiles(e.target.files)} />
-      </div>
+      <PageHeader
+        icon={FolderOpen}
+        title="Media"
+        count={isLoading ? undefined : items.length}
+        subtitle={<>Your shared asset store — every image/video picker in the editor, and the <strong className="text-foreground">Gallery</strong> page, pulls from here.</>}
+        actions={
+          <button onClick={() => fileRef.current?.click()} disabled={busy} className="inline-flex items-center gap-2 rounded-xl gradient-hero text-white font-semibold px-4 py-2.5 text-sm hover:opacity-90 disabled:opacity-60">
+            {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />} Upload
+          </button>
+        }
+      />
+      <input ref={fileRef} type="file" accept="image/*,video/*,audio/*" multiple className="hidden" onChange={(e) => onFiles(e.target.files)} />
 
       {items.length > 0 && (
         <div className="flex flex-wrap gap-1.5 mb-4">

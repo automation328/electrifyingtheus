@@ -15,6 +15,7 @@ import {
 } from "@/lib/page-content";
 import type { ContentStat, ContentSection, ContentSource } from "@/components/ContentPageLayout";
 import { useEditorAuth } from "@/lib/auth";
+import PageHeader from "@/components/admin/PageHeader";
 
 interface PageRow { id: string; path: string; title: string; status: string; content: PageOverride }
 
@@ -283,19 +284,16 @@ const PagesManager = () => {
 
   return (
     <div className="max-w-3xl">
-      <div className="flex items-start gap-3 mb-6">
-        <div>
-          <h1 className="text-2xl font-bold font-display text-foreground mb-1">Pages</h1>
-          <p className="text-sm text-muted-foreground">
-            <strong className="text-foreground">Edit on page</strong> opens the live page to edit text and add blocks in place. Or create a brand-new page built entirely from blocks.
-          </p>
-        </div>
-        {canWrite && (
-          <button onClick={() => setNewOpen(true)} className="ml-auto shrink-0 inline-flex items-center gap-2 rounded-xl gradient-hero text-white font-semibold px-4 py-2.5 text-sm hover:opacity-90 transition-opacity">
+      <PageHeader
+        icon={FileText}
+        title="Pages"
+        subtitle={<><strong className="text-foreground">Edit on page</strong> opens the live page to edit text and add blocks in place. Or create a brand-new page built entirely from blocks.</>}
+        actions={canWrite && (
+          <button onClick={() => setNewOpen(true)} className="inline-flex items-center gap-2 rounded-xl gradient-hero text-white font-semibold px-4 py-2.5 text-sm hover:opacity-90 transition-opacity">
             <Plus className="w-4 h-4" /> New page
           </button>
         )}
-      </div>
+      />
 
       {customPages.length > 0 && (
         <>

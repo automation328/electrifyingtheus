@@ -4,9 +4,10 @@
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Plus, Trash2, ArrowUp, ArrowDown, Save, Loader2, RotateCcw, AlertCircle } from "lucide-react";
+import { Plus, Trash2, ArrowUp, ArrowDown, Save, Loader2, RotateCcw, AlertCircle, PanelBottom } from "lucide-react";
 import { listRows, insertRow, updateRow } from "@/lib/admin-api";
 import { FOOTER_DEFAULT, type FooterContent, type FooterLink } from "@/data/footer";
+import PageHeader from "@/components/admin/PageHeader";
 
 interface SettingRow { id: string; key: string; value: Partial<FooterContent> }
 
@@ -71,8 +72,11 @@ const FooterEditor = () => {
 
   return (
     <div className="max-w-3xl">
-      <h1 className="text-2xl font-bold font-display text-foreground mb-1">Footer</h1>
-      <p className="text-sm text-muted-foreground mb-4">Edit the footer's tagline, contact email, link columns, and legal links. The newsletter signup form itself stays as-is.</p>
+      <PageHeader
+        icon={PanelBottom}
+        title="Footer"
+        subtitle="Edit the footer's tagline, contact email, link columns, and legal links. The newsletter signup form itself stays as-is."
+      />
 
       {error && (
         <div className="rounded-xl border border-amber-300 bg-amber-50 text-amber-900 px-4 py-3 text-sm mb-4 flex items-start gap-2">

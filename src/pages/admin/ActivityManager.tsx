@@ -4,6 +4,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Loader2, Activity as ActivityIcon, AlertCircle, FilePlus2, FilePen, Trash2, Rocket, EyeOff, UserPlus, UserCog, UserMinus, KeyRound, Bot, Mail } from "lucide-react";
 import { listActivity, type ActivityRow } from "@/lib/admin-api";
+import PageHeader from "@/components/admin/PageHeader";
 
 const TABLE_LABEL: Record<string, string> = {
   site_blog_posts: "blog post", site_events: "event", site_gallery: "gallery item", site_jobs: "job",
@@ -50,8 +51,12 @@ const ActivityManager = () => {
 
   return (
     <div className="max-w-3xl">
-      <h1 className="text-2xl font-bold font-display text-foreground mb-1 flex items-center gap-2"><ActivityIcon className="w-6 h-6 text-primary" /> Activity</h1>
-      <p className="text-sm text-muted-foreground mb-6">Recent changes across the CMS — who did what, and when.</p>
+      <PageHeader
+        icon={ActivityIcon}
+        title="Activity"
+        count={rows.length || undefined}
+        subtitle="Recent changes across the CMS — who did what, and when."
+      />
 
       {error && (
         <div className="rounded-xl border border-amber-300 bg-amber-50 text-amber-900 px-4 py-3 text-sm mb-4 flex items-start gap-2">

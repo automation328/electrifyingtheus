@@ -4,9 +4,10 @@
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Plus, Trash2, ArrowUp, ArrowDown, Save, Loader2, RotateCcw, AlertCircle, ExternalLink } from "lucide-react";
+import { Plus, Trash2, ArrowUp, ArrowDown, Save, Loader2, RotateCcw, AlertCircle, ExternalLink, Menu } from "lucide-react";
 import { listRows, insertRow, updateRow } from "@/lib/admin-api";
 import { NAV_DEFAULT, type NavItem } from "@/data/nav";
+import PageHeader from "@/components/admin/PageHeader";
 
 interface SettingRow { id: string; key: string; value: { items?: NavItem[] } }
 
@@ -57,13 +58,12 @@ const NavEditor = () => {
 
   return (
     <div className="max-w-3xl">
-      <div className="flex items-start gap-3 mb-2">
-        <div>
-          <h1 className="text-2xl font-bold font-display text-foreground">Navigation</h1>
-          <p className="text-sm text-muted-foreground max-w-lg">The top menu. Reorder, rename, add or remove links. Links can be a route (<span className="font-mono">/events</span>), an on-page anchor (<span className="font-mono">#about</span>), or an external URL.</p>
-        </div>
-        <a href="/" target="_blank" rel="noreferrer" className="ml-auto shrink-0 text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5">Preview <ExternalLink className="w-3.5 h-3.5" /></a>
-      </div>
+      <PageHeader
+        icon={Menu}
+        title="Navigation"
+        subtitle={<>The top menu. Reorder, rename, add or remove links. Links can be a route (<span className="font-mono">/events</span>), an on-page anchor (<span className="font-mono">#about</span>), or an external URL.</>}
+        actions={<a href="/" target="_blank" rel="noreferrer" className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5">Preview <ExternalLink className="w-3.5 h-3.5" /></a>}
+      />
 
       {error && (
         <div className="rounded-xl border border-amber-300 bg-amber-50 text-amber-900 px-4 py-3 text-sm my-4 flex items-start gap-2">

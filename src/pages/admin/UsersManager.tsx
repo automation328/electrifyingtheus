@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { Loader2, UserPlus, Trash2, Mail, ShieldCheck, AlertCircle, Users, KeyRound, Copy, Check, X } from "lucide-react";
 import { listEditors, addEditor, setEditorRole, removeEditor, inviteEditor, setEditorPassword, type EditorRow, type EditorRole } from "@/lib/admin-api";
 import { useEditorAuth } from "@/lib/auth";
+import PageHeader from "@/components/admin/PageHeader";
 
 const ROLE_INFO: { value: EditorRole; label: string; desc: string }[] = [
   { value: "admin", label: "Admin", desc: "Full control — content, publishing, media, site settings, EVan knowledge, and managing users." },
@@ -104,8 +105,12 @@ const UsersManager = () => {
 
   return (
     <div className="max-w-3xl">
-      <h1 className="text-2xl font-bold font-display text-foreground mb-1 flex items-center gap-2"><Users className="w-6 h-6 text-primary" /> Users</h1>
-      <p className="text-sm text-muted-foreground mb-6">Invite teammates and set what each can do. Everyone still signs in with their own login.</p>
+      <PageHeader
+        icon={Users}
+        title="Users"
+        count={rows.length || undefined}
+        subtitle="Invite teammates and set what each can do. Everyone still signs in with their own login."
+      />
 
       {/* Add */}
       <div className="rounded-2xl border border-border bg-card p-5 mb-5">
