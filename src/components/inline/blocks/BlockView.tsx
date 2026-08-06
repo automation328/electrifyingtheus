@@ -8,7 +8,7 @@ import {
   Image as ImageIcon, Film, X, Search, Plus, ChevronDown, ArrowRight,
   Copy, Palette, GripVertical, Smartphone, Monitor, Bookmark, Pin,
   Star, Facebook, Twitter, Instagram, Linkedin, Youtube, Mail, Info, CheckCircle2, AlertTriangle, AlertCircle,
-  ClipboardCopy, Paintbrush, Paintbrush2, type LucideIcon,
+  ClipboardCopy, Paintbrush, Paintbrush2, Droplet, type LucideIcon,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
@@ -835,6 +835,9 @@ const Toolbar = ({ block, ctx, onStyle, onDragHandle }: { block: PageBlock; ctx:
   const setAlign = (a: PageBlock["align"]) => ctx.updateBlock(block.id, { align: a });
   const hasAlign = ["heading", "text", "button", "image", "icon"].includes(block.type);
   const [styleClip, setStyleClip] = useState<BlockStyle | null>(() => readStyleClipboard());
+  const [quickOpen, setQuickOpen] = useState(false);
+  const s = block.style ?? {};
+  const setStyle = (patch: Partial<BlockStyle>) => ctx.updateBlock(block.id, { style: { ...s, ...patch } });
   useEffect(() => {
     const r = () => setStyleClip(readStyleClipboard());
     window.addEventListener("cms-style-clipboard", r);
@@ -852,7 +855,21 @@ const Toolbar = ({ block, ctx, onStyle, onDragHandle }: { block: PageBlock; ctx:
           <span className="w-px h-4 bg-white/20 mx-0.5" />
         </>
       )}
-      <button className={btn} onClick={onStyle} title="Style"><Palette className="w-3.5 h-3.5" /></button>
+      <span className="relative">
+        <button className={btn} onClick={() => setQuickOpen((o) => !o)} title="Quick colors"><Droplet className="w-3.5 h-3.5" /></button>
+        {quickOpen && (
+          <>
+            <div className="fixed inset-0 z-[95]" onClick={() => setQuickOpen(false)} />
+            <div className="absolute right-0 top-8 z-[96] w-52 rounded-xl border border-neutral-200 bg-white p-2.5 shadow-2xl ring-1 ring-black/5 text-left" onClick={(e) => e.stopPropagation()}>
+              <div className="text-[10px] font-bold uppercase tracking-wide text-neutral-400 mb-1">Text</div>
+              <div className="flex flex-wrap gap-1 mb-2">{TEXT_SWATCHES.map(([n, v]) => <Swatch key={n} value={v} active={(s.color ?? "") === v} onClick={() => setStyle({ color: v })} />)}</div>
+              <div className="text-[10px] font-bold uppercase tracking-wide text-neutral-400 mb-1">Background</div>
+              <div className="flex flex-wrap gap-1">{BG_SWATCHES.map(([n, v]) => <Swatch key={n} value={v} active={(s.bg ?? "") === v && !s.gradient} onClick={() => setStyle({ bg: v, bgImage: "", gradient: undefined })} />)}</div>
+            </div>
+          </>
+        )}
+      </span>
+      <button className={btn} onClick={onStyle} title="More style options"><Palette className="w-3.5 h-3.5" /></button>
       <button className={btn} onClick={() => { copyStyle(block.style); toast.success("Style copied — paste it onto another block"); }} title="Copy style"><Paintbrush className="w-3.5 h-3.5" /></button>
       {styleClip && <button className={btn} onClick={() => { ctx.updateBlock(block.id, { style: { ...styleClip } }); toast.success("Style pasted"); }} title="Paste style"><Paintbrush2 className="w-3.5 h-3.5" /></button>}
       <button className={btn} onClick={() => ctx.duplicateBlock(block.id)} title="Duplicate"><Copy className="w-3.5 h-3.5" /></button>
