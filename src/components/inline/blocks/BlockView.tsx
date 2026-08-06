@@ -5,7 +5,7 @@
 import { useState, useEffect, useRef, useId } from "react";
 import {
   ArrowUp, ArrowDown, Trash2, AlignLeft, AlignCenter, AlignRight,
-  Image as ImageIcon, Film, X, Search, Plus, ChevronDown, ArrowRight,
+  Image as ImageIcon, Film, X, Search, Plus, ChevronDown, ChevronLeft, ChevronRight, ArrowRight,
   Copy, Palette, GripVertical, Smartphone, Monitor, Bookmark, Pin,
   Star, Facebook, Twitter, Instagram, Linkedin, Youtube, Mail, Info, CheckCircle2, AlertTriangle, AlertCircle,
   ClipboardCopy, Paintbrush, Paintbrush2, Droplet, Link2, type LucideIcon,
@@ -387,10 +387,40 @@ const TocView = ({ title, editing }: { title?: string; editing: boolean }) => {
   );
 };
 
+// Full-screen gallery lightbox with prev/next + keyboard nav.
+const Lightbox = ({ images, index, onClose, onNav }: { images: NonNullable<PageBlock["images"]>; index: number; onClose: () => void; onNav: (i: number) => void }) => {
+  const n = images.length;
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+      else if (e.key === "ArrowRight") onNav((index + 1) % n);
+      else if (e.key === "ArrowLeft") onNav((index - 1 + n) % n);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [index, n, onClose, onNav]);
+  const img = images[index];
+  if (!img) return null;
+  const arrow = "absolute top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/10 text-white hover:bg-white/20";
+  return (
+    <div className="fixed inset-0 z-[200] bg-black/90 grid place-items-center p-4" role="dialog" aria-modal="true" onClick={onClose}>
+      <button className="absolute top-4 right-4 p-2 rounded-full text-white/80 hover:text-white hover:bg-white/10" onClick={onClose} aria-label="Close"><X className="w-6 h-6" /></button>
+      {n > 1 && <button className={`${arrow} left-4`} aria-label="Previous" onClick={(e) => { e.stopPropagation(); onNav((index - 1 + n) % n); }}><ChevronLeft className="w-6 h-6" /></button>}
+      <figure className="max-w-5xl" onClick={(e) => e.stopPropagation()}>
+        <img src={img.src} alt={img.caption || ""} className="max-w-full max-h-[82vh] object-contain rounded-lg mx-auto" />
+        {img.caption && <figcaption className="text-center text-white/70 text-sm mt-3">{img.caption}</figcaption>}
+        {n > 1 && <div className="text-center text-white/40 text-xs mt-1">{index + 1} / {n}</div>}
+      </figure>
+      {n > 1 && <button className={`${arrow} right-4`} aria-label="Next" onClick={(e) => { e.stopPropagation(); onNav((index + 1) % n); }}><ChevronRight className="w-6 h-6" /></button>}
+    </div>
+  );
+};
+
 const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextValue }) => {
   const [imgOpen, setImgOpen] = useState(false);
   const [vidOpen, setVidOpen] = useState(false);
   const [galIdx, setGalIdx] = useState<number | null>(null);
+  const [lightIdx, setLightIdx] = useState<number | null>(null);
   const [colIdx, setColIdx] = useState<number | null>(null);
   const up = (patch: Partial<PageBlock>) => ctx.updateBlock(block.id, patch);
   const editing = ctx.editing;
@@ -665,7 +695,7 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             {images.map((im, i) => (
               <figure key={i} className="relative group/g">
-                <img src={im.src} alt={im.caption || ""} className="w-full aspect-square object-cover rounded-xl" loading="lazy" />
+                <img src={im.src} alt={im.caption || ""} onClick={editing ? undefined : () => setLightIdx(i)} className={`w-full aspect-square object-cover rounded-xl ${editing ? "" : "cursor-zoom-in hover:opacity-90 transition-opacity"}`} loading="lazy" />
                 {editing && (
                   <div className="absolute top-1.5 right-1.5 flex gap-1">
                     <button onClick={() => setGalIdx(i)} className="p-1.5 rounded-lg bg-black/70 text-white text-xs hover:bg-black/85"><ImageIcon className="w-3 h-3" /></button>
@@ -683,6 +713,7 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
               <div className="mt-4 flex justify-end"><button onClick={() => setGalIdx(null)} className="rounded-xl gradient-hero text-white font-semibold px-5 py-2.5 text-sm">Done</button></div>
             </Modal>
           )}
+          {lightIdx !== null && <Lightbox images={images} index={lightIdx} onClose={() => setLightIdx(null)} onNav={setLightIdx} />}
         </div>
       );
     }
