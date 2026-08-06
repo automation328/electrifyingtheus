@@ -191,7 +191,7 @@ const TabsView = ({ items }: { items: NonNullable<PageBlock["items"]> }) => {
     <div className="text-left">
       <div role="tablist" aria-orientation="horizontal" className="flex flex-wrap gap-1 border-b border-border mb-4">
         {items.map((it, i) => (
-          <button key={i} role="tab" id={`${uid}-tab-${i}`} aria-selected={active === i} aria-controls={`${uid}-tabpanel-${i}`} tabIndex={active === i ? 0 : -1} onKeyDown={(e) => onTabKey(e, i)} onClick={() => setActive(i)} className={`px-4 py-2 text-sm font-semibold -mb-px border-b-2 transition-colors ${active === i ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}>{it.title || `Tab ${i + 1}`}</button>
+          <button key={i} role="tab" id={`${uid}-tab-${i}`} aria-selected={active === i} aria-controls={`${uid}-tabpanel-${i}`} tabIndex={active === i ? 0 : -1} onKeyDown={(e) => onTabKey(e, i)} onClick={() => setActive(i)} className={`px-4 py-2.5 md:py-2 text-sm font-semibold -mb-px border-b-2 transition-colors ${active === i ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}>{it.title || `Tab ${i + 1}`}</button>
         ))}
       </div>
       <div role="tabpanel" id={`${uid}-tabpanel-${active}`} aria-labelledby={`${uid}-tab-${active}`} tabIndex={0} className="text-muted-foreground leading-relaxed whitespace-pre-line">{cur?.body}</div>
@@ -288,7 +288,7 @@ const CountdownView = ({ target, label, variant = "boxes" }: { target: string; l
     ) : variant === "minimal" ? (
       <div className="font-brief text-4xl md:text-5xl text-gradient-primary tabular-nums">{pad(d)}:{pad(h)}:{pad(m)}:{pad(s)}</div>
     ) : variant === "cards" ? (
-      <div className="inline-flex gap-3">{parts.map(([n, l]) => <div key={l} className="min-w-16 rounded-2xl gradient-hero text-white px-4 py-3 text-center shadow-card"><div className="font-brief text-3xl md:text-4xl tabular-nums">{pad(n)}</div><div className="text-[10px] uppercase tracking-wide text-white/80">{l}</div></div>)}</div>
+      <div className="flex flex-wrap justify-center gap-2 md:gap-3">{parts.map(([n, l]) => <div key={l} className="min-w-16 rounded-2xl gradient-hero text-white px-3 md:px-4 py-3 text-center shadow-card"><div className="font-brief text-3xl md:text-4xl tabular-nums">{pad(n)}</div><div className="text-[10px] uppercase tracking-wide text-white/80">{l}</div></div>)}</div>
     ) : (
       <div className="inline-flex gap-4 md:gap-6">{parts.map(([n, l]) => <div key={l} className="text-center"><div className="font-brief text-3xl md:text-4xl text-foreground tabular-nums">{pad(n)}</div><div className="text-[11px] uppercase tracking-wide text-muted-foreground">{l}</div></div>)}</div>
     );
@@ -325,9 +325,9 @@ const TocView = ({ title, editing }: { title?: string; editing: boolean }) => {
       {items.length === 0 ? (
         editing ? <div className="text-sm text-muted-foreground">No anchored blocks yet — give a block an Anchor (in its Style panel) to list it here.</div> : null
       ) : (
-        <ul className="space-y-1.5">
+        <ul>
           {items.map((it) => (
-            <li key={it.id}><a href={`#${it.id}`} className="text-primary hover:underline text-sm">{it.label}</a></li>
+            <li key={it.id}><a href={`#${it.id}`} className="block py-1.5 text-primary hover:underline text-sm">{it.label}</a></li>
           ))}
         </ul>
       )}
@@ -664,7 +664,7 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
           <p className="text-xs text-muted-foreground mt-1">Rendered on the page. Scripts, event handlers, and iframes are stripped for safety — use the Video or Maps block for embeds.</p>
         </div>
       ) : (
-        <div dangerouslySetInnerHTML={{ __html: cleanHtml(block.text || "") }} />
+        <div className="overflow-x-auto" dangerouslySetInnerHTML={{ __html: cleanHtml(block.text || "") }} />
       );
 
     case "testimonial":
@@ -720,7 +720,7 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
       const items = block.items ?? [];
       const setItems = (it: NonNullable<PageBlock["items"]>) => up({ items: it });
       if (!editing) return (
-        <div className="inline-flex items-center gap-3">
+        <div className="inline-flex flex-wrap items-center justify-center gap-3">
           {items.map((it, i) => { const Icon = SOCIAL_ICONS[it.title ?? ""] ?? Mail; return <a key={i} href={safeHref(it.body)} target="_blank" rel="noopener noreferrer" aria-label={`${it.title ? it.title.charAt(0).toUpperCase() + it.title.slice(1) : "Social"} (opens in a new tab)`} className="w-10 h-10 rounded-full gradient-hero grid place-items-center text-white hover:opacity-90"><Icon aria-hidden="true" className="w-5 h-5" /></a>; })}
         </div>
       );
