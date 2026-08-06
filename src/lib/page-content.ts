@@ -71,6 +71,7 @@ export interface BlockStyle {
   hover?: "none" | "lift" | "zoom" | "glow";  // hover motion effect (view mode)
   anim?: "none" | "fade" | "up" | "left" | "right" | "zoom";  // entrance animation on scroll-in
   animDelay?: number;  // entrance animation delay (ms) — used for staggering
+  sticky?: boolean;    // pin the block while its section scrolls (view mode)
 }
 
 /** Per-page SEO / social-share overrides. */

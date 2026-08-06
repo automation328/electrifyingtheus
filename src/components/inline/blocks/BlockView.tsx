@@ -6,7 +6,7 @@ import { useState, useEffect, useRef } from "react";
 import {
   ArrowUp, ArrowDown, Trash2, AlignLeft, AlignCenter, AlignRight,
   Image as ImageIcon, Film, X, Search, Plus, ChevronDown, ArrowRight,
-  Copy, Palette, GripVertical, Smartphone, Monitor, Bookmark,
+  Copy, Palette, GripVertical, Smartphone, Monitor, Bookmark, Pin,
   Star, Facebook, Twitter, Instagram, Linkedin, Youtube, Mail, Info, CheckCircle2, AlertTriangle, AlertCircle,
   ClipboardCopy, type LucideIcon,
 } from "lucide-react";
@@ -809,6 +809,7 @@ const StylePanel = ({ block, up, onClose }: { block: PageBlock; up: (p: Partial<
           <div className="flex flex-wrap gap-2">
             <button onClick={() => up({ hideMobile: !block.hideMobile })} className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium ${block.hideMobile ? "gradient-hero text-white" : "border border-border text-muted-foreground hover:bg-muted"}`}><Smartphone className="w-3.5 h-3.5" /> Hide on mobile</button>
             <button onClick={() => up({ hideDesktop: !block.hideDesktop })} className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium ${block.hideDesktop ? "gradient-hero text-white" : "border border-border text-muted-foreground hover:bg-muted"}`}><Monitor className="w-3.5 h-3.5" /> Hide on desktop</button>
+            <button onClick={() => setStyle({ sticky: !s.sticky })} className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium ${s.sticky ? "gradient-hero text-white" : "border border-border text-muted-foreground hover:bg-muted"}`}><Pin className="w-3.5 h-3.5" /> Sticky on scroll</button>
           </div>
         </div>
 
@@ -904,8 +905,12 @@ const BlockView = ({ block }: { block: PageBlock }) => {
 
   if (!ctx.editing) {
     const animCls = animated ? `transition-all duration-700 ease-out ${inView ? "opacity-100 translate-x-0 translate-y-0 scale-100" : animHidden(anim)}` : "";
-    const animStyle = animated && block.style?.animDelay ? { ...css, transitionDelay: `${block.style.animDelay}ms` } : css;
-    return <div ref={revealRef} {...anchorProps} className={`${align} ${visClass(block)} ${hoverClass(block.style?.hover)} ${animCls}`} style={animStyle}>{inner}</div>;
+    const finalStyle: React.CSSProperties = {
+      ...css,
+      ...(animated && block.style?.animDelay ? { transitionDelay: `${block.style.animDelay}ms` } : {}),
+      ...(block.style?.sticky ? { position: "sticky", top: 88, zIndex: 30 } : {}),
+    };
+    return <div ref={revealRef} {...anchorProps} className={`${align} ${visClass(block)} ${hoverClass(block.style?.hover)} ${animCls}`} style={finalStyle}>{inner}</div>;
   }
 
   const up = (patch: Partial<PageBlock>) => ctx.updateBlock(block.id, patch);
