@@ -184,8 +184,21 @@ const EditableContentPage = ({ path, label, ...props }: LayoutProps & { path: st
   useEffect(() => {
     if (!editing) return;
     const onKey = (e: KeyboardEvent) => {
-      // Ctrl/Cmd+S saves a draft — works even while typing in a field.
-      if ((e.metaKey || e.ctrlKey) && !e.shiftKey && e.key.toLowerCase() === "s") { e.preventDefault(); saveDraftRef.current(); return; }
+      // Ctrl/Cmd+S saves a draft — works even while typing in a field. Blur the
+      // active field first so a blur-commit contentEditable (InlineText) flushes
+      // its pending text into `working`, then save on the next frame (after the
+      // commit re-renders and reassigns saveDraftRef).
+      if ((e.metaKey || e.ctrlKey) && !e.shiftKey && e.key.toLowerCase() === "s") {
+        e.preventDefault();
+        const active = document.activeElement as HTMLElement | null;
+        if (active && (active.isContentEditable || active.tagName === "INPUT" || active.tagName === "TEXTAREA")) {
+          active.blur();
+          requestAnimationFrame(() => saveDraftRef.current());
+        } else {
+          saveDraftRef.current();
+        }
+        return;
+      }
       const el = document.activeElement as HTMLElement | null;
       if (el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable)) return;
       if (!(e.metaKey || e.ctrlKey)) return;
