@@ -7,7 +7,7 @@ import {
   Plus, Heading, Type, Image as ImageIcon, Film, MousePointerClick,
   Minus, MoveVertical, Star, Rows3, LayoutPanelTop, Columns3, Images, Megaphone,
   Shapes, Hash, Timer, Map, Code, GalleryVerticalEnd,
-  Quote, AlertCircle, Share2, Gauge, Bookmark, Trash2, LayoutGrid, ClipboardPaste, LayoutTemplate,
+  Quote, AlertCircle, Share2, Gauge, Bookmark, Trash2, LayoutGrid, ClipboardPaste, LayoutTemplate, Table,
 } from "lucide-react";
 import type { BlockType } from "@/lib/page-content";
 import { useInlineEdit } from "@/components/inline/edit-context";
@@ -41,6 +41,7 @@ const TYPES: { type: BlockType; label: string; icon: typeof Type }[] = [
   { type: "rating", label: "Rating", icon: Star },
   { type: "social", label: "Social", icon: Share2 },
   { type: "progress", label: "Progress", icon: Gauge },
+  { type: "table", label: "Table", icon: Table },
 ];
 
 const AddBlock = ({ slot, label = "Add block" }: { slot: string; label?: string }) => {

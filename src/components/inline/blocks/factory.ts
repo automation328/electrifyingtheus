@@ -44,6 +44,7 @@ export function newBlock(type: BlockType): PageBlock {
     case "rating": return { ...base, num: 5, subtext: "", align: "center" };
     case "social": return { ...base, items: [{ title: "facebook", body: "" }, { title: "instagram", body: "" }], align: "center" };
     case "progress": return { ...base, text: "EV adoption", num: 60 };
+    case "table": return { ...base, header: true, rows: [["Feature", "Value"], ["Range", "300 mi"], ["Price", "$39,000"]] };
     case "container": return { ...base, cols: 2, children: [] };
     default: return base; // divider
   }

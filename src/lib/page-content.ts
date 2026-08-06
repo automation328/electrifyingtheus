@@ -16,6 +16,7 @@ export type BlockType =
   | "accordion" | "tabs" | "columns" | "gallery" | "cta"                                // Tier 2
   | "image-box" | "icon-box" | "counter" | "countdown" | "maps" | "html"                // Tier 3
   | "testimonial" | "alert" | "rating" | "social" | "progress"                          // Tier 4
+  | "table"                                                                             // Tier 5
   | "container";                                                                        // nested layout
 
 export interface PageBlock {
@@ -48,6 +49,9 @@ export interface PageBlock {
   hideMobile?: boolean;             // hidden on small screens
   hideDesktop?: boolean;            // hidden on large screens
   num?: number;                     // rating (0-5) / progress percent (0-100)
+  // Table:
+  rows?: string[][];                // table cell text, [row][col]
+  header?: boolean;                 // treat the first table row as a header
   // Container (nested layout):
   cols?: number;                    // number of columns (1-4)
   colRatio?: string;                // column width ratio key (e.g. "1-2", "2-1-1"); equal if unset

@@ -647,6 +647,66 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
       );
     }
 
+    case "table": {
+      const rows = block.rows ?? [];
+      const header = block.header ?? true;
+      const cols = rows.reduce((m, r) => Math.max(m, r.length), 0) || 1;
+      const setRows = (r: string[][]) => up({ rows: r });
+      if (!editing) {
+        return (
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse text-left text-sm">
+              <tbody>
+                {rows.map((r, ri) => (
+                  <tr key={ri} className={header && ri === 0 ? "bg-muted font-semibold text-foreground" : ri % 2 ? "bg-muted/30" : ""}>
+                    {Array.from({ length: cols }).map((_, ci) => {
+                      const Cell = (header && ri === 0 ? "th" : "td") as "th" | "td";
+                      return <Cell key={ci} className="border border-border px-3 py-2 align-top">{r[ci] ?? ""}</Cell>;
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        );
+      }
+      const setCell = (ri: number, ci: number, val: string) =>
+        setRows(rows.map((r, i) => (i === ri ? Array.from({ length: cols }, (_, j) => (j === ci ? val : r[j] ?? "")) : r)));
+      const addRow = () => setRows([...rows, Array.from({ length: cols }, () => "")]);
+      const removeRow = (ri: number) => setRows(rows.filter((_, i) => i !== ri));
+      const addCol = () => setRows((rows.length ? rows : [[""]]).map((r) => [...r, ""]));
+      const removeCol = (ci: number) => setRows(rows.map((r) => r.filter((_, j) => j !== ci)));
+      return (
+        <div className="text-left overflow-x-auto">
+          <table className="border-collapse text-sm">
+            <tbody>
+              {rows.map((r, ri) => (
+                <tr key={ri}>
+                  {Array.from({ length: cols }).map((_, ci) => (
+                    <td key={ci} className="border border-border p-0.5">
+                      <input value={r[ci] ?? ""} onChange={(e) => setCell(ri, ci, e.target.value)} className={`w-32 rounded px-2 py-1 text-sm bg-background outline-none focus:bg-primary/5 ${header && ri === 0 ? "font-semibold" : ""}`} />
+                    </td>
+                  ))}
+                  <td className="pl-1"><button onClick={() => removeRow(ri)} title="Remove row" className="p-1 text-muted-foreground hover:text-destructive"><Trash2 className="w-3.5 h-3.5" /></button></td>
+                </tr>
+              ))}
+              <tr>
+                {Array.from({ length: cols }).map((_, ci) => (
+                  <td key={ci} className="text-center"><button onClick={() => removeCol(ci)} title="Remove column" className="p-1 text-muted-foreground hover:text-destructive"><Trash2 className="w-3 h-3" /></button></td>
+                ))}
+                <td />
+              </tr>
+            </tbody>
+          </table>
+          <div className="mt-2 flex flex-wrap items-center gap-3">
+            <button onClick={addRow} className="inline-flex items-center gap-1 text-sm text-primary hover:underline"><Plus className="w-4 h-4" /> Row</button>
+            <button onClick={addCol} className="inline-flex items-center gap-1 text-sm text-primary hover:underline"><Plus className="w-4 h-4" /> Column</button>
+            <label className="inline-flex items-center gap-1.5 text-xs text-muted-foreground"><input type="checkbox" checked={header} onChange={(e) => up({ header: e.target.checked })} /> Header row</label>
+          </div>
+        </div>
+      );
+    }
+
     case "container": {
       const children = block.children ?? [];
       const cols = Math.min(4, Math.max(1, block.cols ?? 2));
