@@ -663,8 +663,8 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
         <div className="relative overflow-hidden rounded-3xl gradient-hero p-8 md:p-12 text-center text-primary-foreground">
           <div className="absolute inset-0 opacity-30" style={{ backgroundImage: "radial-gradient(circle at 20% 20%, rgba(255,255,255,0.4), transparent 45%)" }} aria-hidden />
           <div className="relative z-10">
-            <h2 className="font-brief text-3xl md:text-4xl mb-3"><InlineText value={block.text ?? ""} onCommit={(v) => up({ text: v })} /></h2>
-            <p className="text-primary-foreground/90 mb-7 max-w-xl mx-auto"><InlineText value={block.subtext ?? ""} onCommit={(v) => up({ subtext: v })} /></p>
+            <h2 className="font-brief text-3xl md:text-4xl mb-3"><RichText value={block.text ?? ""} onCommit={(v) => up({ text: v })} /></h2>
+            <p className="text-primary-foreground/90 mb-7 max-w-xl mx-auto"><RichText value={block.subtext ?? ""} onCommit={(v) => up({ subtext: v })} /></p>
             {editing ? (
               <div className="inline-flex flex-col items-center gap-1.5">
                 <span className="inline-flex items-center gap-1.5 bg-primary-foreground text-primary font-semibold px-6 py-3 rounded-xl">{block.buttonLabel || "Button"} <ArrowRight className="w-5 h-5" /></span>
@@ -689,8 +689,8 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
               {editing && <button onClick={() => setImgOpen(true)} className="absolute top-2 right-2 inline-flex items-center gap-1 rounded-lg bg-black/70 px-2.5 py-1.5 text-xs font-semibold text-white"><ImageIcon className="w-3.5 h-3.5" /> Change</button>}
             </div>
             <figcaption className="p-4 text-center">
-              <h3 className="font-brief text-xl text-foreground mb-1"><InlineText value={block.text ?? ""} onCommit={(v) => up({ text: v })} /></h3>
-              <p className="text-sm text-muted-foreground"><InlineText block value={block.subtext ?? ""} onCommit={(v) => up({ subtext: v })} /></p>
+              <h3 className="font-brief text-xl text-foreground mb-1"><RichText value={block.text ?? ""} onCommit={(v) => up({ text: v })} /></h3>
+              <p className="text-sm text-muted-foreground"><RichText value={block.subtext ?? ""} onCommit={(v) => up({ subtext: v })} /></p>
             </figcaption>
           </figure>
           {imgOpen && <Modal title="Choose image" onClose={() => setImgOpen(false)}><ImageUpload value={block.src ?? ""} onChange={(url) => up({ src: url })} /><div className="mt-4 flex justify-end"><button onClick={() => setImgOpen(false)} className="rounded-xl gradient-hero text-white font-semibold px-5 py-2.5 text-sm">Done</button></div></Modal>}
@@ -702,8 +702,8 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
       return (
         <div className="mx-auto max-w-sm">
           <div className="w-12 h-12 rounded-2xl gradient-hero grid place-items-center mx-auto mb-3"><Icon aria-hidden="true" className="w-6 h-6 text-white" /></div>
-          <h3 className="font-brief text-xl text-foreground mb-1"><InlineText value={block.text ?? ""} onCommit={(v) => up({ text: v })} /></h3>
-          <p className="text-sm text-muted-foreground"><InlineText block value={block.subtext ?? ""} onCommit={(v) => up({ subtext: v })} /></p>
+          <h3 className="font-brief text-xl text-foreground mb-1"><RichText value={block.text ?? ""} onCommit={(v) => up({ text: v })} /></h3>
+          <p className="text-sm text-muted-foreground"><RichText value={block.subtext ?? ""} onCommit={(v) => up({ subtext: v })} /></p>
           {editing && <IconPicker block={block} up={up} />}
         </div>
       );
@@ -761,7 +761,7 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
     case "testimonial":
       return (
         <figure className="mx-auto max-w-xl rounded-2xl border border-border bg-card p-6 shadow-card">
-          <blockquote className="text-foreground text-lg leading-relaxed"><InlineText block value={block.text ?? ""} onCommit={(v) => up({ text: v })} /></blockquote>
+          <blockquote className="text-foreground text-lg leading-relaxed"><RichText value={block.text ?? ""} onCommit={(v) => up({ text: v })} /></blockquote>
           <figcaption className="mt-4 flex items-center gap-3">
             <div className="relative">
               {block.src ? <img src={block.src} alt="" className="w-11 h-11 rounded-full object-cover" /> : <div className="w-11 h-11 rounded-full bg-muted grid place-items-center text-muted-foreground"><ImageIcon className="w-4 h-4" /></div>}
@@ -786,7 +786,7 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
         <div>
           <div role={role} className={`flex items-start gap-3 rounded-xl border px-4 py-3 text-left ${cfg.cls}`}>
             <Icon aria-hidden="true" className="w-5 h-5 mt-0.5 shrink-0" />
-            <div className="flex-1"><span className="sr-only">{sevLabel}: </span><InlineText block value={block.text ?? ""} onCommit={(v) => up({ text: v })} /></div>
+            <div className="flex-1"><span className="sr-only">{sevLabel}: </span><RichText value={block.text ?? ""} onCommit={(v) => up({ text: v })} /></div>
           </div>
           {editing && <div className="mt-2 inline-flex gap-1">{["info", "success", "warning", "error"].map((v) => <button key={v} onClick={() => up({ variant: v })} className={`px-2 py-0.5 rounded text-xs capitalize ${(block.variant ?? "info") === v ? "gradient-hero text-white" : "border border-border text-muted-foreground hover:bg-muted"}`}>{v}</button>)}</div>}
         </div>
