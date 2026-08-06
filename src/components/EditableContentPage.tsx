@@ -3,7 +3,7 @@
 // editors. Pages swap `ContentPageLayout` → `EditableContentPage` and add a
 // `path`; everything else stays as passed.
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import ContentPageLayout from "@/components/ContentPageLayout";
@@ -95,6 +95,7 @@ const EditableContentPage = ({ path, label, ...props }: LayoutProps & { path: st
   const [editing, setEditing] = useState(false);
   const [preview, setPreview] = useState(false);
   const [seoOpen, setSeoOpen] = useState(false);
+  const saveDraftRef = useRef<() => void>(() => {});   // latest save-draft action for the Ctrl+S shortcut
   const [hist, setHist] = useState<{ stack: PageOverride[]; idx: number }>({ stack: [{}], idx: 0 });
   const [saving, setSaving] = useState(false);
   const working = hist.stack[hist.idx];
@@ -183,6 +184,8 @@ const EditableContentPage = ({ path, label, ...props }: LayoutProps & { path: st
   useEffect(() => {
     if (!editing) return;
     const onKey = (e: KeyboardEvent) => {
+      // Ctrl/Cmd+S saves a draft — works even while typing in a field.
+      if ((e.metaKey || e.ctrlKey) && !e.shiftKey && e.key.toLowerCase() === "s") { e.preventDefault(); saveDraftRef.current(); return; }
       const el = document.activeElement as HTMLElement | null;
       if (el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable)) return;
       if (!(e.metaKey || e.ctrlKey)) return;
@@ -222,6 +225,8 @@ const EditableContentPage = ({ path, label, ...props }: LayoutProps & { path: st
       setSaving(false);
     }
   };
+  // Keep the Ctrl+S shortcut pointed at the latest save with the latest content.
+  saveDraftRef.current = () => { if (editing && !saving && dirty) save("draft"); };
 
   // Discard every CMS override for this page and restore the built-in content.
   const resetPage = async () => {
