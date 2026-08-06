@@ -7,7 +7,7 @@ import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
-  Loader2, Save, Plus, Trash2, ArrowUp, ArrowDown, RotateCcw, AlertCircle, FileText, ExternalLink, Copy,
+  Loader2, Save, Plus, Trash2, ArrowUp, ArrowDown, RotateCcw, AlertCircle, FileText, ExternalLink, Copy, Eye,
 } from "lucide-react";
 import { listRows, insertRow, updateRow, deleteRow } from "@/lib/admin-api";
 import {
@@ -310,6 +310,7 @@ const PagesManager = () => {
                     <div className="text-xs text-muted-foreground truncate">{row.path}</div>
                   </div>
                   <span className={`text-[10px] uppercase font-bold tracking-wide rounded-full px-2 py-0.5 ${tone}`}>{state}</span>
+                  <a href={row.path} target="_blank" rel="noreferrer" className="p-2 rounded-lg text-muted-foreground hover:text-primary hover:bg-muted transition-colors" title="View / preview the live page"><Eye className="w-4 h-4" /></a>
                   <a href={row.path} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 rounded-lg gradient-hero text-white text-xs font-semibold px-3 py-2 hover:opacity-90" title="Edit on the live page">Edit on page <ExternalLink className="w-3.5 h-3.5" /></a>
                   {canWrite && <button onClick={() => duplicatePage(row)} className="p-2 rounded-lg text-muted-foreground hover:text-primary hover:bg-muted" title="Duplicate page"><Copy className="w-4 h-4" /></button>}
                   {canPublish && <button onClick={() => deletePage(row)} className="p-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-muted" title="Delete page"><Trash2 className="w-4 h-4" /></button>}
@@ -334,6 +335,7 @@ const PagesManager = () => {
                 <div className="text-xs text-muted-foreground truncate">{p.path}</div>
               </button>
               <span className={`text-[10px] uppercase font-bold tracking-wide rounded-full px-2 py-0.5 ${tone}`}>{state}</span>
+              <a href={p.path} target="_blank" rel="noreferrer" className="p-2 rounded-lg text-muted-foreground hover:text-primary hover:bg-muted transition-colors" title="View / preview the live page"><Eye className="w-4 h-4" /></a>
               <a href={p.path} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 rounded-lg gradient-hero text-white text-xs font-semibold px-3 py-2 hover:opacity-90 transition-opacity" title="Edit on the live page">
                 Edit on page <ExternalLink className="w-3.5 h-3.5" />
               </a>
