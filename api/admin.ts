@@ -38,7 +38,9 @@ const ALLOWED_TABLES = new Set<string>([
 // author — create/edit content as DRAFTS only; no delete/settings/KB
 // viewer — read-only (no writes at all)
 const ROLES = new Set(["admin", "editor", "author", "viewer"]);
-const normalizeRole = (r: unknown) => { const s = String(r ?? "").toLowerCase(); return ROLES.has(s) ? s : "editor"; };
+// Unknown/blank/typo roles resolve to the LEAST privilege (viewer), so a
+// garbled row degrades access rather than escalating it.
+const normalizeRole = (r: unknown) => { const s = String(r ?? "").trim().toLowerCase(); return ROLES.has(s) ? s : "viewer"; };
 const canPublish = (r: string) => r === "admin" || r === "editor";   // publish + delete content
 const canSettings = (r: string) => r === "admin" || r === "editor";  // site_settings (theme/nav/footer)
 const canKb = (r: string) => r === "admin" || r === "editor";        // EVan knowledge base
@@ -143,9 +145,13 @@ async function handleCollection(b: Record<string, unknown>, res: any, role: stri
 
   if (action === "insert" || action === "update") {
     const row = (b.row && typeof b.row === "object" ? b.row : {}) as Record<string, unknown>;
-    // Authors may save content only as drafts.
-    if (!isSettings && !isKbTable && role === "author" && String(row.status ?? "") === "published") {
-      forbid(res, "Authors can save drafts only — an editor can publish it."); return;
+    // Authors may only ever save drafts. Give a clear error on an explicit
+    // publish, and otherwise FORCE draft — never trust the client's status, and
+    // don't rely on the DB default (which is 'published' for some tables). By
+    // here an author can only be writing a content table (settings/KB rejected).
+    if (role === "author") {
+      if (String(row.status ?? "").trim().toLowerCase() === "published") { forbid(res, "Authors can save drafts only — an editor can publish it."); return; }
+      row.status = "draft";
     }
     if (action === "insert") {
       const { data, error } = await db.from(table).insert(row).select().single();
@@ -455,11 +461,13 @@ export default async function handler(req: any, res: any) {
   const b = parsed && typeof parsed === "object" ? parsed : {};
   const op = String(b.op ?? "");
 
-  // "me" reports authorization status (used by the admin UI on load).
+  // "me" reports authorization status (used by the admin UI on load). Return the
+  // NORMALIZED role so the client sees the same canonical value the server
+  // authorizes with (avoids case-mismatch lockouts / hidden over-grants).
   if (op === "me") {
     const editor = await getEditor(req);
     if (!editor) { res.status(401).json({ error: "unauthorized" }); return; }
-    res.status(200).json({ email: editor.email, role: editor.role });
+    res.status(200).json({ email: editor.email, role: normalizeRole(editor.role) });
     return;
   }
 
@@ -472,7 +480,7 @@ export default async function handler(req: any, res: any) {
     if (op === "collection") return void (await handleCollection(b, res, role));
     if (op === "upload") { if (role === "viewer") return void forbid(res, "Your account has read-only access."); return void (await handleUpload(b, res)); }
     if (op === "media-list") return void (await handleMediaList(res));
-    if (op === "media-delete") { if (role === "viewer") return void forbid(res, "Your account has read-only access."); return void (await handleMediaDelete(b, res)); }
+    if (op === "media-delete") { if (!canPublish(role)) return void forbid(res, "Only editors and admins can delete media."); return void (await handleMediaDelete(b, res)); }
     if (op === "kb") { if (!canKb(role)) return void forbid(res, "Only editors and admins can change the knowledge base."); return void (await handleKb(b, res)); }
     if (op === "kb-upload") { if (!canKb(role)) return void forbid(res, "Only editors and admins can change the knowledge base."); return void (await handleKbUpload(b, res)); }
     res.status(400).json({ error: "unknown_op" });

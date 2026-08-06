@@ -73,7 +73,8 @@ export async function getEditor(req: Req): Promise<Editor | null> {
     .ilike("email", email)
     .maybeSingle();
   if (error || !data) return null;
-  return { email: data.email, role: data.role || "editor" };
+  // Blank role → least privilege (viewer). admin.ts normalizeRole() canonicalizes.
+  return { email: data.email, role: data.role || "viewer" };
 }
 
 /**
