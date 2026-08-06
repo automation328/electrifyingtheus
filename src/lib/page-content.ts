@@ -67,6 +67,7 @@ export interface PageBlock {
   colRatio?: string;                // column width ratio key (e.g. "1-2", "2-1-1"); equal if unset
   alignItems?: "start" | "center" | "end"; // container: vertical alignment of columns
   gap?: number;                     // container: gap between columns (px)
+  colStyles?: BlockStyle[];         // container: per-column background/padding/radius (by column index)
   children?: PageBlock[];           // nested child blocks
   col?: number;                     // which column this block sits in (inside a container)
   fullWidth?: boolean;              // container spans the full viewport width (full-bleed)

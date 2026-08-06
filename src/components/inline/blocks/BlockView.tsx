@@ -1031,7 +1031,7 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
         <InlineEditContext.Provider value={childCtx}>
           <div className={`grid grid-cols-1 ${gridCols} ${itemsClass} ${block.gap != null ? "" : "gap-4"} text-left`} style={gapStyle}>
             {Array.from({ length: cols }).map((_, ci) => (
-              <div key={ci} className={`min-w-0 space-y-2 ${editing ? "rounded-xl border border-dashed border-border/60 p-2" : ""}`}>
+              <div key={ci} style={styleToCss(block.colStyles?.[ci])} className={`min-w-0 space-y-2 ${editing ? "rounded-xl border border-dashed border-border/60 p-2" : ""}`}>
                 {children.filter((c) => Math.min(cols - 1, Math.max(0, c.col ?? 0)) === ci).map((child) => <BlockView key={child.id} block={child} nested />)}
                 {editing && <AddBlock slot={`col-${ci}`} label="Add" />}
               </div>
@@ -1058,6 +1058,25 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
               <span className="w-px h-4 bg-border mx-0.5" />
               <span className="text-muted-foreground">Gap {block.gap ?? 16}</span>
               <input type="range" min={0} max={48} value={block.gap ?? 16} onChange={(e) => up({ gap: Number(e.target.value) })} className="w-20" />
+              <span className="w-full" />
+              <span className="text-muted-foreground">Column styling</span>
+              {Array.from({ length: cols }).map((_, ci) => {
+                const cs = block.colStyles?.[ci] ?? {};
+                const setCs = (patch: Partial<BlockStyle>) => {
+                  const arr = Array.from({ length: cols }, (_, k) => ({ ...(block.colStyles?.[k] ?? {}) }));
+                  arr[ci] = { ...arr[ci], ...patch };
+                  up({ colStyles: arr });
+                };
+                return (
+                  <span key={ci} className="inline-flex items-center gap-1 rounded-lg border border-border px-1.5 py-0.5">
+                    <span className="text-muted-foreground">{ci + 1}</span>
+                    <input type="color" value={/^#/.test(cs.bg ?? "") ? cs.bg : "#ffffff"} onChange={(e) => setCs({ bg: e.target.value })} className="w-5 h-5 rounded border border-border bg-transparent cursor-pointer" title="Column background" />
+                    {cs.bg && <button onClick={() => setCs({ bg: "" })} className="text-muted-foreground hover:text-destructive" title="Clear background">×</button>}
+                    <input type="range" min={0} max={40} value={cs.padY ?? 0} onChange={(e) => { const v = Number(e.target.value); setCs({ padY: v, padX: v }); }} className="w-12" title="Padding" />
+                    <input type="range" min={0} max={32} value={cs.radius ?? 0} onChange={(e) => setCs({ radius: Number(e.target.value) })} className="w-12" title="Corner radius" />
+                  </span>
+                );
+              })}
             </div>
           )}
         </InlineEditContext.Provider>
