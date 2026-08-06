@@ -16,7 +16,7 @@ const slotName = (slot: string): string => {
 };
 
 const rowLabel = (b: PageBlock): string => {
-  const t = (b.text || b.subtext || b.caption || "").trim();
+  const t = (b.text || b.subtext || b.caption || "").replace(/<[^>]*>/g, "").trim(); // strip any rich-text HTML
   if (t) return t.length > 30 ? `${t.slice(0, 30)}…` : t;
   if (b.type === "container") return `Container · ${b.cols ?? 2} col`;
   return b.type;

@@ -8,7 +8,7 @@ import {
   Image as ImageIcon, Film, X, Search, Plus, ChevronDown, ArrowRight,
   Copy, Palette, GripVertical, Smartphone, Monitor, Bookmark, Pin,
   Star, Facebook, Twitter, Instagram, Linkedin, Youtube, Mail, Info, CheckCircle2, AlertTriangle, AlertCircle,
-  ClipboardCopy, Paintbrush, Paintbrush2, Droplet, type LucideIcon,
+  ClipboardCopy, Paintbrush, Paintbrush2, Droplet, Link2, type LucideIcon,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
@@ -76,6 +76,49 @@ const InlineText = ({ value, onCommit, className, block }: { value: string; onCo
       onKeyDown={(e) => { if (e.key === "Enter" && !block) { e.preventDefault(); (e.currentTarget as HTMLElement).blur(); } }}
       onBlur={(e) => { const t = (e.currentTarget.textContent ?? "").trim(); if (t !== value) onCommit(t); }}
     >{value}</Tag>
+  );
+};
+
+/* Rich inline text (bold / italic / links) for heading + text blocks. Stores
+ * sanitized HTML; a small toolbar appears while the field is focused. The
+ * editable node's innerHTML is managed imperatively (never declared as JSX
+ * children) so React re-renders can't wipe in-progress edits. */
+const RichText = ({ value, onCommit, className }: { value: string; onCommit: (v: string) => void; className?: string }) => {
+  const ctx = useInlineEdit();
+  const ref = useRef<HTMLSpanElement>(null);
+  const [focused, setFocused] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (el && document.activeElement !== el) el.innerHTML = cleanHtml(value || "");
+  }, [value]);
+  if (!ctx?.editing) return <span className={className} dangerouslySetInnerHTML={{ __html: cleanHtml(value || "") }} />;
+  const exec = (cmd: string, arg?: string) => { document.execCommand(cmd, false, arg); ref.current?.focus(); };
+  const addLink = () => {
+    const url = window.prompt("Link URL (https://… or /page):", "");
+    if (!url) return;
+    const safe = safeHref(url);
+    if (safe === "#") { toast.error("That link scheme isn't allowed."); return; }
+    exec("createLink", safe);
+  };
+  const commit = () => {
+    setFocused(false);
+    const html = cleanHtml(ref.current?.innerHTML || "");
+    if (html !== value) onCommit(html);
+  };
+  return (
+    <span className="relative inline-block">
+      <span ref={ref} contentEditable suppressContentEditableWarning spellCheck={false}
+        className={`${className ?? ""} outline-none focus:bg-primary/5 rounded px-0.5`}
+        onFocus={() => setFocused(true)} onBlur={commit} />
+      {focused && (
+        <span className="absolute -top-9 left-0 z-30 inline-flex items-center gap-0.5 rounded-lg bg-foreground/90 backdrop-blur px-1 py-0.5 shadow text-white text-xs" onMouseDown={(e) => e.preventDefault()}>
+          <button onClick={() => exec("bold")} className="px-1.5 py-0.5 rounded hover:bg-white/15 font-bold">B</button>
+          <button onClick={() => exec("italic")} className="px-1.5 py-0.5 rounded hover:bg-white/15 italic">I</button>
+          <button onClick={addLink} className="px-1.5 py-0.5 rounded hover:bg-white/15 inline-flex items-center" title="Add link"><Link2 className="w-3 h-3" /></button>
+          <button onClick={() => exec("unlink")} className="px-1.5 py-0.5 rounded hover:bg-white/15" title="Remove link">✕</button>
+        </span>
+      )}
+    </span>
   );
 };
 
@@ -349,7 +392,7 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
       const Tag = block.level === 3 ? "h3" : "h2";
       return (
         <div>
-          <Tag className={`${fontClass(block)} ${sizeClass(block)} text-foreground`} style={block.style?.color ? { color: block.style.color } : undefined}><InlineText value={block.text ?? ""} onCommit={(v) => up({ text: v })} /></Tag>
+          <Tag className={`${fontClass(block)} ${sizeClass(block)} text-foreground`} style={block.style?.color ? { color: block.style.color } : undefined}><RichText value={block.text ?? ""} onCommit={(v) => up({ text: v })} /></Tag>
           {editing && <StyleControls block={block} up={up} />}
         </div>
       );
@@ -358,7 +401,7 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
     case "text":
       return (
         <div>
-          <p className={`${fontClass(block)} ${sizeClass(block)} text-muted-foreground leading-[1.75]`} style={block.style?.color ? { color: block.style.color } : undefined}><InlineText block value={block.text ?? ""} onCommit={(v) => up({ text: v })} /></p>
+          <p className={`${fontClass(block)} ${sizeClass(block)} text-muted-foreground leading-[1.75]`} style={block.style?.color ? { color: block.style.color } : undefined}><RichText value={block.text ?? ""} onCommit={(v) => up({ text: v })} /></p>
           {editing && <StyleControls block={block} up={up} />}
         </div>
       );
