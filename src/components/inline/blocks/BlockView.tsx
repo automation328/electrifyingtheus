@@ -427,8 +427,12 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
       );
 
     case "image": {
+      const ratioClass = { square: "aspect-square", "16-9": "aspect-video", "4-3": "aspect-[4/3]", "3-2": "aspect-[3/2]" }[block.ratio ?? ""] ?? "";
+      const fitClass = block.fit === "contain" ? "object-contain" : "object-cover";
       const imgEl = block.src
-        ? <img src={block.src} alt={block.alt || block.caption || ""} className="max-w-full h-auto rounded-2xl mx-auto" />
+        ? (ratioClass
+            ? <img src={block.src} alt={block.alt || block.caption || ""} className={`w-full max-w-full ${ratioClass} ${fitClass} rounded-2xl`} />
+            : <img src={block.src} alt={block.alt || block.caption || ""} className="max-w-full h-auto rounded-2xl mx-auto" />)
         : <div className="grid h-40 w-72 max-w-full place-items-center rounded-2xl border border-dashed border-border bg-muted/40 text-muted-foreground"><ImageIcon className="w-8 h-8" /></div>;
       // On the live page, wrap a linked image in an anchor/Link (safe href).
       const linkLabel = block.alt || block.caption || "Image link";
@@ -444,6 +448,18 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
             {editing && <button onClick={() => setImgOpen(true)} className="absolute top-2 right-2 inline-flex items-center gap-1.5 rounded-lg bg-black/70 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-black/85"><ImageIcon className="w-3.5 h-3.5" /> Change</button>}
           </div>
           {(block.caption || editing) && <figcaption className="text-xs text-muted-foreground mt-2"><InlineText value={block.caption ?? ""} onCommit={(v) => up({ caption: v })} /></figcaption>}
+          {editing && block.src && (
+            <div className="mt-2 inline-flex flex-wrap items-center gap-2 rounded-lg border border-border bg-background/80 px-2 py-1.5 text-xs">
+              <span className="text-muted-foreground">Shape</span>
+              {(["auto", "square", "16-9", "4-3", "3-2"] as const).map((r) => <button key={r} onClick={() => up({ ratio: r })} className={`px-1.5 py-0.5 rounded ${(block.ratio ?? "auto") === r ? "gradient-hero text-white" : "text-muted-foreground hover:bg-muted"}`}>{r === "auto" ? "Auto" : r === "square" ? "Square" : r.replace("-", ":")}</button>)}
+              {block.ratio && block.ratio !== "auto" && (
+                <>
+                  <span className="w-px h-4 bg-border mx-0.5" />
+                  {(["cover", "contain"] as const).map((f) => <button key={f} onClick={() => up({ fit: f })} className={`px-1.5 py-0.5 rounded capitalize ${(block.fit ?? "cover") === f ? "gradient-hero text-white" : "text-muted-foreground hover:bg-muted"}`}>{f}</button>)}
+                </>
+              )}
+            </div>
+          )}
           {imgOpen && (
             <Modal title="Image" onClose={() => setImgOpen(false)}>
               <ImageUpload value={block.src ?? ""} onChange={(url) => up({ src: url })} />

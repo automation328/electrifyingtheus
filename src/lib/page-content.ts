@@ -34,6 +34,8 @@ export interface PageBlock {
   src?: string;                     // image URL
   caption?: string;                 // image caption
   alt?: string;                     // image alt text (a11y/SEO; falls back to caption)
+  ratio?: "auto" | "square" | "16-9" | "4-3" | "3-2"; // image aspect ratio (crop)
+  fit?: "cover" | "contain";        // image object-fit when a ratio is set
   href?: string;                    // button / cta link
   newTab?: boolean;                 // button: open link in a new tab
   provider?: "youtube" | "vimeo" | "file"; // video
