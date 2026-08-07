@@ -95,7 +95,11 @@ async function fetchContentMain(path: string): Promise<Partial<Meta> | null> {
       const res = await fetch(`${base}/rest/v1/site_events?status=eq.published&select=image,title,event_date,description`, { headers, signal: ctrl.signal });
       if (res.ok) {
         const rows = await res.json();
-        const r = Array.isArray(rows) ? rows.find((e: { title: string; event_date: string }) => eventSlugFor(e.title, e.event_date) === slug) : null;
+        // Match the fallback slug (new CMS events) OR the clean title slug (a
+        // curated event overridden via the CMS adopts slugify(title)).
+        const r = Array.isArray(rows)
+          ? rows.find((e: { title: string; event_date: string }) => eventSlugFor(e.title, e.event_date) === slug || slugify(e.title) === slug)
+          : null;
         if (r) return { image: r.image, title: r.title, description: r.description };
       }
     }
