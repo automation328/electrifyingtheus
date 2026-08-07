@@ -148,7 +148,14 @@ const EditableContentPage = ({ path, label, ...props }: LayoutProps & { path: st
     activeId,
     setActive: setActiveId,
     set: (p: string, v: unknown) => commit(trackCleared(setPath(working, p, v), p, v)),
-    setMany: (patch: Record<string, unknown>) => commit({ ...working, ...patch }),
+    setMany: (patch: Record<string, unknown>) => {
+      // Honor the cleared-tombstone per key so emptying a field (e.g. deleting
+      // every section → sections:[]) sticks instead of falling back to the
+      // static default in mergePageOverride.
+      let next: PageOverride = { ...working, ...patch };
+      for (const [k, v] of Object.entries(patch)) next = trackCleared(next, k, v);
+      commit(next);
+    },
     get: (p: string) => getPath(working, p),
     addBlock: (slot: string, type: BlockType) => mutateBlocks((blocks) => [...blocks, { ...newBlock(type), slot }]),
     updateBlock: (id: string, patch: Partial<PageBlock>) => mutateBlocks((blocks) => patchBlockDeep(blocks, id, patch)),
