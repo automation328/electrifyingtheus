@@ -16,6 +16,9 @@ export interface InlineEditContextValue {
   setActive: (id: string | null) => void;
   /** Set a value at a dotted path in the working override (e.g. "sections.0.body.1"). */
   set: (path: string, value: unknown) => void;
+  /** Commit several top-level override fields at once (a single undo step).
+   *  Optional — provided by the page-level editor, not by container child ctx. */
+  setMany?: (patch: Record<string, unknown>) => void;
   /** Read the current value at a dotted path (for image controls). */
   get: (path: string) => unknown;
   // ── Builder blocks ──────────────────────────────────────────────

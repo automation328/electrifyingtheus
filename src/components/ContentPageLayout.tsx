@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, ArrowUpRight, ExternalLink, Play, Calculator, Film, X, type LucideIcon } from "lucide-react";
+import { ArrowRight, ArrowUpRight, ExternalLink, Play, Calculator, Film, X, ArrowUp, ArrowDown, Copy, Trash2, type LucideIcon } from "lucide-react";
 import { useInlineEdit } from "@/components/inline/edit-context";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -106,6 +106,41 @@ const ContentPageLayout = ({
     if (!id) return;
     ctx?.set("video", { youtubeId: id, title: vidTitle.trim() || "Watch" });
     setVidEdit(false); setPlaying(false);
+  };
+
+  // Reorder / duplicate / delete a native section — and keep the per-element
+  // typography (styles keyed by "sections.i.*") and between-section blocks
+  // (slot "after-section-i") aligned to the sections' new positions.
+  const sectionOp = (i: number, op: "up" | "down" | "dup" | "del") => {
+    if (!ctx) return;
+    const secs = [...((ctx.get("sections") as ContentSection[] | undefined) ?? sections ?? [])];
+    const st = (ctx.get("styles") as Record<string, ElemStyle> | undefined) ?? {};
+    const blk = [...((ctx.get("blocks") as PageBlock[] | undefined) ?? [])];
+    let order = secs.map((_, idx) => idx);
+    if (op === "up") { if (i <= 0) return; [order[i - 1], order[i]] = [order[i], order[i - 1]]; }
+    else if (op === "down") { if (i >= secs.length - 1) return; [order[i], order[i + 1]] = [order[i + 1], order[i]]; }
+    else if (op === "dup") { order = [...order.slice(0, i + 1), i, ...order.slice(i + 1)]; }
+    else if (op === "del") { order = order.filter((_, p) => p !== i); }
+    const newSecs = order.map((oldI) => secs[oldI]);
+    const newStyles: Record<string, ElemStyle> = {};
+    for (const [k, v] of Object.entries(st)) if (!/^sections\.\d+\./.test(k)) newStyles[k] = v;
+    order.forEach((oldI, p) => {
+      for (const [k, v] of Object.entries(st)) {
+        const m = /^sections\.(\d+)\.(.+)$/.exec(k);
+        if (m && Number(m[1]) === oldI) newStyles[`sections.${p}.${m[2]}`] = v;
+      }
+    });
+    const firstPos = new Map<number, number>();
+    order.forEach((oldI, p) => { if (!firstPos.has(oldI)) firstPos.set(oldI, p); });
+    const newBlocks = blk
+      .map((b) => {
+        const m = /^after-section-(\d+)$/.exec(b.slot);
+        if (!m) return b;
+        const np = firstPos.get(Number(m[1]));
+        return np === undefined ? null : { ...b, slot: `after-section-${np}` };
+      })
+      .filter(Boolean) as PageBlock[];
+    ctx.setMany?.({ sections: newSecs, styles: newStyles, blocks: newBlocks });
   };
 
   useEffect(() => {
@@ -336,7 +371,15 @@ const ContentPageLayout = ({
           <BlockSlot slot="after-stats" blocks={blocks} />
           {sections.map((s, i) => (
             <Fragment key={i}>
-            <section className="brief-reveal">
+            <section className={`brief-reveal ${editing ? "group relative rounded-xl ring-1 ring-transparent hover:ring-primary/30 transition p-2 -m-2" : ""}`}>
+              {editing && (
+                <div className="absolute -top-3 right-2 z-20 hidden group-hover:flex items-center gap-0.5 rounded-lg bg-foreground/90 backdrop-blur px-1 py-0.5 shadow" contentEditable={false}>
+                  <button onClick={() => sectionOp(i, "up")} disabled={i === 0} className="p-1.5 rounded-md text-white/90 hover:bg-white/15 disabled:opacity-30" title="Move section up"><ArrowUp className="w-3.5 h-3.5" /></button>
+                  <button onClick={() => sectionOp(i, "down")} disabled={i === sections.length - 1} className="p-1.5 rounded-md text-white/90 hover:bg-white/15 disabled:opacity-30" title="Move section down"><ArrowDown className="w-3.5 h-3.5" /></button>
+                  <button onClick={() => sectionOp(i, "dup")} className="p-1.5 rounded-md text-white/90 hover:bg-white/15" title="Duplicate section"><Copy className="w-3.5 h-3.5" /></button>
+                  <button onClick={() => sectionOp(i, "del")} className="p-1.5 rounded-md text-white/90 hover:bg-red-500/60" title="Delete section"><Trash2 className="w-3.5 h-3.5" /></button>
+                </div>
+              )}
               <div className="flex items-baseline gap-4 mb-4">
                 <span className="brief-index brief-mono text-sm font-bold shrink-0">
                   {String(i + 1).padStart(2, "0")}

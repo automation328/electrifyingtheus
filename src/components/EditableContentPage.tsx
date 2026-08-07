@@ -148,6 +148,7 @@ const EditableContentPage = ({ path, label, ...props }: LayoutProps & { path: st
     activeId,
     setActive: setActiveId,
     set: (p: string, v: unknown) => commit(trackCleared(setPath(working, p, v), p, v)),
+    setMany: (patch: Record<string, unknown>) => commit({ ...working, ...patch }),
     get: (p: string) => getPath(working, p),
     addBlock: (slot: string, type: BlockType) => mutateBlocks((blocks) => [...blocks, { ...newBlock(type), slot }]),
     updateBlock: (id: string, patch: Partial<PageBlock>) => mutateBlocks((blocks) => patchBlockDeep(blocks, id, patch)),
