@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, ArrowUpRight, ExternalLink, Play, Calculator, type LucideIcon } from "lucide-react";
+import { ArrowRight, ArrowUpRight, ExternalLink, Play, Calculator, Film, X, type LucideIcon } from "lucide-react";
+import { useInlineEdit } from "@/components/inline/edit-context";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Editable from "@/components/inline/Editable";
@@ -88,6 +89,24 @@ const ContentPageLayout = ({
   extraCtaImage, hideMeta, hideCta, linkCards, blocks, styles,
 }: ContentPageLayoutProps) => {
   const [playing, setPlaying] = useState(false);
+  const ctx = useInlineEdit();
+  const editing = !!ctx?.editing;
+  const [vidEdit, setVidEdit] = useState(false);
+  const [vidUrl, setVidUrl] = useState("");
+  const [vidTitle, setVidTitle] = useState("");
+  const openVidEdit = () => { setVidUrl(video?.youtubeId ?? ""); setVidTitle(video?.title ?? ""); setVidEdit(true); };
+  const parseYouTubeId = (input: string) => {
+    const s = input.trim();
+    const m = s.match(/(?:youtu\.be\/|[?&]v=|embed\/|shorts\/)([A-Za-z0-9_-]{6,})/);
+    if (m) return m[1];
+    return /^[A-Za-z0-9_-]{6,}$/.test(s) ? s : "";
+  };
+  const saveVideo = () => {
+    const id = parseYouTubeId(vidUrl);
+    if (!id) return;
+    ctx?.set("video", { youtubeId: id, title: vidTitle.trim() || "Watch" });
+    setVidEdit(false); setPlaying(false);
+  };
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -205,8 +224,8 @@ const ContentPageLayout = ({
                   className="brief-stat brief-reveal rounded-2xl p-5"
                   style={{ transitionDelay: `${i * 70}ms` }}
                 >
-                  <div className="font-brief text-3xl md:text-4xl text-gradient-primary"><Editable path={`stats.${i}.value`}>{s.value}</Editable></div>
-                  <div className="text-xs text-muted-foreground mt-2 leading-snug"><Editable path={`stats.${i}.label`}>{s.label}</Editable></div>
+                  <div className="font-brief text-3xl md:text-4xl text-gradient-primary"><EditableText path={`stats.${i}.value`}>{s.value}</EditableText></div>
+                  <div className="text-xs text-muted-foreground mt-2 leading-snug"><EditableText path={`stats.${i}.label`}>{s.label}</EditableText></div>
                 </div>
               ))}
             </div>
@@ -223,14 +242,14 @@ const ContentPageLayout = ({
         )}
 
         {/* ── Featured video ─────────────────────────────────────────── */}
-        {video && (
+        {(video || editing) && (
           <section className="container px-4 max-w-5xl mt-16 md:mt-20">
             <div className="flex items-center gap-3 mb-4 brief-reveal">
               <span className="brief-mono text-[11px] text-primary font-semibold">Watch</span>
               <span className="h-px flex-1 bg-border" />
             </div>
             <div className="brief-video brief-reveal aspect-video bg-foreground">
-              {playing ? (
+              {video ? (playing ? (
                 <iframe
                   className="absolute inset-0 w-full h-full"
                   src={`https://www.youtube-nocookie.com/embed/${video.youtubeId}?autoplay=1&rel=0&modestbranding=1`}
@@ -265,6 +284,13 @@ const ContentPageLayout = ({
                       {video.title}
                     </span>
                   </span>
+                </button>
+              )) : (
+                <div className="absolute inset-0 grid place-items-center text-white/60 text-sm">No video yet — click “Add video”.</div>
+              )}
+              {editing && (
+                <button type="button" onClick={openVidEdit} className="absolute top-2 right-2 z-10 inline-flex items-center gap-1.5 rounded-lg bg-black/70 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-black/85">
+                  <Film className="w-3.5 h-3.5" /> {video ? "Change video" : "Add video"}
                 </button>
               )}
             </div>
@@ -468,6 +494,22 @@ const ContentPageLayout = ({
         </div>
         )}
       </main>
+
+      {vidEdit && (
+        <div className="fixed inset-0 z-[100] grid place-items-center bg-black/50 backdrop-blur-sm p-4" onClick={() => setVidEdit(false)}>
+          <div className="w-full max-w-md rounded-2xl border border-border surface p-5 shadow-elevated" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center mb-3">
+              <h3 className="font-bold font-display text-foreground">Watch video</h3>
+              <button onClick={() => setVidEdit(false)} className="ml-auto p-1.5 rounded-lg text-muted-foreground hover:bg-muted"><X className="w-4 h-4" /></button>
+            </div>
+            <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">YouTube link or ID</label>
+            <input value={vidUrl} onChange={(e) => setVidUrl(e.target.value)} placeholder="https://youtu.be/…  or  dQw4w9WgXcQ" className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm mb-3" />
+            <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">Title</label>
+            <input value={vidTitle} onChange={(e) => setVidTitle(e.target.value)} placeholder="Video title" className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm mb-4" />
+            <button onClick={saveVideo} disabled={!parseYouTubeId(vidUrl)} className="rounded-xl gradient-hero text-white font-semibold px-5 py-2.5 text-sm disabled:opacity-60">Save video</button>
+          </div>
+        </div>
+      )}
       <Footer />
     </div>
     </PageStylesContext.Provider>
