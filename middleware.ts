@@ -54,7 +54,54 @@ const esc = (v: string) =>
 
 const money = (n: number) => "$" + Math.max(0, Math.round(n)).toLocaleString("en-US");
 
-interface Meta { title: string; description: string; image: string; url: string; }
+interface Meta { title: string; description: string; image: string; url: string; knownSize?: boolean; }
+
+// ── Main-image resolution ──────────────────────────────────────────────────
+// So a shared blog/event link previews with the POST'S OWN cover / the EVENT'S
+// OWN flyer (from the DB) rather than a generic section banner.
+const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+// Mirrors src/data/events.ts slugify (keep in sync).
+const slugify = (s: string): string =>
+  String(s ?? "").toLowerCase().normalize("NFKD").replace(/[^a-z0-9\s-]/g, "").trim()
+    .replace(/[\s_-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60).replace(/-+$/g, "");
+// Mirrors src/lib/content.ts fallbackSlug for a DB event (no slug column).
+const eventSlugFor = (title: string, eventDate: string): string => {
+  const [y, m, d] = String(eventDate ?? "").split("-");
+  const month = (MONTHS[Number(m) - 1] ?? "").toLowerCase();
+  const day = String(Number(d) || 0).padStart(2, "0");
+  return `${slugify(title)}-${month}-${day}-${y}`;
+};
+
+// Best-effort: the page's main image + title/description from the DB. Guarded
+// (timeout + try/catch) so any failure leaves the static fallback untouched.
+async function fetchContentMain(path: string): Promise<Partial<Meta> | null> {
+  const base = process.env.VITE_SUPABASE_URL;
+  const anon = process.env.VITE_SUPABASE_ANON_KEY;
+  if (!base || !anon) return null;
+  const headers = { apikey: anon, authorization: `Bearer ${anon}` };
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 900);
+  try {
+    if (path.startsWith("/blog/")) {
+      const slug = path.slice("/blog/".length);
+      const res = await fetch(`${base}/rest/v1/site_blog_posts?slug=eq.${encodeURIComponent(slug)}&status=eq.published&select=image,title,excerpt&limit=1`, { headers, signal: ctrl.signal });
+      if (res.ok) {
+        const rows = (await res.json()) as Array<{ image?: string; title?: string; excerpt?: string }>;
+        const r = Array.isArray(rows) ? rows[0] : null;
+        if (r) return { image: r.image, title: r.title, description: r.excerpt };
+      }
+    } else if (path.startsWith("/events/")) {
+      const slug = path.slice("/events/".length);
+      const res = await fetch(`${base}/rest/v1/site_events?status=eq.published&select=image,title,event_date,description`, { headers, signal: ctrl.signal });
+      if (res.ok) {
+        const rows = await res.json();
+        const r = Array.isArray(rows) ? rows.find((e: { title: string; event_date: string }) => eventSlugFor(e.title, e.event_date) === slug) : null;
+        if (r) return { image: r.image, title: r.title, description: r.description };
+      }
+    }
+    return null;
+  } catch { return null; } finally { clearTimeout(timer); }
+}
 
 // Best-effort: pull a published page's editor-set SEO (site_pages.content.seo)
 // so social crawlers get the same title/description/share-image an editor set in
@@ -84,6 +131,8 @@ async function fetchPageSeo(path: string): Promise<Partial<Meta> | null> {
     if (seo.description) out.description = seo.description;
     else if (typeof row.content?.intro === "string") out.description = row.content.intro.slice(0, 200);
     if (seo.image) out.image = seo.image;
+    // Else use the page's own hero image (if the editor set one) as the share image.
+    else if (typeof row.content?.heroImage === "string" && /^https?:\/\//.test(row.content.heroImage)) out.image = row.content.heroImage;
     return Object.keys(out).length ? out : null;
   } catch { return null; }
 }
@@ -227,13 +276,21 @@ export default async function middleware(request: Request) {
     }
   }
 
-  // Dynamic (Supabase-posted) blog/event detail pages have no static entry —
-  // fall back to the section's banner so the share still shows a branded
-  // thumbnail rather than nothing.
+  // Dynamic (CMS) blog/event detail pages have no curated entry — use the post's
+  // OWN cover / the event's OWN flyer from the DB. Fall back to the section
+  // banner only if the item has no usable image.
   if (!meta && (path.startsWith("/events/") || path.startsWith("/blog/"))) {
-    const sectionPath = path.startsWith("/events/") ? "/events" : "/news";
-    const section = OG_ENTRIES.find((e) => e.path === sectionPath);
-    if (section) {
+    const main = await fetchContentMain(path);
+    const section = OG_ENTRIES.find((e) => e.path === (path.startsWith("/events/") ? "/events" : "/news"));
+    if (main && typeof main.image === "string" && /^https?:\/\//.test(main.image)) {
+      meta = {
+        title: main.title || section?.title || SITE_DEFAULT.title,
+        description: (main.description || section?.description || SITE_DEFAULT.description).slice(0, 200),
+        image: main.image,
+        url: origin + path,
+        knownSize: false, // a raw cover/flyer isn't guaranteed 1200×630
+      };
+    } else if (section) {
       const image = section.image.startsWith("http") ? section.image : origin + section.image;
       meta = { title: section.title, description: section.description, image, url: origin + path };
     }
@@ -256,7 +313,7 @@ export default async function middleware(request: Request) {
     if (override) {
       if (override.title) meta.title = override.title;
       if (override.description) meta.description = override.description;
-      if (override.image) meta.image = override.image.startsWith("http") ? override.image : origin + override.image;
+      if (override.image) { meta.image = override.image.startsWith("http") ? override.image : origin + override.image; meta.knownSize = false; }
     }
   }
 
@@ -272,8 +329,8 @@ export default async function middleware(request: Request) {
 <meta property="og:url" content="${esc(meta.url)}">
 <meta property="og:image" content="${esc(meta.image)}">
 <meta property="og:image:secure_url" content="${esc(meta.image)}">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
+${meta.knownSize === false ? "" : `<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">`}
 <meta property="og:image:alt" content="${esc(meta.title)}">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="${esc(meta.title)}">
