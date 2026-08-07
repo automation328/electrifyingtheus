@@ -62,7 +62,12 @@ const EditableText = ({ path, styleKey, children, className, as = "span" }: Prop
   const setStyle = (patch: Partial<ElemStyle>) => {
     const next: Record<string, unknown> = { ...(s ?? {}), ...patch };
     for (const k of Object.keys(next)) if (next[k] === undefined || next[k] === "") delete next[k];
-    ctx.set(`styles.${sk}`, Object.keys(next).length ? next : undefined);
+    // Write the WHOLE flat styles map (keys are dotted paths). ctx.set → setPath
+    // would otherwise split "styles.sections.0.heading" into a nested object that
+    // the flat reader (usePageStyle) never finds.
+    const map = { ...((ctx.get("styles") as Record<string, ElemStyle> | undefined) ?? {}) };
+    if (Object.keys(next).length) map[sk] = next as ElemStyle; else delete map[sk];
+    ctx.set("styles", map);
   };
 
   const Tag = as;
