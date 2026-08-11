@@ -12,6 +12,7 @@ import type { VehicleData } from "@/lib/tco-calculator";
 import type { CatKey, Incentive, IncentiveOverride } from "@/data/incentives";
 import fallbackImg from "@/assets/ev-charging.jpg";
 import jobFallbackImg from "@/assets/workforce.jpg";
+import { cmsError } from "@/lib/cms-error";
 
 const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
 
@@ -71,7 +72,8 @@ export async function fetchEvents(): Promise<EventItem[]> {
   if (!supabase) return [];
   const { data, error } = await supabase
     .from("site_events").select("*").eq("status", "published").order("event_date", { ascending: true });
-  if (error || !data) return [];
+  if (error) throw cmsError("site_events", error);
+  if (!data) return [];
   return (data as EventRow[]).map(rowToEvent);
 }
 
@@ -79,7 +81,8 @@ export async function fetchPosts(): Promise<BlogPost[]> {
   if (!supabase) return [];
   const { data, error } = await supabase
     .from("site_blog_posts").select("*").eq("status", "published").order("published_at", { ascending: false });
-  if (error || !data) return [];
+  if (error) throw cmsError("site_blog_posts", error);
+  if (!data) return [];
   return (data as PostRow[]).map(rowToPost);
 }
 
@@ -101,6 +104,16 @@ export function mergeEvents(dynamic: EventItem[]): EventItem[] {
       ...e,
       slug: e.slug || s?.slug || fallbackSlug(e),
       registerUrl: e.registerUrl || s?.registerUrl,
+      // Inherit the curated flags too — site_events has no column for them, and
+      // the curated row is dropped by the dedupe below, so anything not carried
+      // here is lost. `ours` is what keeps one of our own events on the site
+      // after its date (isActive, data/events.ts:83); without it an adopted
+      // event silently disappears the day after it runs. `heroHidden` keeps
+      // events out of the homepage carousel — 23 of ~25 curated events set it,
+      // so losing it promotes them into the hero instead.
+      ours: e.ours ?? s?.ours,
+      heroHidden: e.heroHidden ?? s?.heroHidden,
+      external: e.external ?? s?.external,
     };
   });
   const seen = new Set(dyn.map(eventDedupe));
@@ -125,7 +138,8 @@ export async function fetchGallery(): Promise<{ photos: GalleryPhoto[]; videos: 
   const { data, error } = await supabase
     .from("site_gallery").select("*").eq("status", "published")
     .order("sort", { ascending: true }).order("created_at", { ascending: false });
-  if (error || !data) return { photos: [], videos: [] };
+  if (error) throw cmsError("site_gallery", error);
+  if (!data) return { photos: [], videos: [] };
   const rows = data as GalleryRow[];
   const photos: GalleryPhoto[] = rows
     .filter((r) => r.kind !== "video")
@@ -175,7 +189,8 @@ export async function fetchJobs(): Promise<Job[]> {
   const { data, error } = await supabase
     .from("site_jobs").select("*").eq("status", "published")
     .order("sort", { ascending: true }).order("created_at", { ascending: false });
-  if (error || !data) return [];
+  if (error) throw cmsError("site_jobs", error);
+  if (!data) return [];
   return (data as JobRow[]).map(rowToJob);
 }
 
@@ -220,7 +235,8 @@ export async function fetchVehicleOverrides(): Promise<{ published: VehicleData[
   const { data, error } = await supabase
     .from("site_vehicles").select("*").eq("status", "published")
     .order("sort", { ascending: true });
-  if (error || !data) return { published: [], hiddenIds: [] };
+  if (error) throw cmsError("site_vehicles", error);
+  if (!data) return { published: [], hiddenIds: [] };
   const rows = data as VehicleDbRow[];
   return {
     published: rows.filter((r) => !r.hidden).map(rowToVehicle),
@@ -257,6 +273,7 @@ export async function fetchIncentiveOverrides(): Promise<IncentiveOverride[]> {
   const { data, error } = await supabase
     .from("site_incentives").select("*").eq("status", "published")
     .order("sort", { ascending: true });
-  if (error || !data) return [];
+  if (error) throw cmsError("site_incentives", error);
+  if (!data) return [];
   return (data as IncentiveDbRow[]).map(rowToIncentiveOverride);
 }

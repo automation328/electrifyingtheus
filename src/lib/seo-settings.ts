@@ -6,12 +6,14 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
+import { cmsError } from "@/lib/cms-error";
 import { SEO_DEFAULT, type SeoSettings } from "@/data/seo";
 
 export async function fetchSeo(): Promise<Partial<SeoSettings> | null> {
   if (!supabase) return null;
   const { data, error } = await supabase.from("site_settings").select("value").eq("key", "seo").maybeSingle();
-  if (error || !data) return null;
+  if (error) throw cmsError("site_settings:seo", error);
+  if (!data) return null;
   return (data.value ?? null) as Partial<SeoSettings> | null;
 }
 

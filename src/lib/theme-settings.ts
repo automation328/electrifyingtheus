@@ -4,6 +4,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
+import { cmsError } from "@/lib/cms-error";
 
 export interface ThemeSettings { primary?: string; secondary?: string; headingFont?: string; bodyFont?: string }
 
@@ -43,7 +44,8 @@ export function hslTripletToHex(triplet: string): string | null {
 export async function fetchTheme(): Promise<ThemeSettings | null> {
   if (!supabase) return null;
   const { data, error } = await supabase.from("site_settings").select("value").eq("key", "theme").maybeSingle();
-  if (error || !data) return null;
+  if (error) throw cmsError("site_settings:theme", error);
+  if (!data) return null;
   return (data.value ?? null) as ThemeSettings | null;
 }
 

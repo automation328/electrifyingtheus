@@ -4,13 +4,15 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
+import { cmsError } from "@/lib/cms-error";
 import { NAV_DEFAULT, type NavItem } from "@/data/nav";
 import { FOOTER_DEFAULT, type FooterContent } from "@/data/footer";
 
 async function fetchSetting<T>(key: string): Promise<T | null> {
   if (!supabase) return null;
   const { data, error } = await supabase.from("site_settings").select("value").eq("key", key).maybeSingle();
-  if (error || !data) return null;
+  if (error) throw cmsError(`site_settings:${key}`, error);
+  if (!data) return null;
   return (data.value ?? null) as T | null;
 }
 

@@ -4,6 +4,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
+import { cmsError } from "@/lib/cms-error";
 import { EDITABLE_PAGES } from "@/lib/page-content";
 
 export interface SiteLink { label: string; path: string; group: string }
@@ -33,7 +34,8 @@ export function useSiteLinks(): SiteLink[] {
     queryFn: async (): Promise<SiteLink[]> => {
       if (!supabase) return [];
       const { data, error } = await supabase.from("site_pages").select("path,title").eq("status", "published");
-      if (error || !data) return [];
+      if (error) throw cmsError("site_pages", error);
+      if (!data) return [];
       return (data as { path: string; title?: string }[]).map((r) => ({ label: r.title || r.path, path: r.path, group: "Custom pages" }));
     },
     enabled: isSupabaseConfigured,

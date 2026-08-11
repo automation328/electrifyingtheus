@@ -7,6 +7,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
+import { cmsError } from "@/lib/cms-error";
 import type { ContentStat, ContentSection, ContentSource, ContentShot } from "@/components/ContentPageLayout";
 import { reducedEmissionsContent } from "@/data/pages/reduced-emissions";
 
@@ -66,7 +67,7 @@ export interface PageBlock {
   multiOpen?: boolean;              // accordion: allow multiple panels open
   startClosed?: boolean;            // accordion: start with all panels collapsed
   columns?: { heading?: string; body?: string; image?: string }[];    // columns
-  images?: { src: string; caption?: string }[];                       // gallery
+  images?: { src: string; caption?: string; alt?: string }[];          // gallery
   subtext?: string;                 // cta subtext
   buttonLabel?: string;             // cta button label
   variant?: string;                 // design variant (countdown: boxes | cards | inline | minimal)
@@ -236,7 +237,8 @@ export async function fetchPageOverride(path: string): Promise<PageOverride | nu
   if (!supabase) return null;
   const { data, error } = await supabase
     .from("site_pages").select("content").eq("path", path).eq("status", "published").maybeSingle();
-  if (error || !data) return null;
+  if (error) throw cmsError("site_pages", error);
+  if (!data) return null;
   return (data.content ?? null) as PageOverride | null;
 }
 
