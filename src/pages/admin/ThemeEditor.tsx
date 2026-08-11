@@ -8,6 +8,7 @@ import { Save, Loader2, RotateCcw, AlertCircle, ArrowRight, Palette } from "luci
 import { listRows, insertRow, updateRow } from "@/lib/admin-api";
 import { hslTripletToHex, HEADING_FONTS, BODY_FONTS } from "@/lib/theme-settings";
 import PageHeader from "@/components/admin/PageHeader";
+import { useUnsavedGuard } from "@/hooks/use-unsaved-guard";
 
 interface SettingRow { id: string; key: string; value: { primary?: string; secondary?: string; headingFont?: string; bodyFont?: string } }
 
@@ -45,6 +46,7 @@ const ThemeEditor = () => {
   const [bodyFont, setBodyFont] = useState("Inter");
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
+  useUnsavedGuard(dirty);
 
   useEffect(() => {
     setPrimary(row?.value?.primary || currentHex("--primary", "#0057b7"));

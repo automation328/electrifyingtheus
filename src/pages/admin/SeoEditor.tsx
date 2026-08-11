@@ -11,6 +11,7 @@ import { listRows, insertRow, updateRow } from "@/lib/admin-api";
 import { SEO_DEFAULT, applyTitleTemplate, type SeoSettings } from "@/data/seo";
 import { mergeSeo } from "@/lib/seo-settings";
 import { useEditorAuth } from "@/lib/auth";
+import { useUnsavedGuard } from "@/hooks/use-unsaved-guard";
 import PageHeader from "@/components/admin/PageHeader";
 
 interface SettingRow { id: string; key: string; value: Partial<SeoSettings> }
@@ -63,6 +64,7 @@ const SeoEditor = () => {
   const [form, setForm] = useState<SeoSettings>(SEO_DEFAULT);
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
+  useUnsavedGuard(dirty);
 
   useEffect(() => { setForm(mergeSeo(row?.value)); setDirty(false); }, [row]);
 

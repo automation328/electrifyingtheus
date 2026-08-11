@@ -8,6 +8,7 @@ import { Plus, Trash2, ArrowUp, ArrowDown, Save, Loader2, RotateCcw, AlertCircle
 import { listRows, insertRow, updateRow } from "@/lib/admin-api";
 import { FOOTER_DEFAULT, type FooterContent, type FooterLink } from "@/data/footer";
 import PageHeader from "@/components/admin/PageHeader";
+import { useUnsavedGuard } from "@/hooks/use-unsaved-guard";
 
 interface SettingRow { id: string; key: string; value: Partial<FooterContent> }
 
@@ -48,6 +49,7 @@ const FooterEditor = () => {
   const [c, setC] = useState<FooterContent>(FOOTER_DEFAULT);
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
+  useUnsavedGuard(dirty);
 
   useEffect(() => {
     if (row?.value) { setC({ ...FOOTER_DEFAULT, ...row.value, columns: row.value.columns ?? FOOTER_DEFAULT.columns, bottomLinks: row.value.bottomLinks ?? FOOTER_DEFAULT.bottomLinks }); setDirty(false); }

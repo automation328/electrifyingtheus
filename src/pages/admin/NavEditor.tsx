@@ -8,6 +8,7 @@ import { Plus, Trash2, ArrowUp, ArrowDown, Save, Loader2, RotateCcw, AlertCircle
 import { listRows, insertRow, updateRow } from "@/lib/admin-api";
 import { NAV_DEFAULT, type NavItem } from "@/data/nav";
 import PageHeader from "@/components/admin/PageHeader";
+import { useUnsavedGuard } from "@/hooks/use-unsaved-guard";
 
 interface SettingRow { id: string; key: string; value: { items?: NavItem[] } }
 
@@ -31,6 +32,7 @@ const NavEditor = () => {
   const [items, setItems] = useState<NavItem[]>(NAV_DEFAULT);
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
+  useUnsavedGuard(dirty);
 
   useEffect(() => {
     if (row?.value?.items && Array.isArray(row.value.items)) { setItems(row.value.items); setDirty(false); }
