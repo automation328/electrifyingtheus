@@ -30,6 +30,16 @@ export interface PageBlock {
   font?: "display" | "sans" | "mono";      // heading / text / button font
   // Per-type fields (only the relevant ones are set):
   text?: string;                    // heading / text / button label / cta heading
+  // Typography overrides (heading / text / button). All optional — a block with
+  // none set renders exactly as it did before these existed.
+  weight?: 300 | 400 | 500 | 600 | 700 | 800; // font weight
+  leading?: number;                 // line-height multiplier (e.g. 1.4)
+  tracking?: number;                // letter-spacing in em (e.g. -0.02)
+  transform?: "none" | "upper" | "lower" | "caps"; // text-transform
+  /** The block's own accent colour (CSS value): button fill, divider line,
+   *  progress fill. Distinct from style.color, which is the TEXT colour.
+   *  Unset = keep the theme default, so existing blocks are unaffected. */
+  accent?: string;
   level?: 1 | 2 | 3 | 4 | 5 | 6;    // heading level (h1–h6)
   gradientText?: boolean;           // heading: gradient-colored text
   src?: string;                     // image URL

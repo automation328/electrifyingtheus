@@ -784,3 +784,13 @@ html[data-theme="glass"] .gradient-hero {
   transition: width 0.25s ease;
 }
 .footer-link:hover::after { width: 100%; }
+
+/* Page-builder: make a block's "Text colour" actually reach its content.
+ * Inner elements carry hardcoded theme colours (text-muted-foreground, …) that
+ * otherwise beat the colour inherited from the block wrapper. The attribute is
+ * doubled to out-specify a single Tailwind utility class without !important, and
+ * the selector is limited to text tags so buttons, inputs, links and icons keep
+ * their own colours. Set by BlockView only when the editor picks a colour. */
+[data-ink][data-ink] :where(p, h1, h2, h3, h4, h5, h6, li, dt, dd, td, th, blockquote, figcaption, strong, em, small) {
+  color: inherit;
+}

@@ -2,7 +2,7 @@
 // inherits the site theme; Heading/Text/Button expose size + font controls, and
 // each block type has the controls it needs (divider thickness, icon picker, …).
 
-import { useState, useEffect, useRef, useId } from "react";
+import { useState, useEffect, useRef, useId, type CSSProperties } from "react";
 import {
   ArrowUp, ArrowDown, Trash2, AlignLeft, AlignCenter, AlignRight,
   Image as ImageIcon, Film, X, Search, Plus, ChevronDown, ChevronLeft, ChevronRight, ArrowRight,
@@ -67,6 +67,37 @@ const safeHref = (href?: string): string => {
 const fontClass = (block: PageBlock) => {
   const f = block.font ?? (block.type === "heading" ? "display" : "sans");
   return f === "display" ? "font-brief" : f === "mono" ? "brief-mono" : "";
+};
+
+/** Which block types show the alignment buttons. Alignment itself is applied to
+ *  EVERY block by the wrapper (alignClassResponsive, used once at the bottom of
+ *  this file) — this list only decides where the control is offered. */
+const ALIGNABLE = new Set<string>([
+  "heading", "text", "button", "image", "icon", "icon-list", "toc",
+  "divider", "html", "social", "gallery", "video", "maps",
+  "cta", "testimonial", "counter", "countdown", "rating", "progress",
+]);
+
+const TRANSFORM_CSS: Record<string, CSSProperties["textTransform"]> = {
+  upper: "uppercase", lower: "lowercase", caps: "capitalize",
+};
+
+/** Inline typography overrides. Returns undefined when nothing is set, so a
+ *  block that predates these fields renders exactly as before. */
+const typoStyle = (b: PageBlock): CSSProperties | undefined => {
+  const s: CSSProperties = {};
+  if (b.weight) s.fontWeight = b.weight;
+  if (b.leading) s.lineHeight = b.leading;
+  if (b.tracking !== undefined) s.letterSpacing = `${b.tracking}em`;
+  if (b.transform && b.transform !== "none") s.textTransform = TRANSFORM_CSS[b.transform];
+  return Object.keys(s).length ? s : undefined;
+};
+
+/** Merge the block's colour override with its typography overrides. */
+const textStyle = (b: PageBlock, color?: string): CSSProperties | undefined => {
+  const typo = typoStyle(b);
+  if (!color && !typo) return undefined;
+  return { ...(color ? { color } : {}), ...(typo ?? {}) };
 };
 
 const sizeClass = (block: PageBlock) => {
@@ -160,6 +191,65 @@ const StyleControls = ({ block, up }: { block: PageBlock; up: (p: Partial<PageBl
         <option value="sans">Sans</option>
         <option value="mono">Mono</option>
       </select>
+
+      <span className="w-full h-px bg-border my-0.5" />
+
+      <span className="text-muted-foreground">Weight</span>
+      <select
+        value={block.weight ?? ""}
+        onChange={(e) => up({ weight: e.target.value ? (Number(e.target.value) as PageBlock["weight"]) : undefined })}
+        className="rounded border border-border bg-background px-1.5 py-0.5"
+      >
+        <option value="">Default</option>
+        <option value="300">Light</option>
+        <option value="400">Regular</option>
+        <option value="500">Medium</option>
+        <option value="600">Semibold</option>
+        <option value="700">Bold</option>
+        <option value="800">Extrabold</option>
+      </select>
+
+      <span className="text-muted-foreground">Case</span>
+      <select
+        value={block.transform ?? "none"}
+        onChange={(e) => up({ transform: e.target.value as PageBlock["transform"] })}
+        className="rounded border border-border bg-background px-1.5 py-0.5"
+      >
+        <option value="none">Aa</option>
+        <option value="upper">AA</option>
+        <option value="lower">aa</option>
+        <option value="caps">Aa Bb</option>
+      </select>
+
+      <span className="w-full h-px bg-border my-0.5" />
+
+      <label className="inline-flex items-center gap-1 text-muted-foreground" title="Line height (multiplier)">
+        Line
+        <input
+          type="number" step={0.05} min={0.8} max={3} placeholder="auto"
+          value={block.leading ?? ""}
+          onChange={(e) => up({ leading: e.target.value === "" ? undefined : Number(e.target.value) })}
+          className="w-16 rounded border border-border bg-background px-1.5 py-0.5"
+        />
+      </label>
+      <label className="inline-flex items-center gap-1 text-muted-foreground" title="Letter spacing (em)">
+        Spacing
+        <input
+          type="number" step={0.01} min={-0.1} max={0.5} placeholder="0"
+          value={block.tracking ?? ""}
+          onChange={(e) => up({ tracking: e.target.value === "" ? undefined : Number(e.target.value) })}
+          className="w-16 rounded border border-border bg-background px-1.5 py-0.5"
+        />
+      </label>
+
+      {(block.weight || block.leading || block.tracking !== undefined || (block.transform && block.transform !== "none")) && (
+        <button
+          onClick={() => up({ weight: undefined, leading: undefined, tracking: undefined, transform: undefined })}
+          className="text-primary hover:underline"
+        >
+          Reset type
+        </button>
+      )}
     </div>
   );
 };
@@ -452,7 +542,7 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
       const textCls = block.gradientText ? "text-gradient-primary" : "text-foreground";
       return (
         <div>
-          <Tag className={`${fontClass(block)} ${sizeClass(block)} ${textCls}`} style={block.style?.color && !block.gradientText ? { color: block.style.color } : undefined}><RichText value={block.text ?? ""} onCommit={(v) => up({ text: v })} /></Tag>
+          <Tag className={`${fontClass(block)} ${sizeClass(block)} ${textCls}`} style={textStyle(block, block.style?.color && !block.gradientText ? block.style.color : undefined)}><RichText value={block.text ?? ""} onCommit={(v) => up({ text: v })} /></Tag>
           {editing && (
             <InspectorPortal blockId={block.id}>
               <StyleControls block={block} up={up} />
@@ -471,7 +561,7 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
     case "text":
       return (
         <div>
-          <p className={`${fontClass(block)} ${sizeClass(block)} text-muted-foreground leading-[1.75]`} style={block.style?.color ? { color: block.style.color } : undefined}><RichText value={block.text ?? ""} onCommit={(v) => up({ text: v })} /></p>
+          <p className={`${fontClass(block)} ${sizeClass(block)} text-muted-foreground leading-[1.75]`} style={textStyle(block, block.style?.color)}><RichText value={block.text ?? ""} onCommit={(v) => up({ text: v })} /></p>
           {editing && <InspectorPortal blockId={block.id}><StyleControls block={block} up={up} /></InspectorPortal>}
         </div>
       );
@@ -567,13 +657,33 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
       );
 
     case "button": {
-      const bcls = `inline-flex items-center justify-center gap-1.5 font-semibold rounded-xl transition-opacity ${block.variant === "outline" ? "border-2 border-primary text-primary hover:bg-primary/5" : block.variant === "ghost" ? "text-primary hover:bg-primary/10" : "gradient-hero text-white hover:opacity-90"} ${block.wide ? "w-full" : ""} ${sizeClass(block)} ${fontClass(block)}`;
+      // `accent` recolours the button itself: fill for solid, ink+border for
+      // outline/ghost. Unset keeps the theme classes exactly as before.
+      const acc = block.accent;
+      const isOutline = block.variant === "outline";
+      const isGhost = block.variant === "ghost";
+      const variantCls = isOutline
+        ? `border-2 hover:bg-primary/5 ${acc ? "" : "border-primary text-primary"}`
+        : isGhost
+          ? `hover:bg-primary/10 ${acc ? "" : "text-primary"}`
+          : `hover:opacity-90 ${acc ? "text-white" : "gradient-hero text-white"}`;
+      const bcls = `inline-flex items-center justify-center gap-1.5 font-semibold rounded-xl transition-opacity ${variantCls} ${block.wide ? "w-full" : ""} ${sizeClass(block)} ${fontClass(block)}`;
+      const btnStyle: CSSProperties | undefined = (() => {
+        const typo = typoStyle(block);
+        if (!acc) return typo;
+        const a: CSSProperties = isOutline
+          ? { borderColor: acc, color: acc }
+          : isGhost
+            ? { color: acc }
+            : { background: acc };
+        return { ...(typo ?? {}), ...a };
+      })();
       const BIcon = block.icon ? (BLOCK_ICONS[block.icon] ?? null) : null;
       const iconEl = BIcon ? <BIcon aria-hidden="true" className="w-[1.1em] h-[1.1em]" /> : null;
       const inner = block.iconRight ? <>{block.text}{iconEl}</> : <>{iconEl}{block.text}</>;
       return editing ? (
         <div className={`inline-flex flex-col items-start gap-1.5 ${block.wide ? "w-full" : ""}`}>
-          <span className={bcls}>{block.iconRight ? <>{block.text || "Button"}{iconEl}</> : <>{iconEl}{block.text || "Button"}</>}</span>
+          <span className={bcls} style={btnStyle}>{block.iconRight ? <>{block.text || "Button"}{iconEl}</> : <>{iconEl}{block.text || "Button"}</>}</span>
           <input value={block.text ?? ""} onChange={(e) => up({ text: e.target.value })} placeholder="Button label" className="w-full min-w-[16rem] rounded-lg border border-border bg-background px-2.5 py-1.5 text-xs" />
           <LinkPicker value={block.href ?? ""} onChange={(v) => up({ href: v })} className="w-full min-w-[16rem]" />
           <InspectorPortal blockId={block.id}>
@@ -585,13 +695,14 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
               {block.icon && <label className="inline-flex items-center gap-1 text-muted-foreground"><input type="checkbox" checked={!!block.iconRight} onChange={(e) => up({ iconRight: e.target.checked })} /> Icon right</label>}
             </div>
             {block.icon && <IconPicker block={block} up={up} />}
+            <ColorField label="Button colour" value={block.accent} onChange={(v) => up({ accent: v })} />
             <StyleControls block={block} up={up} />
           </InspectorPortal>
         </div>
       ) : (block.href && block.href.startsWith("/")) ? (
-        <Link to={block.href} className={bcls}>{inner}</Link>
+        <Link to={block.href} className={bcls} style={btnStyle}>{inner}</Link>
       ) : (
-        <a href={safeHref(block.href)} target={block.newTab ? "_blank" : undefined} rel={block.newTab ? "noopener noreferrer" : undefined} className={bcls}>{inner}</a>
+        <a href={safeHref(block.href)} target={block.newTab ? "_blank" : undefined} rel={block.newTab ? "noopener noreferrer" : undefined} className={bcls} style={btnStyle}>{inner}</a>
       );
     }
 
@@ -599,7 +710,8 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
       const thick = block.thickness ?? 1;
       const dstyle = block.variant === "dashed" ? "dashed" : block.variant === "dotted" ? "dotted" : "solid";
       const DIcon = block.icon ? (BLOCK_ICONS[block.icon] ?? null) : null;
-      const lineStyle: React.CSSProperties = { borderTopWidth: thick, borderTopStyle: dstyle, borderColor: "hsl(var(--border))" };
+      const lineColor = block.accent || "hsl(var(--border))";
+      const lineStyle: React.CSSProperties = { borderTopWidth: thick, borderTopStyle: dstyle, borderColor: lineColor };
       return (
         <div>
           {DIcon ? (
@@ -609,13 +721,15 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
               <span className="flex-1" style={lineStyle} />
             </div>
           ) : (
-            <hr className="border-0" style={{ borderTop: `${thick}px ${dstyle} hsl(var(--border))` }} />
+            <hr className="border-0" style={{ borderTop: `${thick}px ${dstyle} ${lineColor}` }} />
           )}
           {editing && (
             <InspectorPortal blockId={block.id}>
               <div className="inline-flex flex-wrap items-center gap-2 rounded-lg border border-border bg-background/80 px-2 py-1.5 text-xs">
                 <span className="text-muted-foreground">Thickness</span>
                 <input type="range" min={1} max={16} value={thick} onChange={(e) => up({ thickness: Number(e.target.value) })} />
+                <span className="w-full" />
+                <ColorField label="Line colour" value={block.accent} onChange={(v) => up({ accent: v })} />
                 <span className="w-px h-4 bg-border mx-0.5" />
                 <span className="text-muted-foreground">Style</span>
                 {(["solid", "dashed", "dotted"] as const).map((v) => <button key={v} onClick={() => up({ variant: v })} className={`px-1.5 py-0.5 rounded capitalize ${(block.variant ?? "solid") === v ? "gradient-hero text-white" : "text-muted-foreground hover:bg-muted"}`}>{v}</button>)}
@@ -759,7 +873,7 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
 
     case "cta":
       return (
-        <div className="relative overflow-hidden rounded-3xl gradient-hero p-8 md:p-12 text-center text-primary-foreground">
+        <div className={`relative overflow-hidden rounded-3xl p-8 md:p-12 text-center text-primary-foreground ${block.accent ? "" : "gradient-hero"}`} style={block.accent ? { background: block.accent } : undefined}>
           <div className="absolute inset-0 opacity-30" style={{ backgroundImage: "radial-gradient(circle at 20% 20%, rgba(255,255,255,0.4), transparent 45%)" }} aria-hidden />
           <div className="relative z-10">
             <h2 className="font-brief text-3xl md:text-4xl mb-3"><RichText value={block.text ?? ""} onCommit={(v) => up({ text: v })} /></h2>
@@ -769,6 +883,9 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
                 <span className="inline-flex items-center gap-1.5 bg-primary-foreground text-primary font-semibold px-6 py-3 rounded-xl">{block.buttonLabel || "Button"} <ArrowRight className="w-5 h-5" /></span>
                 <input value={block.buttonLabel ?? ""} onChange={(e) => up({ buttonLabel: e.target.value })} placeholder="Button label" className="rounded-lg border border-white/40 bg-white/10 px-2.5 py-1.5 text-xs text-white placeholder:text-white/60" />
                 <LinkPicker value={block.href ?? ""} onChange={(v) => up({ href: v })} className="w-64 text-left" />
+                <InspectorPortal blockId={block.id}>
+                  <ColorField label="Card colour" value={block.accent} onChange={(v) => up({ accent: v })} />
+                </InspectorPortal>
               </div>
             ) : (
               block.href?.startsWith("http")
@@ -793,6 +910,19 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
             </figcaption>
           </figure>
           {imgOpen && <Modal title="Choose image" onClose={() => setImgOpen(false)}><ImageUpload value={block.src ?? ""} onChange={(url) => up({ src: url })} /><div className="mt-4 flex justify-end"><button onClick={() => setImgOpen(false)} className="rounded-xl gradient-hero text-white font-semibold px-5 py-2.5 text-sm">Done</button></div></Modal>}
+          {editing && (
+            <InspectorPortal blockId={block.id}>
+              <label className="block text-xs">
+                <span className="text-muted-foreground">Image alt text</span>
+                <input
+                  value={block.alt ?? ""}
+                  onChange={(e) => up({ alt: e.target.value })}
+                  placeholder="Describe the image for screen readers"
+                  className="mt-1 w-full rounded-lg border border-border bg-background px-2.5 py-1.5"
+                />
+              </label>
+            </InspectorPortal>
+          )}
         </div>
       );
 
@@ -800,10 +930,15 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
       const Icon = BLOCK_ICONS[block.icon ?? "zap"] ?? BLOCK_ICONS.zap;
       return (
         <div className="mx-auto max-w-sm">
-          <div className="w-12 h-12 rounded-2xl gradient-hero grid place-items-center mx-auto mb-3"><Icon aria-hidden="true" className="w-6 h-6 text-white" /></div>
+          <div className={`w-12 h-12 rounded-2xl grid place-items-center mx-auto mb-3 ${block.accent ? "" : "gradient-hero"}`} style={block.accent ? { background: block.accent } : undefined}><Icon aria-hidden="true" className="w-6 h-6 text-white" /></div>
           <h3 className="font-brief text-xl text-foreground mb-1"><RichText value={block.text ?? ""} onCommit={(v) => up({ text: v })} /></h3>
           <p className="text-sm text-muted-foreground"><RichText value={block.subtext ?? ""} onCommit={(v) => up({ subtext: v })} /></p>
-          {editing && <IconPicker block={block} up={up} />}
+          {editing && (
+            <InspectorPortal blockId={block.id}>
+              <IconPicker block={block} up={up} />
+              <ColorField label="Badge colour" value={block.accent} onChange={(v) => up({ accent: v })} />
+            </InspectorPortal>
+          )}
         </div>
       );
     }
@@ -897,21 +1032,41 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
             <Icon aria-hidden="true" className="w-5 h-5 mt-0.5 shrink-0" />
             <div className="flex-1"><span className="sr-only">{sevLabel}: </span><RichText value={block.text ?? ""} onCommit={(v) => up({ text: v })} /></div>
           </div>
-          {editing && <div className="mt-2 inline-flex gap-1">{["info", "success", "warning", "error"].map((v) => <button key={v} onClick={() => up({ variant: v })} className={`px-2 py-0.5 rounded text-xs capitalize ${(block.variant ?? "info") === v ? "gradient-hero text-white" : "border border-border text-muted-foreground hover:bg-muted"}`}>{v}</button>)}</div>}
+          {editing && (
+            <InspectorPortal blockId={block.id}>
+              <div className="flex flex-wrap items-center gap-1.5 text-xs">
+                <span className="text-muted-foreground mr-0.5">Severity</span>
+                {["info", "success", "warning", "error"].map((v) => (
+                  <button key={v} onClick={() => up({ variant: v })} className={`px-2 py-0.5 rounded capitalize ${(block.variant ?? "info") === v ? "gradient-hero text-white" : "border border-border text-muted-foreground hover:bg-muted"}`}>{v}</button>
+                ))}
+              </div>
+            </InspectorPortal>
+          )}
         </div>
       );
     }
 
     case "rating": {
       const val = block.num ?? 5;
+      // `accent` recolours the filled stars; unset keeps the amber default.
+      const onCls = block.accent ? "" : "fill-amber-400 text-amber-400";
+      const onStyle: CSSProperties | undefined = block.accent ? { fill: block.accent, color: block.accent } : undefined;
+      const star = (i: number) => (
+        <Star aria-hidden="true" className={`w-6 h-6 ${i <= val ? onCls : "text-muted-foreground"}`} style={i <= val ? onStyle : undefined} />
+      );
       return (
         <div>
           <div className="inline-flex items-center gap-1" role={!editing ? "img" : undefined} aria-label={!editing ? `${val} out of 5 stars` : undefined}>
             {[1, 2, 3, 4, 5].map((i) => editing
-              ? <button key={i} aria-label={`Rate ${i} of 5`} onClick={() => up({ num: i })}><Star aria-hidden="true" className={`w-6 h-6 ${i <= val ? "fill-amber-400 text-amber-400" : "text-muted-foreground"}`} /></button>
-              : <Star key={i} aria-hidden="true" className={`w-6 h-6 ${i <= val ? "fill-amber-400 text-amber-400" : "text-muted-foreground"}`} />)}
+              ? <button key={i} aria-label={`Rate ${i} of 5`} onClick={() => up({ num: i })}>{star(i)}</button>
+              : <span key={i}>{star(i)}</span>)}
           </div>
           {(block.subtext || editing) && <div className="text-sm text-muted-foreground mt-1"><InlineText value={block.subtext ?? ""} onCommit={(v) => up({ subtext: v })} /></div>}
+          {editing && (
+            <InspectorPortal blockId={block.id}>
+              <ColorField label="Star colour" value={block.accent} onChange={(v) => up({ accent: v })} />
+            </InspectorPortal>
+          )}
         </div>
       );
     }
@@ -953,8 +1108,15 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
             <span className="font-medium text-foreground"><InlineText value={block.text ?? ""} onCommit={(v) => up({ text: v })} /></span>
             <span className="text-muted-foreground tabular-nums">{pct}%</span>
           </div>
-          <div role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label={block.text || "Progress"} className="h-2.5 rounded-full bg-muted overflow-hidden"><div className="h-full rounded-full gradient-hero" style={{ width: `${pct}%` }} /></div>
-          {editing && <input type="range" min={0} max={100} value={pct} onChange={(e) => up({ num: Number(e.target.value) })} className="w-full mt-2" />}
+          <div role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label={block.text || "Progress"} className="h-2.5 rounded-full bg-muted overflow-hidden"><div className={`h-full rounded-full ${block.accent ? "" : "gradient-hero"}`} style={{ width: `${pct}%`, background: block.accent || undefined }} /></div>
+          {editing && (
+            <>
+              <input type="range" min={0} max={100} value={pct} onChange={(e) => up({ num: Number(e.target.value) })} className="w-full mt-2" />
+              <InspectorPortal blockId={block.id}>
+                <ColorField label="Bar colour" value={block.accent} onChange={(v) => up({ accent: v })} />
+              </InspectorPortal>
+            </>
+          )}
         </div>
       );
     }
@@ -1217,6 +1379,28 @@ const Swatch = ({ value, active, onClick }: { value: string; active: boolean; on
   <button type="button" onClick={onClick} title={value || "none"} className={`w-7 h-7 rounded-lg border ${active ? "ring-2 ring-primary border-primary" : "border-border"} ${value ? "" : "bg-[repeating-conic-gradient(#ccc_0_25%,#fff_0_50%)] bg-[length:10px_10px]"}`} style={value ? { backgroundColor: value } : undefined} />
 );
 
+/** Shared colour picker: theme swatches + a custom picker + reset-to-default.
+ *  Used by any block that can recolour part of ITSELF (button fill, divider
+ *  line, progress fill) — as opposed to StyleFields' block-wide text colour. */
+const ColorField = ({
+  label, value, onChange, swatches = BG_SWATCHES,
+}: { label: string; value?: string; onChange: (v: string | undefined) => void; swatches?: [string, string][] }) => (
+  <div className="flex flex-wrap items-center gap-1.5 text-xs">
+    <span className="text-muted-foreground mr-0.5">{label}</span>
+    {swatches.filter(([, v]) => v).map(([name, v]) => (
+      <Swatch key={name} value={v} active={value === v} onClick={() => onChange(v)} />
+    ))}
+    <input
+      type="color"
+      value={/^#/.test(value ?? "") ? value : "#0057b7"}
+      onChange={(e) => onChange(e.target.value)}
+      className="w-7 h-7 rounded-lg border border-border bg-transparent cursor-pointer"
+      title="Custom colour"
+    />
+    {value && <button onClick={() => onChange(undefined)} className="text-primary hover:underline">Reset</button>}
+  </div>
+);
+
 const StyleFields = ({ block, up }: { block: PageBlock; up: (p: Partial<PageBlock>) => void }) => {
   const s = block.style ?? {};
   const setStyle = (patch: Partial<BlockStyle>) => up({ style: { ...s, ...patch } });
@@ -1387,7 +1571,7 @@ const StyleFields = ({ block, up }: { block: PageBlock; up: (p: Partial<PageBloc
 // block's OWN ctx (page-level for top-level blocks, the container's childCtx for
 // nested ones) so duplicate/move/delete/align act on the correct scope.
 const BlockActions = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextValue }) => {
-  const hasAlign = ["heading", "text", "button", "image", "icon", "icon-list", "toc"].includes(block.type);
+  const hasAlign = ALIGNABLE.has(block.type);
   const btn = "p-1.5 rounded-md text-neutral-500 hover:bg-neutral-100 hover:text-neutral-800";
   return (
     <div className="flex items-center gap-0.5 flex-wrap border-b border-neutral-100 pb-2 -mt-1">
@@ -1410,7 +1594,7 @@ const BlockActions = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContext
 const Toolbar = ({ block, ctx, onStyle, onDragHandle }: { block: PageBlock; ctx: InlineEditContextValue; onStyle: () => void; onDragHandle: (armed: boolean) => void }) => {
   const btn = "p-1.5 rounded-md text-white/90 hover:bg-white/15";
   const setAlign = (a: PageBlock["align"]) => ctx.updateBlock(block.id, { align: a });
-  const hasAlign = ["heading", "text", "button", "image", "icon", "icon-list", "toc"].includes(block.type);
+  const hasAlign = ALIGNABLE.has(block.type);
   const [styleClip, setStyleClip] = useState<BlockStyle | null>(() => readStyleClipboard());
   const [quickOpen, setQuickOpen] = useState(false);
   const s = block.style ?? {};
@@ -1508,6 +1692,10 @@ const BlockView = ({ block, nested = false }: { block: PageBlock; nested?: boole
   const css: React.CSSProperties = fullBleed ? { ...baseCss, width: "100vw", marginLeft: "calc(50% - 50vw)" } : { ...baseCss };
   if (block.anchor) css.scrollMarginTop = 96;
   const anchorProps = block.anchor ? { id: block.anchor, "data-block-anchor": block.anchor } : {};
+  // Only when the editor picked a colour: let it cascade into the block's text
+  // elements (see the [data-ink] rule in index.css). Without this the hardcoded
+  // theme classes on inner elements win and the Text colour control does nothing.
+  const inkProps = block.style?.color ? { "data-ink": "" } : {};
   const body = <div className={maxWClass(block.style?.maxW)}><BlockBody block={block} ctx={ctx} /></div>;
   const inner = fullBleed ? <div className="mx-auto max-w-6xl px-4">{body}</div> : body;
 
@@ -1525,7 +1713,7 @@ const BlockView = ({ block, nested = false }: { block: PageBlock; nested?: boole
         style={block.style?.animDelay ? { transitionDelay: `${block.style.animDelay}ms` } : undefined}
       >{inner}</div>
     ) : inner;
-    return <div {...anchorProps} className={`${align} ${visClass(block)} ${hoverClass(block.style?.hover)}`} style={finalStyle}>{content}</div>;
+    return <div {...anchorProps} {...inkProps} className={`${align} ${visClass(block)} ${hoverClass(block.style?.hover)}`} style={finalStyle}>{content}</div>;
   }
 
   const up = (patch: Partial<PageBlock>) => ctx.updateBlock(block.id, patch);
@@ -1536,6 +1724,7 @@ const BlockView = ({ block, nested = false }: { block: PageBlock; nested?: boole
     <div
       data-block-id={block.id}
       {...anchorProps}
+      {...inkProps}
       onClick={(e) => { e.stopPropagation(); ctx.setActive(block.id); }}
       className={`group relative rounded-xl ring-1 transition p-3 ${isActive ? "ring-2 ring-primary" : "ring-transparent hover:ring-primary/40"} ${align} ${dropEdge === "top" ? "border-t-2 border-primary" : dropEdge === "bottom" ? "border-b-2 border-primary" : ""}`}
       style={css}

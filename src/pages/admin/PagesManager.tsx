@@ -32,6 +32,14 @@ const move = <T,>(arr: T[], i: number, dir: -1 | 1): T[] => {
   return copy;
 };
 
+/** The fields this form actually edits. Everything else in a PageOverride —
+ *  blocks, styles, seo, heroImage, gallery, video, cleared — is owned by the
+ *  on-page inline editor and must survive a reset, or "Load default copy" would
+ *  silently discard work built there. */
+const FORM_KEYS: (keyof PageOverride)[] = [
+  "badge", "title", "highlight", "intro", "kicker", "pullQuote", "stats", "sections", "sources",
+];
+
 const RowTools = ({ onUp, onDown, onDelete }: { onUp: () => void; onDown: () => void; onDelete: () => void }) => (
   <div className="flex items-center gap-1 shrink-0">
     <button type="button" onClick={onUp} className="p-1.5 rounded-lg text-muted-foreground hover:bg-muted" title="Move up"><ArrowUp className="w-3.5 h-3.5" /></button>
@@ -57,7 +65,28 @@ const PageEditor = ({
   const sections = form.sections ?? [];
   const sources = form.sources ?? [];
 
-  const resetToDefault = () => { setForm(structuredClone(PAGE_DEFAULTS[path] ?? {})); toast.message("Loaded the site's default copy"); };
+  // Reset only the prose fields this form owns, and only when a stored default
+  // actually exists. Blanking the whole object here used to wipe the blocks,
+  // styles and SEO built in the on-page editor — with a success toast.
+  const hasDefaults = Boolean(PAGE_DEFAULTS[path]);
+  const resetToDefault = () => {
+    const defaults = PAGE_DEFAULTS[path];
+    if (!defaults) {
+      toast.error("This page has no stored default copy — its text lives in the page itself. Use “Edit on page” to change it.");
+      return;
+    }
+    setForm((f) => {
+      const next = structuredClone(f);
+      for (const k of FORM_KEYS) {
+        const v = defaults[k];
+        if (v === undefined) delete next[k];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        else (next as any)[k] = typeof v === "object" && v !== null ? structuredClone(v) : v;
+      }
+      return next;
+    });
+    toast.message("Loaded the site's default copy");
+  };
 
   const save = async () => {
     setSaving(true); setError("");
@@ -172,7 +201,12 @@ const PageEditor = ({
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Save
           </button>
           {!canPublish && canWrite && <span className="text-xs text-muted-foreground">Saved as a draft — an editor can publish.</span>}
-          <button onClick={resetToDefault} className="inline-flex items-center gap-2 rounded-xl border border-border bg-background px-4 py-2.5 text-sm font-medium text-foreground hover:bg-muted">
+          <button
+            onClick={resetToDefault}
+            disabled={!hasDefaults}
+            title={hasDefaults ? "Replace the text fields with the site's default copy" : "This page has no stored default copy — edit it on the page instead"}
+            className="inline-flex items-center gap-2 rounded-xl border border-border bg-background px-4 py-2.5 text-sm font-medium text-foreground hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-background"
+          >
             <RotateCcw className="w-4 h-4" /> Load default copy
           </button>
           <a href={path} target="_blank" rel="noreferrer" className="text-sm text-muted-foreground hover:text-foreground ml-auto">View page ↗</a>

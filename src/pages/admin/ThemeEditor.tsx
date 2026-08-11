@@ -18,6 +18,18 @@ const currentHex = (varName: string, fallback: string) => {
   return hslTripletToHex(triplet) || fallback;
 };
 
+/** Module scope on purpose: declared inside ThemeEditor it got a new identity on
+ *  every keystroke, so React remounted the inputs and the hex field lost focus. */
+const Row = ({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) => (
+  <div className="flex items-center gap-4">
+    <input type="color" value={value} onChange={(e) => onChange(e.target.value)} className="w-12 h-12 rounded-xl border border-border bg-transparent cursor-pointer" />
+    <div>
+      <div className="font-semibold text-foreground">{label}</div>
+      <input value={value} onChange={(e) => onChange(e.target.value)} className="mt-1 w-32 rounded-lg border border-border bg-background px-2.5 py-1.5 text-sm font-mono" />
+    </div>
+  </div>
+);
+
 const ThemeEditor = () => {
   const qc = useQueryClient();
   const { data: rows = [], isLoading, error } = useQuery({
@@ -54,16 +66,6 @@ const ThemeEditor = () => {
     } catch (e) { toast.error(e instanceof Error ? e.message : "Save failed."); } finally { setSaving(false); }
   };
 
-  const Row = ({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) => (
-    <div className="flex items-center gap-4">
-      <input type="color" value={value} onChange={(e) => { onChange(e.target.value); setDirty(true); }} className="w-12 h-12 rounded-xl border border-border bg-transparent cursor-pointer" />
-      <div>
-        <div className="font-semibold text-foreground">{label}</div>
-        <input value={value} onChange={(e) => { onChange(e.target.value); setDirty(true); }} className="mt-1 w-32 rounded-lg border border-border bg-background px-2.5 py-1.5 text-sm font-mono" />
-      </div>
-    </div>
-  );
-
   return (
     <div className="max-w-2xl">
       <PageHeader
@@ -84,8 +86,8 @@ const ThemeEditor = () => {
         <div className="space-y-6">
           <div className="rounded-2xl border border-border bg-card p-6 shadow-sm space-y-5">
             <div className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground/70">Brand colors</div>
-            <Row label="Primary" value={primary} onChange={setPrimary} />
-            <Row label="Secondary" value={secondary} onChange={setSecondary} />
+            <Row label="Primary" value={primary} onChange={(v) => { setPrimary(v); setDirty(true); }} />
+            <Row label="Secondary" value={secondary} onChange={(v) => { setSecondary(v); setDirty(true); }} />
           </div>
 
           <div className="rounded-2xl border border-border bg-card p-6 shadow-sm grid sm:grid-cols-2 gap-5">
