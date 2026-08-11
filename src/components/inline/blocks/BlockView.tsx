@@ -78,6 +78,22 @@ const ALIGNABLE = new Set<string>([
   "cta", "testimonial", "counter", "countdown", "rating", "progress",
 ]);
 
+// Literal class maps so Tailwind's JIT emits them (composed strings are dropped).
+// Defaults reproduce the gallery's previous hardcoded grid exactly.
+/** Shared icon sizes (literal classes for Tailwind's JIT). md matches the size
+ *  icon-list used before it became configurable. */
+const ICON_SIZE: Record<string, string> = {
+  sm: "w-4 h-4", md: "w-5 h-5", lg: "w-6 h-6", xl: "w-7 h-7",
+};
+
+const GAL_COLS_MD: Record<number, string> = {
+  2: "md:grid-cols-2", 3: "md:grid-cols-3", 4: "md:grid-cols-4", 5: "md:grid-cols-5",
+};
+const GAL_COLS_SM: Record<number, string> = { 1: "grid-cols-1", 2: "grid-cols-2", 3: "grid-cols-3" };
+const GAL_TILE: Record<string, string> = {
+  square: "aspect-square", "4-3": "aspect-[4/3]", "16-9": "aspect-video", "3-2": "aspect-[3/2]", auto: "",
+};
+
 const TRANSFORM_CSS: Record<string, CSSProperties["textTransform"]> = {
   upper: "uppercase", lower: "lowercase", caps: "capitalize",
 };
@@ -419,15 +435,15 @@ const parseCounter = (v: string) => {
   return { prefix: m[1], num: parseFloat(m[2].replace(/,/g, "")) || 0, suffix: m[3] };
 };
 
-const CounterView = ({ value, label }: { value: string; label: string }) => {
+const CounterView = ({ value, label, duration }: { value: string; label: string; duration?: number }) => {
   const { prefix, num, suffix } = parseCounter(value);
   const [n, setN] = useState(0);
   useEffect(() => {
-    let raf = 0; const start = performance.now(); const dur = 1200;
+    let raf = 0; const start = performance.now(); const dur = duration ?? 1200;
     const tick = (t: number) => { const p = Math.min(1, (t - start) / dur); setN(num * (1 - Math.pow(1 - p, 3))); if (p < 1) raf = requestAnimationFrame(tick); };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [num]);
+  }, [num, duration]);
   const display = Number.isInteger(num) ? Math.round(n).toLocaleString() : n.toFixed(1);
   return <div><div className="font-brief text-4xl md:text-5xl text-gradient-primary">{prefix}{display}{suffix}</div>{label && <div className="text-sm text-muted-foreground mt-1">{label}</div>}</div>;
 };
@@ -843,12 +859,19 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
     case "gallery": {
       const images = block.images ?? [];
       const setImages = (im: NonNullable<PageBlock["images"]>) => up({ images: im });
+      // Columns / gap / tile shape. Every default reproduces the previous
+      // hardcoded layout exactly: 2 up on mobile, 3 on desktop, 12px, square.
+      const galCols = GAL_COLS_MD[block.cols ?? 3] ?? GAL_COLS_MD[3];
+      const galColsM = GAL_COLS_SM[block.colsMobile ?? 2] ?? GAL_COLS_SM[2];
+      const galGap = block.gap ?? 12;
+      const galTile = GAL_TILE[block.ratio ?? "square"] ?? GAL_TILE.square;
+      const galFit = block.fit === "contain" ? "object-contain" : "object-cover";
       return (
         <div>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          <div className={`grid ${galColsM} ${galCols}`} style={{ gap: galGap }}>
             {images.map((im, i) => (
               <figure key={i} className="relative group/g">
-                <img src={im.src} alt={im.caption || ""} onClick={editing ? undefined : () => setLightIdx(i)} className={`w-full aspect-square object-cover rounded-xl ${editing ? "" : "cursor-zoom-in hover:opacity-90 transition-opacity"}`} loading="lazy" />
+                <img src={im.src} alt={im.alt || im.caption || ""} onClick={editing ? undefined : () => setLightIdx(i)} className={`w-full ${galTile} ${galFit} rounded-xl ${editing ? "" : "cursor-zoom-in hover:opacity-90 transition-opacity"}`} loading="lazy" />
                 {editing && (
                   <div className="absolute top-1.5 right-1.5 flex gap-1">
                     <button onClick={() => setGalIdx(i)} className="p-1.5 rounded-lg bg-black/70 text-white text-xs hover:bg-black/85"><ImageIcon className="w-3 h-3" /></button>
@@ -863,8 +886,62 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
           {galIdx !== null && (
             <Modal title="Gallery image" onClose={() => setGalIdx(null)}>
               <ImageUpload value={images[galIdx]?.src ?? ""} onChange={(url) => setImages(images.map((x, j) => (j === galIdx ? { ...x, src: url } : x)))} />
+              <label className="block mt-4 text-xs">
+                <span className="text-muted-foreground">Alt text — describes the image for screen readers and search</span>
+                <input
+                  value={images[galIdx]?.alt ?? ""}
+                  onChange={(e) => setImages(images.map((x, j) => (j === galIdx ? { ...x, alt: e.target.value } : x)))}
+                  placeholder="Electric bus charging at a depot"
+                  className="mt-1 w-full rounded-lg border border-border bg-background px-2.5 py-1.5 text-sm"
+                />
+              </label>
               <div className="mt-4 flex justify-end"><button onClick={() => setGalIdx(null)} className="rounded-xl gradient-hero text-white font-semibold px-5 py-2.5 text-sm">Done</button></div>
             </Modal>
+          )}
+          {editing && (
+            <InspectorPortal blockId={block.id}>
+              <div className="space-y-3 text-xs">
+                <div>
+                  <span className="text-muted-foreground">Columns — desktop</span>
+                  <div className="flex items-center gap-1.5 mt-1">
+                    {[2, 3, 4, 5].map((n) => (
+                      <button key={n} onClick={() => up({ cols: n })} className={`px-2 py-0.5 rounded ${(block.cols ?? 3) === n ? "gradient-hero text-white" : "border border-border text-muted-foreground hover:bg-muted"}`}>{n}</button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Columns — mobile</span>
+                  <div className="flex items-center gap-1.5 mt-1">
+                    {[1, 2, 3].map((n) => (
+                      <button key={n} onClick={() => up({ colsMobile: n })} className={`px-2 py-0.5 rounded ${(block.colsMobile ?? 2) === n ? "gradient-hero text-white" : "border border-border text-muted-foreground hover:bg-muted"}`}>{n}</button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Tile shape</span>
+                  <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                    {(["square", "4-3", "16-9", "3-2", "auto"] as const).map((r) => (
+                      <button key={r} onClick={() => up({ ratio: r })} className={`px-2 py-0.5 rounded ${(block.ratio ?? "square") === r ? "gradient-hero text-white" : "border border-border text-muted-foreground hover:bg-muted"}`}>{r}</button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Crop</span>
+                  <div className="flex items-center gap-1.5 mt-1">
+                    {(["cover", "contain"] as const).map((f) => (
+                      <button key={f} onClick={() => up({ fit: f })} className={`px-2 py-0.5 rounded capitalize ${(block.fit ?? "cover") === f ? "gradient-hero text-white" : "border border-border text-muted-foreground hover:bg-muted"}`}>{f}</button>
+                    ))}
+                  </div>
+                </div>
+                <label className="block">
+                  <span className="text-muted-foreground">Spacing — {galGap}px</span>
+                  <input type="range" min={0} max={40} step={2} value={galGap} onChange={(e) => up({ gap: Number(e.target.value) })} className="w-full mt-1" />
+                </label>
+                {(block.cols || block.colsMobile || block.gap !== undefined || block.ratio || block.fit) && (
+                  <button onClick={() => up({ cols: undefined, colsMobile: undefined, gap: undefined, ratio: undefined, fit: undefined })} className="text-primary hover:underline">Reset layout</button>
+                )}
+              </div>
+            </InspectorPortal>
           )}
           {lightIdx !== null && <Lightbox images={images} index={lightIdx} onClose={() => setLightIdx(null)} onNav={setLightIdx} />}
         </div>
@@ -943,43 +1020,110 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
       );
     }
 
-    case "counter":
-      if (!editing) return <CounterView value={block.text ?? ""} label={block.subtext ?? ""} />;
+    case "counter": {
+      // `num` carries the count-up duration in ms. Unset = the previous 1200ms.
+      const cDur = block.num;
+      if (!editing) return <CounterView value={block.text ?? ""} label={block.subtext ?? ""} duration={cDur} />;
       return (
         <div>
           <input value={block.text ?? ""} onChange={(e) => up({ text: e.target.value })} placeholder="60%  ·  $5,500  ·  1,200+" className="font-brief text-2xl text-center rounded-lg border border-border bg-background px-3 py-1.5 w-56" />
           <input value={block.subtext ?? ""} onChange={(e) => up({ subtext: e.target.value })} placeholder="Label" className="mt-2 block mx-auto text-sm text-center rounded-lg border border-border bg-background px-2.5 py-1.5 w-64" />
           <p className="text-xs text-muted-foreground mt-1">Animates a count-up on the live page (a leading “$” or trailing “%”, “+” is kept).</p>
+          <InspectorPortal blockId={block.id}>
+            <div className="space-y-3 text-xs">
+              <label className="block">
+                <span className="text-muted-foreground">Number</span>
+                <input value={block.text ?? ""} onChange={(e) => up({ text: e.target.value })} placeholder="60%" className="mt-1 w-full rounded-lg border border-border bg-background px-2.5 py-1.5" />
+              </label>
+              <label className="block">
+                <span className="text-muted-foreground">Label</span>
+                <input value={block.subtext ?? ""} onChange={(e) => up({ subtext: e.target.value })} placeholder="Faster charging" className="mt-1 w-full rounded-lg border border-border bg-background px-2.5 py-1.5" />
+              </label>
+              <label className="block">
+                <span className="text-muted-foreground">Count-up speed — {((cDur ?? 1200) / 1000).toFixed(1)}s</span>
+                <input type="range" min={200} max={5000} step={100} value={cDur ?? 1200} onChange={(e) => up({ num: Number(e.target.value) })} className="w-full mt-1" />
+              </label>
+              {cDur !== undefined && (
+                <button onClick={() => up({ num: undefined })} className="text-primary hover:underline">Reset speed</button>
+              )}
+            </div>
+          </InspectorPortal>
         </div>
       );
+    }
 
     case "countdown":
       if (!editing) return <CountdownView target={block.text ?? ""} label={block.subtext ?? ""} variant={block.variant} />;
       return (
         <div className="space-y-2">
           <CountdownView target={block.text ?? ""} label={block.subtext ?? ""} variant={block.variant} />
-          <div className="inline-flex flex-wrap items-center gap-2 rounded-lg border border-border bg-background/80 px-2 py-1.5 text-xs mt-2">
-            <span className="text-muted-foreground">Design</span>
-            {COUNTDOWN_VARIANTS.map((v) => (
-              <button key={v} onClick={() => up({ variant: v })} className={`px-2 py-0.5 rounded capitalize ${(block.variant ?? "boxes") === v ? "gradient-hero text-white" : "text-muted-foreground hover:bg-muted"}`}>{v}</button>
-            ))}
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <input type="datetime-local" value={block.text ?? ""} onChange={(e) => up({ text: e.target.value })} className="rounded-lg border border-border bg-background px-3 py-2 text-sm" />
-            <input value={block.subtext ?? ""} onChange={(e) => up({ subtext: e.target.value })} placeholder="Label (e.g. Event starts in)" className="rounded-lg border border-border bg-background px-2.5 py-1.5 text-sm w-64" />
-          </div>
+          <InspectorPortal blockId={block.id}>
+            <div className="space-y-3 text-xs">
+              <div>
+                <span className="text-muted-foreground">Design</span>
+                <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                  {COUNTDOWN_VARIANTS.map((v) => (
+                    <button key={v} onClick={() => up({ variant: v })} className={`px-2 py-0.5 rounded capitalize ${(block.variant ?? "boxes") === v ? "gradient-hero text-white" : "border border-border text-muted-foreground hover:bg-muted"}`}>{v}</button>
+                  ))}
+                </div>
+              </div>
+              <label className="block">
+                <span className="text-muted-foreground">Counts down to</span>
+                <input type="datetime-local" value={block.text ?? ""} onChange={(e) => up({ text: e.target.value })} className="mt-1 w-full rounded-lg border border-border bg-background px-2.5 py-1.5" />
+              </label>
+              <label className="block">
+                <span className="text-muted-foreground">Label</span>
+                <input value={block.subtext ?? ""} onChange={(e) => up({ subtext: e.target.value })} placeholder="Event starts in" className="mt-1 w-full rounded-lg border border-border bg-background px-2.5 py-1.5" />
+              </label>
+            </div>
+          </InspectorPortal>
         </div>
       );
 
-    case "maps":
+    case "maps": {
+      // Zoom (num) and height reuse existing PageBlock fields. Unset = the
+      // previous behaviour exactly: Google's default zoom, 16:9 box.
+      const zoom = block.num;
+      const mapH = block.height;
+      const mapSrc = `https://www.google.com/maps?q=${encodeURIComponent(block.text ?? "")}${zoom ? `&z=${zoom}` : ""}&output=embed`;
       return (
         <div>
-          <div className="aspect-video rounded-2xl overflow-hidden border border-border">
-            {block.text ? <iframe title={`Map of ${block.text}`} className="w-full h-full" src={`https://www.google.com/maps?q=${encodeURIComponent(block.text)}&output=embed`} loading="lazy" /> : <div className="w-full h-full grid place-items-center bg-muted text-muted-foreground text-sm">Enter an address below</div>}
+          <div
+            className={`${mapH ? "" : "aspect-video"} rounded-2xl overflow-hidden border border-border`}
+            style={mapH ? { height: mapH } : undefined}
+          >
+            {block.text ? <iframe title={`Map of ${block.text}`} className="w-full h-full" src={mapSrc} loading="lazy" /> : <div className="w-full h-full grid place-items-center bg-muted text-muted-foreground text-sm">Enter an address below</div>}
           </div>
-          {editing && <input value={block.text ?? ""} onChange={(e) => up({ text: e.target.value })} placeholder="Address or place, e.g. Detroit, MI" className="mt-2 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" />}
+          {editing && (
+            <>
+              <input value={block.text ?? ""} onChange={(e) => up({ text: e.target.value })} placeholder="Address or place, e.g. Detroit, MI" className="mt-2 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" />
+              <InspectorPortal blockId={block.id}>
+                <div className="space-y-3 text-xs">
+                  <label className="block">
+                    <span className="text-muted-foreground">Address or place</span>
+                    <input value={block.text ?? ""} onChange={(e) => up({ text: e.target.value })} placeholder="Detroit, MI" className="mt-1 w-full rounded-lg border border-border bg-background px-2.5 py-1.5" />
+                  </label>
+                  <label className="block">
+                    <span className="text-muted-foreground">Zoom {zoom ? `— ${zoom}` : "— auto"}</span>
+                    <input type="range" min={1} max={20} value={zoom ?? 12} onChange={(e) => up({ num: Number(e.target.value) })} className="w-full mt-1" />
+                  </label>
+                  <label className="block">
+                    <span className="text-muted-foreground">Height</span>
+                    <div className="flex items-center gap-2 mt-1">
+                      <input type="number" min={120} max={1200} step={20} placeholder="16:9" value={mapH ?? ""} onChange={(e) => up({ height: e.target.value === "" ? undefined : Number(e.target.value) })} className="w-24 rounded-lg border border-border bg-background px-2.5 py-1.5" />
+                      <span className="text-muted-foreground">px — blank keeps the 16:9 shape</span>
+                    </div>
+                  </label>
+                  {(zoom !== undefined || mapH !== undefined) && (
+                    <button onClick={() => up({ num: undefined, height: undefined })} className="text-primary hover:underline">Reset map size</button>
+                  )}
+                </div>
+              </InspectorPortal>
+            </>
+          )}
         </div>
       );
+    }
 
     case "html":
       return editing ? (
@@ -1077,17 +1221,36 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
       const sz = block.size ?? "md";
       const chip = { sm: "w-8 h-8", md: "w-10 h-10", lg: "w-12 h-12", xl: "w-14 h-14" }[sz];
       const gly = { sm: "w-4 h-4", md: "w-5 h-5", lg: "w-6 h-6", xl: "w-7 h-7" }[sz];
+      // Shape + chip colour. Both unset = the previous circular brand chip.
+      const shapeCls = block.variant === "square" ? "rounded-none" : block.variant === "rounded" ? "rounded-xl" : "rounded-full";
+      const chipCls = `${chip} ${shapeCls} ${block.accent ? "" : "gradient-hero"} grid place-items-center text-white hover:opacity-90`;
+      const chipStyle = block.accent ? { background: block.accent } : undefined;
       if (!editing) return (
         <div className="inline-flex flex-wrap items-center justify-center gap-3">
-          {items.map((it, i) => { const Icon = SOCIAL_ICONS[it.title ?? ""] ?? Mail; return <a key={i} href={safeHref(it.body)} target="_blank" rel="noopener noreferrer" aria-label={`${it.title ? it.title.charAt(0).toUpperCase() + it.title.slice(1) : "Social"} (opens in a new tab)`} className={`${chip} rounded-full gradient-hero grid place-items-center text-white hover:opacity-90`}><Icon aria-hidden="true" className={gly} /></a>; })}
+          {items.map((it, i) => { const Icon = SOCIAL_ICONS[it.title ?? ""] ?? Mail; return <a key={i} href={safeHref(it.body)} target="_blank" rel="noopener noreferrer" aria-label={`${it.title ? it.title.charAt(0).toUpperCase() + it.title.slice(1) : "Social"} (opens in a new tab)`} className={chipCls} style={chipStyle}><Icon aria-hidden="true" className={gly} /></a>; })}
         </div>
       );
       return (
         <div className="text-left space-y-2">
-          <div className="inline-flex items-center gap-2 text-xs mb-1">
-            <span className="text-muted-foreground">Size</span>
-            {(["sm", "md", "lg", "xl"] as const).map((z) => <button key={z} onClick={() => up({ size: z })} className={`px-1.5 py-0.5 rounded uppercase ${sz === z ? "gradient-hero text-white" : "text-muted-foreground hover:bg-muted"}`}>{z}</button>)}
-          </div>
+          <InspectorPortal blockId={block.id}>
+            <div className="space-y-3 text-xs">
+              <div>
+                <span className="text-muted-foreground">Size</span>
+                <div className="flex items-center gap-1.5 mt-1">
+                  {(["sm", "md", "lg", "xl"] as const).map((z) => <button key={z} onClick={() => up({ size: z })} className={`px-2 py-0.5 rounded uppercase ${sz === z ? "gradient-hero text-white" : "border border-border text-muted-foreground hover:bg-muted"}`}>{z}</button>)}
+                </div>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Shape</span>
+                <div className="flex items-center gap-1.5 mt-1">
+                  {(["circle", "rounded", "square"] as const).map((s) => (
+                    <button key={s} onClick={() => up({ variant: s })} className={`px-2 py-0.5 rounded capitalize ${(block.variant ?? "circle") === s ? "gradient-hero text-white" : "border border-border text-muted-foreground hover:bg-muted"}`}>{s}</button>
+                  ))}
+                </div>
+              </div>
+              <ColorField label="Icon colour" value={block.accent} onChange={(v) => up({ accent: v })} />
+            </div>
+          </InspectorPortal>
           {items.map((it, i) => (
             <div key={i} className="flex items-center gap-2">
               <select value={it.title ?? "facebook"} onChange={(e) => setItems(items.map((x, j) => (j === i ? { ...x, title: e.target.value } : x)))} className="rounded-lg border border-border bg-background px-2 py-1.5 text-sm capitalize">{SOCIAL_OPTIONS.map((o) => <option key={o} value={o}>{o}</option>)}</select>
@@ -1185,12 +1348,17 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
       const items = block.items ?? [];
       const setItems = (it: NonNullable<PageBlock["items"]>) => up({ items: it });
       const Icon = BLOCK_ICONS[block.icon ?? "check"] ?? BLOCK_ICONS.check ?? BLOCK_ICONS.zap;
+      // iconSize / iconColor already existed on PageBlock but this block ignored
+      // them. Defaults reproduce the previous hardcoded "w-5 h-5 text-primary".
+      const liSize = ICON_SIZE[block.iconSize ?? "md"] ?? ICON_SIZE.md;
+      const liTint = block.iconColor ? "" : "text-primary";
+      const liStyle = block.iconColor ? { color: block.iconColor } : undefined;
       if (!editing) {
         return (
           <ul className="inline-block text-left space-y-2.5">
             {items.map((it, i) => (
               <li key={i} className="flex items-start gap-2.5">
-                <Icon aria-hidden="true" className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                <Icon aria-hidden="true" className={`${liSize} ${liTint} shrink-0 mt-0.5`} style={liStyle} />
                 <span className="text-foreground">{it.body}</span>
               </li>
             ))}
@@ -1202,14 +1370,27 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
           <ul className="space-y-2">
             {items.map((it, i) => (
               <li key={i} className="flex items-center gap-2">
-                <Icon className="w-5 h-5 text-primary shrink-0" />
+                <Icon className={`${liSize} ${liTint} shrink-0`} style={liStyle} />
                 <input value={it.body ?? ""} onChange={(e) => setItems(items.map((x, j) => (j === i ? { ...x, body: e.target.value } : x)))} placeholder="List item" className="flex-1 rounded-lg border border-border bg-background px-2.5 py-1.5 text-sm" />
                 <button onClick={() => setItems(items.filter((_, j) => j !== i))} className="p-1.5 rounded-md text-muted-foreground hover:text-destructive hover:bg-muted"><Trash2 className="w-3.5 h-3.5" /></button>
               </li>
             ))}
           </ul>
           <button onClick={() => setItems([...items, { body: "New item" }])} className="mt-2 inline-flex items-center gap-1.5 text-sm text-primary hover:underline"><Plus className="w-4 h-4" /> Add item</button>
-          <IconPicker block={block} up={up} />
+          <InspectorPortal blockId={block.id}>
+            <div className="space-y-3 text-xs">
+              <IconPicker block={block} up={up} />
+              <div>
+                <span className="text-muted-foreground">Icon size</span>
+                <div className="flex items-center gap-1.5 mt-1">
+                  {(["sm", "md", "lg", "xl"] as const).map((z) => (
+                    <button key={z} onClick={() => up({ iconSize: z })} className={`px-2 py-0.5 rounded uppercase ${(block.iconSize ?? "md") === z ? "gradient-hero text-white" : "border border-border text-muted-foreground hover:bg-muted"}`}>{z}</button>
+                  ))}
+                </div>
+              </div>
+              <ColorField label="Icon colour" value={block.iconColor} onChange={(v) => up({ iconColor: v })} />
+            </div>
+          </InspectorPortal>
         </div>
       );
     }
