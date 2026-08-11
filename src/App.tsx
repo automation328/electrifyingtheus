@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import ScrollToTop from "./components/ScrollToTop.tsx";
+import SeoRouteHead from "./components/SeoRouteHead.tsx";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -47,6 +48,7 @@ import NotFound from "./pages/NotFound.tsx";
 import CustomPage from "./pages/CustomPage.tsx";
 import ThemeApplier from "./components/ThemeApplier.tsx";
 import ThemeEditor from "./pages/admin/ThemeEditor.tsx";
+import SeoEditor from "./pages/admin/SeoEditor.tsx";
 import ContactWidget from "./components/ContactWidget.tsx";
 import AnalyticsTracker from "./components/AnalyticsTracker.tsx";
 import GoogleAnalytics from "./components/GoogleAnalytics.tsx";
@@ -76,6 +78,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <ScrollToTop />
+        <SeoRouteHead />
         <GoogleAnalytics />
         <Routes>
           <Route path="/" element={<Index />} />
@@ -141,6 +144,7 @@ const App = () => (
             <Route path="navigation" element={<NavEditor />} />
             <Route path="footer" element={<FooterEditor />} />
             <Route path="theme" element={<ThemeEditor />} />
+            <Route path="seo" element={<SeoEditor />} />
             <Route path="vehicles" element={<CollectionManager config={vehiclesConfig} />} />
             <Route path="incentives" element={<CollectionManager config={incentivesConfig} />} />
             <Route path="knowledge-base" element={<KnowledgeBaseManager />} />

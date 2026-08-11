@@ -4,11 +4,7 @@
 // custom title/card never bleeds onto the next page during SPA navigation.
 
 import { useEffect, useRef } from "react";
-
-// Must mirror middleware.ts SITE_DEFAULT so client + crawler heads agree.
-const SITE_TITLE = "Electrifying the US — EV vs Gas Calculator & Zero-Emission Mobility";
-const SITE_DESC = "See how much you'd save switching to an EV — real U.S. energy prices, state by state. Plus charging, incentives, events, and multimodal e-mobility.";
-const SITE_IMAGE = "/og-image.jpg";
+import { useSeoSettings } from "@/lib/seo-settings";
 
 const absolutize = (url: string) => {
   if (!url) return url;
@@ -34,6 +30,13 @@ const MANAGED: { attr: "name" | "property"; key: string; valKey: string }[] = [
 ];
 
 const SeoHead = ({ title, description, image }: { title?: string; description?: string; image?: string }) => {
+  // Site-wide defaults from the CMS (site_settings key 'seo'), falling back to
+  // src/data/seo.ts. A page's own props still win, field by field.
+  const seo = useSeoSettings();
+  const SITE_TITLE = seo.defaultTitle;
+  const SITE_DESC = seo.defaultDescription;
+  const SITE_IMAGE = seo.defaultImage;
+
   // Remember exactly what this instance wrote, so the reset only touches tags
   // that haven't since been overwritten by another page's SeoHead.
   const wrote = useRef<Record<string, string>>({});
@@ -57,7 +60,9 @@ const SeoHead = ({ title, description, image }: { title?: string; description?: 
         if (el && el.getAttribute("content") === mine[m.valKey]) el.setAttribute("content", def[m.valKey]);
       }
     };
-  }, [title, description, image]);
+    // Site defaults are included: they arrive asynchronously from the CMS, and
+    // without them here the head would keep the pre-fetch fallback values.
+  }, [title, description, image, SITE_TITLE, SITE_DESC, SITE_IMAGE]);
 
   return null;
 };

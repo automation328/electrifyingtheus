@@ -11,12 +11,16 @@
 
 import { next } from "@vercel/edge";
 import { OG_ENTRIES } from "./og-data.js";
+import { SITEMAP_STATIC, isSitemapExcluded } from "./sitemap-urls.js";
 
 export const config = {
   matcher: [
     // Every page route (excludes /api, static assets, and any file with an
     // extension) so the home page and all other pages get a working OG card.
     "/((?!api/|assets/|og/|fonts/|.*\\.).*)",
+    // Dotted paths are excluded by the pattern above, so /sitemap.xml must be
+    // listed explicitly or it falls through to the SPA rewrite and returns HTML.
+    "/sitemap.xml",
   ],
 };
 
@@ -71,6 +75,61 @@ const eventSlugFor = (title: string, eventDate: string): string => {
   const day = String(Number(d) || 0).padStart(2, "0");
   return `${slugify(title)}-${month}-${day}-${y}`;
 };
+
+const SITEMAP_ORIGIN = "https://electrifyingtheus.com";
+
+/** Published CMS URLs. Best-effort: returns [] on any error or timeout, so the
+ *  sitemap degrades to the build-time list rather than failing. */
+async function fetchCmsSitemapPaths(): Promise<string[]> {
+  const base = process.env.VITE_SUPABASE_URL;
+  const anon = process.env.VITE_SUPABASE_ANON_KEY;
+  if (!base || !anon) return [];
+  const headers = { apikey: anon, authorization: `Bearer ${anon}` };
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 1500);
+  const out: string[] = [];
+  try {
+    const [pages, posts, events] = await Promise.all([
+      fetch(`${base}/rest/v1/site_pages?status=eq.published&select=path`, { headers, signal: ctrl.signal }),
+      fetch(`${base}/rest/v1/site_blog_posts?status=eq.published&select=slug`, { headers, signal: ctrl.signal }),
+      fetch(`${base}/rest/v1/site_events?status=eq.published&select=title,event_date`, { headers, signal: ctrl.signal }),
+    ]);
+    if (pages.ok) {
+      for (const r of (await pages.json()) as Array<{ path?: string }>) {
+        if (r?.path?.startsWith("/")) out.push(r.path);
+      }
+    }
+    if (posts.ok) {
+      for (const r of (await posts.json()) as Array<{ slug?: string }>) {
+        if (r?.slug) out.push(`/blog/${r.slug}`);
+      }
+    }
+    if (events.ok) {
+      // site_events has no slug column — the URL is derived from title + date,
+      // the same way the OG lookup resolves an event (see eventSlugFor above).
+      for (const r of (await events.json()) as Array<{ title?: string; event_date?: string }>) {
+        if (r?.title) out.push(`/events/${eventSlugFor(r.title, r.event_date ?? "")}`);
+      }
+    }
+  } catch {
+    return [];
+  } finally {
+    clearTimeout(timer);
+  }
+  return out;
+}
+
+/** <urlset> for /sitemap.xml: build-time URLs ∪ published CMS URLs. */
+async function buildSitemapXml(): Promise<string> {
+  const cms = await fetchCmsSitemapPaths();
+  const paths = [...new Set([...SITEMAP_STATIC, ...cms])]
+    .filter((p) => p.startsWith("/") && !isSitemapExcluded(p))
+    .sort();
+  const urls = paths
+    .map((p) => `  <url><loc>${esc(SITEMAP_ORIGIN + (p === "/" ? "/" : p.replace(/\/+$/, "")))}</loc></url>`)
+    .join("\n");
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`;
+}
 
 // Best-effort: the page's main image + title/description from the DB. Guarded
 // (timeout + try/catch) so any failure leaves the static fallback untouched.
@@ -239,6 +298,18 @@ function gateHtml(): string {
 
 export default async function middleware(request: Request) {
   const ua = request.headers.get("user-agent") || "";
+
+  // /sitemap.xml is served here rather than as a serverless function (11 of the
+  // 12 Hobby function slots are already used — see api/admin.ts). It must be
+  // handled BEFORE the password gate below, or the gate would 401 it.
+  if (new URL(request.url).pathname === "/sitemap.xml") {
+    return new Response(await buildSitemapXml(), {
+      headers: {
+        "content-type": "application/xml; charset=utf-8",
+        "cache-control": "public, s-maxage=3600, stale-while-revalidate=86400",
+      },
+    });
+  }
 
   // Embedded tool requests (`?embed=1` on an EMBED_TOOL_PATHS route) skip the
   // gate so third-party iframes render instead of the 401 sign-in page.

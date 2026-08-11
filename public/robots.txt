@@ -12,3 +12,10 @@ Allow: /
 
 User-agent: *
 Allow: /
+
+# Deliberately no "Disallow: /admin" here. Disallow blocks the CRAWL, which
+# would stop Google ever seeing the noindex meta those pages now send — already
+# indexed admin URLs would be frozen in the index instead of dropping out. Add
+# Disallow only after Search Console shows them gone.
+
+Sitemap: https://electrifyingtheus.com/sitemap.xml
