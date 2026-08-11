@@ -8,7 +8,9 @@ import Footer from "@/components/Footer";
 import ShareGate from "@/components/forms/ShareGate";
 import EventActionGate from "@/components/forms/EventActionGate";
 import WebinarRegisterForm from "@/components/forms/WebinarRegisterForm";
+import EventSpeakers from "@/components/EventSpeakers";
 import { EVENTS, eventFullDate, gcalLink } from "@/data/events";
+import { splitEventDescription, type EventSpeaker } from "@/lib/event-description";
 import { useEvents } from "@/hooks/use-content";
 import flyer from "@/assets/general-flyer.jpg";
 
@@ -20,6 +22,16 @@ const LEARN = [
   { icon: BadgeCheck, text: "Federal, state, and utility incentives you can claim" },
 ];
 
+/** Shown when the description itself carries no inline speakers list. */
+const SPEAKERS: EventSpeaker[] = [
+  { name: "Terry Travis", org: "EVNoire", role: "Moderator" },
+  { name: "Lisa Macumber", org: "California Air Resources Board" },
+  { name: "Bobby Godsey", org: "Austin Energy" },
+  { name: "Dr. Alexis Jackson", org: "Uber" },
+  { name: "Rob Sargent", org: "Coltura" },
+  { name: "Zach Franklin", org: "GRID Alternatives" },
+];
+
 const EventFromPumpToPlug = () => {
   // Prefer the merged (CMS-override-aware) event so edits made in the CMS reflect
   // on this dedicated page too; fall back to the curated static event.
@@ -27,6 +39,8 @@ const EventFromPumpToPlug = () => {
   const event = events.find((e) => e.slug === SLUG) ?? EVENTS.find((e) => e.slug === SLUG) ?? EVENTS[0];
   const registerUrl = event.registerUrl ?? "https://us06web.zoom.us/webinar/register/WN_PtzGLoOyQqmDMg8lXpKRlw#/registration";
   const eventSummary = `${event.location} · ${event.month} ${event.day}, ${event.year}`;
+  const { intro, speakers: parsedSpeakers } = splitEventDescription(event.description);
+  const speakers = parsedSpeakers.length ? parsedSpeakers : SPEAKERS;
   const scrollToRegister = () =>
     document.getElementById("register")?.scrollIntoView({ behavior: "smooth", block: "start" });
 
@@ -109,7 +123,9 @@ const EventFromPumpToPlug = () => {
                 <span className="flex items-center gap-2.5"><MapPin className="w-5 h-5 text-primary shrink-0" /> {event.location}</span>
               </div>
 
-              <p className="text-muted-foreground leading-relaxed mb-6">{event.description}</p>
+              {intro && <p className="text-muted-foreground leading-relaxed mb-6">{intro}</p>}
+
+              <EventSpeakers speakers={speakers} tone="detail" className="mb-6" />
 
               <p className="text-xs text-muted-foreground">
                 Powered by <span className="font-semibold text-foreground">Electrifying Michigan</span>,{" "}

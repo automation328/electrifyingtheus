@@ -8,6 +8,8 @@ import {
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { gcalLink, isUpcoming, isActive, byDateAsc, eventFullDate, eventTitleClean, eventLocationPin, type EventItem } from "@/data/events";
+import { splitEventDescription } from "@/lib/event-description";
+import EventSpeakers from "@/components/EventSpeakers";
 import { useEvents } from "@/hooks/use-content";
 import { useExternalEvents } from "@/hooks/use-external-events";
 import { submitLead } from "@/lib/submitLead";
@@ -289,6 +291,7 @@ const Events = () => {
               {featVisible.map((e, i) => {
                 // Blue↔green hero gradient bodies, alternating direction (matches the reference cards).
                 const body = (featClamped * FEAT_PER + i) % 2 === 0 ? "gradient-hero" : "gradient-hero-rev";
+                const { intro, speakers } = splitEventDescription(e.description);
                 return (
                   <article
                     key={e.title}
@@ -320,7 +323,8 @@ const Events = () => {
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 text-xs font-semibold"><MapPin className="w-3.5 h-3.5" /> {eventLocationPin(e) || e.location}</span>
                         <span className="inline-flex items-center gap-1.5 text-xs text-primary-foreground/90"><Clock className="w-3.5 h-3.5" /> {e.time}</span>
                       </div>
-                      <p className="text-sm text-primary-foreground/90 mb-4">{e.description}</p>
+                      <p className="text-sm text-primary-foreground/90 mb-4">{intro}</p>
+                      <EventSpeakers speakers={speakers} tone="gradient" className="mb-4" />
                       <FeaturedActions e={e} />
                     </div>
                   </article>
@@ -346,8 +350,11 @@ const Events = () => {
               {visibleEvents.map((e, i) => {
                 const key = `${e.title}-${i}`;
                 const open = expandedEvents.has(key);
-                const long = e.description.length > 180;
-                const preview = long ? `${e.description.slice(0, 180).trimEnd()}…` : e.description;
+                const { intro, speakers } = splitEventDescription(e.description);
+                const clipped = intro.length > 180;
+                // Speakers sit behind "More Info" so the collapsed card stays compact.
+                const long = clipped || speakers.length > 0;
+                const preview = clipped ? `${intro.slice(0, 180).trimEnd()}…` : intro;
                 return (
                   <article
                     key={key}
@@ -400,8 +407,9 @@ const Events = () => {
                           )}
                         </div>
                         <p className={`text-sm text-muted-foreground ${open ? "whitespace-pre-line" : ""}`}>
-                          {open ? e.description : preview}
+                          {open ? intro : preview}
                         </p>
+                        {open && <EventSpeakers speakers={speakers} tone="card" className="mt-4" />}
                         {long && (
                           <button
                             type="button"
