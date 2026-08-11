@@ -65,14 +65,27 @@ export async function getEditor(req: Req): Promise<Editor | null> {
   if (!email) return null;
 
   // 2) Confirm the email is an allow-listed editor (service role read).
+  //
+  // Matching stays case-insensitive on purpose: `editors` is unique on
+  // lower(email) but the stored value may carry capitals (0005_editors.sql
+  // documents seeding the first admin by hand), and the RLS policy there also
+  // compares lower(email). A plain .eq() would lock those accounts out.
+  //
+  // But the address must NOT be treated as a LIKE pattern: `%` and `_` are
+  // wildcards, so an auth account named "admin%@example.com" would otherwise
+  // match the allow-list row "admin@example.com" and inherit ITS role. So:
+  // escape the wildcards, then re-check exact equality in JS — the JS check is
+  // the real guarantee, the escaping is defence in depth.
   const db = adminSupabase();
   if (!db) return null;
+  const pattern = email.replace(/[\\%_*]/g, (c) => `\\${c}`);
   const { data, error } = await db
     .from("editors")
     .select("email, role")
-    .ilike("email", email)
+    .ilike("email", pattern)
     .maybeSingle();
   if (error || !data) return null;
+  if (String(data.email).trim().toLowerCase() !== email) return null;
   // Blank role → least privilege (viewer). admin.ts normalizeRole() canonicalizes.
   return { email: data.email, role: data.role || "viewer" };
 }
