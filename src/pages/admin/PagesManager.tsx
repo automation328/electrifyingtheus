@@ -9,7 +9,8 @@ import { toast } from "sonner";
 import {
   Loader2, Save, Plus, Trash2, ArrowUp, ArrowDown, RotateCcw, AlertCircle, FileText, ExternalLink, Copy, Eye,
 } from "lucide-react";
-import { listRows, insertRow, updateRow, deleteRow } from "@/lib/admin-api";
+// RotateCcw is shared by "Load default copy" and the archive Restore action.
+import { listRows, insertRow, updateRow, deleteRow, destroyRow } from "@/lib/admin-api";
 import {
   EDITABLE_PAGES, PAGE_DEFAULTS, type PageOverride, type PageBlock,
 } from "@/lib/page-content";
@@ -246,6 +247,7 @@ const PagesManager = () => {
   const role = auth.status === "editor" ? auth.editor.role : "viewer";
   const canWrite = role !== "viewer";
   const canPublish = role === "admin" || role === "editor";
+  const isAdmin = role === "admin";   // permanent delete of an archived page
   const [selected, setSelected] = useState<string | null>(null);
 
   const { data: rows = [], isLoading } = useQuery({
@@ -320,11 +322,35 @@ const PagesManager = () => {
     }
   };
 
+  // Deleting a page ARCHIVES it (see api/admin.ts): it comes off the live site
+  // but stays listed here as "Archived" so it can be restored.
   const deletePage = async (row: PageRow) => {
-    if (!window.confirm(`Delete the page "${row.title || row.path}"? This can't be undone.`)) return;
+    if (!window.confirm(`Move "${row.title || row.path}" to the archive? It comes off the live site, and you can restore it here.`)) return;
     try {
       await deleteRow("site_pages", row.id);
-      toast.success("Page deleted");
+      toast.success("Page archived — you can restore it any time");
+      qc.invalidateQueries({ queryKey: ["admin-collection", "site_pages"] });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Couldn't archive it.");
+    }
+  };
+
+  /** Bring an archived page back as a draft — never straight back onto the site. */
+  const restorePage = async (row: PageRow) => {
+    try {
+      await updateRow("site_pages", row.id, { status: "draft", updated_at: new Date().toISOString() });
+      toast.success("Page restored as a draft");
+      qc.invalidateQueries({ queryKey: ["admin-collection", "site_pages"] });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Restore failed.");
+    }
+  };
+
+  const destroyPage = async (row: PageRow) => {
+    if (!window.confirm(`Permanently delete "${row.title || row.path}"? This cannot be undone and it will NOT go to the archive.`)) return;
+    try {
+      await destroyRow("site_pages", row.id);
+      toast.success("Page permanently deleted");
       qc.invalidateQueries({ queryKey: ["admin-collection", "site_pages"] });
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Delete failed.");
@@ -363,20 +389,40 @@ const PagesManager = () => {
           <h2 className="text-xs font-bold uppercase tracking-wide text-muted-foreground mb-2">Your pages</h2>
           <ul className="space-y-2 mb-8">
             {customPages.map((row) => {
-              const state = row.status === "published" ? "Published" : "Draft";
-              const tone = state === "Published" ? "bg-primary/10 text-primary" : "bg-amber-500/15 text-amber-600";
+              const archived = row.status === "archived";
+              const state = archived ? "Archived" : row.status === "published" ? "Published" : "Draft";
+              const tone = state === "Published"
+                ? "bg-primary/10 text-primary"
+                : archived ? "bg-muted text-muted-foreground" : "bg-amber-500/15 text-amber-600";
               return (
-                <li key={row.id} className="flex items-center gap-2 rounded-2xl border border-border bg-card px-4 py-3.5 shadow-card">
+                <li key={row.id} className={`flex items-center gap-2 rounded-2xl border border-border bg-card px-4 py-3.5 shadow-card ${archived ? "opacity-70" : ""}`}>
                   <FileText className="w-4 h-4 text-primary shrink-0" />
                   <div className="min-w-0 flex-1">
                     <div className="font-semibold text-foreground truncate">{row.title || row.path}</div>
                     <div className="text-xs text-muted-foreground truncate">{row.path}</div>
                   </div>
                   <span className={`text-[10px] uppercase font-bold tracking-wide rounded-full px-2 py-0.5 ${tone}`}>{state}</span>
-                  <a href={row.path} target="_blank" rel="noreferrer" className="p-2 rounded-lg text-muted-foreground hover:text-primary hover:bg-muted transition-colors" title="View / preview the live page"><Eye className="w-4 h-4" /></a>
-                  <a href={row.path} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 rounded-lg gradient-hero text-white text-xs font-semibold px-3 py-2 hover:opacity-90" title="Edit on the live page">Edit on page <ExternalLink className="w-3.5 h-3.5" /></a>
-                  {canWrite && <button onClick={() => duplicatePage(row)} className="p-2 rounded-lg text-muted-foreground hover:text-primary hover:bg-muted" title="Duplicate page"><Copy className="w-4 h-4" /></button>}
-                  {canPublish && <button onClick={() => deletePage(row)} className="p-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-muted" title="Delete page"><Trash2 className="w-4 h-4" /></button>}
+                  {archived ? (
+                    <>
+                      {canPublish && (
+                        <button onClick={() => restorePage(row)} className="inline-flex items-center gap-1.5 rounded-lg border border-primary/50 text-primary text-xs font-semibold px-3 py-2 hover:bg-primary/10" title="Restore — brings it back as a draft">
+                          <RotateCcw className="w-3.5 h-3.5" /> Restore
+                        </button>
+                      )}
+                      {isAdmin && (
+                        <button onClick={() => destroyPage(row)} className="p-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-muted" title="Delete permanently — cannot be undone">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <a href={row.path} target="_blank" rel="noreferrer" className="p-2 rounded-lg text-muted-foreground hover:text-primary hover:bg-muted transition-colors" title="View / preview the live page"><Eye className="w-4 h-4" /></a>
+                      <a href={row.path} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 rounded-lg gradient-hero text-white text-xs font-semibold px-3 py-2 hover:opacity-90" title="Edit on the live page">Edit on page <ExternalLink className="w-3.5 h-3.5" /></a>
+                      {canWrite && <button onClick={() => duplicatePage(row)} className="p-2 rounded-lg text-muted-foreground hover:text-primary hover:bg-muted" title="Duplicate page"><Copy className="w-4 h-4" /></button>}
+                      {canPublish && <button onClick={() => deletePage(row)} className="p-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-muted" title="Move to archive"><Trash2 className="w-4 h-4" /></button>}
+                    </>
+                  )}
                 </li>
               );
             })}

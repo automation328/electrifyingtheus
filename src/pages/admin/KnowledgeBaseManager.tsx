@@ -95,11 +95,15 @@ const KnowledgeBaseManager = () => {
 
   const remove = async (r: KbRow) => {
     if (!r.id) return;
-    if (!window.confirm(`Delete "${r.title || r.source}" and remove it from the assistant?`)) return;
+    // The embeddings are removed from the vector store first, then the row is
+    // archived. The text is kept and can be restored, but the assistant stops
+    // using it immediately — and putting it back means opening it and saving,
+    // which re-embeds it. So this is not a clean undo; say so.
+    if (!window.confirm(`Remove "${r.title || r.source}" from the assistant? The text is archived, but EVan stops using it right away — restoring means opening it and saving to re-add it.`)) return;
     try {
       await kbRemove(r.source);
       await deleteRow("kb_source_documents", r.id);
-      toast.success("Document deleted");
+      toast.success("Removed from the assistant — the text is archived");
       invalidate();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Delete failed.");
