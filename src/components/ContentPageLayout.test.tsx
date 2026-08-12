@@ -104,6 +104,42 @@ describe("blocks inside the hero", () => {
   });
 });
 
+describe("the video frame only takes space when there is a video", () => {
+  it("reserves no empty 16:9 frame for an editor with no video", () => {
+    const { container } = renderPage([], makeCtx({ editing: true }));
+    // Measured at 671px of dead space between the hero and the first block.
+    expect(container.querySelector(".brief-video")).toBeNull();
+  });
+
+  it("still offers the editor a way to add one", () => {
+    const { container } = renderPage([], makeCtx({ editing: true }));
+    expect(container.textContent).toContain("Add a video");
+  });
+
+  it("shows a visitor nothing at all when there is no video", () => {
+    const { container } = renderPage([], makeCtx({ editing: false }));
+    expect(container.querySelector(".brief-video")).toBeNull();
+    expect(container.textContent).not.toContain("Add a video");
+  });
+
+  it("renders the real frame once a video is set", () => {
+    const { container } = renderPage([], makeCtx({ editing: false }), {
+      video: { youtubeId: "abc123", title: "A talk" },
+    });
+    expect(container.querySelector(".brief-video")).toBeTruthy();
+    expect(container.textContent).toContain("Watch");
+    expect(container.querySelector('img[src*="abc123"]')).toBeTruthy();
+  });
+
+  it("lets an editor swap a video that is already there", () => {
+    const { container } = renderPage([], makeCtx({ editing: true }), {
+      video: { youtubeId: "abc123", title: "A talk" },
+    });
+    expect(container.textContent).toContain("Change video");
+    expect(container.textContent).not.toContain("Add a video");
+  });
+});
+
 describe("the gap under the hero", () => {
   it("stays tight on a page built only from blocks", () => {
     const { article } = renderPage([]);

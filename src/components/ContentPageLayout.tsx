@@ -302,14 +302,31 @@ const ContentPageLayout = ({
         )}
 
         {/* ── Featured video ─────────────────────────────────────────── */}
+        {/* With no video set, edit mode used to reserve the full 16:9 frame —
+            measured at 671px of empty box between the hero and the first block.
+            An editor with no video now gets a small "Add a video" pill instead;
+            the frame appears once there is something to put in it. */}
         {(video || editing) && (
-          <section className="container px-4 max-w-5xl mt-16 md:mt-20">
+          <section className={`container px-4 max-w-5xl ${video ? "mt-16 md:mt-20" : "mt-6"}`}>
+            {!video && editing && (
+              <div className="flex justify-center">
+                <button
+                  type="button"
+                  onClick={openVidEdit}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-dashed border-primary/50 bg-primary/5 px-4 py-1.5 text-xs font-semibold text-primary hover:bg-primary/10 transition-colors"
+                >
+                  <Film className="w-3.5 h-3.5" /> Add a video
+                </button>
+              </div>
+            )}
+            {video && (
+            <>
             <div className="flex items-center gap-3 mb-4 brief-reveal">
               <span className="brief-mono text-[11px] text-primary font-semibold">Watch</span>
               <span className="h-px flex-1 bg-border" />
             </div>
             <div className="brief-video brief-reveal aspect-video bg-foreground">
-              {video ? (playing ? (
+              {playing ? (
                 <iframe
                   className="absolute inset-0 w-full h-full"
                   src={`https://www.youtube-nocookie.com/embed/${video.youtubeId}?autoplay=1&rel=0&modestbranding=1`}
@@ -345,15 +362,15 @@ const ContentPageLayout = ({
                     </span>
                   </span>
                 </button>
-              )) : (
-                <div className="absolute inset-0 grid place-items-center text-white/60 text-sm">No video yet — click “Add video”.</div>
               )}
               {editing && (
                 <button type="button" onClick={openVidEdit} className="absolute top-2 right-2 z-10 inline-flex items-center gap-1.5 rounded-lg bg-black/70 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-black/85">
-                  <Film className="w-3.5 h-3.5" /> {video ? "Change video" : "Add video"}
+                  <Film className="w-3.5 h-3.5" /> Change video
                 </button>
               )}
             </div>
+            </>
+            )}
 
             {/* Optional CTA directly under the video (e.g. a related event). */}
             {extraCta && (
