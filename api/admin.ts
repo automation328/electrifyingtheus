@@ -38,6 +38,15 @@ const ALLOWED_TABLES = new Set<string>([
   "site_vehicles", "site_incentives", "site_pages", "kb_source_documents", "site_settings",
 ]);
 
+// Tables whose rows carry a `status` column, so a delete can ARCHIVE the row
+// (status = 'archived') instead of destroying it. Everything here already
+// documents 'archived' in its migration, and the public site reads only
+// status = 'published', so archiving hides the row exactly like deleting did —
+// but it can be restored. site_settings is excluded: it is a key/value config
+// table with no status column, and dropping a row there just reverts to the
+// coded default, which is already recoverable.
+const ARCHIVABLE = new Set<string>([...ALLOWED_TABLES].filter((t) => t !== "site_settings"));
+
 // ── roles / capabilities ──────────────────────────────────────────────────────
 // admin  — everything, incl. managing users
 // editor — all content + publish + settings + KB; no user management
@@ -192,9 +201,35 @@ async function handleCollection(b: Record<string, unknown>, res: any, role: stri
     if (!isSettings && !isKbTable && !canPublish(role)) { forbid(res, "Only editors and admins can delete content."); return; }
     const id = String(b.id ?? "");
     if (!id) { res.status(400).json({ error: "missing_id" }); return; }
+
+    // Archive instead of destroy, so a mistaken delete is recoverable. Every
+    // content table has a `status` column that already documents 'archived',
+    // and the public site only ever reads status = 'published', so an archived
+    // row disappears from the live site exactly as a deleted one did.
+    if (ARCHIVABLE.has(table)) {
+      const { error } = await db.from(table).update({ status: "archived" }).eq("id", id);
+      if (error) { res.status(400).json({ error: "archive_failed", detail: error.message }); return; }
+      await logActivity(db, actor, role, "archive", table, id);
+      res.status(200).json({ ok: true, archived: true });
+      return;
+    }
+
+    // site_settings has no status column (id/key/value/updated_at) — it is
+    // config, not content, and removing a row just reverts to the coded default.
     const { error } = await db.from(table).delete().eq("id", id);
     if (error) { res.status(400).json({ error: "delete_failed", detail: error.message }); return; }
     await logActivity(db, actor, role, "delete", table, id);
+    res.status(200).json({ ok: true });
+    return;
+  }
+  if (action === "destroy") {
+    // Permanent removal — admins only. This is the one that cannot be undone.
+    if (role !== "admin") { forbid(res, "Only admins can permanently delete."); return; }
+    const id = String(b.id ?? "");
+    if (!id) { res.status(400).json({ error: "missing_id" }); return; }
+    const { error } = await db.from(table).delete().eq("id", id);
+    if (error) { res.status(400).json({ error: "delete_failed", detail: error.message }); return; }
+    await logActivity(db, actor, role, "destroy", table, id);
     res.status(200).json({ ok: true });
     return;
   }

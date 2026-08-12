@@ -125,8 +125,21 @@ export async function updateRow<T = Record<string, unknown>>(table: AdminTable, 
   return updated;
 }
 
+/**
+ * Move a row to the archive (status = 'archived'). Recoverable: restore it by
+ * setting the status back with updateRow. The public site reads only published
+ * rows, so an archived item leaves the live site immediately.
+ *
+ * site_settings has no status column and is still removed outright — dropping a
+ * settings row simply reverts that setting to its coded default.
+ */
 export async function deleteRow(table: AdminTable, id: string): Promise<void> {
-  await call<{ ok: true }>({ op: "collection", action: "delete", table, id });
+  await call<{ ok: true; archived?: boolean }>({ op: "collection", action: "delete", table, id });
+}
+
+/** Permanently remove a row. Admins only, and it cannot be undone. */
+export async function destroyRow(table: AdminTable, id: string): Promise<void> {
+  await call<{ ok: true }>({ op: "collection", action: "destroy", table, id });
 }
 
 /**

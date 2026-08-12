@@ -6,9 +6,9 @@ import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
-  Plus, Pencil, Trash2, Loader2, X, Save, AlertCircle, Eye, EyeOff, Image as ImageIcon, FolderOpen, ExternalLink, Search,
+  Plus, Pencil, Trash2, Loader2, X, Save, AlertCircle, Eye, EyeOff, Image as ImageIcon, FolderOpen, ExternalLink, Search, RotateCcw,
 } from "lucide-react";
-import { listRows, insertRow, updateRow, deleteRow, type MediaItem } from "@/lib/admin-api";
+import { listRows, insertRow, updateRow, deleteRow, destroyRow, type MediaItem } from "@/lib/admin-api";
 import AdminField from "@/components/admin/AdminField";
 import MediaPickerModal from "@/components/admin/MediaPickerModal";
 import { type CollectionConfig, emptyRecord } from "@/pages/admin/collections/types";
@@ -38,6 +38,7 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
   const role = auth.status === "editor" ? auth.editor.role : "viewer";
   const canWrite = role !== "viewer";                       // authors/editors/admins
   const canPublish = role === "admin" || role === "editor"; // authors save drafts only
+  const isAdmin = role === "admin";                         // permanent delete only
   const adminKey = ["admin-collection", config.table];
 
   const { data: rows = [], isLoading, error } = useQuery({
@@ -151,12 +152,45 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
     }
   };
 
+  // Delete now ARCHIVES: the row leaves the live site but stays here, marked
+  // "archived", and can be restored. Only an admin can remove it for good.
   const remove = async (row: Row) => {
     if (!row.id) return;
-    if (!window.confirm(`Delete this ${config.singular.toLowerCase()}? This can't be undone.`)) return;
+    const label = config.singular.toLowerCase();
+    if (!window.confirm(`Move this ${label} to the archive? It comes off the live site, and you can restore it here.`)) return;
     try {
       await deleteRow(config.table, row.id);
-      toast.success(`${config.singular} deleted`);
+      toast.success(`${config.singular} archived — you can restore it any time`);
+      invalidate();
+      if (editing?.id === row.id) close();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Couldn't archive it.");
+    }
+  };
+
+  /** Bring an archived row back — as a draft where the collection has one, so
+   *  restoring never silently republishes something to the live site. */
+  const restore = async (row: Row) => {
+    if (!row.id) return;
+    const back = config.statusOptions.find((s) => s !== "archived" && s !== "published")
+      ?? config.statusOptions.find((s) => s !== "archived")
+      ?? "draft";
+    try {
+      await updateRow(config.table, row.id, { [config.statusField]: back });
+      toast.success(`${config.singular} restored as ${back}`);
+      invalidate();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Restore failed.");
+    }
+  };
+
+  const destroyPermanently = async (row: Row) => {
+    if (!row.id) return;
+    const label = config.singular.toLowerCase();
+    if (!window.confirm(`Permanently delete this ${label}? This cannot be undone and it will NOT go to the archive.`)) return;
+    try {
+      await destroyRow(config.table, row.id);
+      toast.success(`${config.singular} permanently deleted`);
       invalidate();
       if (editing?.id === row.id) close();
     } catch (e) {
@@ -205,6 +239,7 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
     const isStatic = !!row.__static;
     const status = String(row[config.statusField] ?? "");
     const published = status === "published";
+    const archived = status === "archived";
     const viewUrl = config.viewUrl?.(row);
     return (
       <li key={isStatic ? `s:${config.keyOf?.(row)}` : String(row.id)} className="group flex items-center gap-3.5 rounded-2xl border border-border/70 bg-card px-4 py-3 shadow-sm transition-all hover:shadow-md hover:border-primary/30">
@@ -234,15 +269,31 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
             </button>
           )
         ) : (
-          <>
-            {canPublish && (
-              <button onClick={() => toggleStatus(row)} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors" title={published ? "Unpublish" : "Publish"}>
-                {published ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-              </button>
-            )}
-            {canWrite && <button onClick={() => openEdit(row)} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors" title="Edit"><Pencil className="w-4 h-4" /></button>}
-            {canPublish && <button onClick={() => remove(row)} className="p-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-muted transition-colors" title="Delete"><Trash2 className="w-4 h-4" /></button>}
-          </>
+          archived ? (
+            // Archived rows offer recovery first; permanent removal is admin-only.
+            <>
+              {canPublish && (
+                <button onClick={() => restore(row)} className="inline-flex items-center gap-1.5 rounded-lg border border-primary/50 text-primary text-xs font-semibold px-3 py-2 hover:bg-primary/10" title="Restore — brings it back as a draft">
+                  <RotateCcw className="w-3.5 h-3.5" /> Restore
+                </button>
+              )}
+              {isAdmin && (
+                <button onClick={() => destroyPermanently(row)} className="p-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-muted transition-colors" title="Delete permanently — cannot be undone">
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              )}
+            </>
+          ) : (
+            <>
+              {canPublish && (
+                <button onClick={() => toggleStatus(row)} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors" title={published ? "Unpublish" : "Publish"}>
+                  {published ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                </button>
+              )}
+              {canWrite && <button onClick={() => openEdit(row)} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors" title="Edit"><Pencil className="w-4 h-4" /></button>}
+              {canPublish && <button onClick={() => remove(row)} className="p-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-muted transition-colors" title="Move to archive"><Trash2 className="w-4 h-4" /></button>}
+            </>
+          )
         )}
       </li>
     );
