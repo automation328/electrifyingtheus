@@ -42,6 +42,13 @@ export interface InlineEditContextValue {
   deleteTemplate: (id: string) => void;
 }
 
+/** `activeId` value that selects the PAGE HERO rather than a builder block. The
+ *  hero isn't a block (it's the page's own header), but it uses the same
+ *  selection + Inspector-portal machinery, so it needs an id no block can have.
+ *  Lives here — not in Inspector or HeroSection — so those two can both read it
+ *  without importing each other. */
+export const HERO_ID = "__page-hero__";
+
 export const InlineEditContext = createContext<InlineEditContextValue | null>(null);
 
 /** Null outside an editable page (or when not editing) → components render plain. */

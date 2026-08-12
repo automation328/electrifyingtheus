@@ -1492,14 +1492,16 @@ const BlockBody = ({ block, ctx }: { block: PageBlock; ctx: InlineEditContextVal
 };
 
 /* ── Per-block style (Elementor-like) ─────────────────────────────────────── */
-const BG_SWATCHES: [string, string][] = [
+// Exported: the page HERO panel (inline/HeroSection) offers the same background
+// and colour choices as a block, and must stay in step with these.
+export const BG_SWATCHES: [string, string][] = [
   ["None", ""], ["White", "#ffffff"], ["Light", "hsl(var(--muted))"], ["Dark", "#0f172a"],
   ["Primary", "hsl(var(--primary))"], ["Secondary", "hsl(var(--secondary))"],
 ];
-const TEXT_SWATCHES: [string, string][] = [
+export const TEXT_SWATCHES: [string, string][] = [
   ["Default", ""], ["Dark", "#0f172a"], ["White", "#ffffff"], ["Muted", "hsl(var(--muted-foreground))"], ["Primary", "hsl(var(--primary))"],
 ];
-const GRADIENT_PRESETS: NonNullable<BlockStyle["gradient"]>[] = [
+export const GRADIENT_PRESETS: NonNullable<BlockStyle["gradient"]>[] = [
   { from: "hsl(var(--primary))", to: "hsl(var(--secondary))", angle: 135 },
   { from: "#0b5fd4", to: "#1f9650", angle: 135 },
   { from: "#7c3aed", to: "#2563eb", angle: 135 },
@@ -1518,7 +1520,7 @@ const SHADOWS: Record<string, string> = {
   xl: "0 20px 50px rgba(0,0,0,0.18)",
 };
 
-const gradientCss = (g: NonNullable<BlockStyle["gradient"]>) => `linear-gradient(${g.angle ?? 135}deg, ${g.from}, ${g.to})`;
+export const gradientCss = (g: NonNullable<BlockStyle["gradient"]>) => `linear-gradient(${g.angle ?? 135}deg, ${g.from}, ${g.to})`;
 
 // A semi-transparent tint layer for a background image (keeps overlaid text readable).
 const overlayColor = (s: BlockStyle): string | undefined => {
@@ -1556,7 +1558,7 @@ const styleToCss = (s?: BlockStyle): React.CSSProperties => {
   };
 };
 
-const Swatch = ({ value, active, onClick }: { value: string; active: boolean; onClick: () => void }) => (
+export const Swatch = ({ value, active, onClick }: { value: string; active: boolean; onClick: () => void }) => (
   <button type="button" onClick={onClick} title={value || "none"} className={`w-7 h-7 rounded-lg border ${active ? "ring-2 ring-primary border-primary" : "border-border"} ${value ? "" : "bg-[repeating-conic-gradient(#ccc_0_25%,#fff_0_50%)] bg-[length:10px_10px]"}`} style={value ? { backgroundColor: value } : undefined} />
 );
 

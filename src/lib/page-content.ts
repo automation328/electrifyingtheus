@@ -124,6 +124,27 @@ export interface ElemStyle {
   align?: "left" | "center" | "right";
 }
 
+/** The page's own hero band (the title header at the top of every content page).
+ *  Unset = the built-in look, so every existing page is unaffected until an
+ *  editor touches it. Reuses BlockStyle so the hero's background/colour controls
+ *  behave exactly like a block's. */
+export interface PageHero {
+  /** Hero removed from the page. Edit mode still shows a "bring it back" strip. */
+  hidden?: boolean;
+  /** Background (colour / gradient), text colour, padding — see BlockStyle.
+   *  The background IMAGE lives in `heroImage` (one hero image, not two). */
+  style?: BlockStyle;
+  /** Horizontal alignment of the hero copy. Defaults to left. */
+  align?: "left" | "center" | "right";
+  /** Minimum height in vh. Unset = size to the content. */
+  minH?: number;
+  /** Hide the icon + kicker line above the title. */
+  hideKicker?: boolean;
+  /** Hide the "badge · N min read · N sources" line (on top of the page's own
+   *  hideMeta prop — this one is editor-controlled). */
+  hideMeta?: boolean;
+}
+
 /** Per-page SEO / social-share overrides. */
 export interface PageSeo {
   title?: string;        // browser + social-card title (falls back to the page title)
@@ -143,6 +164,8 @@ export interface PageOverride {
   sections?: ContentSection[];
   sources?: ContentSource[];
   heroImage?: string;
+  /** Look of the page's hero band (background, text colour, height, removal). */
+  hero?: PageHero;
   gallery?: ContentShot[];
   blocks?: PageBlock[];
   seo?: PageSeo;
@@ -159,7 +182,7 @@ export interface PageOverride {
 
 export const PAGE_OVERRIDE_KEYS: (keyof PageOverride)[] = [
   "badge", "title", "highlight", "intro", "kicker", "pullQuote",
-  "stats", "sections", "sources", "heroImage", "gallery", "blocks", "seo", "video", "styles", "cleared",
+  "stats", "sections", "sources", "heroImage", "hero", "gallery", "blocks", "seo", "video", "styles", "cleared",
 ];
 
 /** Pages wired to EditableContentPage — shown in the CMS Pages editor. */

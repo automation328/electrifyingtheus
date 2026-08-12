@@ -8,7 +8,8 @@ import Editable from "@/components/inline/Editable";
 import EditableText, { PageStylesContext } from "@/components/inline/EditableText";
 import EditableImage from "@/components/inline/EditableImage";
 import BlockSlot from "@/components/inline/blocks/BlockSlot";
-import type { PageBlock, ElemStyle } from "@/lib/page-content";
+import HeroSection, { heroLayout } from "@/components/inline/HeroSection";
+import type { PageBlock, ElemStyle, PageHero } from "@/lib/page-content";
 
 export interface ContentStat {
   value: string;
@@ -77,6 +78,9 @@ interface ContentPageLayoutProps {
   hideCta?: boolean;
   /** Optional grid of clickable navigation cards (icon + title + description). */
   linkCards?: ContentLinkCard[];
+  /** Look of the hero band — background, text colour, height, or removed
+   *  entirely. Set from the on-page editor; unset = the built-in hero. */
+  hero?: PageHero;
   /** Builder blocks inserted between sections (on-page editor). */
   blocks?: PageBlock[];
   /** Per-element typography overrides (font/size/color/bold/italic), keyed by path. */
@@ -86,7 +90,7 @@ interface ContentPageLayoutProps {
 const ContentPageLayout = ({
   badge, title, highlight, intro, heroImage, icon: Icon,
   stats, sections, sources = [], kicker, pullQuote, gallery, video, statsCta, compactTitle, extraCta,
-  extraCtaImage, hideMeta, hideCta, linkCards, blocks, styles,
+  extraCtaImage, hideMeta, hideCta, linkCards, blocks, styles, hero,
 }: ContentPageLayoutProps) => {
   const [playing, setPlaying] = useState(false);
   const ctx = useInlineEdit();
@@ -174,6 +178,10 @@ const ContentPageLayout = ({
     Math.round(sections.reduce((n, s) => n + s.body.join(" ").split(/\s+/).length, 0) / 200),
   );
 
+  // Hero alignment + colour, from the page's `hero` settings (defaults match the
+  // built-in look, so a page nobody has styled is unchanged).
+  const heroL = heroLayout(hero, !!heroImage);
+
   return (
     <PageStylesContext.Provider value={styles}>
     <div className="brief min-h-screen flex flex-col bg-background">
@@ -182,8 +190,14 @@ const ContentPageLayout = ({
 
       <main className="brief-grain flex-1 relative z-10">
         {/* ── Cinematic hero ─────────────────────────────────────────── */}
-        <header className={`relative flex items-end overflow-hidden ${heroImage ? "min-h-[78vh]" : "min-h-0 pt-32"}`}>
-          {heroImage && (
+        {/* Wrapped in HeroSection: in edit mode that makes the hero a selectable
+            section with its own Inspector panel (background, colour, height,
+            alignment) and a delete/restore path. Unstyled, it renders exactly as
+            the plain <header> always did. */}
+        <HeroSection
+          hero={hero}
+          heroImage={heroImage}
+          image={heroImage ? (
             <>
               <EditableImage
                 path="heroImage"
@@ -193,18 +207,20 @@ const ContentPageLayout = ({
               />
               <div className="brief-hero-grade absolute inset-0" aria-hidden />
             </>
-          )}
-
+          ) : null}
+        >
           <div className="container relative z-10 px-4 pb-14 md:pb-20">
-            <div className="max-w-3xl">
-              <div className="flex items-center gap-3 mb-5 animate-fade-up">
-                <span className="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-white/90 shadow-lg">
-                  <Icon className="w-4.5 h-4.5 text-primary" strokeWidth={2.2} />
-                </span>
-                <span className="brief-mono text-[11px] font-semibold text-foreground/70">
-                  <Editable path="kicker">{kicker ?? badge}</Editable>
-                </span>
-              </div>
+            <div className={`max-w-3xl ${heroL.boxClass} ${heroL.textClass}`}>
+              {!hero?.hideKicker && (
+                <div className={`flex items-center gap-3 mb-5 animate-fade-up ${heroL.rowClass}`}>
+                  <span className="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-white/90 shadow-lg">
+                    <Icon className="w-4.5 h-4.5 text-primary" strokeWidth={2.2} />
+                  </span>
+                  <span className="brief-mono text-[11px] font-semibold text-foreground/70" style={heroL.ink ? { color: heroL.ink } : undefined}>
+                    <Editable path="kicker">{kicker ?? badge}</Editable>
+                  </span>
+                </div>
+              )}
 
               <h1
                 className={`font-brief text-foreground mb-5 animate-fade-up ${
@@ -218,21 +234,21 @@ const ContentPageLayout = ({
                 <span className="text-gradient-primary"><EditableText path="highlight">{highlight}</EditableText></span>
               </h1>
 
-              <div className="relative mb-6 max-w-2xl animate-fade-up" style={{ animationDelay: "0.14s" }}>
-                <div className="brief-current absolute -top-1 left-0 w-24" />
+              <div className={`relative mb-6 max-w-2xl animate-fade-up ${heroL.boxClass}`} style={{ animationDelay: "0.14s" }}>
+                <div className={`brief-current absolute -top-1 w-24 ${heroL.ruleClass}`} />
               </div>
 
               <p
-                className="text-base md:text-lg text-foreground/80 max-w-2xl leading-relaxed animate-fade-up"
+                className={`text-base md:text-lg text-foreground/80 max-w-2xl leading-relaxed animate-fade-up ${heroL.boxClass}`}
                 style={{ animationDelay: "0.2s" }}
               >
                 <EditableText path="intro">{intro}</EditableText>
               </p>
 
-              {!hideMeta && (
+              {!hideMeta && !hero?.hideMeta && (
                 <div
-                  className="flex flex-wrap items-center gap-x-6 gap-y-2 mt-7 brief-mono text-[11px] text-foreground/60 animate-fade-up"
-                  style={{ animationDelay: "0.28s" }}
+                  className={`flex flex-wrap items-center gap-x-6 gap-y-2 mt-7 brief-mono text-[11px] text-foreground/60 animate-fade-up ${heroL.rowClass}`}
+                  style={{ animationDelay: "0.28s", ...(heroL.ink ? { color: heroL.ink } : {}) }}
                 >
                   <span>{badge}</span>
                   <span aria-hidden>·</span>
@@ -247,7 +263,7 @@ const ContentPageLayout = ({
               )}
             </div>
           </div>
-        </header>
+        </HeroSection>
 
         {/* ── Instrument-readout stats ───────────────────────────────── */}
         {stats && stats.length > 0 && (

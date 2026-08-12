@@ -12,10 +12,8 @@ import {
 // RotateCcw is shared by "Load default copy" and the archive Restore action.
 import { listRows, insertRow, updateRow, deleteRow, destroyRow } from "@/lib/admin-api";
 import {
-  EDITABLE_PAGES, PAGE_DEFAULTS, type PageOverride, type PageBlock,
+  EDITABLE_PAGES, PAGE_DEFAULTS, type PageOverride,
 } from "@/lib/page-content";
-import { SECTION_PRESETS } from "@/components/inline/blocks/section-presets";
-import { regenIds } from "@/components/inline/blocks/factory";
 import type { ContentStat, ContentSection, ContentSource } from "@/components/ContentPageLayout";
 import { useEditorAuth } from "@/lib/auth";
 import PageHeader from "@/components/admin/PageHeader";
@@ -36,24 +34,28 @@ const move = <T,>(arr: T[], i: number, dir: -1 | 1): T[] => {
 };
 
 /**
- * Blocks a brand-new page starts with. A blank canvas gives an editor nothing to
- * grab hold of, so we seed the "Hero band" section — the same preset the block
- * palette offers — with its headline set to the page title.
+ * What a brand-new page starts with.
  *
- * Built exactly the way insertTemplate builds an inserted section
- * (EditableContentPage: `{ ...regenIds(block), slot }`), so the result is an
- * ordinary block: fully editable, movable, and deletable like any other.
- * "after-stats" is the top-of-page slot.
+ * Every content page already renders a hero band (its title header), and that
+ * band is now an editable section in its own right — click it on the page and
+ * the Inspector offers background, colour, height and alignment, plus delete.
+ * So a new page is given a *styled* hero rather than a second hero built out of
+ * blocks, which would have stacked two heroes on top of each other.
  */
-function buildStarterBlocks(title: string): PageBlock[] {
-  const preset = SECTION_PRESETS.find((p) => p.id === "hero");
-  if (!preset) return [];                       // preset renamed/removed — start blank rather than crash
-  const hero: PageBlock = { ...regenIds(preset.build()), slot: "after-stats" };
-  // Personalise the headline; leave the supporting copy and button as prompts.
-  const children = [...(hero.children ?? [])];
-  const h = children.findIndex((c) => c.type === "heading");
-  if (h >= 0 && title) children[h] = { ...children[h], text: title };
-  return [{ ...hero, children }];
+function buildStarterContent(title: string): PageOverride {
+  return {
+    title,
+    intro: "",
+    hero: {
+      align: "center",
+      minH: 46,
+      style: {
+        gradient: { from: "hsl(var(--primary))", to: "hsl(var(--secondary))", angle: 135 },
+        color: "#ffffff",
+        padY: 112,
+      },
+    },
+  };
 }
 
 /** The fields this form actually edits. Everything else in a PageOverride —
@@ -288,7 +290,7 @@ const PagesManager = () => {
         path,
         title: newTitle.trim(),
         status: "draft",
-        content: { title: newTitle.trim(), intro: "", blocks: buildStarterBlocks(newTitle.trim()) },
+        content: buildStarterContent(newTitle.trim()),
         updated_at: new Date().toISOString(),
       });
       toast.success("Page created with a hero section — opening it to edit");
