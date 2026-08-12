@@ -794,3 +794,26 @@ html[data-theme="glass"] .gradient-hero {
 [data-ink][data-ink] :where(p, h1, h2, h3, h4, h5, h6, li, dt, dd, td, th, blockquote, figcaption, strong, em, small) {
   color: inherit;
 }
+
+/* ── On-page editor: keep the page BESIDE the Inspector, not behind it ──────
+ * The Inspector is docked left at w-72 (18rem). Without this the page kept the
+ * full viewport width and its left edge — the start of every headline — sat
+ * underneath the panel.
+ *
+ * `transform` is what makes the fixed navbar and edit bar move too: any
+ * transform other than `none` makes this element the containing block for its
+ * `position: fixed` descendants, so they lay out inside the shifted box instead
+ * of against the viewport. `translateZ(0)` shifts nothing by itself; the margin
+ * does the moving.
+ *
+ * Only from md up, because the Inspector itself is `hidden md:flex`.
+ * `overflow-x: clip` catches full-bleed (100vw) blocks, which would otherwise
+ * stick out past the narrower page and add a horizontal scrollbar. */
+@media (min-width: 768px) {
+  .cms-editor-shift {
+    margin-left: 18rem;
+    width: calc(100% - 18rem);
+    transform: translateZ(0);
+    overflow-x: clip;
+  }
+}

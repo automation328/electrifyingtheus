@@ -284,11 +284,18 @@ const EditableContentPage = ({ path, label, ...props }: LayoutProps & { path: st
   const seoDesc = ov.seo?.description || (fallbackDesc ? fallbackDesc.slice(0, 160) : undefined);
   const seoImage = ov.seo?.image || undefined;
 
+  // With the Inspector docked on the left, the page used to sit UNDER it — the
+  // left edge of the design (and the start of every headline) was hidden. The
+  // shift class moves the whole page into the space beside the panel; its
+  // transform also makes it the containing block for the fixed navbar and edit
+  // bar, so those move with it instead of staying behind the panel.
+  const shifted = editing && !preview;
+
   return (
     <InlineEditContext.Provider value={ctx}>
       <SeoHead title={seoTitle} description={seoDesc} image={seoImage} />
+      <div className={shifted ? "cms-editor-shift" : undefined}>
       <ContentPageLayout {...rendered} />
-      {editing && !preview && <Inspector blocks={working.blocks ?? []} />}
       {editing && !preview && seoOpen && (
         <SeoModal
           seo={working.seo ?? {}}
@@ -318,6 +325,9 @@ const EditableContentPage = ({ path, label, ...props }: LayoutProps & { path: st
           onTogglePreview={() => setPreview((p) => !p)}
         />
       )}
+      </div>
+      {/* Outside the shift wrapper: the panel IS the thing the page moves aside for. */}
+      {shifted && <Inspector blocks={working.blocks ?? []} slots={slotOrder} />}
     </InlineEditContext.Provider>
   );
 };

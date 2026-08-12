@@ -11,10 +11,11 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import {
   ListTree, SlidersHorizontal, ChevronRight, ChevronDown, Layers as LayersIcon,
-  X, MousePointerClick, Eye, EyeOff, Copy, Trash2, Crown,
+  X, MousePointerClick, Eye, EyeOff, Copy, Trash2, Crown, Plus,
 } from "lucide-react";
 import type { PageBlock, PageHero } from "@/lib/page-content";
 import { useInlineEdit, HERO_ID, type InlineEditContextValue } from "@/components/inline/edit-context";
+import { BlockPalette } from "@/components/inline/blocks/AddBlock";
 
 export const INSPECTOR_BODY_ID = "cms-inspector-body";
 
@@ -101,9 +102,13 @@ const Node = ({ block, depth, activeId, onSelect, ctx }: { block: PageBlock; dep
   );
 };
 
-const Inspector = ({ blocks }: { blocks: PageBlock[] }) => {
+const Inspector = ({ blocks, slots = ["end"] }: { blocks: PageBlock[]; slots?: string[] }) => {
   const ctx = useInlineEdit();
-  const [tab, setTab] = useState<"settings" | "layers">("settings");
+  // "Add" is the resting state: with nothing selected the panel used to be an
+  // empty prompt, so the editor's tools were never on screen unless you had
+  // already clicked something.
+  const [tab, setTab] = useState<"add" | "settings" | "layers">("add");
+  const [addSlot, setAddSlot] = useState(() => slots[slots.length - 1] ?? "end");
   // Jump to Settings whenever a block gets selected.
   useEffect(() => { if (ctx?.activeId) setTab("settings"); }, [ctx?.activeId]);
   if (!ctx?.editing) return null;
@@ -126,12 +131,13 @@ const Inspector = ({ blocks }: { blocks: PageBlock[] }) => {
     if (el) { el.scrollIntoView({ behavior: "smooth", block: "center" }); flash(el); }
   };
 
-  const tabBtn = (key: "settings" | "layers") =>
-    `flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-colors ${tab === key ? "bg-primary/10 text-primary" : "text-neutral-500 hover:bg-neutral-100 hover:text-neutral-800"}`;
+  const tabBtn = (key: "add" | "settings" | "layers") =>
+    `flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-semibold transition-colors ${tab === key ? "bg-primary/10 text-primary" : "text-neutral-500 hover:bg-neutral-100 hover:text-neutral-800"}`;
 
   return (
     <aside className="fixed left-0 top-0 z-[75] hidden md:flex h-screen w-72 flex-col border-r border-neutral-200 bg-white shadow-xl">
-      <div className="flex items-center gap-1 px-2 h-11 shrink-0 border-b border-neutral-200">
+      <div className="flex items-center gap-0.5 px-2 h-11 shrink-0 border-b border-neutral-200">
+        <button onClick={() => setTab("add")} className={tabBtn("add")}><Plus className="w-3.5 h-3.5" /> Add</button>
         <button onClick={() => setTab("settings")} className={tabBtn("settings")}><SlidersHorizontal className="w-3.5 h-3.5" /> Settings</button>
         <button onClick={() => setTab("layers")} className={tabBtn("layers")}><ListTree className="w-3.5 h-3.5" /> Layers</button>
         {(active || heroSelected) && (
@@ -141,23 +147,41 @@ const Inspector = ({ blocks }: { blocks: PageBlock[] }) => {
         )}
       </div>
 
-      {/* Settings — body is always mounted (hidden on Layers) so portals stay valid. */}
-      <div className={`flex-1 overflow-y-auto ${tab === "settings" ? "" : "hidden"}`}>
+      {/* Add — always available, so the tools are on screen with nothing selected. */}
+      <div data-panel="add" className={`flex-1 min-h-0 flex-col ${tab === "add" ? "flex" : "hidden"}`}>
+        <div className="px-3 pt-3 shrink-0">
+          <label className="block text-[10px] font-bold uppercase tracking-wide text-neutral-400 mb-1">Add to</label>
+          <select
+            value={addSlot}
+            onChange={(e) => setAddSlot(e.target.value)}
+            className="w-full rounded-lg border border-neutral-200 bg-white px-2 py-1.5 text-xs text-neutral-700"
+          >
+            {slots.map((s) => <option key={s} value={s}>{slotName(s)}</option>)}
+          </select>
+        </div>
+        <BlockPalette slot={addSlot} />
+      </div>
+
+      {/* Settings — body is always mounted (hidden on other tabs) so portals stay valid. */}
+      <div data-panel="settings" className={`flex-1 overflow-y-auto ${tab === "settings" ? "" : "hidden"}`}>
         {active || heroSelected ? (
           <div className="flex items-center gap-2 px-3 h-11 border-b border-neutral-100 sticky top-0 bg-white z-10">
             <span className="text-[11px] font-bold uppercase tracking-wide text-neutral-400 truncate">{active ? `${typeLabel(active.type)} settings` : "Hero settings"}</span>
           </div>
         ) : (
-          <div className="flex flex-col items-center gap-2 px-6 py-12 text-center text-xs text-neutral-400">
+          <div className="flex flex-col items-center gap-3 px-6 py-10 text-center text-xs text-neutral-400">
             <MousePointerClick className="w-6 h-6" />
-            Select a block on the page to edit its settings here.
+            Click anything on the page to edit its settings here.
+            <button onClick={() => setTab("add")} className="inline-flex items-center gap-1.5 rounded-lg bg-primary/10 px-2.5 py-1.5 text-xs font-semibold text-primary hover:bg-primary/20">
+              <Plus className="w-3.5 h-3.5" /> Add a block instead
+            </button>
           </div>
         )}
         <div id={INSPECTOR_BODY_ID} className="p-3 space-y-4 text-left" />
       </div>
 
       {/* Layers */}
-      <div className={`flex-1 overflow-y-auto p-2 ${tab === "layers" ? "" : "hidden"}`}>
+      <div data-panel="layers" className={`flex-1 overflow-y-auto p-2 ${tab === "layers" ? "" : "hidden"}`}>
         {/* The page's own hero, listed first — it sits above every block. */}
         <div className="mb-2">
           <div className="px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-neutral-400">Page header</div>
