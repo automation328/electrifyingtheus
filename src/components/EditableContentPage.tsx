@@ -138,7 +138,8 @@ const EditableContentPage = ({ path, label, ...props }: LayoutProps & { path: st
   // Ordered insertion slots for this page (used by move up/down).
   const slotOrder = useMemo(() => {
     const n = ((props as PageOverride).sections ?? []).length;
-    return ["after-stats", ...Array.from({ length: n }, (_, i) => `after-section-${i}`), "end"];
+    // "hero" comes first: it sits inside the hero band, above everything else.
+    return ["hero", "after-stats", ...Array.from({ length: n }, (_, i) => `after-section-${i}`), "end"];
   }, [props]);
 
   const mutateBlocks = (fn: (blocks: PageBlock[]) => PageBlock[]) => commit({ ...working, blocks: fn(working.blocks ?? []) });

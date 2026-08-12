@@ -47,6 +47,7 @@ const rowLabel = (b: PageBlock): string => {
 };
 
 const slotName = (slot: string): string => {
+  if (slot === "hero") return "Inside the hero";
   if (slot === "after-stats") return "Top of page";
   if (slot === "end") return "End of page";
   const m = /^after-section-(\d+)$/.exec(slot);

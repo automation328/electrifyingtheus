@@ -261,6 +261,15 @@ const ContentPageLayout = ({
                   )}
                 </div>
               )}
+
+              {/* Blocks that live INSIDE the hero — images, video, extra headings,
+                  buttons, anything. Ordinary blocks in an ordinary slot, so they
+                  add / delete / duplicate / reorder like every other block, and
+                  the "Add block" control sits right here rather than far below.
+                  Clicks stop here so picking a block doesn't also grab the hero. */}
+              <div onClick={(e) => e.stopPropagation()}>
+                <BlockSlot slot="hero" blocks={blocks} />
+              </div>
             </div>
           </div>
         </HeroSection>
@@ -383,7 +392,10 @@ const ContentPageLayout = ({
         )}
 
         {/* ── Editorial body ─────────────────────────────────────────── */}
-        <article className="container px-4 max-w-3xl mt-16 md:mt-24 space-y-14">
+        {/* The generous top margin is for pages with written sections. A page
+            built only from blocks (a new CMS page) has nothing to separate, and
+            the gap just pushed the first block miles below the hero. */}
+        <article className={`container px-4 max-w-3xl space-y-14 ${sections.length ? "mt-16 md:mt-24" : "mt-6"}`}>
           <BlockSlot slot="after-stats" blocks={blocks} />
           {sections.map((s, i) => (
             <Fragment key={i}>

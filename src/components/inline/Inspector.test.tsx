@@ -30,7 +30,8 @@ const makeCtx = (over: Partial<InlineEditContextValue> = {}): InlineEditContextV
   ...over,
 });
 
-const SLOTS = ["after-stats", "after-section-0", "end"];
+// The real order EditableContentPage builds: the hero first, then the body.
+const SLOTS = ["hero", "after-stats", "after-section-0", "end"];
 
 const renderPanel = (ctx: InlineEditContextValue, blocks: PageBlock[] = [], slots = SLOTS) => {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -99,6 +100,7 @@ describe("the editor's tools are always on screen", () => {
     renderPanel(ctx);
     const where = screen.getByRole("combobox");
     // Every insertion point on the page is offered, in plain words.
+    expect(within(where).getByRole("option", { name: "Inside the hero" })).toBeTruthy();
     expect(within(where).getByRole("option", { name: "Top of page" })).toBeTruthy();
     expect(within(where).getByRole("option", { name: "After section 1" })).toBeTruthy();
     expect(within(where).getByRole("option", { name: "End of page" })).toBeTruthy();
