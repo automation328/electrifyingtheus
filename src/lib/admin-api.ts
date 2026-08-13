@@ -3,6 +3,8 @@
 // allow-list before touching the database (see api/_admin-auth.ts).
 
 import { getAccessToken } from "@/lib/auth";
+import { maxBinaryBytes, describeTooLarge } from "@/lib/upload-limits";
+import { compressImageForUpload } from "@/lib/image-compress";
 
 export type AdminTable =
   | "site_blog_posts"
@@ -144,21 +146,35 @@ export async function destroyRow(table: AdminTable, id: string): Promise<void> {
 
 /**
  * Upload an image to the CMS media bucket via /api/admin/upload and return its
- * public URL. Sends the file base64-encoded in JSON (small marketing images).
+ * public URL. Sends the file base64-encoded in JSON.
+ *
+ * Base64 costs 4 bytes for every 3, so the original file has to be well under
+ * the request budget. Anything bigger is downscaled here first; if it STILL
+ * doesn't fit we say so in plain words, because the platform's own rejection
+ * arrives as plain text and used to surface as a bare "Upload failed (413)".
  */
 export async function uploadImage(file: File): Promise<string> {
   const token = await getAccessToken();
   if (!token) throw new Error("Not signed in.");
+
+  // Envelope = the JSON around the encoded file (keys, filename, mime, prefix).
+  const envelope = 200 + file.name.length + (file.type.length || 0);
+  const limit = maxBinaryBytes(envelope);
+  const sending = await compressImageForUpload(file, limit);
+  if (sending.size > limit) throw new Error(describeTooLarge(sending.size, limit));
+
   const dataUrl = await new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(String(reader.result));
     reader.onerror = () => reject(new Error("Could not read file."));
-    reader.readAsDataURL(file);
+    reader.readAsDataURL(sending);
   });
   const r = await fetch("/api/admin", {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-    body: JSON.stringify({ op: "upload", filename: file.name, contentType: file.type, dataUrl }),
+    // `sending`, not `file` — a re-encoded image has a new name and mime type,
+    // and storing WebP bytes labelled as JPEG would serve a broken image.
+    body: JSON.stringify({ op: "upload", filename: sending.name, contentType: sending.type, dataUrl }),
   });
   const data = await r.json().catch(() => ({}));
   if (!r.ok) {
