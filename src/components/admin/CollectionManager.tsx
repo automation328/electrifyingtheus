@@ -442,7 +442,7 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
                     title="Open the live post and build it with blocks"
                     className="inline-flex items-center gap-1.5 rounded-xl border border-primary/40 bg-primary/5 px-4 py-2.5 text-sm font-semibold text-primary hover:bg-primary/10 transition-colors"
                   >
-                    <LayoutTemplate className="w-4 h-4" /> Edit on page
+                    <LayoutTemplate className="w-4 h-4" /> {config.editOnPageLabel ?? "Edit on page"}
                   </a>
                 )}
                 {!canPublish && <span className="text-xs text-muted-foreground ml-auto">Saved as a draft — an editor can publish it.</span>}

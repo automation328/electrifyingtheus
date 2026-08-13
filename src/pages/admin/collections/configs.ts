@@ -103,6 +103,9 @@ export const jobsConfig: CollectionConfig = {
   statusField,
   statusOptions: STATUS,
   viewUrl: () => "/careers",
+  // A job has no page of its own — /careers is the page — so the button names it.
+  editOnPage: true,
+  editOnPageLabel: "Edit the Careers page",
   sortRows: (a, b) => asNum(a.sort) - asNum(b.sort),
   fields: [
     { name: "title", label: "Title", type: "text", required: true },
@@ -172,6 +175,9 @@ export const incentivesConfig: CollectionConfig = {
   staticRows: incentiveStaticRows,
   keyOf: (r) => `${str(r.scope)}|${str(r.state) || ""}|${str(r.name)}`,
   viewUrl: () => "/rebates-incentives",
+  // Same: incentives are rows on one shared page, not pages of their own.
+  editOnPage: true,
+  editOnPageLabel: "Edit the Incentives page",
   sortRows: (a, b) => asNum(a.sort) - asNum(b.sort),
   fields: [
     { name: "name", label: "Program name", type: "text", required: true },

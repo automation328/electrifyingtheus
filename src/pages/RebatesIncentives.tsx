@@ -4,6 +4,9 @@ import {
   DollarSign, Zap, PlugZap, BadgeCheck, ArrowRight,
   MapPin, ExternalLink, Search, Info, Home, type LucideIcon,
 } from "lucide-react";
+import InlinePageEditor from "@/components/inline/InlinePageEditor";
+import BlockSlot from "@/components/inline/blocks/BlockSlot";
+import type { PageBlock } from "@/lib/page-content";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useEmbedFrame } from "@/hooks/useEmbedFrame";
@@ -30,6 +33,9 @@ const [DISC_INTRO, DISC_LIABILITY = ""] = INCENTIVES_DISCLAIMER.split("\n\n");
 const DISC_LEAD_END = DISC_LIABILITY.indexOf(". ");
 const DISC_LEAD = DISC_LEAD_END >= 0 ? DISC_LIABILITY.slice(0, DISC_LEAD_END + 1) : "";
 const DISC_REST = DISC_LEAD_END >= 0 ? DISC_LIABILITY.slice(DISC_LEAD_END + 1).trim() : DISC_LIABILITY;
+
+// Where blocks may be dropped on the Rebates & Incentives page, in page order.
+const INCENTIVE_SLOTS = ["incentives-top", "incentives-end"];
 
 const CATEGORIES: { key: CatKey; title: string; icon: LucideIcon; color: string }[] = [
   { key: "vehicle", title: "Vehicle Tax Credits and Rebates", icon: DollarSign, color: "from-primary to-primary/80" },
@@ -128,10 +134,15 @@ const RebatesIncentives = () => {
       vFilter === "all" ? true : vFilter === "income" ? it.income : it.used,
     );
 
-  return (
+  const page = (blocks: PageBlock[]) => (
     <div className="min-h-screen flex flex-col bg-background">
       {!embed && <Navbar />}
       <main className={`flex-1 pb-16 ${embed ? "pt-8" : "pt-28"}`}>
+        {!embed && (
+          <div className="container px-4 max-w-5xl">
+            <BlockSlot slot="incentives-top" blocks={blocks} />
+          </div>
+        )}
         {/* Hero */}
         <section className="relative overflow-hidden">
           {!embed && <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-secondary/5 to-transparent" aria-hidden />}
@@ -494,6 +505,11 @@ const RebatesIncentives = () => {
           </div>
         </div>
 
+        {!embed && (
+          <div className="container px-4 max-w-5xl">
+            <BlockSlot slot="incentives-end" blocks={blocks} />
+          </div>
+        )}
       </main>
       {embed && (
         <div className="container px-4 max-w-5xl pb-8 text-center">
@@ -505,6 +521,13 @@ const RebatesIncentives = () => {
       )}
       {!embed && <Footer />}
     </div>
+  );
+
+  // Embedded on someone else's site: no editor chrome, ever.
+  return embed ? page([]) : (
+    <InlinePageEditor path="/rebates-incentives" label="Rebates & Incentives" slots={INCENTIVE_SLOTS}>
+      {page}
+    </InlinePageEditor>
   );
 };
 

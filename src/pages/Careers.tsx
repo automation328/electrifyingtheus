@@ -5,6 +5,8 @@ import {
   BarChart3, CalendarDays, Handshake, Building2, Star, MessageSquare,
   CheckCircle2, BellRing, Sparkles, ChevronDown, type LucideIcon,
 } from "lucide-react";
+import InlinePageEditor from "@/components/inline/InlinePageEditor";
+import BlockSlot from "@/components/inline/blocks/BlockSlot";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { JOBS, type Job } from "@/data/careers";
@@ -29,6 +31,9 @@ const DEPT_ICON: Record<string, LucideIcon> = {
 };
 
 const isValidEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
+
+// Where blocks may be dropped on the Careers page, in page order.
+const CAREERS_SLOTS = ["careers-top", "careers-end"];
 
 const Careers = () => {
   const [dept, setDept] = useState("All");
@@ -126,9 +131,16 @@ const Careers = () => {
   const featured = liveJobs.filter((j) => j.featured);
 
   return (
+    // Jobs have no page of their own — this list IS the Jobs page — so the
+    // builder applies to the page as a whole, not to one job.
+    <InlinePageEditor path="/careers" label="Careers" slots={CAREERS_SLOTS}>
+      {(blocks) => (
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
       <main className="flex-1 pt-28 pb-16">
+        <div className="container px-4 max-w-6xl">
+          <BlockSlot slot="careers-top" blocks={blocks} />
+        </div>
         {/* Header */}
         <section className="relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-secondary/5 to-transparent" aria-hidden />
@@ -384,6 +396,9 @@ const Careers = () => {
             </Link>
           </div>
         </div>
+        <div className="container px-4 max-w-6xl">
+          <BlockSlot slot="careers-end" blocks={blocks} />
+        </div>
       </main>
 
       {/* Apply gate — capture first name + email, then route to the employer's site */}
@@ -435,6 +450,8 @@ const Careers = () => {
 
       <Footer />
     </div>
+      )}
+    </InlinePageEditor>
   );
 };
 

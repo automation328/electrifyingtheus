@@ -45,6 +45,11 @@ export interface CollectionConfig {
    *  enough — every collection has one, but most of those pages have no
    *  builder, and a button that opened a page you couldn't edit would lie. */
   editOnPage?: boolean;
+  /** Button wording. Blog posts each have their own page, so "Edit on page" is
+   *  accurate there. Jobs and incentives do NOT — they are rows on one shared
+   *  page — so those say which page they open, rather than implying the button
+   *  edits the row you have open. */
+  editOnPageLabel?: string;
   /** Optional row field to group the list by (e.g. vehicle type). */
   groupField?: string;
   /** Pretty labels for group values (e.g. { ev: "Electric", gas: "Gas" }). */
