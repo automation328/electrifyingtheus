@@ -4,6 +4,8 @@ import {
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import InlinePageEditor from "@/components/inline/InlinePageEditor";
+import BlockSlot from "@/components/inline/blocks/BlockSlot";
 import ShareGate from "@/components/forms/ShareGate";
 import EventActionGate from "@/components/forms/EventActionGate";
 import EventDisclaimer from "@/components/EventDisclaimer";
@@ -15,6 +17,9 @@ const weekday = (e: EventItem) => {
   try { return eventDate(e).toLocaleDateString("en-US", { weekday: "long" }); }
   catch { return ""; }
 };
+
+// Where blocks may be dropped on an event page, in page order.
+const EVENT_SLOTS = ["event-top", "event-end"];
 
 const Shell = ({ children }: { children: React.ReactNode }) => (
   <div className="min-h-screen flex flex-col bg-background">
@@ -60,11 +65,17 @@ const EventDetail = () => {
   const day = weekday(event);
 
   return (
+    // Same builder the blog posts have. `event.slug` here is already resolved
+    // by mergeEvents, so a curated event stores its blocks under the same path
+    // its page actually lives at.
+    <InlinePageEditor path={`/events/${event.slug}`} label={event.title} slots={EVENT_SLOTS}>
+      {(blocks) => (
     <Shell>
       <div className="container px-4 max-w-5xl">
         <Link to="/events" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors">
           <ArrowLeft className="w-4 h-4" /> Back to events
         </Link>
+        <BlockSlot slot="event-top" blocks={blocks} />
 
         <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-start">
           {/* Poster */}
@@ -177,8 +188,11 @@ const EventDetail = () => {
             </Link>
           )}
         </div>
+        <BlockSlot slot="event-end" blocks={blocks} />
       </div>
     </Shell>
+      )}
+    </InlinePageEditor>
   );
 };
 

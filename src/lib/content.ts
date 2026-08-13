@@ -91,6 +91,20 @@ export async function fetchPosts(): Promise<BlogPost[]> {
 // same merged list.
 const fallbackSlug = (e: EventItem) => `${slugify(e.title)}-${e.month.toLowerCase()}-${e.day}-${e.year}`;
 
+/**
+ * The live detail path for a raw site_events row — using the SAME rule the site
+ * uses, by calling the same functions rather than restating them.
+ *
+ * This matters: a DB event whose title + date match a curated one ADOPTS the
+ * curated slug (see mergeEvents below). Re-deriving the slug anywhere else
+ * would link to /events/<generated> for exactly those events, and 404.
+ */
+export function eventDetailPath(row: Parameters<typeof rowToEvent>[0]): string {
+  const e = rowToEvent(row);
+  const curated = EVENTS.find((x) => eventDedupe(x) === eventDedupe(e));
+  return `/events/${e.slug || curated?.slug || fallbackSlug(e)}`;
+}
+
 // ── Merge dynamic + curated static (dynamic wins on conflicts) ────────────────
 export function mergeEvents(dynamic: EventItem[]): EventItem[] {
   const staticByKey = new Map(EVENTS.map((e) => [eventDedupe(e), e]));

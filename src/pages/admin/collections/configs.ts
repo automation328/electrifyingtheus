@@ -3,6 +3,7 @@
 // column names (see supabase/migrations/0001,0003,0004).
 
 import type { CollectionConfig } from "./types";
+import { eventDetailPath } from "@/lib/content";
 import { blogStaticRows, eventStaticRows, vehicleStaticRows, incentiveStaticRows, galleryStaticRows } from "@/lib/seed-content";
 
 const STATUS = ["draft", "published", "archived"];
@@ -52,7 +53,10 @@ export const eventsConfig: CollectionConfig = {
   statusOptions: STATUS,
   staticRows: eventStaticRows,
   keyOf: (r) => `${str(r.title)}|${str(r.event_date)}`,
-  viewUrl: () => "/events",
+  // The event's OWN page, via the shared rule (curated events adopt a curated
+  // slug, so this cannot be re-derived here without 404ing on them).
+  viewUrl: (r) => eventDetailPath(r as unknown as Parameters<typeof eventDetailPath>[0]),
+  editOnPage: true,
   sortRows: (a, b) => asStr(b.event_date).localeCompare(asStr(a.event_date)),
   fields: [
     { name: "title", label: "Title", type: "text", required: true },
