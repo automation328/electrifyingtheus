@@ -24,6 +24,7 @@ export const blogConfig: CollectionConfig = {
   staticRows: blogStaticRows,
   keyOf: (r) => str(r.slug),
   viewUrl: (r) => (r.slug ? `/blog/${str(r.slug)}` : "/news"),
+  editOnPage: true,   // BlogPost carries the block builder (InlinePageEditor)
   sortRows: (a, b) => asStr(b.published_at).localeCompare(asStr(a.published_at)),
   fields: [
     { name: "title", label: "Title", type: "text", required: true, width: "full" },

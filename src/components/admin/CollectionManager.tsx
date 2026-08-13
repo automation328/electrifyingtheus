@@ -6,7 +6,7 @@ import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
-  Plus, Pencil, Trash2, Loader2, X, Save, AlertCircle, Eye, EyeOff, Image as ImageIcon, FolderOpen, ExternalLink, Search, RotateCcw,
+  Plus, Pencil, Trash2, Loader2, X, Save, AlertCircle, Eye, EyeOff, Image as ImageIcon, FolderOpen, ExternalLink, Search, RotateCcw, LayoutTemplate,
 } from "lucide-react";
 import { listRows, insertRow, updateRow, deleteRow, destroyRow, type MediaItem } from "@/lib/admin-api";
 import AdminField from "@/components/admin/AdminField";
@@ -431,6 +431,20 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
                 >
                   Cancel
                 </button>
+                {/* The fields above are the post's data; its LAYOUT is built on
+                    the page itself, the same way pages work. Only offered once
+                    the row exists — a brand-new post has no page to open yet. */}
+                {config.editOnPage && !isNew && editing && config.viewUrl && (
+                  <a
+                    href={config.viewUrl(editing)}
+                    target="_blank"
+                    rel="noreferrer"
+                    title="Open the live post and build it with blocks"
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-primary/40 bg-primary/5 px-4 py-2.5 text-sm font-semibold text-primary hover:bg-primary/10 transition-colors"
+                  >
+                    <LayoutTemplate className="w-4 h-4" /> Edit on page
+                  </a>
+                )}
                 {!canPublish && <span className="text-xs text-muted-foreground ml-auto">Saved as a draft — an editor can publish it.</span>}
               </div>
             </div>

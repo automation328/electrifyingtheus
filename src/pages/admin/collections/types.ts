@@ -40,6 +40,11 @@ export interface CollectionConfig {
   statusOptions: string[];
   /** Row field holding a thumbnail image URL (shown in the list). */
   imageField?: string;
+  /** This collection's live page carries the on-page block builder, so the
+   *  editor offers "Edit on page" next to Save. Opt-in: `viewUrl` alone is not
+   *  enough — every collection has one, but most of those pages have no
+   *  builder, and a button that opened a page you couldn't edit would lie. */
+  editOnPage?: boolean;
   /** Optional row field to group the list by (e.g. vehicle type). */
   groupField?: string;
   /** Pretty labels for group values (e.g. { ev: "Electric", gas: "Gas" }). */

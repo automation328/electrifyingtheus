@@ -6,7 +6,13 @@ import { ArrowLeft, ArrowRight, Calendar, User, Clock } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ShareGate from "@/components/forms/ShareGate";
+import InlinePageEditor from "@/components/inline/InlinePageEditor";
+import BlockSlot from "@/components/inline/blocks/BlockSlot";
 import { usePost, usePosts } from "@/hooks/use-content";
+
+// Where an editor may drop blocks on a post, in the order they appear. Used for
+// the Inspector's "Add to" menu and for what move-up/move-down does.
+const BLOG_SLOTS = ["blog-top", "blog-end"];
 
 const markdownComponents = {
   h2: ({ children }: { children?: React.ReactNode }) => (
@@ -111,6 +117,11 @@ const BlogPost = () => {
   const related = posts.filter((p) => p.slug !== post.slug).slice(0, 3);
 
   return (
+    // Signed-in editors get the same block builder the pages have. Blocks are
+    // stored against this post's own path, so the words below stay markdown and
+    // a post nobody has built on renders exactly as it always did.
+    <InlinePageEditor path={`/blog/${post.slug}`} label={post.title} slots={BLOG_SLOTS}>
+      {(blocks) => (
     <div className="min-h-screen flex flex-col bg-background">
       <div className="read-progress" style={{ transform: `scaleX(${progress})` }} aria-hidden />
       <Navbar />
@@ -155,10 +166,16 @@ const BlogPost = () => {
             <img src={post.image} alt={post.title} className="w-full h-full object-cover" />
           </div>
 
+          {/* Blocks above the article — a callout, a video, a gallery. */}
+          <BlockSlot slot="blog-top" blocks={blocks} />
+
           {/* Body */}
           <div className="text-base md:text-lg">
             <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>{post.content}</ReactMarkdown>
           </div>
+
+          {/* Blocks below the article — a CTA, related links, a sign-up. */}
+          <BlockSlot slot="blog-end" blocks={blocks} />
         </article>
 
         {/* Related posts */}
@@ -193,6 +210,8 @@ const BlogPost = () => {
       </main>
       <Footer />
     </div>
+      )}
+    </InlinePageEditor>
   );
 };
 
