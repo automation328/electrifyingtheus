@@ -48,6 +48,8 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
   });
 
   const [editing, setEditing] = useState<Row | null>(null);
+  // A built-in (curated) item opens as "new", but it already has a live page.
+  const [fromStatic, setFromStatic] = useState(false);
   const [isNew, setIsNew] = useState(false);
   const [draft, setDraft] = useState<Row>({});
   const [saving, setSaving] = useState(false);
@@ -104,15 +106,19 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
       setDraft(rest as Row);
       setEditing(null);
       setIsNew(true);
+      // It opens as "new" so Save adopts it into the DB — but it is a built-in
+      // item that already HAS a live page, so "Edit on page" still applies.
+      setFromStatic(true);
     } else {
       setDraft({ ...row });
       setEditing(row);
       setIsNew(false);
+      setFromStatic(false);
     }
     setFormError("");
   };
 
-  const close = () => { setEditing(null); setIsNew(false); setDraft({}); setFormError(""); };
+  const close = () => { setEditing(null); setIsNew(false); setFromStatic(false); setDraft({}); setFormError(""); };
 
   const setField = (name: string, value: unknown) => setDraft((d) => ({ ...d, [name]: value }));
 
@@ -434,9 +440,9 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
                 {/* The fields above are the post's data; its LAYOUT is built on
                     the page itself, the same way pages work. Only offered once
                     the row exists — a brand-new post has no page to open yet. */}
-                {config.editOnPage && !isNew && editing && config.viewUrl && (
+                {config.editOnPage && config.viewUrl && (editing || fromStatic) && (
                   <a
-                    href={config.viewUrl(editing)}
+                    href={config.viewUrl(editing ?? draft)}
                     target="_blank"
                     rel="noreferrer"
                     title="Open the live post and build it with blocks"
