@@ -53,7 +53,10 @@ const MarkdownEditor = ({ value, onChange, components, className }: Props) => {
     return insertSnippet(t, s, e, `[${label}](url)`, label.length + 3);
   });
 
-  const btn = "inline-flex items-center justify-center h-8 w-8 rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors";
+  // Icon-only buttons need real contrast: muted-foreground (#65758B) on a 40%
+  // background measured ~4.5:1, which is fine for text but leaves 16px icon
+  // strokes looking washed out. Near-black on a solid bar reads at a glance.
+  const btn = "inline-flex items-center justify-center h-9 w-9 rounded-lg text-foreground/80 hover:bg-primary/10 hover:text-primary transition-colors";
 
   const tools: { title: string; icon: typeof Bold; run: () => void }[] = [
     { title: "Bold  (Ctrl+B)", icon: Bold, run: () => apply((t, s, e) => toggleWrap(t, s, e, "**")) },
@@ -79,11 +82,11 @@ const MarkdownEditor = ({ value, onChange, components, className }: Props) => {
 
   return (
     <div className={className}>
-      <div className="mb-2 flex flex-wrap items-center gap-0.5 rounded-xl border border-border bg-muted/40 p-1">
+      <div className="mb-2 flex flex-wrap items-center gap-0.5 rounded-xl border border-border bg-muted p-1 shadow-sm">
         {tools.map((t, i) => (
           <span key={t.title} className="inline-flex items-center">
             <button type="button" title={t.title} onClick={t.run} disabled={preview} className={`${btn} ${preview ? "opacity-40" : ""}`}>
-              <t.icon className="h-4 w-4" />
+              <t.icon className="h-[18px] w-[18px]" strokeWidth={2.2} />
             </button>
             {(i === 1 || i === 3 || i === 6) && <span className="mx-1 h-5 w-px bg-border" />}
           </span>
