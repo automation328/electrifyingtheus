@@ -3,7 +3,7 @@
 // markdown body must stay the body.
 
 import { describe, it, expect, vi, beforeAll, afterEach } from "vitest";
-import { render, screen, cleanup } from "@testing-library/react";
+import { render, screen, cleanup, fireEvent } from "@testing-library/react";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { PageBlock, PageOverride } from "@/lib/page-content";
@@ -125,6 +125,46 @@ describe("blocks on a post", () => {
     renderPost();
     expect(screen.getByText("MARKDOWN BODY TEXT")).toBeTruthy();
     expect(screen.getByText("A Post Title")).toBeTruthy();
+  });
+});
+
+describe("the article-text dialog", () => {
+  /** Open the body editor the way an editor does. */
+  const openBodyEditor = () => {
+    auth.value = { status: "editor", editor: { role: "admin" } };
+    const view = renderPost();
+    fireEvent.click(screen.getByText(/Edit this page/i));
+    fireEvent.click(screen.getByText(/Edit article text/i));
+    return view;
+  };
+
+  it("escapes the editor's shifted container", () => {
+    // Inside it, the page showed straight through the panel: that container is
+    // a transform + clip ancestor, and it tinted everything beneath it.
+    openBodyEditor();
+    const panel = screen.getByText("Article text").closest("div");
+    const shifted = document.querySelector(".cms-editor-shift");
+    expect(panel).toBeTruthy();
+    expect(shifted?.contains(panel as Node)).toBe(false);
+  });
+
+  it("renders as a child of body, not of the page", () => {
+    const { container } = openBodyEditor();
+    expect(container.textContent).not.toContain("Article text");
+    expect(document.body.textContent).toContain("Article text");
+  });
+
+  it("gives the panel a solid background of its own", () => {
+    openBodyEditor();
+    const panel = screen.getByText("Article text").closest("div[style]") as HTMLElement;
+    expect(panel.style.backgroundColor).toBe("rgb(255, 255, 255)");
+    expect(panel.style.opacity).toBe("1");
+  });
+
+  it("offers the formatting toolbar inside it", () => {
+    openBodyEditor();
+    expect(screen.getByTitle(/^Bold/)).toBeTruthy();
+    expect(screen.getByTitle("Bulleted list")).toBeTruthy();
   });
 });
 

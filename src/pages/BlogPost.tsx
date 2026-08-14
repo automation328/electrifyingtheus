@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { Link, useParams } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -95,9 +96,20 @@ const EditableBody = ({ value, path }: { value: string; path: string }) => {
       </button>
       {rendered}
 
-      {open && (
-        <div className="fixed inset-0 z-[100] grid place-items-center bg-black/50 backdrop-blur-sm p-4" onClick={() => setOpen(false)}>
-          <div className="flex w-full max-w-3xl flex-col rounded-2xl border border-border bg-background p-5 shadow-elevated" onClick={(e) => e.stopPropagation()}>
+      {/* Portaled to <body> on purpose. Inside the page it inherited the
+          editor's shifted container — a transform + clip ancestor — and the
+          article showed straight through the panel. Out here it is a plain
+          child of body, so nothing above it can tint or clip it, and it
+          centres on the real viewport instead of the shifted page box.
+          Background is a literal white for the same reason: no token, no
+          alpha, nothing to inherit. */}
+      {open && typeof document !== "undefined" && createPortal(
+        <div className="fixed inset-0 z-[120] grid place-items-center bg-black/60 p-4" onClick={() => setOpen(false)}>
+          <div
+            className="flex w-full max-w-3xl flex-col rounded-2xl border border-neutral-200 p-5 shadow-2xl"
+            style={{ backgroundColor: "#ffffff", opacity: 1 }}
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="mb-3 flex items-center">
               <h3 className="font-bold font-display text-foreground">Article text</h3>
               <span className="ml-3 hidden text-xs text-muted-foreground sm:inline">Use the buttons — no need to type any codes.</span>
@@ -117,7 +129,8 @@ const EditableBody = ({ value, path }: { value: string; path: string }) => {
               <span className="ml-auto text-xs text-muted-foreground">Then Publish to make it live.</span>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </div>
   );
