@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   DollarSign, Zap, PlugZap, BadgeCheck, ArrowRight,
@@ -6,12 +6,15 @@ import {
 } from "lucide-react";
 import InlinePageEditor from "@/components/inline/InlinePageEditor";
 import BlockSlot from "@/components/inline/blocks/BlockSlot";
-import type { PageBlock } from "@/lib/page-content";
+import IncentiveCard, { type IncentiveEdits } from "@/components/inline/IncentiveCard";
+import { PageStylesContext } from "@/components/inline/EditableText";
+import { saveIncentiveEdits } from "@/lib/incentive-edit";
+import { listRows, insertRow, updateRow } from "@/lib/admin-api";
+import type { PageBlock, ElemStyle } from "@/lib/page-content";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useEmbedFrame } from "@/hooks/useEmbedFrame";
 import AfdcSearch from "@/components/AfdcSearch";
-import ShareGate from "@/components/forms/ShareGate";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -22,7 +25,7 @@ import {
 } from "@/components/ui/accordion";
 import {
   type CatKey, type Incentive, incentivesFor, utilityIncentivesFor, utilityProgramsUrl,
-  stateFromZip, STATE_NAMES,
+  applyIncentiveOverrides, stateFromZip, STATE_NAMES,
 } from "@/data/incentives";
 import { INCENTIVES_DISCLAIMER } from "@/lib/disclaimers";
 
@@ -134,7 +137,26 @@ const RebatesIncentives = () => {
       vFilter === "all" ? true : vFilter === "income" ? it.income : it.used,
     );
 
-  const page = (blocks: PageBlock[]) => (
+  // Incentive overrides are merged into the curated arrays ONCE at boot
+  // (lib/content-hydrate.ts), and there is no React Query key to invalidate.
+  // Without re-merging here, closing the editor would show the editor their own
+  // change reverting — the text is saved, but the page is still holding what it
+  // loaded with. Applying the same merge the boot path uses, then re-rendering,
+  // shows exactly what a reload would.
+  const [, remerge] = useReducer((n: number) => n + 1, 0);
+  const fieldGroups = useMemo(() => ({
+    save: async (groups: Record<string, Record<string, string>>) => {
+      await saveIncentiveEdits(groups, {
+        listRows: (table) => listRows(table),
+        insertRow: (table, row) => insertRow(table, row),
+        updateRow: (table, id, row) => updateRow(table, id, row),
+        apply: (overrides) => { applyIncentiveOverrides(overrides); remerge(); },
+      });
+    },
+  }), []);
+
+  const page = (blocks: PageBlock[], f: IncentiveEdits, styles?: Record<string, ElemStyle>) => (
+    <PageStylesContext.Provider value={styles}>
     <div className="min-h-screen flex flex-col bg-background">
       {!embed && <Navbar />}
       <main className={`flex-1 pb-16 ${embed ? "pt-8" : "pt-28"}`}>
@@ -264,58 +286,7 @@ const RebatesIncentives = () => {
                   ) : (
                     <div className="grid md:grid-cols-2 gap-4">
                       {items.map((it, i) => (
-                        <article
-                          key={i}
-                          className="rounded-2xl border border-border bg-card shadow-card p-5 flex flex-col hover:shadow-xl hover:-translate-y-0.5 transition-all"
-                        >
-                          <div className="mb-1">
-                            <h3 className="font-bold font-display text-foreground leading-snug">{it.name}</h3>
-                            <p className="text-xs text-muted-foreground">— {it.jurisdiction}</p>
-                          </div>
-
-                          {(it.amount || it.income || it.used) && (
-                            <div className="flex flex-wrap items-center gap-2 mt-2 mb-1">
-                              {it.amount && (
-                                <span className="text-lg font-bold text-gradient-primary">{it.amount}</span>
-                              )}
-                              {it.income && (
-                                <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-secondary/10 text-secondary">
-                                  Income Requirement
-                                </span>
-                              )}
-                              {it.used && (
-                                <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary">
-                                  Used Car Eligible
-                                </span>
-                              )}
-                            </div>
-                          )}
-
-                          <hr className="border-border/70 my-3" />
-                          <p className="text-sm text-muted-foreground leading-relaxed flex-1">{it.desc}</p>
-                          <div className="mt-3 flex items-center justify-between gap-3">
-                            <a
-                              href={it.link}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:gap-2.5 transition-all"
-                            >
-                              Learn More and Apply Here <ExternalLink className="w-3.5 h-3.5" />
-                            </a>
-                            <ShareGate
-                              url="/rebates-incentives"
-                              title={it.name}
-                              summary={[it.jurisdiction, it.amount].filter(Boolean).join(" · ")}
-                              description={it.desc}
-                              image="/og/incentives.jpg"
-                              meta={[it.jurisdiction, it.amount].filter(Boolean).join(" · ")}
-                              formType="incentive-share"
-                              variant="label"
-                              label="Share"
-                              disclaimer={INCENTIVES_DISCLAIMER}
-                            />
-                          </div>
-                        </article>
+                        <IncentiveCard key={i} item={it} edits={f} />
                       ))}
                     </div>
                   )}
@@ -358,46 +329,7 @@ const RebatesIncentives = () => {
                   {utilProgs.length > 0 ? (
                     <div className="grid md:grid-cols-2 gap-4">
                       {utilProgs.map((it, i) => (
-                        <article
-                          key={i}
-                          className="rounded-2xl border border-border bg-card shadow-card p-5 flex flex-col hover:shadow-xl hover:-translate-y-0.5 transition-all"
-                        >
-                          <div className="mb-1">
-                            <h3 className="font-bold font-display text-foreground leading-snug">{it.name}</h3>
-                            <p className="text-xs text-muted-foreground">— {it.jurisdiction}</p>
-                          </div>
-                          {(it.amount || it.income || it.used) && (
-                            <div className="flex flex-wrap items-center gap-2 mt-2 mb-1">
-                              {it.amount && <span className="text-lg font-bold text-gradient-primary">{it.amount}</span>}
-                              {it.income && (
-                                <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-secondary/10 text-secondary">Income Requirement</span>
-                              )}
-                              {it.used && (
-                                <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary">Used Car Eligible</span>
-                              )}
-                            </div>
-                          )}
-                          <hr className="border-border/70 my-3" />
-                          <p className="text-sm text-muted-foreground leading-relaxed flex-1">{it.desc}</p>
-                          <div className="mt-3 flex items-center justify-between gap-3">
-                            <a href={it.link} target="_blank" rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:gap-2.5 transition-all">
-                              Learn More and Apply Here <ExternalLink className="w-3.5 h-3.5" />
-                            </a>
-                            <ShareGate
-                              url="/rebates-incentives"
-                              title={it.name}
-                              summary={[it.jurisdiction, it.amount].filter(Boolean).join(" · ")}
-                              description={it.desc}
-                              image="/og/incentives.jpg"
-                              meta={[it.jurisdiction, it.amount].filter(Boolean).join(" · ")}
-                              formType="incentive-share"
-                              variant="label"
-                              label="Share"
-                              disclaimer={INCENTIVES_DISCLAIMER}
-                            />
-                          </div>
-                        </article>
+                        <IncentiveCard key={i} item={it} edits={f} />
                       ))}
                     </div>
                   ) : (
@@ -521,12 +453,21 @@ const RebatesIncentives = () => {
       )}
       {!embed && <Footer />}
     </div>
+    </PageStylesContext.Provider>
   );
 
   // Embedded on someone else's site: no editor chrome, ever.
-  return embed ? page([]) : (
-    <InlinePageEditor path="/rebates-incentives" label="Rebates & Incentives" slots={INCENTIVE_SLOTS}>
-      {page}
+  return embed ? page([], {}) : (
+    <InlinePageEditor
+      path="/rebates-incentives"
+      label="Rebates & Incentives"
+      slots={INCENTIVE_SLOTS}
+      fieldGroups={fieldGroups}
+    >
+      {/* Blog and event pages keep ONE record's fields here, so the render prop
+          types this as a flat map of strings. This page keeps one group per
+          card, which is the same slot in the draft holding a nested shape. */}
+      {(blocks, f, styles) => page(blocks, f as unknown as IncentiveEdits, styles)}
     </InlinePageEditor>
   );
 };

@@ -44,6 +44,22 @@ export interface FieldTarget {
   invalidate?: string;
 }
 
+/**
+ * Multi-row variant of `fields`, for a page that shows MANY records at once.
+ *
+ * A blog post's page edits one row, so `fields` names one table and one id. The
+ * incentives page shows dozens of programs from five different buckets, and each
+ * card saves its own row — which row depends on the card, so only the page can
+ * decide. Its edits are grouped in the draft as `fields.<key>.<column>` and
+ * handed over whole.
+ *
+ * A page uses `fields` OR `fieldGroups`, never both: they occupy the same slot
+ * in the draft.
+ */
+export interface FieldGroupTarget {
+  save: (groups: Record<string, Record<string, string>>) => Promise<void>;
+}
+
 interface Props {
   /** Where the blocks are stored — the page's own URL path. */
   path: string;
@@ -53,6 +69,8 @@ interface Props {
   slots: string[];
   /** Optional: lets the page edit its own content-table fields inline. */
   fields?: FieldTarget;
+  /** Optional: same, for a page whose cards are many rows rather than one. */
+  fieldGroups?: FieldGroupTarget;
   /** Render the page. `blocks` go in the slots; `fieldEdits` are the pending
    *  edits to the item's own values (fall back to its stored values); `styles`
    *  are the per-element typography overrides, for PageStylesContext. */
@@ -63,7 +81,7 @@ interface Props {
   ) => React.ReactNode;
 }
 
-const InlinePageEditor = ({ path, label, slots, fields, children }: Props) => {
+const InlinePageEditor = ({ path, label, slots, fields, fieldGroups, children }: Props) => {
   const qc = useQueryClient();
   const auth = useEditorAuth();
   const isEditor = auth.status === "editor";
@@ -180,7 +198,14 @@ const InlinePageEditor = ({ path, label, slots, fields, children }: Props) => {
       // rest (blocks, styles) to site_pages. `fields` is never written to
       // site_pages, so a title can't end up living in two places.
       const source = contentOverride ?? working;
-      const { fields: fieldEdits, ...pageContent } = source as PageOverride & { fields?: Record<string, string> };
+      const { fields: fieldEdits, ...pageContent } = source as PageOverride & { fields?: Record<string, unknown> };
+
+      if (fieldGroups && fieldEdits && Object.keys(fieldEdits).length > 0) {
+        // Grouped edits: the page owns the row-by-row mapping. If this throws,
+        // the page row below is never written — better to report a failed save
+        // than to publish blocks while the card text is silently lost.
+        await fieldGroups.save(fieldEdits as Record<string, Record<string, string>>);
+      }
 
       if (fields && fieldEdits && Object.keys(fieldEdits).length > 0) {
         if (fields.id) {
