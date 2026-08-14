@@ -29,7 +29,11 @@ export const eventStaticRows = (): SeedRow[] =>
     event_date: `${e.year}-${String(MONTHS.indexOf(e.month) + 1).padStart(2, "0")}-${String(e.day).padStart(2, "0")}`,
     end_date: e.endDate ?? null,
     title: e.title, type: e.type, location: e.location, region: e.region, time: e.time,
-    description: e.description, image: typeof e.image === "string" ? e.image : "", featured: !!e.featured, status: "published",
+    description: e.description, image: typeof e.image === "string" ? e.image : "", featured: !!e.featured,
+    // So the CMS shows the registration link a curated event already ships with,
+    // instead of an empty box that looks like the event has none.
+    register_url: e.registerUrl ?? "", register_label: e.registerLabel ?? "", register_cta_label: e.registerCtaLabel ?? "",
+    status: "published",
   }));
 
 export const vehicleStaticRows = (): SeedRow[] =>

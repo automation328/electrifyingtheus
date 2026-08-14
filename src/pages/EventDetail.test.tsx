@@ -19,7 +19,15 @@ import type { EventItem } from "@/data/events";
 vi.mock("@/components/Navbar", () => ({ default: () => <nav /> }));
 vi.mock("@/components/Footer", () => ({ default: () => <footer /> }));
 vi.mock("@/components/forms/ShareGate", () => ({ default: () => <div>share</div> }));
-vi.mock("@/components/forms/EventActionGate", () => ({ default: () => <div>register</div> }));
+// Rendered as a link so the tests can read the label AND the destination the
+// page handed it — the two things an editor now controls. Keyed by formType
+// because this same gate also renders "Add to calendar", which is not a
+// Register button and must not be counted as one.
+vi.mock("@/components/forms/EventActionGate", () => ({
+  default: ({ href, label, formType }: { href: string; label: string; formType: string }) => (
+    <a data-testid={`gate-${formType}`} href={href}>{label}</a>
+  ),
+}));
 
 // "Nordic EV Summit 2027" with location "Oslo, Norway" — displayed with the
 // city appended, which is exactly the string that must NOT be saved.
@@ -131,5 +139,116 @@ describe("external feed events", () => {
     renderEvent();
     fireEvent.click(screen.getByText(/Edit this page/i));
     expect(screen.getByText(/Nordic EV Summit 2027 - Oslo/)).toBeTruthy();
+  });
+
+  it("offer no Register controls — there is nowhere to save them", () => {
+    asEditor();
+    external.value = [{ ...BASE, id: undefined, external: true, registerUrl: "https://feed.example/signup" }];
+    renderEvent();
+    fireEvent.click(screen.getByText(/Edit this page/i));
+    expect(screen.queryAllByPlaceholderText(LINK_PLACEHOLDER)).toHaveLength(0);
+    // Its own link still works, it just isn't editable here.
+    expect(screen.getAllByTestId("gate-event-register")[0].getAttribute("href")).toBe("https://feed.example/signup");
+  });
+});
+
+// ── The two Register buttons ────────────────────────────────────────────────
+// Both send people to one link (an event has one registration page) but carry
+// their own words, because they read differently where they sit.
+const LINK_PLACEHOLDER = "https://… or /page";
+const linkBoxes = () => screen.getAllByPlaceholderText(LINK_PLACEHOLDER) as HTMLInputElement[];
+
+describe("a visitor's Register buttons", () => {
+  it("say Register and Register now when the event names nothing else", () => {
+    ours.value = [{ ...BASE, registerUrl: "https://example.org/signup" }];
+    renderEvent();
+    const labels = screen.getAllByTestId("gate-event-register").map((el) => el.textContent);
+    expect(labels).toEqual(["Register", "Register now"]);
+  });
+
+  it("say what the event says, when it says something", () => {
+    ours.value = [{
+      ...BASE, registerUrl: "https://example.org/signup",
+      registerLabel: "Save my seat", registerCtaLabel: "Claim a spot",
+    }];
+    renderEvent();
+    const labels = screen.getAllByTestId("gate-event-register").map((el) => el.textContent);
+    expect(labels).toEqual(["Save my seat", "Claim a spot"]);
+  });
+
+  it("both point at the event's one registration link", () => {
+    ours.value = [{ ...BASE, registerUrl: "https://example.org/signup" }];
+    renderEvent();
+    const hrefs = screen.getAllByTestId("gate-event-register").map((el) => el.getAttribute("href"));
+    expect(hrefs).toEqual(["https://example.org/signup", "https://example.org/signup"]);
+  });
+
+  it("fall back to Contact us when the event has no link", () => {
+    ours.value = [BASE];
+    renderEvent();
+    expect(screen.queryAllByTestId("gate-event-register")).toHaveLength(0);
+    const contact = screen.getAllByRole("link", { name: /Register/ });
+    expect(contact.map((el) => el.getAttribute("href"))).toEqual(["/contact-us", "/contact-us"]);
+  });
+
+  // The link is typed by an editor and handed to window.open, so a script URL
+  // must never reach it. Treated as no link at all rather than opened.
+  it("refuse a javascript: link and go to Contact us instead", () => {
+    ours.value = [{ ...BASE, registerUrl: "javascript:alert(1)" }];
+    renderEvent();
+    expect(screen.queryAllByTestId("gate-event-register")).toHaveLength(0);
+    expect(screen.getAllByRole("link", { name: /Register/ })[0].getAttribute("href")).toBe("/contact-us");
+  });
+});
+
+describe("an editor changes the Register buttons on the page", () => {
+  it("offers a text box and a link box on each button", () => {
+    asEditor();
+    ours.value = [BASE];
+    renderEvent();
+    fireEvent.click(screen.getByText(/Edit this page/i));
+    expect(screen.getAllByPlaceholderText("Register")).toHaveLength(1);
+    expect(screen.getAllByPlaceholderText("Register now")).toHaveLength(1);
+    expect(linkBoxes()).toHaveLength(2);
+  });
+
+  it("keeps one link between the two buttons", () => {
+    asEditor();
+    ours.value = [BASE];
+    renderEvent();
+    fireEvent.click(screen.getByText(/Edit this page/i));
+    fireEvent.change(linkBoxes()[0], { target: { value: "https://example.org/signup" } });
+    // The second box is the same field, so it must not still read blank —
+    // otherwise whichever button an editor saved last would win.
+    expect(linkBoxes().map((el) => el.value))
+      .toEqual(["https://example.org/signup", "https://example.org/signup"]);
+  });
+
+  it("keeps the two button labels apart", () => {
+    asEditor();
+    ours.value = [BASE];
+    renderEvent();
+    fireEvent.click(screen.getByText(/Edit this page/i));
+    fireEvent.change(screen.getByPlaceholderText("Register"), { target: { value: "Save my seat" } });
+    expect((screen.getByPlaceholderText("Register") as HTMLInputElement).value).toBe("Save my seat");
+    expect((screen.getByPlaceholderText("Register now") as HTMLInputElement).value).toBe("");
+  });
+
+  it("shows the event's stored link in the box, ready to change", () => {
+    asEditor();
+    ours.value = [{ ...BASE, registerUrl: "https://example.org/signup" }];
+    renderEvent();
+    fireEvent.click(screen.getByText(/Edit this page/i));
+    expect(linkBoxes()[0].value).toBe("https://example.org/signup");
+  });
+
+  // The live button opens the lead-capture dialog on click, so the one shown
+  // while editing is an inert preview — see RegisterCta.
+  it("does not leave a live Register button in the way", () => {
+    asEditor();
+    ours.value = [{ ...BASE, registerUrl: "https://example.org/signup" }];
+    renderEvent();
+    fireEvent.click(screen.getByText(/Edit this page/i));
+    expect(screen.queryAllByTestId("gate-event-register")).toHaveLength(0);
   });
 });

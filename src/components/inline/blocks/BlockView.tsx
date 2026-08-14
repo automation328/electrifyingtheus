@@ -15,6 +15,8 @@ import { toast } from "sonner";
 import DOMPurify from "dompurify";
 import type { BlockStyle } from "@/lib/page-content";
 import { copyBlock, copyStyle, readStyleClipboard } from "@/lib/block-clipboard";
+// Shared with the event page's Register link — see lib/safe-href.ts.
+import { safeHref } from "@/lib/safe-href";
 import type { PageBlock } from "@/lib/page-content";
 import { useInlineEdit, InlineEditContext, type InlineEditContextValue } from "@/components/inline/edit-context";
 import { newBlock, newId, regenIds } from "@/components/inline/blocks/factory";
@@ -51,18 +53,6 @@ if (typeof window !== "undefined") {
 // scripts, event handlers, and dangerous URIs while keeping ordinary markup.
 const cleanHtml = (html: string) =>
   DOMPurify.sanitize(html ?? "", { USE_PROFILES: { html: true }, ADD_ATTR: ["target"] });
-
-// Only allow safe link schemes; block javascript:/data:/vbscript: hrefs (would
-// execute on click) and protocol-relative //host (silent off-site redirect).
-// Relative paths, #anchors, mailto:, tel:, and http(s): pass through.
-const safeHref = (href?: string): string => {
-  const h = (href ?? "").trim();
-  if (!h) return "#";
-  if (/^\/\//.test(h.replace(/\\/g, "/"))) return "#"; // protocol-relative (incl. backslash forms)
-  if (/^(\/|#|mailto:|tel:)/i.test(h)) return h;
-  if (/^https?:\/\//i.test(h)) return h;
-  return "#"; // reject javascript:, data:, vbscript:, and other unexpected schemes
-};
 
 const fontClass = (block: PageBlock) => {
   const f = block.font ?? (block.type === "heading" ? "display" : "sans");

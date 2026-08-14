@@ -8,8 +8,10 @@ import InlinePageEditor from "@/components/inline/InlinePageEditor";
 import BlockSlot from "@/components/inline/blocks/BlockSlot";
 import EditableText, { PageStylesContext } from "@/components/inline/EditableText";
 import EditableImage from "@/components/inline/EditableImage";
+import LinkPicker from "@/components/inline/LinkPicker";
 import { useInlineEdit } from "@/components/inline/edit-context";
 import { eventAdoptRow } from "@/lib/content";
+import { safeHref } from "@/lib/safe-href";
 import ShareGate from "@/components/forms/ShareGate";
 import EventActionGate from "@/components/forms/EventActionGate";
 import EventDisclaimer from "@/components/EventDisclaimer";
@@ -48,6 +50,90 @@ const Field = ({ path, value, editable }: { path: string; value: string; editabl
   const ctx = useInlineEdit();
   if (!editable || !ctx?.editing) return <>{value}</>;
   return <EditableText path={path}>{value}</EditableText>;
+};
+
+/** Built-in wording for the two Register buttons, used when the event sets none. */
+const REGISTER_LABEL = "Register";
+const REGISTER_CTA_LABEL = "Register now";
+
+/**
+ * A Register button whose words and destination an editor can change on the page.
+ *
+ * While editing, the button itself is INERT — a span wearing the button's
+ * classes — with a label box and a link picker beneath it. A live one cannot be
+ * edited in place: the click that puts the caret in it also opens the
+ * lead-capture dialog. The builder's Button block settled this the same way.
+ *
+ * Both buttons commit to the SAME link (fields.register_url). An event has one
+ * registration page, and two boxes that can disagree about it is a bug waiting
+ * for someone to hit it. The LABELS are separate columns, because the two
+ * buttons read differently where they sit.
+ */
+const RegisterCta = ({ event, url, label, labelPath, fallbackLabel, editable, className }: {
+  event: EventItem;
+  /** Raw link — the pending edit when there is one, else the event's stored value. */
+  url: string;
+  /** Raw label; "" when the event has none of its own. */
+  label: string;
+  /** Draft path this button's own label commits to. */
+  labelPath: string;
+  /** Shown, and saved as nothing, when the label is blank. */
+  fallbackLabel: string;
+  editable: boolean;
+  className: string;
+}) => {
+  const ctx = useInlineEdit();
+  const icon = <Ticket className="w-5 h-5" />;
+  const text = label || fallbackLabel;
+
+  if (editable && ctx?.editing) {
+    return (
+      <div className="inline-flex flex-col items-start gap-2 text-left">
+        <span className={className}>{icon}{text}</span>
+        {/* Its own card: these controls sit on a white row in one place and on
+            the coloured band in the other, and muted text on that gradient is
+            unreadable. */}
+        <div className="w-full min-w-[17rem] max-w-sm rounded-xl border border-border bg-card p-2.5 shadow-sm">
+          <label className="block text-[11px] font-semibold text-muted-foreground">
+            Button text
+            <input
+              value={label}
+              onChange={(e) => ctx.set(labelPath, e.target.value)}
+              placeholder={fallbackLabel}
+              className="mt-1 w-full rounded-lg border border-border bg-background px-2.5 py-1.5 text-xs font-normal text-foreground"
+            />
+          </label>
+          <p className="mt-2 mb-1 text-[11px] font-semibold text-muted-foreground">Register link</p>
+          <LinkPicker
+            value={url}
+            onChange={(v) => ctx.set("fields.register_url", v)}
+            placeholder="https://… or /page"
+          />
+          <p className="mt-1.5 text-[11px] text-muted-foreground">
+            Both Register buttons use this link. Leave it blank and they send people to Contact us.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // The link came from an editor's keyboard and is handed to window.open, so a
+  // javascript:/data: URL is treated as no link at all rather than opened.
+  const href = safeHref(url);
+  if (href !== "#") {
+    return (
+      <EventActionGate
+        href={href}
+        formType="event-register"
+        title={event.title}
+        summary={`${event.location} · ${event.month} ${event.day}, ${event.year}`}
+        label={text}
+        icon={icon}
+        className={className}
+      />
+    );
+  }
+  return <Link to="/contact-us" className={className}>{icon} {text}</Link>;
 };
 
 const Shell = ({ children }: { children: React.ReactNode }) => (
@@ -90,7 +176,6 @@ const EventDetail = () => {
     );
   }
 
-  const hasReg = Boolean(event.registerUrl);
   // Events pulled from an external feed are not ours: no field target, and no
   // editable fields either, so nobody types into a box that discards the text.
   const ownEvent = !event.external;
@@ -170,22 +255,15 @@ const EventDetail = () => {
                 label="Share"
                 className="inline-flex items-center gap-2 bg-card border border-border text-foreground font-semibold px-5 py-3 rounded-xl hover:border-primary/40 hover:text-primary transition"
               />
-              {hasReg ? (
-                <EventActionGate
-                  href={event.registerUrl!}
-                  formType="event-register"
-                  title={event.title}
-                  summary={`${event.location} · ${event.month} ${event.day}, ${event.year}`}
-                  label="Register"
-                  icon={<Ticket className="w-5 h-5" />}
-                  className="inline-flex items-center gap-2 gradient-primary text-primary-foreground font-semibold px-5 py-3 rounded-xl shadow-card hover:opacity-90 transition"
-                />
-              ) : (
-                <Link to="/contact-us"
-                  className="inline-flex items-center gap-2 gradient-primary text-primary-foreground font-semibold px-5 py-3 rounded-xl shadow-card hover:opacity-90 transition">
-                  <Ticket className="w-5 h-5" /> Register
-                </Link>
-              )}
+              <RegisterCta
+                event={event}
+                url={f.register_url ?? event.registerUrl ?? ""}
+                label={f.register_label ?? event.registerLabel ?? ""}
+                labelPath="fields.register_label"
+                fallbackLabel={REGISTER_LABEL}
+                editable={ownEvent}
+                className="inline-flex items-center gap-2 gradient-primary text-primary-foreground font-semibold px-5 py-3 rounded-xl shadow-card hover:opacity-90 transition"
+              />
               <Link to="/list-your-event"
                 className="inline-flex items-center gap-2 bg-green-600 text-white font-semibold px-5 py-3 rounded-xl shadow-card hover:bg-green-700 transition">
                 <Megaphone className="w-5 h-5" /> List Your Event
@@ -233,22 +311,15 @@ const EventDetail = () => {
           <p className="text-primary-foreground/90 mb-6 max-w-xl mx-auto">
             {event.time} · {event.location}. Register and we'll make sure you have the details.
           </p>
-          {hasReg ? (
-            <EventActionGate
-              href={event.registerUrl!}
-              formType="event-register"
-              title={event.title}
-              summary={`${event.location} · ${event.month} ${event.day}, ${event.year}`}
-              label="Register now"
-              icon={<Ticket className="w-5 h-5" />}
-              className="inline-flex items-center gap-2 bg-primary-foreground text-primary font-bold px-7 py-3.5 rounded-2xl hover:opacity-90 transition"
-            />
-          ) : (
-            <Link to="/contact-us"
-              className="inline-flex items-center gap-2 bg-primary-foreground text-primary font-bold px-7 py-3.5 rounded-2xl hover:opacity-90 transition">
-              <Ticket className="w-5 h-5" /> Register now
-            </Link>
-          )}
+          <RegisterCta
+            event={event}
+            url={f.register_url ?? event.registerUrl ?? ""}
+            label={f.register_cta_label ?? event.registerCtaLabel ?? ""}
+            labelPath="fields.register_cta_label"
+            fallbackLabel={REGISTER_CTA_LABEL}
+            editable={ownEvent}
+            className="inline-flex items-center gap-2 bg-primary-foreground text-primary font-bold px-7 py-3.5 rounded-2xl hover:opacity-90 transition"
+          />
         </div>
         <BlockSlot slot="event-end" blocks={blocks} />
       </div>

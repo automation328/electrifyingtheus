@@ -25,6 +25,10 @@ interface EventRow {
   end_date: string | null; // YYYY-MM-DD — last day of a multi-day event, else null
   title: string; type: string | null; location: string | null; region: string | null;
   time: string | null; description: string | null; image: string | null; featured: boolean | null;
+  // Where the event's Register buttons go, and what they say. Added in
+  // 0013_event_register_link.sql — null on every row that predates it, which is
+  // read as "keep the built-in wording and the /contact-us fallback".
+  register_url: string | null; register_label: string | null; register_cta_label: string | null;
 }
 interface PostRow {
   // Needed so an inline edit on the page knows which row to write back to.
@@ -55,6 +59,11 @@ function rowToEvent(r: EventRow): EventItem {
     description: r.description || "",
     image: r.image || fallbackImg,
     featured: !!r.featured,
+    // Blank is the same as absent here: an editor who clears the link box means
+    // "no registration link", and `undefined` is what the fallbacks test for.
+    registerUrl: r.register_url || undefined,
+    registerLabel: r.register_label || undefined,
+    registerCtaLabel: r.register_cta_label || undefined,
   };
 }
 
@@ -128,6 +137,13 @@ export function eventAdoptRow(e: EventItem): Record<string, unknown> {
     description: e.description,
     image: e.image,
     featured: !!e.featured,
+    // Carried for the same reason as end_date: the adopted row REPLACES the
+    // curated one in mergeEvents. A curated event's registration link survives
+    // today only because mergeEvents falls back on a title+date match — rename
+    // the event and that match is gone, taking the link with it.
+    register_url: e.registerUrl ?? null,
+    register_label: e.registerLabel ?? null,
+    register_cta_label: e.registerCtaLabel ?? null,
     status: "published",
   };
 }
@@ -159,6 +175,8 @@ export function mergeEvents(dynamic: EventItem[]): EventItem[] {
       ...e,
       slug: e.slug || s?.slug || fallbackSlug(e),
       registerUrl: e.registerUrl || s?.registerUrl,
+      registerLabel: e.registerLabel || s?.registerLabel,
+      registerCtaLabel: e.registerCtaLabel || s?.registerCtaLabel,
       // Inherit the curated flags too — site_events has no column for them, and
       // the curated row is dropped by the dedupe below, so anything not carried
       // here is lost. `ours` is what keeps one of our own events on the site

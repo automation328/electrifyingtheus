@@ -60,6 +60,12 @@ export interface EventItem {
   slug?: string;
   /** External registration link (e.g. webinar signup). */
   registerUrl?: string;
+  /** Words on the Register button beside the poster. Blank = "Register". */
+  registerLabel?: string;
+  /** Words on the Register button in the "Save your spot" band. Blank =
+   *  "Register now". Separate from registerLabel because the two buttons read
+   *  differently on the page — one label for both would rewrite the other. */
+  registerCtaLabel?: string;
   /** True for events pulled from an external ICS/RSS feed (sorted below ETU's). */
   external?: boolean;
   /** Feed hostname for external events (shown as a small source label). */
