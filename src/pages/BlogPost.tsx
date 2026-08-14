@@ -9,6 +9,7 @@ import ShareGate from "@/components/forms/ShareGate";
 import InlinePageEditor from "@/components/inline/InlinePageEditor";
 import BlockSlot from "@/components/inline/blocks/BlockSlot";
 import EditableText, { PageStylesContext } from "@/components/inline/EditableText";
+import MarkdownEditor from "@/components/inline/MarkdownEditor";
 import EditableImage from "@/components/inline/EditableImage";
 import { useInlineEdit } from "@/components/inline/edit-context";
 import { usePost, usePosts } from "@/hooks/use-content";
@@ -99,16 +100,10 @@ const EditableBody = ({ value, path }: { value: string; path: string }) => {
           <div className="flex w-full max-w-3xl flex-col rounded-2xl border border-border bg-background p-5 shadow-elevated" onClick={(e) => e.stopPropagation()}>
             <div className="mb-3 flex items-center">
               <h3 className="font-bold font-display text-foreground">Article text</h3>
-              <span className="ml-3 text-xs text-muted-foreground">Markdown — headings, links and tables all work.</span>
+              <span className="ml-3 hidden text-xs text-muted-foreground sm:inline">Use the buttons — no need to type any codes.</span>
               <button onClick={() => setOpen(false)} className="ml-auto p-1.5 rounded-lg text-muted-foreground hover:bg-muted"><X className="w-4 h-4" /></button>
             </div>
-            <textarea
-              autoFocus
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              spellCheck
-              className="h-[55vh] w-full resize-y rounded-xl border border-border bg-background p-3 font-mono text-sm leading-relaxed text-foreground outline-none focus:ring-2 focus:ring-primary/40"
-            />
+            <MarkdownEditor value={draft} onChange={setDraft} components={markdownComponents} />
             <div className="mt-4 flex items-center gap-2">
               <button
                 onClick={() => { ctx.set(path, draft); setOpen(false); }}

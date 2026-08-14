@@ -12,10 +12,12 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import InlinePageEditor from "@/components/inline/InlinePageEditor";
 import { useInlineEdit } from "@/components/inline/edit-context";
 
+// Typed with rest args so `mock.calls[n][i]` is indexable — a zero-arg mock
+// infers an empty tuple and every assertion below fails to compile.
 const api = vi.hoisted(() => ({
-  listRows: vi.fn(async () => [] as unknown[]),
-  insertRow: vi.fn(async () => ({})),
-  updateRow: vi.fn(async () => ({})),
+  listRows: vi.fn(async (..._args: unknown[]) => [] as unknown[]),
+  insertRow: vi.fn(async (..._args: unknown[]) => ({})),
+  updateRow: vi.fn(async (..._args: unknown[]) => ({})),
 }));
 vi.mock("@/lib/admin-api", () => ({
   listRows: api.listRows,
