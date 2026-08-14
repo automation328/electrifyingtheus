@@ -2,12 +2,15 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { ArrowLeft, ArrowRight, Calendar, User, Clock } from "lucide-react";
+import { ArrowLeft, ArrowRight, Calendar, User, Clock, Pencil, X } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ShareGate from "@/components/forms/ShareGate";
 import InlinePageEditor from "@/components/inline/InlinePageEditor";
 import BlockSlot from "@/components/inline/blocks/BlockSlot";
+import EditableText, { PageStylesContext } from "@/components/inline/EditableText";
+import EditableImage from "@/components/inline/EditableImage";
+import { useInlineEdit } from "@/components/inline/edit-context";
 import { usePost, usePosts } from "@/hooks/use-content";
 
 // Where an editor may drop blocks on a post, in the order they appear. Used for
@@ -62,6 +65,67 @@ const markdownComponents = {
   tr: ({ children }: { children?: React.ReactNode }) => (
     <tr className="last:[&>td]:border-b-0">{children}</tr>
   ),
+};
+
+/**
+ * The article body, editable in place.
+ *
+ * It edits the MARKDOWN, not the rendered HTML. Making the rendered output
+ * contentEditable and converting back would quietly wreck tables, links and
+ * nested lists — markdown stays the source of truth, so nothing is lost.
+ */
+const EditableBody = ({ value, path }: { value: string; path: string }) => {
+  const ctx = useInlineEdit();
+  const [open, setOpen] = useState(false);
+  const [draft, setDraft] = useState(value);
+  const rendered = (
+    <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>{value}</ReactMarkdown>
+  );
+  if (!ctx?.editing) return rendered;
+
+  return (
+    <div className="group relative rounded-xl ring-1 ring-transparent hover:ring-primary/40 transition p-2 -m-2">
+      <button
+        type="button"
+        onClick={() => { setDraft(value); setOpen(true); }}
+        className="absolute -top-3 right-2 z-20 hidden group-hover:inline-flex items-center gap-1.5 rounded-lg bg-foreground/90 px-2.5 py-1.5 text-xs font-semibold text-white shadow hover:bg-foreground"
+      >
+        <Pencil className="w-3.5 h-3.5" /> Edit article text
+      </button>
+      {rendered}
+
+      {open && (
+        <div className="fixed inset-0 z-[100] grid place-items-center bg-black/50 backdrop-blur-sm p-4" onClick={() => setOpen(false)}>
+          <div className="flex w-full max-w-3xl flex-col rounded-2xl border border-border bg-background p-5 shadow-elevated" onClick={(e) => e.stopPropagation()}>
+            <div className="mb-3 flex items-center">
+              <h3 className="font-bold font-display text-foreground">Article text</h3>
+              <span className="ml-3 text-xs text-muted-foreground">Markdown — headings, links and tables all work.</span>
+              <button onClick={() => setOpen(false)} className="ml-auto p-1.5 rounded-lg text-muted-foreground hover:bg-muted"><X className="w-4 h-4" /></button>
+            </div>
+            <textarea
+              autoFocus
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              spellCheck
+              className="h-[55vh] w-full resize-y rounded-xl border border-border bg-background p-3 font-mono text-sm leading-relaxed text-foreground outline-none focus:ring-2 focus:ring-primary/40"
+            />
+            <div className="mt-4 flex items-center gap-2">
+              <button
+                onClick={() => { ctx.set(path, draft); setOpen(false); }}
+                className="rounded-xl gradient-hero px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90"
+              >
+                Apply
+              </button>
+              <button onClick={() => setOpen(false)} className="rounded-xl border border-border px-5 py-2.5 text-sm font-medium text-foreground hover:bg-muted">
+                Cancel
+              </button>
+              <span className="ml-auto text-xs text-muted-foreground">Then Publish to make it live.</span>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 };
 
 const BlogPost = () => {
@@ -120,8 +184,26 @@ const BlogPost = () => {
     // Signed-in editors get the same block builder the pages have. Blocks are
     // stored against this post's own path, so the words below stay markdown and
     // a post nobody has built on renders exactly as it always did.
-    <InlinePageEditor path={`/blog/${post.slug}`} label={post.title} slots={BLOG_SLOTS}>
-      {(blocks) => (
+    <InlinePageEditor
+      path={`/blog/${post.slug}`}
+      label={post.title}
+      slots={BLOG_SLOTS}
+      // The post's OWN words live in site_blog_posts, so inline edits write
+      // back there — the CMS form and the page always agree. A curated post has
+      // no row yet, so `adopt` carries the whole post for the first insert.
+      fields={{
+        table: "site_blog_posts",
+        id: post.id,
+        adopt: {
+          slug: post.slug, title: post.title, excerpt: post.excerpt, category: post.category,
+          date: post.date, author: post.author, read_time: post.readTime,
+          image: post.image, content: post.content, status: "published",
+        },
+        invalidate: "site-blog-posts",
+      }}
+    >
+      {(blocks, f, styles) => (
+    <PageStylesContext.Provider value={styles}>
     <div className="min-h-screen flex flex-col bg-background">
       <div className="read-progress" style={{ transform: `scaleX(${progress})` }} aria-hidden />
       <Navbar />
@@ -136,9 +218,11 @@ const BlogPost = () => {
             {post.category}
           </span>
           <h1 className="text-3xl md:text-5xl font-bold font-display text-foreground mb-4 leading-tight">
-            {post.title}
+            <EditableText path="fields.title" styleKey="post.title">{f.title ?? post.title}</EditableText>
           </h1>
-          <p className="text-lg text-muted-foreground mb-6">{post.excerpt}</p>
+          <p className="text-lg text-muted-foreground mb-6">
+            <EditableText path="fields.excerpt" styleKey="post.excerpt">{f.excerpt ?? post.excerpt}</EditableText>
+          </p>
           <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-sm text-muted-foreground mb-6">
             <span className="flex items-center gap-1.5"><User className="w-4 h-4" /> {post.author}</span>
             <span className="flex items-center gap-1.5"><Calendar className="w-4 h-4" /> {post.date}</span>
@@ -161,9 +245,14 @@ const BlogPost = () => {
             />
           </div>
 
-          {/* Hero image */}
-          <div className="rounded-3xl overflow-hidden shadow-xl mb-10 max-h-[420px]">
-            <img src={post.image} alt={post.title} className="w-full h-full object-cover" />
+          {/* Cover image — "Change photo" in edit mode, like every other image. */}
+          <div className="relative rounded-3xl overflow-hidden shadow-xl mb-10 max-h-[420px]">
+            <EditableImage
+              path="fields.image"
+              src={f.image ?? post.image}
+              alt={f.title ?? post.title}
+              className="w-full h-full object-cover"
+            />
           </div>
 
           {/* Blocks above the article — a callout, a video, a gallery. */}
@@ -171,7 +260,7 @@ const BlogPost = () => {
 
           {/* Body */}
           <div className="text-base md:text-lg">
-            <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>{post.content}</ReactMarkdown>
+            <EditableBody value={f.content ?? post.content} path="fields.content" />
           </div>
 
           {/* Blocks below the article — a CTA, related links, a sign-up. */}
@@ -210,6 +299,7 @@ const BlogPost = () => {
       </main>
       <Footer />
     </div>
+    </PageStylesContext.Provider>
       )}
     </InlinePageEditor>
   );

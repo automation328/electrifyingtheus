@@ -23,6 +23,9 @@ interface EventRow {
   time: string | null; description: string | null; image: string | null; featured: boolean | null;
 }
 interface PostRow {
+  // Needed so an inline edit on the page knows which row to write back to.
+  // fetchPosts selects "*", so this was always present — just untyped.
+  id: string;
   slug: string; title: string; excerpt: string | null; category: string | null;
   date: string | null; published_at: string | null; author: string | null;
   read_time: string | null; image: string | null; featured: boolean | null; content: string | null;
@@ -49,6 +52,7 @@ function rowToEvent(r: EventRow): EventItem {
 
 function rowToPost(r: PostRow): BlogPost {
   return {
+    id: r.id,
     slug: r.slug,
     title: r.title,
     excerpt: r.excerpt || "",

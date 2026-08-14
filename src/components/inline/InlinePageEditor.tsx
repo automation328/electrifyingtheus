@@ -15,7 +15,8 @@ import { toast } from "sonner";
 import EditBar from "@/components/inline/EditBar";
 import Inspector from "@/components/inline/Inspector";
 import { InlineEditContext, setPath, getPath } from "@/components/inline/edit-context";
-import { usePageOverride, type PageOverride, type PageBlock, type BlockType } from "@/lib/page-content";
+import { usePageOverride, type PageOverride, type PageBlock, type BlockType, type ElemStyle } from "@/lib/page-content";
+import type { AdminTable } from "@/lib/admin-api";
 import { newBlock, newId, regenIds } from "@/components/inline/blocks/factory";
 import {
   trackCleared, moveBlockInList, patchBlockDeep, removeBlockDeep, duplicateBlockDeep, moveBlockRelativeInList,
@@ -27,6 +28,22 @@ interface PageRow { id: string; path: string; status: string; title?: string; co
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 interface SettingRow { id: string; key: string; value: { items?: any[] } }
 
+/**
+ * The item's OWN fields — title, excerpt, body — which live in a content table,
+ * not in site_pages. Editing those inline has to write back there, or the CMS
+ * and the page would disagree about what the title is.
+ */
+export interface FieldTarget {
+  /** Where the fields live, e.g. "site_blog_posts". */
+  table: AdminTable;
+  /** Row id. Absent for a curated item with no row yet — then we INSERT. */
+  id?: string;
+  /** The full row to insert when adopting a curated item. */
+  adopt?: Record<string, unknown>;
+  /** React Query key to refresh after saving, so the page shows the new value. */
+  invalidate?: string;
+}
+
 interface Props {
   /** Where the blocks are stored — the page's own URL path. */
   path: string;
@@ -34,11 +51,19 @@ interface Props {
   label: string;
   /** Insertion points this page offers, in the order they appear. */
   slots: string[];
-  /** Render the page. `blocks` are the ones to place in the slots above. */
-  children: (blocks: PageBlock[]) => React.ReactNode;
+  /** Optional: lets the page edit its own content-table fields inline. */
+  fields?: FieldTarget;
+  /** Render the page. `blocks` go in the slots; `fieldEdits` are the pending
+   *  edits to the item's own values (fall back to its stored values); `styles`
+   *  are the per-element typography overrides, for PageStylesContext. */
+  children: (
+    blocks: PageBlock[],
+    fieldEdits: Record<string, string>,
+    styles: Record<string, ElemStyle> | undefined,
+  ) => React.ReactNode;
 }
 
-const InlinePageEditor = ({ path, label, slots, children }: Props) => {
+const InlinePageEditor = ({ path, label, slots, fields, children }: Props) => {
   const qc = useQueryClient();
   const auth = useEditorAuth();
   const isEditor = auth.status === "editor";
@@ -151,9 +176,25 @@ const InlinePageEditor = ({ path, label, slots, children }: Props) => {
   const save = async (status: "draft" | "published", contentOverride?: PageOverride) => {
     setSaving(true);
     try {
+      // Split the draft: the item's OWN fields belong to its content table, the
+      // rest (blocks, styles) to site_pages. `fields` is never written to
+      // site_pages, so a title can't end up living in two places.
+      const source = contentOverride ?? working;
+      const { fields: fieldEdits, ...pageContent } = source as PageOverride & { fields?: Record<string, string> };
+
+      if (fields && fieldEdits && Object.keys(fieldEdits).length > 0) {
+        if (fields.id) {
+          await updateRow(fields.table, fields.id, { ...fieldEdits, updated_at: new Date().toISOString() });
+        } else {
+          // A curated item has no row yet — adopt it, exactly as the CMS does.
+          await insertRow(fields.table, { ...(fields.adopt ?? {}), ...fieldEdits, updated_at: new Date().toISOString() });
+        }
+        if (fields.invalidate) qc.invalidateQueries({ queryKey: [fields.invalidate] });
+      }
+
       const rows = await listRows<PageRow>("site_pages");
       const existing = rows.find((r) => r.path === path);
-      const payload = { path, title: label, status, content: contentOverride ?? working, updated_at: new Date().toISOString() };
+      const payload = { path, title: label, status, content: pageContent as PageOverride, updated_at: new Date().toISOString() };
       if (existing) await updateRow("site_pages", existing.id, payload); else await insertRow("site_pages", payload);
       qc.invalidateQueries({ queryKey: ["site-page", path] });
       qc.invalidateQueries({ queryKey: ["editor-page-row", path] });
@@ -177,7 +218,7 @@ const InlinePageEditor = ({ path, label, slots, children }: Props) => {
   return (
     <InlineEditContext.Provider value={ctx}>
       <div className={shifted ? "cms-editor-shift" : undefined}>
-        {children(shown.blocks ?? [])}
+        {children(shown.blocks ?? [], (shown as { fields?: Record<string, string> }).fields ?? {}, shown.styles)}
         {canEdit && (
           <EditBar
             editing={editing}

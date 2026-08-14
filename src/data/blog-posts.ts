@@ -9,6 +9,10 @@ import evFamily from "@/assets/ev-family.jpg";
 import webinarPart1 from "@/assets/webinar-part1.jpg";
 
 export interface BlogPost {
+  /** site_blog_posts row id. Absent on the curated posts below, which have no
+   *  DB row — an inline edit on one of those INSERTS a row rather than
+   *  updating, the same way the CMS adopts a built-in item on Save. */
+  id?: string;
   slug: string;
   title: string;
   excerpt: string;
