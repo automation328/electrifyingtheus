@@ -13,14 +13,9 @@ import { eventAdoptRow } from "@/lib/content";
 import ShareGate from "@/components/forms/ShareGate";
 import EventActionGate from "@/components/forms/EventActionGate";
 import EventDisclaimer from "@/components/EventDisclaimer";
-import { gcalLink, eventDate, eventDisplayTitle, eventLocationText, type EventItem } from "@/data/events";
+import { gcalLink, eventFullDate, eventDisplayTitle, eventLocationText, type EventItem } from "@/data/events";
 import { useEvents } from "@/hooks/use-content";
 import { useExternalEvents } from "@/hooks/use-external-events";
-
-const weekday = (e: EventItem) => {
-  try { return eventDate(e).toLocaleDateString("en-US", { weekday: "long" }); }
-  catch { return ""; }
-};
 
 // Where blocks may be dropped on an event page, in page order.
 const EVENT_SLOTS = ["event-top", "event-end"];
@@ -96,7 +91,6 @@ const EventDetail = () => {
   }
 
   const hasReg = Boolean(event.registerUrl);
-  const day = weekday(event);
   // Events pulled from an external feed are not ours: no field target, and no
   // editable fields either, so nobody types into a box that discards the text.
   const ownEvent = !event.external;
@@ -214,10 +208,12 @@ const EventDetail = () => {
             </h1>
 
             <div className="flex flex-col gap-2 text-foreground mb-5">
-              {/* The date is not editable here: it is stored as event_date and
-                  shown split into month/day/year, and it decides the event's
-                  slug. It stays in the CMS form where it is a single date field. */}
-              <span className="flex items-center gap-2.5"><CalendarDays className="w-5 h-5 text-primary shrink-0" /> {day ? `${day}, ` : ""}{event.month} {event.day}, {event.year}</span>
+              {/* Not editable here: the dates are stored as event_date/end_date
+                  and shown split, and the start decides the event's slug. They
+                  stay in the CMS form where they are real date fields.
+                  eventFullDate gives "Thursday, AUG 27, 2026" for a single day
+                  and "SEP 11 – OCT 12, 2026" when the event spans a range. */}
+              <span className="flex items-center gap-2.5"><CalendarDays className="w-5 h-5 text-primary shrink-0" /> {eventFullDate(event)}</span>
               <span className="flex items-center gap-2.5"><Clock className="w-5 h-5 text-primary shrink-0" /> <Field path="fields.time" value={f.time ?? event.time} editable={ownEvent} /></span>
               <span className="flex items-center gap-2.5"><MapPin className="w-5 h-5 text-primary shrink-0" /> <RawEditable path="fields.location" raw={f.location ?? event.location} display={eventLocationText(event)} editable={ownEvent} /></span>
             </div>

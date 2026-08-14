@@ -27,6 +27,7 @@ export const eventStaticRows = (): SeedRow[] =>
   EVENTS.map((e) => ({
     __static: true,
     event_date: `${e.year}-${String(MONTHS.indexOf(e.month) + 1).padStart(2, "0")}-${String(e.day).padStart(2, "0")}`,
+    end_date: e.endDate ?? null,
     title: e.title, type: e.type, location: e.location, region: e.region, time: e.time,
     description: e.description, image: typeof e.image === "string" ? e.image : "", featured: !!e.featured, status: "published",
   }));

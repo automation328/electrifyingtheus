@@ -36,6 +36,16 @@ export interface EventItem {
   month: string;
   day: string;
   year: number;
+  /**
+   * Last day of a multi-day event, as ISO YYYY-MM-DD. Absent = single day.
+   *
+   * The START stays month/day/year: that is how curated events are authored and
+   * what the dedupe key + slug are built from. The END is a plain ISO string —
+   * it maps 1:1 to site_events.end_date and is deliberately NOT part of an
+   * event's identity, because folding it into the key would change the slug of
+   * every event that gained a range and 404 its existing links.
+   */
+  endDate?: string;
   title: string;
   type: string;
   location: string;
@@ -74,11 +84,30 @@ export const eventDate = (e: EventItem): Date => {
   return new Date(e.year, m, parseInt(e.day, 10) || 1);
 };
 
-/** True when the event is today or in the future. */
+/**
+ * The LAST day of a multi-day event, or null when it runs for a single day.
+ *
+ * An end that is missing, unparseable, or earlier than the start is treated as
+ * absent rather than trusted: a backwards range would otherwise mark the event
+ * finished the instant it was saved and drop it off the listing.
+ */
+export const eventEndDate = (e: EventItem): Date | null => {
+  if (!e.endDate) return null;
+  const d = new Date(`${e.endDate}T00:00:00`);
+  if (Number.isNaN(d.getTime())) return null;
+  return d.getTime() < eventDate(e).getTime() ? null : d;
+};
+
+/** The last day the event is still running — its end date when it has one. */
+export const eventLastDay = (e: EventItem): Date => eventEndDate(e) ?? eventDate(e);
+
+/** True when the event has not finished yet. */
 export const isUpcoming = (e: EventItem): boolean => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  return eventDate(e).getTime() >= today.getTime();
+  // Measured from the LAST day, so a month-long event stays listed all the way
+  // through instead of disappearing the morning after it opens.
+  return eventLastDay(e).getTime() >= today.getTime();
 };
 
 /** Whether an event should still be shown on the site. Upcoming events always
@@ -89,9 +118,27 @@ export const isActive = (e: EventItem): boolean => isUpcoming(e) || !!e.ours;
 /** Sort comparator: soonest first. */
 export const byDateAsc = (a: EventItem, b: EventItem) => eventDate(a).getTime() - eventDate(b).getTime();
 
+/**
+ * "SEP 11 – OCT 12, 2026" for a multi-day event; "" for a single-day one.
+ * The year is printed once unless the span crosses into a new one.
+ */
+export const eventDateRange = (e: EventItem): string => {
+  const end = eventEndDate(e);
+  if (!end) return "";
+  const em = MONTHS[end.getMonth()];
+  const ed = String(end.getDate()).padStart(2, "0");
+  const ey = end.getFullYear();
+  if (ey !== e.year) return `${e.month} ${e.day}, ${e.year} – ${em} ${ed}, ${ey}`;
+  if (em === e.month) return `${e.month} ${e.day} – ${ed}, ${e.year}`;
+  return `${e.month} ${e.day} – ${em} ${ed}, ${e.year}`;
+};
+
 /** "Thursday, AUG 27, 2026" — long weekday + the stored MON/day/year (matches
- *  the event detail page). */
+ *  the event detail page). A multi-day event gets its span instead: a weekday
+ *  name says nothing useful about something that runs for a month. */
 export const eventFullDate = (e: EventItem): string => {
+  const range = eventDateRange(e);
+  if (range) return range;
   let weekday = "";
   try { weekday = eventDate(e).toLocaleDateString("en-US", { weekday: "long" }); } catch { /* keep blank */ }
   return `${weekday ? `${weekday}, ` : ""}${e.month} ${e.day}, ${e.year}`;
@@ -623,13 +670,18 @@ export const EVENTS: EventItem[] = [
 
 const MONTHS = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
 
-/** All-day Google Calendar "add reminder" link for an event. */
+const ymd = (d: Date): string =>
+  `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}`;
+
+/** All-day Google Calendar "add reminder" link, spanning the whole event. */
 export const gcalLink = (e: EventItem): string => {
-  const m = String(MONTHS.indexOf(e.month) + 1).padStart(2, "0");
-  const d = e.day.padStart(2, "0");
-  const start = `${e.year}${m}${d}`;
-  const endDay = String(Number(e.day) + 1).padStart(2, "0");
-  const end = `${e.year}${m}${endDay}`;
+  const start = ymd(eventDate(e));
+  // Google treats an all-day event's end as EXCLUSIVE, so it is the day AFTER
+  // the last day. Done with real date arithmetic rather than day + 1, which
+  // produced "20260832" for anything on the 31st and silently broke the link.
+  const endExclusive = new Date(eventLastDay(e));
+  endExclusive.setDate(endExclusive.getDate() + 1);
+  const end = ymd(endExclusive);
   const params = new URLSearchParams({
     action: "TEMPLATE",
     text: `${e.title} — Electrifying the US`,

@@ -21,7 +21,8 @@ interface EventRow {
   // Needed so an inline edit on the page knows which row to write back to.
   // fetchEvents selects "*", so this was always present — just untyped.
   id: string;
-  event_date: string; // YYYY-MM-DD
+  event_date: string; // YYYY-MM-DD — the START of the event
+  end_date: string | null; // YYYY-MM-DD — last day of a multi-day event, else null
   title: string; type: string | null; location: string | null; region: string | null;
   time: string | null; description: string | null; image: string | null; featured: boolean | null;
 }
@@ -43,6 +44,9 @@ function rowToEvent(r: EventRow): EventItem {
     month: valid ? MONTHS[d.getMonth()] : "",
     day: valid ? String(d.getDate()).padStart(2, "0") : "",
     year: valid ? d.getFullYear() : new Date().getFullYear(),
+    // Passed through as the raw ISO string; eventEndDate() is what validates it
+    // (and ignores a range that ends before it starts).
+    endDate: r.end_date || undefined,
     title: r.title,
     type: r.type || "Event",
     location: r.location || "",
@@ -113,6 +117,9 @@ export function eventAdoptRow(e: EventItem): Record<string, unknown> {
   const dd = String(Number(e.day) || 1).padStart(2, "0");
   return {
     event_date: `${e.year}-${mm}-${dd}`,
+    // Carried across so adopting a multi-day event does not silently flatten it
+    // back to a single day. null, not "", because the column is a date.
+    end_date: e.endDate ?? null,
     title: e.title,
     type: e.type,
     location: e.location,

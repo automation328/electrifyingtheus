@@ -60,7 +60,8 @@ export const eventsConfig: CollectionConfig = {
   sortRows: (a, b) => asStr(b.event_date).localeCompare(asStr(a.event_date)),
   fields: [
     { name: "title", label: "Title", type: "text", required: true },
-    { name: "event_date", label: "Date", type: "date", required: true, width: "half" },
+    { name: "event_date", label: "Start date", type: "date", required: true, width: "half", help: "First day of the event. This also decides the event's page address, so avoid changing it once published." },
+    { name: "end_date", label: "End date", type: "date", width: "half", help: "Only for events running over several days — e.g. Sep 11 to Oct 12. Leave blank for a single-day event." },
     { name: "type", label: "Type", type: "text", defaultValue: "Event", width: "half", help: "Ride & Drive, Webinar, Expo…" },
     { name: "time", label: "Time", type: "text", placeholder: "10:00 AM – 4:00 PM EDT", width: "half" },
     { name: "location", label: "Location", type: "text", width: "half", help: "Full venue line." },

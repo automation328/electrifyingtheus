@@ -82,3 +82,28 @@ describe("an event's live page path", () => {
     expect(eventDetailPath(row(CURATED_TITLE, "2026-08-27"))).not.toBe("/events");
   });
 });
+
+describe("giving an event an end date", () => {
+  // The slug is built from title + START date. If an end date ever leaked into
+  // that key, every event that gained a range would move to a new URL and its
+  // existing links would 404. This is the guard on that.
+  const curated = EVENTS.find((e) => e.slug === "from-pump-to-plug") as EventItem;
+
+  it("does not move the event's page", () => {
+    const single = row(CURATED_TITLE, "2026-08-27");
+    const spanning = { ...row(CURATED_TITLE, "2026-08-27"), end_date: "2026-09-30" };
+    expect(eventDetailPath(spanning)).toBe(eventDetailPath(single));
+    expect(eventDetailPath(spanning)).toBe("/events/from-pump-to-plug");
+  });
+
+  it("adopts a curated single-day event with no end date", () => {
+    expect(eventAdoptRow(curated).end_date).toBeNull();
+  });
+
+  it("carries a span across when adopting, instead of flattening it", () => {
+    const span = { ...curated, endDate: "2026-09-30" };
+    expect(eventAdoptRow(span).end_date).toBe("2026-09-30");
+    // The start must survive the round trip untouched.
+    expect(eventAdoptRow(span).event_date).toBe("2026-08-27");
+  });
+});
