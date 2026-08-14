@@ -29,6 +29,10 @@ import forthRoadmap2026 from "@/assets/events/forth-roadmap-2026.png";
 import { lookupEventTitle } from "./event-titles";
 
 export interface EventItem {
+  /** site_events row id. Absent on the curated events below and on external
+   *  feed events — for a curated one, the first inline edit INSERTS a row
+   *  (see eventAdoptRow); external events are never written at all. */
+  id?: string;
   month: string;
   day: string;
   year: number;

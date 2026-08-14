@@ -6,6 +6,10 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import InlinePageEditor from "@/components/inline/InlinePageEditor";
 import BlockSlot from "@/components/inline/blocks/BlockSlot";
+import EditableText, { PageStylesContext } from "@/components/inline/EditableText";
+import EditableImage from "@/components/inline/EditableImage";
+import { useInlineEdit } from "@/components/inline/edit-context";
+import { eventAdoptRow } from "@/lib/content";
 import ShareGate from "@/components/forms/ShareGate";
 import EventActionGate from "@/components/forms/EventActionGate";
 import EventDisclaimer from "@/components/EventDisclaimer";
@@ -20,6 +24,36 @@ const weekday = (e: EventItem) => {
 
 // Where blocks may be dropped on an event page, in page order.
 const EVENT_SLOTS = ["event-top", "event-end"];
+
+/**
+ * Shows a visitor the DERIVED display text, but hands an editor the RAW stored
+ * value to edit.
+ *
+ * This matters more than it looks. eventDisplayTitle appends " - City" to a
+ * title that lacks it, and eventLocationText substitutes a map pin when the
+ * location is blank. Editing those strings would write the derived form back
+ * into the column — and the title is part of the event's dedupe key, which
+ * decides its slug, which is its URL. Saving the pretty version could move the
+ * page out from under its own link.
+ */
+const RawEditable = ({ path, raw, display, editable }: { path: string; raw: string; display: string; editable: boolean }) => {
+  const ctx = useInlineEdit();
+  if (!editable || !ctx?.editing) return <>{display}</>;
+  return <EditableText path={path}>{raw}</EditableText>;
+};
+
+/**
+ * A plain field, editable only when there is somewhere to save it.
+ *
+ * Without the `editable` gate an external feed event still looked editable:
+ * typing worked, Publish reported success, and the change was dropped on the
+ * floor because that event has no field target. Better to not offer it.
+ */
+const Field = ({ path, value, editable }: { path: string; value: string; editable: boolean }) => {
+  const ctx = useInlineEdit();
+  if (!editable || !ctx?.editing) return <>{value}</>;
+  return <EditableText path={path}>{value}</EditableText>;
+};
 
 const Shell = ({ children }: { children: React.ReactNode }) => (
   <div className="min-h-screen flex flex-col bg-background">
@@ -63,13 +97,30 @@ const EventDetail = () => {
 
   const hasReg = Boolean(event.registerUrl);
   const day = weekday(event);
+  // Events pulled from an external feed are not ours: no field target, and no
+  // editable fields either, so nobody types into a box that discards the text.
+  const ownEvent = !event.external;
 
   return (
     // Same builder the blog posts have. `event.slug` here is already resolved
     // by mergeEvents, so a curated event stores its blocks under the same path
     // its page actually lives at.
-    <InlinePageEditor path={`/events/${event.slug}`} label={event.title} slots={EVENT_SLOTS}>
-      {(blocks) => (
+    <InlinePageEditor
+      path={`/events/${event.slug}`}
+      label={event.title}
+      slots={EVENT_SLOTS}
+      // The event's own words live in site_events. External feed events get no
+      // field target at all — they are someone else's data, and adopting one on
+      // a stray click would quietly copy it into our table.
+      fields={ownEvent ? {
+        table: "site_events",
+        id: event.id,
+        adopt: eventAdoptRow(event),
+        invalidate: "site-events",
+      } : undefined}
+    >
+      {(blocks, f, styles) => (
+    <PageStylesContext.Provider value={styles}>
     <Shell>
       <div className="container px-4 max-w-5xl">
         <Link to="/events" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors">
@@ -84,8 +135,18 @@ const EventDetail = () => {
                 flyer shows (object-contain), with a soft blurred fill of itself
                 behind so mismatched aspect ratios don't leave flat bars. */}
             <div className="relative aspect-[4/3] overflow-hidden rounded-3xl shadow-elevated ring-1 ring-border bg-muted">
-              <img src={event.image} alt="" aria-hidden className="absolute inset-0 w-full h-full object-cover scale-110 blur-2xl opacity-50" />
-              <img src={event.image} alt={event.title} className="relative w-full h-full object-contain" loading="lazy" />
+              <img src={f.image ?? event.image} alt="" aria-hidden className="absolute inset-0 w-full h-full object-cover scale-110 blur-2xl opacity-50" />
+              {ownEvent ? (
+                <EditableImage
+                  path="fields.image"
+                  src={f.image ?? event.image}
+                  alt={event.title}
+                  className="relative w-full h-full object-contain"
+                  loading="lazy"
+                />
+              ) : (
+                <img src={f.image ?? event.image} alt={event.title} className="relative w-full h-full object-contain" loading="lazy" />
+              )}
             </div>
             <div className="absolute -top-4 -left-4 w-20 rounded-2xl bg-white text-center shadow-lg overflow-hidden">
               <div className="bg-secondary text-primary-foreground text-[11px] font-bold tracking-wider py-1">{event.month}</div>
@@ -149,16 +210,21 @@ const EventDetail = () => {
             </span>
 
             <h1 className="text-3xl md:text-4xl font-bold font-display text-foreground leading-tight mb-4">
-              {eventDisplayTitle(event)}
+              <RawEditable path="fields.title" raw={f.title ?? event.title} display={eventDisplayTitle(event)} editable={ownEvent} />
             </h1>
 
             <div className="flex flex-col gap-2 text-foreground mb-5">
+              {/* The date is not editable here: it is stored as event_date and
+                  shown split into month/day/year, and it decides the event's
+                  slug. It stays in the CMS form where it is a single date field. */}
               <span className="flex items-center gap-2.5"><CalendarDays className="w-5 h-5 text-primary shrink-0" /> {day ? `${day}, ` : ""}{event.month} {event.day}, {event.year}</span>
-              <span className="flex items-center gap-2.5"><Clock className="w-5 h-5 text-primary shrink-0" /> {event.time}</span>
-              <span className="flex items-center gap-2.5"><MapPin className="w-5 h-5 text-primary shrink-0" /> {eventLocationText(event)}</span>
+              <span className="flex items-center gap-2.5"><Clock className="w-5 h-5 text-primary shrink-0" /> <Field path="fields.time" value={f.time ?? event.time} editable={ownEvent} /></span>
+              <span className="flex items-center gap-2.5"><MapPin className="w-5 h-5 text-primary shrink-0" /> <RawEditable path="fields.location" raw={f.location ?? event.location} display={eventLocationText(event)} editable={ownEvent} /></span>
             </div>
 
-            <p className="text-foreground leading-relaxed whitespace-pre-line">{event.description}</p>
+            <p className="text-foreground leading-relaxed whitespace-pre-line">
+              <Field path="fields.description" value={f.description ?? event.description} editable={ownEvent} />
+            </p>
           </div>
         </div>
 
@@ -191,6 +257,7 @@ const EventDetail = () => {
         <BlockSlot slot="event-end" blocks={blocks} />
       </div>
     </Shell>
+    </PageStylesContext.Provider>
       )}
     </InlinePageEditor>
   );

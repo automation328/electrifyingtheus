@@ -18,6 +18,9 @@ const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "
 
 // ── Supabase row shapes ──────────────────────────────────────────────────────
 interface EventRow {
+  // Needed so an inline edit on the page knows which row to write back to.
+  // fetchEvents selects "*", so this was always present — just untyped.
+  id: string;
   event_date: string; // YYYY-MM-DD
   title: string; type: string | null; location: string | null; region: string | null;
   time: string | null; description: string | null; image: string | null; featured: boolean | null;
@@ -36,6 +39,7 @@ function rowToEvent(r: EventRow): EventItem {
   const d = new Date(`${r.event_date}T00:00:00`);
   const valid = !Number.isNaN(d.getTime());
   return {
+    id: r.id,
     month: valid ? MONTHS[d.getMonth()] : "",
     day: valid ? String(d.getDate()).padStart(2, "0") : "",
     year: valid ? d.getFullYear() : new Date().getFullYear(),
@@ -94,6 +98,32 @@ export async function fetchPosts(): Promise<BlogPost[]> {
 // its "More info" link works. Self-consistent — EventDetail looks it up in this
 // same merged list.
 const fallbackSlug = (e: EventItem) => `${slugify(e.title)}-${e.month.toLowerCase()}-${e.day}-${e.year}`;
+
+/**
+ * The site_events row to INSERT when an editor makes the first inline change to
+ * a curated event (one that lives in data/events.ts and has no row yet).
+ *
+ * event_date is rebuilt from the item's month/day/year with the same MONTHS
+ * constant rowToEvent used to take it apart, so the round trip is symmetrical —
+ * a wrong date here would move the event and change its detail-page slug.
+ */
+export function eventAdoptRow(e: EventItem): Record<string, unknown> {
+  const mi = MONTHS.indexOf(e.month);
+  const mm = String(mi >= 0 ? mi + 1 : 1).padStart(2, "0");
+  const dd = String(Number(e.day) || 1).padStart(2, "0");
+  return {
+    event_date: `${e.year}-${mm}-${dd}`,
+    title: e.title,
+    type: e.type,
+    location: e.location,
+    region: e.region,
+    time: e.time,
+    description: e.description,
+    image: e.image,
+    featured: !!e.featured,
+    status: "published",
+  };
+}
 
 /**
  * The live detail path for a raw site_events row — using the SAME rule the site
