@@ -35,14 +35,21 @@ function db(): SupabaseClient | null {
  *  dropped — that is the point of the list. Add a key here when a form starts
  *  sending a field the CMS should show. */
 const EXTRA_KEYS = new Set([
+  // The person's own details, beyond the core columns. ContactForm, PostAJob,
+  // the Footer newsletter and ListYourEvent all collect these, and api/lead.ts
+  // already forwards them to the GHL note — so dropping them here would lose
+  // information the CRM keeps.
+  "title", "department", "industry",
   // share flows
   "senderName", "senderEmail", "senderPhone", "shareUrl", "shareChannel",
   // calculator
   "vehicleSummary", "savingsSummary",
   // EVan chat
   "transcript", "sessionId",
-  // jobs + events
-  "jobTitle", "jobLink", "eventTitle", "eventDate", "eventLocation", "resumeUrl",
+  // jobs — PostAJob posts jobTitle/jobLink/jobType; Careers adds location on apply
+  "jobTitle", "jobLink", "jobType", "location", "resumeUrl", "marketingConsent",
+  // events
+  "eventTitle", "eventDate", "eventLocation",
   // attribution
   "utm_source", "utm_medium", "utm_campaign", "pageUrl",
 ]);
