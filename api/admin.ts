@@ -251,6 +251,66 @@ async function findAuthUserByEmail(db: any, email: string) {
   return null;
 }
 
+// ── Form submissions (editor/admin) ──────────────────────────────────────────
+// READ-ONLY. The website writes these through api/_submissions.ts; the CMS only
+// reads them. Deliberately NOT routed through handleCollection —
+// site_form_submissions is not in ALLOWED_TABLES and must never acquire
+// insert/update/delete affordances, because it holds visitors' personal data
+// and because ARCHIVABLE would otherwise turn a deletion into a status flip.
+const SUBMISSION_LIST_COLS =
+  "id,created_at,form_type,form_label,first_name,last_name,email,phone,company,city,subject,message,crm_delivery";
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function handleSubmissions(b: Record<string, unknown>, res: any, role: string) {
+  if (!canPublish(role)) { forbid(res, "Only editors and admins can view form submissions."); return; }
+  const db = adminSupabase();
+  if (!db) { res.status(500).json({ error: "not_configured", detail: "SUPABASE_SERVICE_ROLE_KEY is not set." }); return; }
+
+  if (String(b.action ?? "list") === "detail") {
+    const id = String(b.id ?? "");
+    if (!id) { res.status(400).json({ error: "missing_id" }); return; }
+    const { data, error } = await db.from("site_form_submissions").select("*").eq("id", id).maybeSingle();
+    if (error) { res.status(400).json({ error: "read_failed", detail: error.message }); return; }
+    if (!data) { res.status(404).json({ error: "not_found" }); return; }
+    res.status(200).json({ row: data });
+    return;
+  }
+
+  const limit = Math.min(Math.max(Number(b.limit ?? 50) || 50, 1), 200);
+  const offset = Math.max(Number(b.offset ?? 0) || 0, 0);
+  const formType = String(b.formType ?? "").trim();
+  const q = String(b.q ?? "").trim();
+
+  let query = db.from("site_form_submissions")
+    .select(SUBMISSION_LIST_COLS, { count: "exact" })
+    .order("created_at", { ascending: false })
+    .range(offset, offset + limit - 1);
+  if (formType) query = query.eq("form_type", formType);
+  if (q) {
+    // Strip the characters that mean something to LIKE and to PostgREST's or()
+    // grammar before interpolating. Same class of bug as the editor lookup that
+    // treated an email as a LIKE pattern — do not reintroduce it here.
+    const safe = q.replace(/[%_,()]/g, "").slice(0, 80);
+    if (safe) {
+      const like = `%${safe}%`;
+      query = query.or(
+        `email.ilike.${like},first_name.ilike.${like},last_name.ilike.${like},` +
+        `company.ilike.${like},subject.ilike.${like},message.ilike.${like}`,
+      );
+    }
+  }
+  const { data, error, count } = await query;
+  if (error) { res.status(400).json({ error: "read_failed", detail: error.message }); return; }
+
+  // Per-type totals drive the filter chips. Cheap while this table is small; if
+  // it grows past a few tens of thousands, move it to a counting view.
+  const { data: types } = await db.from("site_form_submissions").select("form_type");
+  const counts: Record<string, number> = {};
+  for (const r of (types ?? []) as { form_type: string }[]) counts[r.form_type] = (counts[r.form_type] ?? 0) + 1;
+
+  res.status(200).json({ rows: data ?? [], total: count ?? 0, counts });
+}
+
 // Recent activity log (editors + admins). Read-only view, backed by the private
 // Storage-bucket log in _activity-log.ts.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -632,6 +692,7 @@ export default async function handler(req: any, res: any) {
   try {
     if (op === "editors") return void (await handleEditors(b, res, role, editor.email));
     if (op === "activity") return void (await handleActivity(res, role));
+    if (op === "submissions") return void (await handleSubmissions(b, res, role));
     if (op === "analytics") return void (await handleAnalytics(b, res, role));
     if (op === "collection") return void (await handleCollection(b, res, role, editor.email));
     if (op === "upload") { if (role === "viewer") return void forbid(res, "Your account has read-only access."); return void (await handleUpload(b, res)); }

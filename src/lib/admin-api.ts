@@ -71,6 +71,61 @@ export async function listActivity(): Promise<ActivityRow[]> {
   return rows;
 }
 
+// ── form submissions (editor/admin) ──────────────────────────────────────────
+// Read-only. The website writes these via api/_submissions.ts when a form is
+// submitted; the CMS never writes. site_form_submissions is deliberately absent
+// from AdminTable above — it must not be reachable through the collection CRUD.
+export interface SubmissionRow {
+  id: string;
+  created_at: string;
+  form_type: string;
+  form_label?: string | null;
+  first_name?: string | null;
+  last_name?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  company?: string | null;
+  city?: string | null;
+  subject?: string | null;
+  message?: string | null;
+  crm_delivery?: "sent" | "failed" | "unknown";
+}
+
+/** The full row, including the per-form `payload` and the request context. */
+export interface SubmissionDetail extends SubmissionRow {
+  zip?: string | null;
+  payload?: Record<string, string>;
+  page_path?: string | null;
+  referrer?: string | null;
+  ip?: string | null;
+  geo_city?: string | null;
+  geo_region?: string | null;
+  geo_country?: string | null;
+  user_agent?: string | null;
+  ghl_contact_id?: string | null;
+}
+
+export interface SubmissionPage {
+  rows: SubmissionRow[];
+  total: number;
+  counts: Record<string, number>;
+}
+
+export async function listSubmissions(opts: {
+  formType?: string; q?: string; limit?: number; offset?: number;
+} = {}): Promise<SubmissionPage> {
+  return call<SubmissionPage>({
+    op: "submissions", action: "list",
+    formType: opts.formType || "", q: opts.q || "",
+    limit: opts.limit ?? 50, offset: opts.offset ?? 0,
+  });
+}
+
+export async function getSubmission(id: string): Promise<SubmissionDetail> {
+  const { row } = await call<{ row: SubmissionDetail }>({ op: "submissions", action: "detail", id });
+  return row;
+}
+
 // ── statistics / analytics (editor/admin) ────────────────────────────────────
 // Same data the password-gated /admin dashboard shows, but authorized by the
 // editor session so it can render inside the CMS (see AnalyticsView).

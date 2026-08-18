@@ -11,6 +11,8 @@
 // Optional:
 //   GHL_USER_ID       A GHL user id — set it to enable note attachment.
 
+import { recordSubmission } from "./_submissions.js";
+
 const GHL_BASE = "https://services.leadconnectorhq.com";
 const GHL_VERSION = "2021-07-28";
 
@@ -196,9 +198,23 @@ export default async function handler(req: any, res: any) {
     const upsert = await upsertRes.json().catch(() => ({}));
     if (!upsertRes.ok) {
       console.error("GHL upsert failed", upsertRes.status, upsert);
+      // Keep our own copy even though the CRM rejected it — a submission that
+      // never reached GoHighLevel is exactly the one somebody needs to find in
+      // the CMS later. crm_delivery marks it so the screen can flag it.
+      await recordSubmission({ req, body, formType, formLabel: SOURCE_LABEL[formType] ?? "", crmDelivery: "failed" });
       res.status(502).json({ error: "GHL upsert failed" }); return;
     }
     const contactId = upsert?.contact?.id ?? upsert?.id;
+
+    // Our own record of the submission (supabase/migrations/0015). Best-effort
+    // and unable to throw — see api/_submissions.ts. GoHighLevel stays the CRM;
+    // this is what /admin/content/submissions reads.
+    await recordSubmission({
+      req, body, formType,
+      formLabel: SOURCE_LABEL[formType] ?? "",
+      crmDelivery: "sent",
+      ghlContactId: contactId,
+    });
 
     // Best-effort note with details GHL standard fields don't capture.
     const userId = process.env.GHL_USER_ID;

@@ -64,6 +64,7 @@ import FooterEditor from "./pages/admin/FooterEditor.tsx";
 import KnowledgeBaseManager from "./pages/admin/KnowledgeBaseManager.tsx";
 import UsersManager from "./pages/admin/UsersManager.tsx";
 import ActivityManager from "./pages/admin/ActivityManager.tsx";
+import SubmissionsManager from "./pages/admin/SubmissionsManager.tsx";
 import StatisticsManager from "./pages/admin/StatisticsManager.tsx";
 import CollectionManager from "./components/admin/CollectionManager.tsx";
 import { blogConfig, eventsConfig, galleryConfig, jobsConfig, vehiclesConfig, incentivesConfig } from "./pages/admin/collections/configs.ts";
@@ -149,6 +150,7 @@ const App = () => (
             <Route path="incentives" element={<CollectionManager config={incentivesConfig} />} />
             <Route path="knowledge-base" element={<KnowledgeBaseManager />} />
             <Route path="users" element={<UsersManager />} />
+            <Route path="submissions" element={<SubmissionsManager />} />
             <Route path="activity" element={<ActivityManager />} />
           </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
