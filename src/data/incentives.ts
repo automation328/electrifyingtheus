@@ -13,6 +13,17 @@ export interface Incentive {
   used?: boolean;
   desc: string;
   link: string;
+  // Program window + status, from the site_incentives columns added in 0014.
+  // ISO calendar dates ("2026-11-04"), never parsed into a Date — see
+  // lib/incentive-window.ts. The curated entries below leave these undefined:
+  // they are CMS-authored freshness data, and undefined simply means "no claim",
+  // which renders exactly as the page does today.
+  /** First day the program applies. Undefined = no published start date. */
+  validFrom?: string;
+  /** Last day it applies, inclusive. Undefined = open-ended, NOT expired. */
+  validTo?: string;
+  /** Short public banner, e.g. "Waitlist — funds depleted". */
+  statusNote?: string;
 }
 
 // Federal / nationwide programs — merged into every ZIP's results.

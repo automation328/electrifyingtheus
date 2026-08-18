@@ -322,6 +322,9 @@ interface IncentiveDbRow {
   status: string; hidden: boolean | null; scope: string; state: string | null; category: string | null;
   name: string; jurisdiction: string | null; amount: string | null;
   income: boolean | null; used: boolean | null; description: string | null; link: string | null;
+  // 0014. verified_at is deliberately absent: it is an editor-facing freshness
+  // signal for the CMS list, and has no business reaching the public page.
+  valid_from: string | null; valid_to: string | null; status_note: string | null;
 }
 
 const CATS = new Set(["vehicle", "charging", "electricity", "perks"]);
@@ -336,6 +339,9 @@ function rowToIncentiveOverride(r: IncentiveDbRow): IncentiveOverride {
   if (r.amount) incentive.amount = r.amount;
   if (r.income) incentive.income = true;
   if (r.used) incentive.used = true;
+  if (r.valid_from) incentive.validFrom = r.valid_from;
+  if (r.valid_to) incentive.validTo = r.valid_to;
+  if (r.status_note) incentive.statusNote = r.status_note;
   const scope = r.scope === "federal" || r.scope === "utility" ? r.scope : "state";
   const category = r.category && CATS.has(r.category) ? (r.category as CatKey) : null;
   return { scope, state: r.state, category, hidden: !!r.hidden, incentive };

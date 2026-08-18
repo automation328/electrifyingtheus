@@ -5,6 +5,7 @@
 import type { CollectionConfig } from "./types";
 import { eventDetailPath } from "@/lib/content";
 import { blogStaticRows, eventStaticRows, vehicleStaticRows, incentiveStaticRows, galleryStaticRows } from "@/lib/seed-content";
+import { reviewFlag, todayIso } from "@/lib/incentive-window";
 
 const STATUS = ["draft", "published", "archived"];
 const str = (v: unknown) => String(v ?? "");
@@ -186,6 +187,10 @@ export const incentivesConfig: CollectionConfig = {
   // Same: incentives are rows on one shared page, not pages of their own.
   editOnPage: true,
   editOnPageLabel: "Edit the Incentives page",
+  // Rebate programs open, close and run out of funding constantly, and a stale
+  // amount on the page looks exactly like a current one. This surfaces the rows
+  // that need a human to go and look.
+  rowBadge: (r) => reviewFlag(r, todayIso()),
   sortRows: (a, b) => asNum(a.sort) - asNum(b.sort),
   fields: [
     { name: "name", label: "Program name", type: "text", required: true },
@@ -198,6 +203,12 @@ export const incentivesConfig: CollectionConfig = {
     { name: "used", label: "Applies to used EVs", type: "boolean" },
     { name: "description", label: "Description", type: "textarea", required: true },
     { name: "link", label: "Program link", type: "text", help: "Official program URL." },
+    // Freshness (0014). A directory's whole risk is going stale: programs open,
+    // close, run out of funding and change their rules constantly.
+    { name: "valid_from", label: "Runs from", type: "date", width: "half", help: "First day the program applies. Blank = no published start date." },
+    { name: "valid_to", label: "Runs until", type: "date", width: "half", help: "Last day it applies. Blank = open-ended — NOT the same as expired." },
+    { name: "status_note", label: "Status note", type: "text", placeholder: "Waitlist — funds depleted", help: "Short banner shown to visitors beside the amount. Public-facing, so no internal notes." },
+    { name: "verified_at", label: "Last verified", type: "date", width: "half", help: "The day you last checked this row against the official program page." },
     { name: "hidden", label: "Hide matching static incentive", type: "boolean", help: "Publish with this on to remove the static incentive with the same name in this bucket." },
     { name: "sort", label: "Sort order", type: "number", help: "Lower shows first." },
   ],

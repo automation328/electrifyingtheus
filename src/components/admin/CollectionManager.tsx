@@ -138,7 +138,15 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
     setSaving(true); setFormError("");
     // Only persist configured fields + status (drop client-only keys like id on insert).
     const payload: Record<string, unknown> = {};
-    for (const f of config.fields) payload[f.name] = draft[f.name];
+    for (const f of config.fields) {
+      const v = draft[f.name];
+      // A blank optional date has to reach Postgres as NULL. emptyRecord() seeds
+      // every non-boolean/number field with "", and the write path hands the row
+      // straight to .insert()/.update() (api/admin.ts) with no coercion — so ""
+      // would land on a `date` column and fail with "invalid input syntax for
+      // type date". Required dates never get here: validate() rejects "" first.
+      payload[f.name] = f.type === "date" && (v === "" || v === undefined) ? null : v;
+    }
     // Authors can only save drafts — force it (a published default would 403).
     payload[config.statusField] = canPublish ? (draft[config.statusField] ?? config.statusOptions[0]) : "draft";
     try {
@@ -247,6 +255,8 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
     const published = status === "published";
     const archived = status === "archived";
     const viewUrl = config.viewUrl?.(row);
+    // Built-in rows have no DB columns to judge, and nothing to fix if flagged.
+    const badge = isStatic ? null : config.rowBadge?.(row) ?? null;
     return (
       <li key={isStatic ? `s:${config.keyOf?.(row)}` : String(row.id)} className="group flex items-center gap-3.5 rounded-2xl border border-border/70 bg-card px-4 py-3 shadow-sm transition-all hover:shadow-md hover:border-primary/30">
         {config.imageField && (
@@ -260,6 +270,15 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
             {isStatic
               ? <span className="text-[10px] uppercase font-bold tracking-wide rounded-full px-2 py-0.5 bg-blue-500/10 text-blue-600">built-in</span>
               : <span className={`text-[10px] uppercase font-bold tracking-wide rounded-full px-2 py-0.5 ${statusStyle(status)}`}>{status}</span>}
+            {badge && (
+              <span
+                className={`text-[10px] uppercase font-bold tracking-wide rounded-full px-2 py-0.5 shrink-0 ${
+                  badge.tone === "red" ? "bg-destructive/10 text-destructive" : "bg-amber-500/10 text-amber-600"
+                }`}
+              >
+                {badge.label}
+              </span>
+            )}
           </div>
           {subtitleOf(row) && <p className="text-xs text-muted-foreground truncate mt-0.5">{subtitleOf(row)}</p>}
         </div>

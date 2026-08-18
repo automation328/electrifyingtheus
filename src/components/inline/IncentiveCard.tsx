@@ -16,6 +16,7 @@ import { useInlineEdit } from "@/components/inline/edit-context";
 import { incentiveKey, locateIncentive } from "@/lib/incentive-edit";
 import type { Incentive } from "@/data/incentives";
 import { INCENTIVES_DISCLAIMER } from "@/lib/disclaimers";
+import { incentiveWindow, formatIsoDate, todayIso } from "@/lib/incentive-window";
 
 /** Pending per-card edits from the page editor's draft, keyed by incentiveKey. */
 export type IncentiveEdits = Record<string, Record<string, string>>;
@@ -40,8 +41,20 @@ const IncentiveCard = ({ item, edits }: { item: Incentive; edits?: IncentiveEdit
 
   const shareMeta = [jurisdiction, amount].filter(Boolean).join(" · ");
 
+  // Program window + status banner (site_incentives 0014). An ENDED program is
+  // dimmed and labelled rather than dropped: people search for schemes they have
+  // heard of, and "this closed on 4 Nov" is the answer they need. Removing it
+  // silently would answer nothing and look like we never covered it.
+  const win = incentiveWindow(item, todayIso());
+  const statusNote = item.statusNote ?? "";
+  const hasBadgeRow = editing || amount || item.income || item.used || statusNote || win.state !== "open";
+
   return (
-    <article className="rounded-2xl border border-border bg-card shadow-card p-5 flex flex-col hover:shadow-xl hover:-translate-y-0.5 transition-all">
+    <article
+      className={`rounded-2xl border border-border bg-card shadow-card p-5 flex flex-col hover:shadow-xl hover:-translate-y-0.5 transition-all${
+        win.state === "ended" ? " opacity-60" : ""
+      }`}
+    >
       <div className="mb-1">
         <h3 className="font-bold font-display text-foreground leading-snug">
           {editing ? <EditableText path={`fields.${key}.name`}>{name}</EditableText> : name}
@@ -54,7 +67,7 @@ const IncentiveCard = ({ item, edits }: { item: Incentive; edits?: IncentiveEdit
       {/* In edit mode the amount row is always present, so an amount can be
           ADDED to a program that has none. A visitor still only sees it when
           there is something to show. */}
-      {(editing || amount || item.income || item.used) && (
+      {hasBadgeRow && (
         <div className="flex flex-wrap items-center gap-2 mt-2 mb-1">
           {editing ? (
             <span className={amount ? "text-lg font-bold text-gradient-primary" : "text-lg font-bold text-muted-foreground"}>
@@ -78,6 +91,21 @@ const IncentiveCard = ({ item, edits }: { item: Incentive; edits?: IncentiveEdit
           {item.used && (
             <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary">
               Used Car Eligible
+            </span>
+          )}
+          {win.state === "ended" && (
+            <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-destructive/10 text-destructive">
+              Ended {formatIsoDate(win.date)}
+            </span>
+          )}
+          {win.state === "upcoming" && (
+            <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600">
+              Opens {formatIsoDate(win.date)}
+            </span>
+          )}
+          {statusNote && (
+            <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600">
+              {statusNote}
             </span>
           )}
         </div>

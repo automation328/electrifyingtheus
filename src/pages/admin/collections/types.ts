@@ -40,6 +40,12 @@ export interface CollectionConfig {
   statusOptions: string[];
   /** Row field holding a thumbnail image URL (shown in the list). */
   imageField?: string;
+  /** Optional extra pill beside the status chip in the list, for a condition
+   *  only this collection knows about — incentives use it to flag a row nobody
+   *  has checked against the official program page lately. Return null when the
+   *  row needs no flag. Built-in (static) rows are never passed through it:
+   *  they have no DB columns to judge and no row to fix. */
+  rowBadge?: (row: Record<string, unknown>) => { label: string; tone: "red" | "amber" } | null;
   /** This collection's live page carries the on-page block builder, so the
    *  editor offers "Edit on page" next to Save. Opt-in: `viewUrl` alone is not
    *  enough — every collection has one, but most of those pages have no
