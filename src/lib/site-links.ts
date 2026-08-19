@@ -15,6 +15,7 @@ const CORE_LINKS: SiteLink[] = [
   { label: "GM EV vs Gas", path: "/gm-ev-vs-gas", group: "Main" },
   { label: "Find a Charger", path: "/find-a-charger", group: "Main" },
   { label: "Rebates & Incentives", path: "/rebates-incentives", group: "Main" },
+  { label: "Rebate Eligibility Check", path: "/rebate-eligibility", group: "Main" },
   { label: "EVan Assistant", path: "/assistant", group: "Main" },
   { label: "News", path: "/news", group: "Main" },
   { label: "Events", path: "/events", group: "Main" },

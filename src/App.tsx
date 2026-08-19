@@ -22,6 +22,7 @@ import Careers from "./pages/Careers.tsx";
 import PostAJob from "./pages/PostAJob.tsx";
 import FindACharger from "./pages/FindACharger.tsx";
 import RebatesIncentives from "./pages/RebatesIncentives.tsx";
+import RebateEligibility from "./pages/RebateEligibility.tsx";
 import WorkforceEconomicDevelopment from "./pages/WorkforceEconomicDevelopment.tsx";
 import EvRoadSafety from "./pages/EvRoadSafety.tsx";
 import SteamEducation from "./pages/SteamEducation.tsx";
@@ -105,6 +106,7 @@ const App = () => (
           <Route path="/post-a-job" element={<PostAJob />} />
           <Route path="/find-a-charger" element={<FindACharger />} />
           <Route path="/rebates-incentives" element={<RebatesIncentives />} />
+          <Route path="/rebate-eligibility" element={<RebateEligibility />} />
           <Route path="/workforce-economic-development" element={<WorkforceEconomicDevelopment />} />
           <Route path="/ev-road-safety" element={<EvRoadSafety />} />
           <Route path="/steam-education" element={<SteamEducation />} />

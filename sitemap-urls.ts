@@ -54,6 +54,7 @@ export const SITEMAP_PAGES: string[] = [
   "/news",
   "/post-a-job",
   "/privacy-policy",
+  "/rebate-eligibility",
   "/rebates-incentives",
   "/reduced-emissions",
   "/rideshare-rental-fleets",

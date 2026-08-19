@@ -38,6 +38,8 @@ const FORM_TAGS: Record<string, string[]> = {
   "event-calendar":  ["website-lead", "event-calendar", "source:event-calendar"],
   "job-share":       ["website-lead", "content-share", "job-share", "source:job-share"],
   "charger-share":   ["website-lead", "content-share", "charger-share", "source:charger-share"],
+  "eligibility-plan":     ["website-lead", "eligibility-lead", "source:rebate-eligibility-plan"],
+  "eligibility-coverage": ["website-lead", "eligibility-waitlist", "source:rebate-eligibility-coverage"],
 };
 
 const SOURCE_LABEL: Record<string, string> = {
@@ -60,6 +62,8 @@ const SOURCE_LABEL: Record<string, string> = {
   "event-calendar": "Event Add-to-calendar click",
   "job-share": "Job share (email)",
   "charger-share": "Charging map share",
+  "eligibility-plan": "Rebate eligibility (email me this plan)",
+  "eligibility-coverage": "Rebate eligibility (notify me when covered)",
 };
 
 const safeJson = (s: string) => { try { return JSON.parse(s); } catch { return {}; } };
