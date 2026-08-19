@@ -23,7 +23,21 @@ type Message = { role: "user" | "assistant"; content: string };
 // Reads the key from VITE_OPENAI_API_KEY (.env.local). `dangerouslyAllowBrowser`
 // is required to call the API from a SPA — DEV/LOCAL ONLY, since the key ships in
 // the bundle. For production, route through a server proxy and drop this branch.
-const OPENAI_API_KEY = (import.meta as { env?: Record<string, string> }).env?.VITE_OPENAI_API_KEY;
+//
+// GATED ON import.meta.env.DEV, and that gate is the whole point. Anything with a
+// VITE_ prefix is compiled into the public bundle, so setting VITE_OPENAI_API_KEY
+// in the Vercel production environment would publish the key to every visitor —
+// one environment variable away from an incident, with nothing in the way but a
+// comment. The dev check makes it structurally impossible instead: Vite replaces
+// import.meta.env.DEV with `false` at build time, so a production build folds this
+// to `undefined` and tree-shakes the key reference out entirely.
+//
+// Verified against the deployed bundle on 19 Aug 2026: the OpenAI SDK ships (the
+// call site is reachable code) but no key material is present, because the var is
+// currently unset. This makes that safe by construction rather than by luck.
+const OPENAI_API_KEY = import.meta.env.DEV
+  ? (import.meta as { env?: Record<string, string> }).env?.VITE_OPENAI_API_KEY
+  : undefined;
 const OPENAI_MODEL = "gpt-5.4-mini";
 const openai = OPENAI_API_KEY
   ? new OpenAI({ apiKey: OPENAI_API_KEY, dangerouslyAllowBrowser: true })
