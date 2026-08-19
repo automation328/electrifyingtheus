@@ -27,6 +27,7 @@
 import { randomBytes } from "node:crypto";
 import { getEditor, requireEditor, adminSupabase } from "./_admin-auth.js";
 import { appendActivity, readActivity } from "./_activity-log.js";
+import { checkRateLimit, tooManyRequests } from "./_rate-limit.js";
 import { analyticsSummary, visitorJourney } from "./_analytics-core.js";
 // NOTE: mammoth / pdf-parse are imported LAZILY inside handleKbUpload — a top-level
 // import of pdf-parse (pdfjs) crashes the whole serverless function at load, which
@@ -684,6 +685,15 @@ export default async function handler(req: any, res: any) {
     res.status(200).json({ email: editor.email, role: normalizeRole(editor.role) });
     return;
   }
+
+  // Bound the UNAUTHENTICATED surface. requireEditor below verifies the token
+  // with GoTrue and checks the editors allow-list — both of which cost a network
+  // round trip on every call, including every failed one. Without a limit, an
+  // attacker can drive that loop for free while guessing tokens. The budget is
+  // high (300/hour) because a real editor working through a media library or a
+  // long list makes a lot of legitimate calls.
+  const rl = await checkRateLimit(req, { bucket: "admin", limit: 300, windowMinutes: 60 });
+  if (!rl.ok) { tooManyRequests(res, rl); return; }
 
   const editor = await requireEditor(req, res);
   if (!editor) return; // 401 already sent

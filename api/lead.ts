@@ -12,6 +12,17 @@
 //   GHL_USER_ID       A GHL user id — set it to enable note attachment.
 
 import { recordSubmission } from "./_submissions.js";
+import { checkRateLimit, tooManyRequests } from "./_rate-limit.js";
+
+/** The only extra keys allowed into a GoHighLevel note beyond the fields this
+ *  handler names explicitly. Anything else a client sends is dropped rather
+ *  than written to the CRM. Keep this in step with the allow-list in
+ *  api/_submissions.ts — the two exist for the same reason. */
+const NOTE_EXTRAS = new Set([
+  "jobTitle", "jobLink", "jobType", "location", "resumeUrl", "marketingConsent",
+  "eventTitle", "eventDate", "eventLocation",
+  "utm_source", "utm_medium", "utm_campaign", "pageUrl", "referrer",
+]);
 
 const GHL_BASE = "https://services.leadconnectorhq.com";
 const GHL_VERSION = "2021-07-28";
@@ -164,16 +175,36 @@ export default async function handler(req: any, res: any) {
     ...rest
   } = body as Record<string, string>;
 
+  // Rate limit BEFORE anything expensive. Every request past this point costs a
+  // GoHighLevel upsert, a Supabase insert and a Slack post, none of which were
+  // bounded until now. 20/hour is far above believable human use of a contact
+  // form, and deliberately coarse: shared offices, schools and mobile carrier
+  // NAT put many real people behind one address. Fails open — see _rate-limit.ts.
+  const rl = await checkRateLimit(req, { bucket: "lead", limit: 20, windowMinutes: 60 });
+  if (!rl.ok) { tooManyRequests(res, rl); return; }
+
   // Spam gate — verify reCAPTCHA before doing any work (no-op if secret unset).
   const ip = (req.headers["x-forwarded-for"] || "").toString().split(",")[0].trim() || undefined;
   const captcha = await verifyRecaptcha(recaptchaToken, ip);
   if (!captcha.ok) { res.status(403).json({ error: "reCAPTCHA verification failed", reason: captcha.reason }); return; }
 
+  // The formType decides the CRM tags and the source label, so an unknown value
+  // used to become a tag built from raw client input. Reject instead: every real
+  // caller goes through submitLead(), whose union is exactly FORM_TAGS' keys.
+  if (!FORM_TAGS[formType]) {
+    res.status(400).json({ error: "Unknown form type" }); return;
+  }
+
   if (!email && !phone && !mobile) {
     res.status(400).json({ error: "An email or phone is required." }); return;
   }
+  // Presence was checked; the shape never was. A malformed address creates a
+  // junk CRM contact that no one can ever reach or clean up.
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+    res.status(400).json({ error: "Enter a valid email address." }); return;
+  }
 
-  const tags = FORM_TAGS[formType] ?? ["website-lead", `source:${formType}`];
+  const tags = FORM_TAGS[formType];
   const name = [firstName, lastName].filter(Boolean).join(" ").trim();
 
   // Drop empty values so we never overwrite existing GHL data with blanks.
@@ -237,7 +268,14 @@ export default async function handler(req: any, res: any) {
         `Shared by: ${[senderName, senderEmail, senderPhone].filter(Boolean).join(" · ")}`,
       sessionId && `Session: ${sessionId}`,
       transcript && `\n--- EVan chat transcript ---\n${transcript}`,
-      ...Object.entries(rest).map(([k, v]) => (v ? `${k}: ${v}` : "")),
+      // Extras, from an ALLOW-LIST. This used to spread `...rest`, so every
+      // unknown key a client sent was written verbatim into the contact note —
+      // a permanent CRM record of whatever anyone chose to POST, including
+      // anything a visitor typed into a field we never asked for. Unknown keys
+      // are now dropped, and values are capped so one field cannot bloat a note.
+      ...Object.entries(rest)
+        .filter(([k, v]) => NOTE_EXTRAS.has(k) && v)
+        .map(([k, v]) => `${k}: ${String(v).slice(0, 200)}`),
     ].filter(Boolean);
     if (contactId && userId && lines.length) {
       await ghl(`/contacts/${contactId}/notes`, {
