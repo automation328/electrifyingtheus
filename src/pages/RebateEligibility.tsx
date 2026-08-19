@@ -587,11 +587,25 @@ const RebateEligibility = () => {
                     heading="Email me this plan"
                     blurb="The checklist, the deadlines and the links — as one message you can work through. We do not follow up unless a rule changes."
                     cta="Send it"
+                    // DELIBERATELY MINIMAL — do not add the amount or the
+                    // program names back without reading this first.
+                    //
+                    // api/lead.ts appends every unrecognised body field verbatim
+                    // to a GoHighLevel note (`...Object.entries(rest)`), so
+                    // anything sent here becomes durable CRM text that sales and
+                    // marketing staff browse. Our own Supabase table is
+                    // default-deny and would drop these, but the CRM is not.
+                    //
+                    // Both of the obvious things to send leak income status by
+                    // inference: Oregon Charge Ahead and PG&E Rebate Plus ARE the
+                    // income-qualified tiers, so "Charge Ahead" or "7500" in a
+                    // note says this household is under 400% of the federal
+                    // poverty guidelines. A count carries the useful signal —
+                    // did we find them anything — with no such inference.
                     payload={{
                       state: out.state,
                       zip: answers.zip,
-                      programs: live.map((r) => r.program.short).join(", "),
-                      bestAmount: out.bestAmount,
+                      programCount: live.length,
                     }}
                   />
                 </div>
