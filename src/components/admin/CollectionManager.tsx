@@ -84,6 +84,44 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
 
   const [query, setQuery] = useState("");
 
+  // ── Tabs: what's on the site, what isn't ───────────────────────────────────
+  // The list used to mix five states in one column — built-in, published, draft,
+  // archived and removal markers — so "is this actually on the site?" could only
+  // be answered badge by badge. These three buckets answer it up front.
+  //
+  // Drafts get their own tab rather than being folded into either side: a draft
+  // is not live, but calling it archived would be wrong too.
+  type Tab = "live" | "draft" | "archive";
+  const [tab, setTab] = useState<Tab>("live");
+
+  const tabOf = (r: Row): Tab => {
+    // A built-in is always on the site — it lives in the code, not the database.
+    if (r.__static) return "live";
+    const s = String(r[config.statusField] ?? "");
+    if (s === "archived") return "archive";
+    // A published row carrying the hidden flag is a DELETION, not a live item —
+    // it exists to take the matching built-in off the site.
+    if (config.hiddenField && r[config.hiddenField] === true) return "archive";
+    return s === "published" ? "live" : "draft";
+  };
+
+  const counts = useMemo(() => {
+    const c = { live: 0, draft: 0, archive: 0 };
+    for (const r of sorted) c[tabOf(r)]++;
+    return c;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sorted, config]);
+
+  const TABS: { id: Tab; label: string; hint: string }[] = [
+    { id: "live", label: "Live", hint: `On the site right now` },
+    { id: "draft", label: "Drafts", hint: `Not on the site yet` },
+    { id: "archive", label: "Archive", hint: `Removed from the site — restorable` },
+  ];
+
+  const inTab = useMemo(() => sorted.filter((r) => tabOf(r) === tab),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [sorted, tab, config]);
+
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: adminKey });
     qc.invalidateQueries({ queryKey: ["admin-counts"] });
@@ -305,7 +343,7 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
   // Client-side search over title + subtitle. `groups` (when a collection groups
   // by a field) recomputes from the filtered set.
   const q = query.trim().toLowerCase();
-  const filtered = q ? sorted.filter((r) => `${titleOf(r)} ${subtitleOf(r)}`.toLowerCase().includes(q)) : sorted;
+  const filtered = q ? inTab.filter((r) => `${titleOf(r)} ${subtitleOf(r)}`.toLowerCase().includes(q)) : inTab;
   const groups = (() => {
     if (!config.groupField) return null;
     const map = new Map<string, Row[]>();
@@ -436,7 +474,34 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
           </div>
         </div>
         {config.description && <p className="text-sm text-muted-foreground mt-2 max-w-2xl leading-relaxed">{config.description}</p>}
-        {!isLoading && sorted.length > 4 && (
+
+        {/* Live / Drafts / Archive. A tab with nothing in it is hidden, except
+            Live — which stays put so the control never moves under the cursor
+            as the last draft is published. */}
+        {!isLoading && (
+          <div className="mt-4 flex items-center gap-1 border-b border-border" role="tablist" aria-label={`Filter ${config.plural.toLowerCase()}`}>
+            {TABS.filter((t) => t.id === "live" || counts[t.id] > 0).map((t) => {
+              const on = tab === t.id;
+              return (
+                <button
+                  key={t.id}
+                  role="tab"
+                  aria-selected={on}
+                  title={t.hint}
+                  onClick={() => setTab(t.id)}
+                  className={`relative -mb-px px-3.5 py-2 text-sm font-semibold border-b-2 transition-colors ${
+                    on ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}
+                >
+                  {t.label}
+                  <span className={`ml-1.5 text-[11px] font-bold tabular-nums rounded-full px-1.5 py-0.5 ${
+                    on ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>{counts[t.id]}</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {!isLoading && inTab.length > 4 && (
           <div className="mt-3 flex items-center gap-1.5 rounded-lg border border-border bg-background px-2.5 py-1.5 max-w-xs focus-within:ring-2 focus-within:ring-primary/40">
             <Search className="w-4 h-4 text-muted-foreground shrink-0" />
             <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={`Search ${config.plural.toLowerCase()}…`} className="w-full bg-transparent text-sm text-foreground outline-none" />
@@ -463,7 +528,15 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
         </div>
       ) : filtered.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-border bg-card/60 p-12 text-center text-muted-foreground">
-          No {config.plural.toLowerCase()} match “{query}”. <button onClick={() => setQuery("")} className="text-primary hover:underline ml-1">Clear</button>
+          {q ? (
+            <>No {config.plural.toLowerCase()} match “{query}”{tab !== "live" && <> in {TABS.find((t) => t.id === tab)?.label}</>}. <button onClick={() => setQuery("")} className="text-primary hover:underline ml-1">Clear</button></>
+          ) : tab === "draft" ? (
+            <>Nothing in drafts — every {config.singular.toLowerCase()} is either live or archived.</>
+          ) : tab === "archive" ? (
+            <>Nothing archived. Removed and archived {config.plural.toLowerCase()} collect here, and can be restored.</>
+          ) : (
+            <>Nothing is live yet. Publish something from Drafts to put it on the site.</>
+          )}
         </div>
       ) : config.splitBy ? (
         <div className="grid md:grid-cols-2 gap-5 items-start">
