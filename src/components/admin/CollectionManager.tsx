@@ -6,7 +6,7 @@ import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
-  Plus, Pencil, Trash2, Loader2, X, Save, AlertCircle, Eye, EyeOff, Image as ImageIcon, FolderOpen, ExternalLink, Search, RotateCcw, LayoutTemplate,
+  Plus, Pencil, Trash2, Loader2, X, Save, AlertCircle, Eye, EyeOff, Image as ImageIcon, FolderOpen, ExternalLink, Search, RotateCcw, LayoutTemplate, Copy,
 } from "lucide-react";
 import { listRows, insertRow, updateRow, deleteRow, destroyRow, type MediaItem } from "@/lib/admin-api";
 import AdminField from "@/components/admin/AdminField";
@@ -182,6 +182,74 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
     }
   };
 
+  /** Copy any item — built-in or database — into a new DRAFT you can rework.
+   *  Drafts, so duplicating never quietly publishes a near-identical item beside
+   *  the original. Only the configured fields are copied: id, status and the
+   *  __static marker are all rebuilt rather than carried over. */
+  const duplicate = async (row: Row) => {
+    const label = config.singular.toLowerCase();
+    const current = String(row[config.titleField] ?? "") || `Untitled ${label}`;
+    const title = window.prompt(`Copy this ${label} — name for the copy:`, `${current} (copy)`);
+    if (title === null) return;
+    const t = title.trim();
+    if (!t) { toast.error("Give the copy a name."); return; }
+    const payload: Record<string, unknown> = {};
+    for (const f of config.fields) {
+      const v = row[f.name];
+      payload[f.name] = f.type === "date" && (v === "" || v === undefined) ? null : v;
+    }
+    payload[config.titleField] = t;
+    // A copy must never inherit "remove the built-in" — that flag belongs to the
+    // marker row it came from, and carrying it would delete the original.
+    if (config.hiddenField) payload[config.hiddenField] = false;
+    payload[config.statusField] = canPublish
+      ? (config.statusOptions.find((s) => s !== "archived" && s !== "published") ?? "draft")
+      : "draft";
+    try {
+      await insertRow(config.table, payload);
+      toast.success(`Copied as a draft — publish it when you're ready`);
+      invalidate();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Couldn't copy it.");
+    }
+  };
+
+  /** Remove a BUILT-IN item from the live site.
+   *
+   *  Built-ins live in the code, not the database, so there is no row to delete.
+   *  The merge re-appends every curated item that no published row matched, which
+   *  is why adopting one and archiving it does NOT remove it — the archived row
+   *  drops out of the published set and the built-in comes straight back.
+   *  Instead we insert a PUBLISHED row carrying the hidden flag: the merge reads
+   *  it as "drop the built-in with this identity", and does not display it. */
+  const removeBuiltIn = async (row: Row) => {
+    const field = config.hiddenField;
+    if (!field) return;
+    const label = config.singular.toLowerCase();
+    const name = String(row[config.titleField] ?? "") || `this ${label}`;
+    if (!window.confirm(
+      `Remove "${name}" from the live site?\n\n`
+      + `It's a built-in ${label}, so this adds a hidden entry that takes it off the site. `
+      + `It stays in this list marked Removed, and you can put it back.`,
+    )) return;
+    const payload: Record<string, unknown> = {};
+    for (const f of config.fields) {
+      const v = row[f.name];
+      payload[f.name] = f.type === "date" && (v === "" || v === undefined) ? null : v;
+    }
+    payload[field] = true;
+    // Must be PUBLISHED — the site never sees drafts, so a draft marker would
+    // silently do nothing at all.
+    payload[config.statusField] = "published";
+    try {
+      await insertRow(config.table, payload);
+      toast.success(`${config.singular} removed from the live site`);
+      invalidate();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Couldn't remove it.");
+    }
+  };
+
   /** Bring an archived row back — as a draft where the collection has one, so
    *  restoring never silently republishes something to the live site. */
   const restore = async (row: Row) => {
@@ -257,6 +325,9 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
     const viewUrl = config.viewUrl?.(row);
     // Built-in rows have no DB columns to judge, and nothing to fix if flagged.
     const badge = isStatic ? null : config.rowBadge?.(row) ?? null;
+    // A published row carrying the hidden flag is a REMOVAL marker for the
+    // built-in of the same identity, not an item in its own right.
+    const isRemovalMarker = !isStatic && !!config.hiddenField && row[config.hiddenField] === true;
     return (
       <li key={isStatic ? `s:${config.keyOf?.(row)}` : String(row.id)} className="group flex items-center gap-3.5 rounded-2xl border border-border/70 bg-card px-4 py-3 shadow-sm transition-all hover:shadow-md hover:border-primary/30">
         {config.imageField && (
@@ -269,7 +340,11 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
             <span className="font-semibold text-foreground truncate">{titleOf(row)}</span>
             {isStatic
               ? <span className="text-[10px] uppercase font-bold tracking-wide rounded-full px-2 py-0.5 bg-blue-500/10 text-blue-600">built-in</span>
-              : <span className={`text-[10px] uppercase font-bold tracking-wide rounded-full px-2 py-0.5 ${statusStyle(status)}`}>{status}</span>}
+              : isRemovalMarker
+                // Not an item — a marker that takes the matching built-in off the
+                // site. Showing it as "published" would read as the opposite.
+                ? <span className="text-[10px] uppercase font-bold tracking-wide rounded-full px-2 py-0.5 bg-destructive/10 text-destructive">removed</span>
+                : <span className={`text-[10px] uppercase font-bold tracking-wide rounded-full px-2 py-0.5 ${statusStyle(status)}`}>{status}</span>}
             {badge && (
               <span
                 className={`text-[10px] uppercase font-bold tracking-wide rounded-full px-2 py-0.5 shrink-0 ${
@@ -287,12 +362,28 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
             <ExternalLink className="w-4 h-4" />
           </a>
         )}
+        {canWrite && (
+          <button onClick={() => duplicate(row)} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors" title={`Make a copy — saved as a draft`}>
+            <Copy className="w-4 h-4" />
+          </button>
+        )}
         {isStatic ? (
-          canWrite && (
-            <button onClick={() => openEdit(row)} className="inline-flex items-center gap-1.5 rounded-lg border border-primary/50 text-primary text-xs font-semibold px-3 py-2 hover:bg-primary/10" title="Edit — adds an editable copy to your library">
-              <Pencil className="w-3.5 h-3.5" /> Edit
-            </button>
-          )
+          <>
+            {/* Built-ins deliberately have no publish toggle: they live in the
+                code and are always live, so there is no draft state to flip.
+                Everything else matches a database row icon for icon, so the two
+                kinds of row read as one list rather than two. */}
+            {canWrite && (
+              <button onClick={() => openEdit(row)} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors" title="Edit — saves your changes as an editable copy of this built-in">
+                <Pencil className="w-4 h-4" />
+              </button>
+            )}
+            {canPublish && config.hiddenField && (
+              <button onClick={() => removeBuiltIn(row)} className="p-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-muted transition-colors" title="Remove from the live site — reversible">
+                <Trash2 className="w-4 h-4" />
+              </button>
+            )}
+          </>
         ) : (
           archived ? (
             // Archived rows offer recovery first; permanent removal is admin-only.

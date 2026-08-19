@@ -73,6 +73,11 @@ export interface EventItem {
   /** When true, the event is excluded from the homepage hero carousel (it can
    *  still appear in the Events list / Featured section). */
   heroHidden?: boolean;
+  /** site_events.hidden (migration 0016). A PUBLISHED row carrying this is a
+   *  removal marker, not an event: mergeEvents drops both it and the curated
+   *  event with the same title + date. It is the only way to delete a built-in
+   *  event. Never set on a curated entry below. */
+  hidden?: boolean;
   /** True for events Electrifying the US hosts/produces. "Our" events are kept
    *  on the site after their date passes; all other (third-party, submitted, and
    *  external-feed) events are auto-removed once they're done. */

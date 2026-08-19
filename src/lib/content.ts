@@ -29,6 +29,9 @@ interface EventRow {
   // 0013_event_register_link.sql — null on every row that predates it, which is
   // read as "keep the built-in wording and the /contact-us fallback".
   register_url: string | null; register_label: string | null; register_cta_label: string | null;
+  // 0016. A published row with hidden = true is a REMOVAL marker for the curated
+  // event of the same title + date (see mergeEvents), not a displayable event.
+  hidden: boolean | null;
 }
 interface PostRow {
   // Needed so an inline edit on the page knows which row to write back to.
@@ -64,6 +67,7 @@ function rowToEvent(r: EventRow): EventItem {
     registerUrl: r.register_url || undefined,
     registerLabel: r.register_label || undefined,
     registerCtaLabel: r.register_cta_label || undefined,
+    hidden: r.hidden === true,
   };
 }
 
@@ -165,6 +169,13 @@ export function eventDetailPath(row: Parameters<typeof rowToEvent>[0]): string {
 // ── Merge dynamic + curated static (dynamic wins on conflicts) ────────────────
 export function mergeEvents(dynamic: EventItem[]): EventItem[] {
   const staticByKey = new Map(EVENTS.map((e) => [eventDedupe(e), e]));
+  // 0016 — removal markers. A published row with hidden=true is not an event:
+  // it exists to delete the curated one with the same title + date, which is
+  // otherwise impossible (the filter at the bottom of this function re-appends
+  // every curated event that no published row matched). Both the marker and its
+  // curated target are dropped.
+  const removed = new Set(dynamic.filter((e) => e.hidden).map(eventDedupe));
+  dynamic = dynamic.filter((e) => !e.hidden);
   // Ensure every dynamic event has a working detail link. When a DB event
   // overrides a curated one (same title + date), it ADOPTS the curated slug +
   // register link so its dedicated /events/<slug> page keeps working after an
@@ -190,7 +201,10 @@ export function mergeEvents(dynamic: EventItem[]): EventItem[] {
     };
   });
   const seen = new Set(dyn.map(eventDedupe));
-  const merged = [...dyn, ...EVENTS.filter((e) => !seen.has(eventDedupe(e)))];
+  const merged = [...dyn, ...EVENTS.filter((e) => {
+    const k = eventDedupe(e);
+    return !seen.has(k) && !removed.has(k);
+  })];
   return merged.sort((a, b) => eventKey(a) - eventKey(b));
 }
 

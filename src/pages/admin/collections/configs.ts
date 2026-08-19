@@ -54,6 +54,9 @@ export const eventsConfig: CollectionConfig = {
   statusOptions: STATUS,
   staticRows: eventStaticRows,
   keyOf: (r) => `${str(r.title)}|${str(r.event_date)}`,
+  // 0016 — lets an editor take a built-in event off the live site. The merge
+  // matches the curated entry on title + date, which is exactly keyOf above.
+  hiddenField: "hidden",
   // The event's OWN page, via the shared rule (curated events adopt a curated
   // slug, so this cannot be re-derived here without 404ing on them).
   viewUrl: (r) => eventDetailPath(r as unknown as Parameters<typeof eventDetailPath>[0]),
@@ -73,6 +76,10 @@ export const eventsConfig: CollectionConfig = {
     { name: "register_cta_label", label: "Save-your-spot button text", type: "text", placeholder: "Register now", width: "half", help: "The button in the band at the foot of the page. Blank uses “Register now”." },
     { name: "image", label: "Image", type: "image" },
     { name: "featured", label: "Featured", type: "boolean" },
+    // 0016. Visible here so a removal is reversible from the form as well as
+    // from the list — turn it off, or archive the row, and the built-in event
+    // comes back.
+    { name: "hidden", label: "Removed from the site", type: "boolean", help: "Published + on = takes the built-in event with this title and date off the live site." },
   ],
 };
 
@@ -144,6 +151,7 @@ export const vehiclesConfig: CollectionConfig = {
   splitBy: { field: "type", left: "ev", leftLabel: "Electric cars", right: ["gas", "hybrid"], rightLabel: "Gas cars" },
   staticRows: vehicleStaticRows,
   keyOf: (r) => str(r.vehicle_id),
+  hiddenField: "hidden",
   viewUrl: () => "/electricity-vs-gasoline",
   statusField,
   statusOptions: STATUS,
@@ -183,6 +191,7 @@ export const incentivesConfig: CollectionConfig = {
   statusOptions: STATUS,
   staticRows: incentiveStaticRows,
   keyOf: (r) => `${str(r.scope)}|${str(r.state) || ""}|${str(r.name)}`,
+  hiddenField: "hidden",
   viewUrl: () => "/rebates-incentives",
   // Same: incentives are rows on one shared page, not pages of their own.
   editOnPage: true,

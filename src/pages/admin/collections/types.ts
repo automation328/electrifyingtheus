@@ -40,6 +40,13 @@ export interface CollectionConfig {
   statusOptions: string[];
   /** Row field holding a thumbnail image URL (shown in the list). */
   imageField?: string;
+  /** Column carrying the "remove the matching built-in item" flag — always
+   *  "hidden" today (site_events 0016, site_vehicles + site_incentives 0006).
+   *  Set it and built-in rows gain a Remove action, which writes a PUBLISHED
+   *  row with the flag on. Without it there is no way to delete a curated item,
+   *  because the merge re-appends every one that no published row matched.
+   *  Leave unset for collections whose curated entries cannot be removed. */
+  hiddenField?: string;
   /** Optional extra pill beside the status chip in the list, for a condition
    *  only this collection knows about — incentives use it to flag a row nobody
    *  has checked against the official program page lately. Return null when the
