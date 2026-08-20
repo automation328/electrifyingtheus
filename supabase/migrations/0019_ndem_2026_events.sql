@@ -53,7 +53,13 @@ select
   -- '' rather than a bare null in the VALUES list below: an untyped null in the
   -- first row would leave Postgres to infer the column type from later rows.
   nullif(v.end_date, '')::date,
-  v.title, v.type, v.location, v.region, v.time, v.description,
+  -- " - City, ST" appended at import rather than patched afterwards, so a
+  -- re-import keeps the convention. See .claude/skills/event-title. All 120
+  -- regions are verified "City, ST" pairs, so this never produces a stray dash.
+  -- eventTitleClean strips the suffix before rendering a card, so this changes
+  -- the /admin/content list and nothing a visitor sees.
+  v.title || ' - ' || v.region,
+  v.type, v.location, v.region, v.time, v.description,
   'https://driveelectricmonth.org/event?eventid=' || v.eid,
   'Event details', 'View event details',
   null, false, true, false, 'published'
