@@ -71,9 +71,17 @@ const Events = () => {
     );
   }, [query, allUpcoming]);
 
-  // Paginate the list: show 4, then "View more events" loads 3 more per click.
-  const PAGE_START = 4;
-  const PAGE_STEP = 3;
+  // Paginate the list: show 12, then "View more events" loads 24 more per click.
+  //
+  // Was 4 + 3, which was fine for a dozen events and absurd once the National
+  // Drive Electric Month import landed — 130 upcoming events took 43 clicks to
+  // reach the end. 12 + 24 gets there in five, while still keeping the first
+  // paint to roughly two screens rather than a wall of 130 cards.
+  //
+  // The search box is the real answer for anyone hunting a specific area, so
+  // these numbers only need to make BROWSING bearable, not exhaustive.
+  const PAGE_START = 12;
+  const PAGE_STEP = 24;
   const [visibleCount, setVisibleCount] = useState(PAGE_START);
   useEffect(() => { setVisibleCount(PAGE_START); }, [query]);
   const visibleEvents = filtered.slice(0, visibleCount);
