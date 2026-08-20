@@ -241,12 +241,32 @@ const EVENT_OVERRIDES: Record<string, { title?: string; description?: string; lo
   },
 };
 
+/**
+ * An event's identity on the site it came from: the driveelectricmonth eventid
+ * when present, else the EventCalendarApp URL path slug
+ * (evaevents.eventcalendarapp.com/<slug>). Null when the link is neither.
+ *
+ * Exported because the Events page needs the SAME rule to recognise a feed
+ * event that is also in site_events. The 0019 import scraped
+ * driveelectricmonth.org, which this feed already aggregates, so 57 events
+ * arrive from both directions — see the dedupe in Events.tsx.
+ *
+ * It has to key on the URL rather than title + date: the import rewrote several
+ * titles that were unusable as-is ("NDEM" → "National Drive Electric Month
+ * Showcase", "Poolesville, MD" → "Poolesville Day EV Show"), so the two copies
+ * of one event no longer agree on what it is called. The source URL is the only
+ * field both sides carry verbatim.
+ */
+export function sourceEventKey(registerUrl?: string): string | null {
+  return (
+    registerUrl?.match(/eventid=(\d+)/)?.[1] ||
+    registerUrl?.match(/eventcalendarapp\.com\/([^/?#]+)/i)?.[1] ||
+    null
+  );
+}
+
 function applyOverride(item: EventItem): EventItem {
-  // Key by the driveelectricmonth eventid when present, else the EventCalendarApp
-  // URL path slug (evaevents.eventcalendarapp.com/<slug>).
-  const id =
-    item.registerUrl?.match(/eventid=(\d+)/)?.[1] ||
-    item.registerUrl?.match(/eventcalendarapp\.com\/([^/?#]+)/i)?.[1];
+  const id = sourceEventKey(item.registerUrl);
   const o = id ? EVENT_OVERRIDES[id] : undefined;
   if (!o) return item;
   const title = o.title ?? item.title;
