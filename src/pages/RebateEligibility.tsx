@@ -14,7 +14,7 @@
 // All rules, amounts and clocks live in @/lib/eligibility/rules — this file only
 // renders them.
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, ExternalLink, Info, ShieldCheck } from "lucide-react";
 import Navbar from "@/components/Navbar";
@@ -31,6 +31,9 @@ import {
   pruneHiddenAnswers, stateForEligibility,
   EMPTY_ANSWERS, type Answers, type Question, type Result, type Evaluation,
 } from "@/lib/eligibility/rules";
+import {
+  decodeVin, isPlausibleVin, vinToAnswers, referenceYearFor, describeFacts,
+} from "@/lib/eligibility/vin";
 
 const STATUS_LABEL: Record<Result["status"], string> = {
   eligible: "Likely eligible",
@@ -54,16 +57,28 @@ const STATUS_CHIP: Record<Result["status"], string> = {
    re-renders so focus survives every answer. No auto-advance.              */
 
 function QuestionField({
-  q, answers, onChange,
-}: { q: Question; answers: Answers; onChange: (key: keyof Answers, value: unknown) => void }) {
+  q, answers, onChange, verified,
+}: {
+  q: Question; answers: Answers;
+  onChange: (key: keyof Answers, value: unknown) => void;
+  verified?: boolean;
+}) {
   const value = answers[q.key];
+
+  // A verified answer came from the VIN, not from the reader. It stays editable —
+  // if the decode is wrong about their car, they are right and we are not.
+  const mark = verified ? (
+    <span className="ml-1.5 align-middle text-[0.62rem] font-bold uppercase tracking-wider text-secondary">
+      ✓ from VIN
+    </span>
+  ) : null;
 
   if (q.kind === "zip" || q.kind === "date" || q.kind === "money") {
     const id = `f-${String(q.key)}`;
     return (
       <div>
         <label htmlFor={id} className="block text-sm font-semibold text-foreground">
-          {q.legend}
+          {q.legend}{mark}
           {q.hint && <span className="block text-xs font-normal text-muted-foreground mt-0.5">{q.hint}</span>}
         </label>
         <div className="mt-2 flex items-center gap-1.5">
@@ -99,7 +114,7 @@ function QuestionField({
   return (
     <fieldset className="min-w-0">
       <legend className="text-sm font-semibold text-foreground">
-        {q.legend}
+        {q.legend}{mark}
         {q.hint && <span className="block text-xs font-normal text-muted-foreground mt-0.5">{q.hint}</span>}
       </legend>
       <div className="mt-2 flex flex-wrap gap-1.5">
@@ -437,17 +452,65 @@ const RebateEligibility = () => {
 
   const [answers, setAnswers] = useState<Answers>({ ...EMPTY_ANSWERS });
 
+  // The VIN is held HERE and nowhere else — deliberately not part of Answers.
+  // Its only job is to produce answers; after that it is forgotten. Keeping it out
+  // of the answer object means it cannot reach the rules engine, cannot be pruned
+  // into anything, and cannot ride along in a lead payload to the CRM.
+  const [vin, setVin] = useState("");
+  const [vinState, setVinState] = useState<"idle" | "checking" | "found" | "nomatch">("idle");
+  const [vinLabel, setVinLabel] = useState("");
+  const [verified, setVerified] = useState<Set<string>>(new Set());
+
   const out = useMemo(() => evaluate(answers), [answers]);
   const questions = useMemo(() => visibleQuestions({ ...answers, state: out.state }), [answers, out.state]);
   const live = out.results.filter((r) => r.status === "eligible" || r.status === "need");
 
   // Prune on every change: an answer whose question has just disappeared must
   // stop deciding the result. See pruneHiddenAnswers().
-  const set = (key: keyof Answers, value: unknown) =>
+  const set = (key: keyof Answers, value: unknown) => {
+    // A hand-edited answer is no longer "from the VIN". The reader knows their own
+    // car better than a database does.
+    setVerified((v) => {
+      if (!v.has(String(key))) return v;
+      const next = new Set(v);
+      next.delete(String(key));
+      return next;
+    });
     setAnswers((a) => {
       const next = { ...a, [key]: value } as Answers;
       return pruneHiddenAnswers({ ...next, state: stateForEligibility(next.zip) });
     });
+  };
+
+  // Decode as soon as the VIN is structurally complete. Aborts any call still in
+  // flight when the reader keeps typing, and every failure path lands on "nomatch",
+  // which changes nothing except a line of reassurance — the questions below still
+  // work exactly as they did.
+  useEffect(() => {
+    if (!isPlausibleVin(vin)) {
+      setVinState("idle");
+      setVinLabel("");
+      return;
+    }
+    const ac = new AbortController();
+    setVinState("checking");
+    decodeVin(vin, ac.signal).then((facts) => {
+      if (ac.signal.aborted) return;
+      if (!facts) {
+        setVinState("nomatch");
+        setVinLabel("");
+        return;
+      }
+      setVinState("found");
+      setVinLabel(describeFacts(facts));
+      setAnswers((a) => {
+        const filled = vinToAnswers(facts, referenceYearFor(a.purchaseDate));
+        setVerified(new Set(Object.keys(filled)));
+        return pruneHiddenAnswers({ ...a, ...filled, state: stateForEligibility(a.zip) });
+      });
+    });
+    return () => ac.abort();
+  }, [vin]);
 
   const [discIntro, discLiability = ""] = INCENTIVES_DISCLAIMER.split("\n\n");
 
@@ -493,8 +556,53 @@ const RebateEligibility = () => {
           </h2>
           <div className="grid gap-5 sm:grid-cols-2">
             {questions.map((q) => (
-              <QuestionField key={String(q.key)} q={q} answers={{ ...answers, state: out.state }} onChange={set} />
+              <QuestionField
+                key={String(q.key)}
+                q={q}
+                answers={{ ...answers, state: out.state }}
+                onChange={set}
+                verified={verified.has(String(q.key))}
+              />
             ))}
+
+            {/* Optional, and it stays optional. Everything below works without it —
+                a VIN just replaces three guesses about your own car with facts. */}
+            {out.covered && (
+              <div className="sm:col-span-2 rounded-xl border border-border bg-muted/40 p-4">
+                <label htmlFor="f-vin" className="block text-sm font-semibold text-foreground">
+                  VIN <span className="font-normal text-muted-foreground">(optional)</span>
+                  <span className="block text-xs font-normal text-muted-foreground mt-0.5">
+                    17 characters, on your windscreen or registration. We check it against the
+                    federal vehicle database, then forget it — it is never saved or sent anywhere.
+                  </span>
+                </label>
+                <div className="mt-2 flex flex-wrap items-center gap-3">
+                  <Input
+                    id="f-vin"
+                    type="text"
+                    inputMode="text"
+                    maxLength={17}
+                    autoComplete="off"
+                    spellCheck={false}
+                    placeholder="5YJ3E1EA8JF000000"
+                    className="font-mono tracking-wider w-[22ch] uppercase"
+                    value={vin}
+                    onChange={(e) => setVin(e.target.value.replace(/[^A-Za-z0-9]/g, "").toUpperCase().slice(0, 17))}
+                  />
+                  <p className="text-xs" aria-live="polite">
+                    {vinState === "checking" && <span className="text-muted-foreground">Checking…</span>}
+                    {vinState === "found" && (
+                      <span className="font-medium text-secondary">✓ {vinLabel}</span>
+                    )}
+                    {vinState === "nomatch" && (
+                      <span className="text-muted-foreground">
+                        We could not match that VIN. No problem — just answer the questions below.
+                      </span>
+                    )}
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         </section>
 
