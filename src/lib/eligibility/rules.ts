@@ -41,6 +41,10 @@ export const RULES_VERIFIED_AT = "2026-08-19";
 export const COVERED_STATES = ["OR", "DE", "CA"] as const;
 export type CoveredState = (typeof COVERED_STATES)[number];
 
+export const STATE_LABEL: Record<CoveredState, string> = {
+  OR: "Oregon", DE: "Delaware", CA: "California",
+};
+
 const ISO = /^\d{4}-\d{2}-\d{2}$/;
 
 /** Whole days from `a` to `b`. Negative when `b` is in the past. Built on the
@@ -70,6 +74,7 @@ export type Utility = "pge" | "other";
 export type IncomeBand = "assistance" | "under" | "over" | "skip";
 export type YesNo = "yes" | "no";
 export type PriorClaims = "none" | "one" | "more";
+export type Licence = "instate" | "otherstate" | "stateid" | "expired";
 
 export interface Answers {
   zip: string;
@@ -86,6 +91,7 @@ export interface Answers {
   dependent: YesNo | null;
   priorCalifornia: YesNo | null;
   priorClaims: PriorClaims | null;
+  licence: Licence | null;
   /** Derived from `zip` inside evaluate(); never set by the UI. */
   state?: string | null;
 }
@@ -94,7 +100,7 @@ export const EMPTY_ANSWERS: Answers = {
   zip: "", timing: null, purchaseDate: "", condition: null, fuel: null,
   batteryBand: null, price: null, modelYear: null, applicant: null,
   utility: null, income: null, dependent: null, priorCalifornia: null,
-  priorClaims: null, state: null,
+  priorClaims: null, licence: null, state: null,
 };
 
 /* ── documents ───────────────────────────────────────────────────────────────
@@ -559,6 +565,26 @@ export const QUESTIONS: Question[] = [
     when: (a) => a.state === "CA" && a.condition === "used",
     options: [["no", "No"], ["yes", "Yes"]] },
 
+  // All three programs demand a driver licence ISSUED BY THAT STATE and unexpired,
+  // and all three reject state ID cards outright. Until now that rule appeared only
+  // in the document checklist — listed, never tested — so someone holding an
+  // out-of-state licence was told "likely eligible" and would have been refused at
+  // application. That is the exact failure this tool exists to prevent, so it is
+  // now a question. It asks; it does not verify. No document, no upload, no
+  // identity check: the answer is self-declared and nothing is stored.
+  { key: "licence", kind: "choice", legend: "Your driver licence",
+    hint: "State ID cards and out-of-state licences are rejected outright",
+    when: (a) => isCovered(a.state),
+    options: (a) => {
+      const where = isCovered(a.state) ? STATE_LABEL[a.state] : "this state";
+      return [
+        ["instate", `Issued by ${where}, still valid`],
+        ["otherstate", "From another state"],
+        ["stateid", "I have a state ID, not a licence"],
+        ["expired", "Mine has expired"],
+      ] as [string, string][];
+    } },
+
   { key: "priorClaims", kind: "choice", legend: "Claimed this program before?",
     hint: "Every one of these has a lifetime cap",
     when: (a) => isCovered(a.state),
@@ -600,6 +626,37 @@ export const optionsFor = (q: Question, a: Answers): [string, string][] =>
    `priorClaims` is coarse on purpose — asking for an exact count invites a
    guess, and a guess here removes a real program from someone's list.        */
 
+/** What the reader must do about their licence before applying.
+ *
+ *  Deliberately a PREREQUISITE and not an exclusion. Every one of these is
+ *  fixable — you can transfer a licence, sit a test, renew — so refusing the
+ *  person outright would be wrong. What matters is that they learn it now,
+ *  while they can still act, rather than after they have bought a car. That is
+ *  the same reasoning as Delaware's supplier registration. */
+export function licencePrerequisites(a: Answers): Prerequisite[] {
+  if (!a.licence || a.licence === "instate") return [];
+  const where = isCovered(a.state) ? STATE_LABEL[a.state] : "your state";
+
+  if (a.licence === "otherstate") {
+    return [{
+      what: `Transfer your driver licence to ${where}`,
+      why: `Every one of these programs requires a licence issued by ${where} itself. An out-of-state licence is rejected, and transferring takes time at the DMV — start it before you buy, not after.`,
+    }];
+  }
+  if (a.licence === "stateid") {
+    return [{
+      // Phrased to avoid the article: "a Oregon" is wrong, "an Delaware" is wrong,
+      // and picking between them per state is a bug waiting to happen.
+      what: `Get a driver licence issued by ${where}`,
+      why: `A state identification card is not accepted, even one issued by ${where}. These programs ask specifically for a driver licence.`,
+    }];
+  }
+  return [{
+    what: "Renew your driver licence before you apply",
+    why: "An expired licence is rejected at application, however recently it lapsed.",
+  }];
+}
+
 export function capExceeded(program: Program, a: Answers): string | null {
   if (!program.lifetimeCap || !a.priorClaims) return null;
   const cap = program.lifetimeCap.perPerson;
@@ -629,6 +686,9 @@ export interface Result {
   reason: string | null;
   missing: string | null;
   incomePath?: IncomePath;
+  /** Prerequisites that depend on the reader rather than on the program — the
+   *  licence fixes. Rendered alongside the program's own. */
+  extraPrerequisites: Prerequisite[];
   clock: Clock;
 }
 
@@ -664,9 +724,15 @@ export function evaluate(input: Partial<Answers> | null | undefined, today?: str
     const r: Result = {
       id: program.id, program, status,
       amount: null, floor: null, basis: null, reason: null, missing: null,
+      extraPrerequisites: [],
       ...fields,
       clock: buildClock(program, a, day),
     };
+    // Only worth telling someone to renew a licence for a claim they can still
+    // make. On an excluded or dead result it is noise.
+    if (r.status === "eligible" || r.status === "need") {
+      r.extraPrerequisites = licencePrerequisites(a);
+    }
     // A hard stop suppresses the figure rather than annotating it. Showing
     // "$7,500" beside "you missed the deadline" is the failure this tool exists
     // to prevent.

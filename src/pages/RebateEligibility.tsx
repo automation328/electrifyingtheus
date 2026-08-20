@@ -261,13 +261,15 @@ function ProgramCard({ r, answers }: { r: Result; answers: Answers }) {
           timeline so the dates explain themselves, but never regains a figure. */}
       {r.status !== "excluded" && r.status !== "superseded" && (
         <>
-          {r.status !== "stopped" && p.prerequisites.length > 0 && (
+          {r.status !== "stopped" && (p.prerequisites.length + r.extraPrerequisites.length) > 0 && (
             <section className="p-5 border-b border-border">
               <h4 className="text-[0.68rem] font-bold uppercase tracking-widest text-muted-foreground mb-3">
                 <span className="text-primary mr-1.5">①</span> Before you apply
               </h4>
               <ol className="space-y-3">
-                {p.prerequisites.map((pre, i) => (
+                {/* Reader-dependent fixes first — a licence problem blocks every
+                    program at once, so it outranks any single program's step. */}
+                {[...r.extraPrerequisites, ...p.prerequisites].map((pre, i) => (
                   <li key={pre.what} className="grid grid-cols-[1.35rem_1fr] gap-2.5">
                     <span className="grid place-items-center w-[1.35rem] h-[1.35rem] rounded bg-primary/10 text-primary font-mono text-xs font-bold">
                       {i + 1}

@@ -12,6 +12,7 @@ import { describe, it, expect } from "vitest";
 import {
   evaluate, oregonAmount, delawareAmount, assessIncome, documentsFor,
   visibleQuestions, optionsFor, capExceeded, daysBetween, addIsoDays, pruneHiddenAnswers,
+  licencePrerequisites, STATE_LABEL,
   PROGRAMS, QUESTIONS, FPG_400, RULES_VERIFIED_AT, EMPTY_ANSWERS,
   type Answers, type Evaluation,
 } from "@/lib/eligibility/rules";
@@ -571,6 +572,80 @@ describe("Answers never outlive their question", () => {
     expect(pruned.dependent).toBe("no");
     expect(pruned.fuel).toBe("bev");
     expect(pruned.zip).toBe("97204");
+  });
+});
+
+describe("The driver licence rule", () => {
+  const withLicence = (licence: Answers["licence"], zip = "97204") =>
+    evaluate(ans({ zip, condition: "new", fuel: "bev", income: "skip", timing: "soon", licence }), INSIDE_WINDOW);
+
+  it("says nothing when the licence is in-state and valid", () => {
+    expect(find(withLicence("instate"), "or-standard")!.extraPrerequisites).toHaveLength(0);
+  });
+
+  it("says nothing while the question is unanswered", () => {
+    expect(find(withLicence(null), "or-standard")!.extraPrerequisites).toHaveLength(0);
+  });
+
+  it("tells an out-of-state licence holder to transfer it, and names the state", () => {
+    const pre = find(withLicence("otherstate"), "or-standard")!.extraPrerequisites;
+    expect(pre).toHaveLength(1);
+    expect(pre[0].what).toMatch(/Transfer your driver licence to Oregon/);
+    expect(pre[0].why).toMatch(/before you buy/);
+  });
+
+  it("names the right state in Delaware too", () => {
+    const pre = find(withLicence("otherstate", "19801"), "de-new")!.extraPrerequisites;
+    expect(pre[0].what).toMatch(/Delaware/);
+  });
+
+  it("rejects a state ID card, which is the trap", () => {
+    const pre = find(withLicence("stateid"), "or-standard")!.extraPrerequisites;
+    expect(pre[0].why).toMatch(/state identification card is not accepted/);
+  });
+
+  it("never produces 'a Oregon' — the article is designed out, not special-cased", () => {
+    for (const state of ["OR", "DE", "CA"]) {
+      const text = licencePrerequisites(ans({ state, licence: "stateid" }))[0].what;
+      expect(text).not.toMatch(/a (Oregon|Delaware|California)/);
+      expect(text).toMatch(/issued by/);
+    }
+  });
+
+  it("tells an expired licence holder to renew", () => {
+    expect(find(withLicence("expired"), "or-standard")!.extraPrerequisites[0].what)
+      .toMatch(/Renew your driver licence/);
+  });
+
+  it("is a prerequisite, never an exclusion — all of these are fixable", () => {
+    // Refusing someone outright would be wrong: you can transfer a licence, sit a
+    // test, or renew. What matters is learning it before buying a car.
+    const out = withLicence("otherstate");
+    expect(find(out, "or-standard")?.status).toBe("eligible");
+    expect(out.bestAmount).toBe(2000);
+  });
+
+  it("stays quiet on a claim that cannot be made anyway", () => {
+    const out = evaluate(ans({
+      zip: "97204", condition: "new", fuel: "bev", income: "skip",
+      timing: "soon", licence: "expired", priorClaims: "more",
+    }), INSIDE_WINDOW);
+    expect(find(out, "or-standard")?.status).toBe("excluded");
+    expect(find(out, "or-standard")!.extraPrerequisites).toHaveLength(0);
+  });
+
+  it("asks the question in every covered state, and names that state", () => {
+    const q = QUESTIONS.find((x) => x.key === "licence")!;
+    for (const [state, label] of Object.entries(STATE_LABEL)) {
+      const labels = optionsFor(q, ans({ state })).map((o) => o[1]).join(" | ");
+      expect(labels).toMatch(new RegExp(label));
+    }
+    expect(visibleQuestions(ans({ state: "NY" })).some((x) => x.key === "licence")).toBe(false);
+  });
+
+  it("exposes the fixes as a pure function of the answers", () => {
+    expect(licencePrerequisites(ans({ state: "OR", licence: "instate" }))).toHaveLength(0);
+    expect(licencePrerequisites(ans({ state: "OR", licence: "stateid" }))).toHaveLength(1);
   });
 });
 
