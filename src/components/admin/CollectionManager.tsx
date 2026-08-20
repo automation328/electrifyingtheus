@@ -18,10 +18,20 @@ type Row = Record<string, unknown> & { id?: string };
 
 const statusStyle = (s: string) =>
   s === "published"
-    ? "bg-primary/10 text-primary"
+    // Brand green, not an arbitrary Tailwind green — the same token the site
+    // uses for its own "live / go" affordances.
+    ? "bg-secondary/10 text-secondary"
     : s === "draft"
       ? "bg-amber-500/15 text-amber-600"
       : "bg-muted text-muted-foreground";
+
+/**
+ * What the status badge SAYS. "published" is what the row actually stores, and
+ * that string is load-bearing — RLS policies, every public fetch, and the
+ * removal-marker logic all test for `status = 'published'`. Renaming the value
+ * would take the whole site off the air, so only the label changes here.
+ */
+const statusLabel = (s: string) => (s === "published" ? "online" : s);
 
 // React Query key that the PUBLIC hooks also read (see src/hooks/use-content.ts),
 // so publishing/editing here refreshes the live pages too.
@@ -382,7 +392,7 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
                 // Not an item — a marker that takes the matching built-in off the
                 // site. Showing it as "published" would read as the opposite.
                 ? <span className="text-[10px] uppercase font-bold tracking-wide rounded-full px-2 py-0.5 bg-destructive/10 text-destructive">removed</span>
-                : <span className={`text-[10px] uppercase font-bold tracking-wide rounded-full px-2 py-0.5 ${statusStyle(status)}`}>{status}</span>}
+                : <span className={`text-[10px] uppercase font-bold tracking-wide rounded-full px-2 py-0.5 ${statusStyle(status)}`}>{statusLabel(status)}</span>}
             {badge && (
               <span
                 className={`text-[10px] uppercase font-bold tracking-wide rounded-full px-2 py-0.5 shrink-0 ${
