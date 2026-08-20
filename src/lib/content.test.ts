@@ -6,7 +6,7 @@
 // behaviour so that can't creep back in.
 
 import { describe, it, expect } from "vitest";
-import { eventDetailPath, eventAdoptRow } from "@/lib/content";
+import { eventDetailPath, eventAdoptRow, mergeEvents } from "@/lib/content";
 import { EVENTS, type EventItem } from "@/data/events";
 
 // The curated webinar: { month: "AUG", day: "27", year: 2026, slug: "from-pump-to-plug" }.
@@ -105,5 +105,39 @@ describe("giving an event an end date", () => {
     expect(eventAdoptRow(span).end_date).toBe("2026-09-30");
     // The start must survive the round trip untouched.
     expect(eventAdoptRow(span).event_date).toBe("2026-08-27");
+  });
+});
+
+describe("keeping an event off the homepage hero (0018)", () => {
+  // HeroSection takes the two SOONEST events that don't set heroHidden, so this
+  // flag is the only thing standing between a bulk import of other people's
+  // events and our own front page.
+  const hidden = EVENTS.find((e) => e.heroHidden) as EventItem;
+  const shown = EVENTS.find((e) => !e.heroHidden) as EventItem;
+
+  it("carries heroHidden into the adopted row", () => {
+    expect(eventAdoptRow(hidden).hero_hidden).toBe(true);
+    expect(eventAdoptRow(shown).hero_hidden).toBe(false);
+  });
+
+  // site_events.hero_hidden is NOT NULL, and every row written before 0018
+  // answers false. `??` would read that false as an answer and overrule the
+  // curated flag; `||` keeps the curated one. Either side saying "hide" wins.
+  it("does not let a pre-0018 row un-hide a curated event", () => {
+    const asRow: EventItem = { ...hidden, id: "row-1", heroHidden: false };
+    const merged = mergeEvents([asRow]);
+    const found = merged.find((e) => e.title === hidden.title);
+    expect(found?.heroHidden).toBe(true);
+  });
+
+  it("honours a row that asks to be hidden when nothing curated matches", () => {
+    const imported: EventItem = {
+      id: "row-2", month: "SEP", day: "11", year: 2026,
+      title: "An imported third-party event", type: "EV Showcase",
+      location: "Raleigh, NC", region: "Raleigh, NC", time: "3:00 pm",
+      description: "", image: "", heroHidden: true,
+    };
+    const found = mergeEvents([imported]).find((e) => e.id === "row-2");
+    expect(found?.heroHidden).toBe(true);
   });
 });

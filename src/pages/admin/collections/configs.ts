@@ -76,6 +76,10 @@ export const eventsConfig: CollectionConfig = {
     { name: "register_cta_label", label: "Save-your-spot button text", type: "text", placeholder: "Register now", width: "half", help: "The button in the band at the foot of the page. Blank uses “Register now”." },
     { name: "image", label: "Image", type: "image" },
     { name: "featured", label: "Featured", type: "boolean" },
+    // 0018. The hero shows the two SOONEST events that don't set this, so a new
+    // event with a near date lands on the homepage whether or not that was the
+    // intention. This is the switch that says otherwise.
+    { name: "hero_hidden", label: "Keep off the homepage carousel", type: "boolean", help: "The event still appears in the Events list, the Featured section and the navbar — just not in the rotating banner at the top of the homepage." },
     // 0016. Visible here so a removal is reversible from the form as well as
     // from the list — turn it off, or archive the row, and the built-in event
     // comes back.

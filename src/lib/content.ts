@@ -32,6 +32,9 @@ interface EventRow {
   // 0016. A published row with hidden = true is a REMOVAL marker for the curated
   // event of the same title + date (see mergeEvents), not a displayable event.
   hidden: boolean | null;
+  // 0018. Keeps the event out of the homepage hero carousel only — it still
+  // shows in the Events list, the Featured band and the navbar dropdown.
+  hero_hidden: boolean | null;
 }
 interface PostRow {
   // Needed so an inline edit on the page knows which row to write back to.
@@ -68,6 +71,7 @@ function rowToEvent(r: EventRow): EventItem {
     registerLabel: r.register_label || undefined,
     registerCtaLabel: r.register_cta_label || undefined,
     hidden: r.hidden === true,
+    heroHidden: r.hero_hidden === true,
   };
 }
 
@@ -141,6 +145,10 @@ export function eventAdoptRow(e: EventItem): Record<string, unknown> {
     description: e.description,
     image: e.image,
     featured: !!e.featured,
+    // 0018, and carried for the same reason as end_date. 23 of the ~25 curated
+    // events set heroHidden; dropping it on adoption would move the event onto
+    // the homepage carousel the first time somebody edited its time or blurb.
+    hero_hidden: !!e.heroHidden,
     // Carried for the same reason as end_date: the adopted row REPLACES the
     // curated one in mergeEvents. A curated event's registration link survives
     // today only because mergeEvents falls back on a title+date match — rename
@@ -196,7 +204,12 @@ export function mergeEvents(dynamic: EventItem[]): EventItem[] {
       // events out of the homepage carousel — 23 of ~25 curated events set it,
       // so losing it promotes them into the hero instead.
       ours: e.ours ?? s?.ours,
-      heroHidden: e.heroHidden ?? s?.heroHidden,
+      // `||`, not `??`. site_events.hero_hidden is NOT NULL (0018), so every row
+      // now answers false rather than undefined — and every row that adopted a
+      // curated event BEFORE 0018 existed answers false too. With `??` those
+      // adopted events would lose the curated heroHidden they have today and be
+      // promoted into the homepage carousel. Either side saying "hide" wins.
+      heroHidden: e.heroHidden || s?.heroHidden,
       external: e.external ?? s?.external,
     };
   });

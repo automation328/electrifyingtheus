@@ -30,6 +30,10 @@ export const eventStaticRows = (): SeedRow[] =>
     end_date: e.endDate ?? null,
     title: e.title, type: e.type, location: e.location, region: e.region, time: e.time,
     description: e.description, image: typeof e.image === "string" ? e.image : "", featured: !!e.featured,
+    // 0018. Most curated events set heroHidden; without it here the CMS toggle
+    // would read "off" for all of them, and adopting one would write that wrong
+    // answer into the row.
+    hero_hidden: !!e.heroHidden,
     // So the CMS shows the registration link a curated event already ships with,
     // instead of an empty box that looks like the event has none.
     register_url: e.registerUrl ?? "", register_label: e.registerLabel ?? "", register_cta_label: e.registerCtaLabel ?? "",
