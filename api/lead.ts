@@ -13,6 +13,8 @@
 
 import { recordSubmission } from "./_submissions.js";
 import { checkRateLimit, tooManyRequests } from "./_rate-limit.js";
+import { createDraftEvent, buildSlackReview, type EventSubmission } from "./_event-submission.js";
+import { createClient } from "@supabase/supabase-js";
 
 /** The only extra keys allowed into a GoHighLevel note beyond the fields this
  *  handler names explicitly. Anything else a client sends is dropped rather
@@ -21,6 +23,10 @@ import { checkRateLimit, tooManyRequests } from "./_rate-limit.js";
 const NOTE_EXTRAS = new Set([
   "jobTitle", "jobLink", "jobType", "location", "resumeUrl", "marketingConsent",
   "eventTitle", "eventDate", "eventLocation",
+  // The rest of the /list-your-event fields. They were reaching the server and
+  // being dropped here, so the GHL note recorded an event submission without
+  // saying when or where the event was.
+  "eventStartDate", "eventEndDate", "eventTime", "eventVenue", "eventFormat", "eventWebsite",
   "utm_source", "utm_medium", "utm_campaign", "pageUrl", "referrer",
 ]);
 
@@ -121,6 +127,68 @@ async function notifySlack(opts: {
       body: JSON.stringify({ text: lines.join("\n") }),
     });
   } catch { /* non-blocking */ }
+}
+
+/**
+ * /list-your-event: turn the submission into a draft event and post ONE Slack
+ * message with the details and Approve / Reject links.
+ *
+ * Returns true when Slack was posted, so the caller can skip the generic lead
+ * alert — the same submission arriving twice in the channel is noise, and this
+ * message carries strictly more.
+ *
+ * NEVER THROWS, and never blocks the response. The organiser has already been
+ * written to GoHighLevel and site_form_submissions by the time this runs; if
+ * the draft cannot be created the submission is still safe, it just has to be
+ * entered by hand.
+ */
+async function handleEventSubmission(opts: {
+  rest: Record<string, string>;
+  contactId?: string;
+  name: string; email: string; phone: string; company: string;
+}): Promise<boolean> {
+  try {
+    const url = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!url || !key) return false;
+    const db = createClient(url, key, { auth: { persistSession: false } });
+
+    const r = opts.rest;
+    const sub: EventSubmission = {
+      eventTitle: r.eventTitle ?? "",
+      eventLocation: r.eventLocation ?? "",
+      eventStartDate: r.eventStartDate ?? "",
+      eventEndDate: r.eventEndDate ?? "",
+      eventTime: r.eventTime ?? "",
+      eventDescription: r.eventDescription ?? "",
+      eventWebsite: r.eventWebsite ?? "",
+      eventVenue: r.eventVenue ?? "",
+      eventFormat: r.eventFormat ?? "",
+      submitterName: opts.name,
+      submitterEmail: opts.email,
+      submitterPhone: opts.phone,
+      submitterCompany: opts.company,
+      ghlContactId: opts.contactId,
+    };
+
+    const eventId = await createDraftEvent(db, sub);
+    if (!eventId) return false;
+
+    const hook = process.env.SLACK_WEBHOOK_URL;
+    if (!hook) return false;                       // no channel — let the generic alert run
+    const site = process.env.PUBLIC_SITE_URL || "https://electrifyingtheus.com";
+    const payload = buildSlackReview(eventId, sub, site);
+    if (!payload) return false;
+
+    await fetch(hook, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 // reCAPTCHA v3 — verify the token + score. Returns true when verification is
@@ -300,6 +368,20 @@ export default async function handler(req: any, res: any) {
       sput("website", shareUrl);
       await ghl("/contacts/upsert", { method: "POST", body: JSON.stringify(senderContact) })
         .catch(() => { /* non-blocking */ });
+    }
+
+    // An event submission becomes a DRAFT event, so an editor reviews it in
+    // /admin/content/events like anything else, and Slack gets the details with
+    // Approve / Reject links. Its own Slack message replaces the generic lead
+    // alert — two posts for one submission is noise, and this one says more.
+    if (formType === "list-event") {
+      const posted = await handleEventSubmission({
+        rest, contactId,
+        name, email, phone: phone || mobile, company,
+      });
+      // Fall through to the normal alert only if the event path could not post
+      // its own — otherwise the submission would land in Slack twice.
+      if (posted) { res.status(200).json({ ok: true, contactId }); return; }
     }
 
     // Internal Slack alert with the GHL contact link (once, on a real submission;

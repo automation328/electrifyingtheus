@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import {
   Plus, Pencil, Trash2, Loader2, X, Save, AlertCircle, Eye, EyeOff, Image as ImageIcon, FolderOpen, ExternalLink, Search, RotateCcw, LayoutTemplate, Copy,
 } from "lucide-react";
-import { listRows, insertRow, updateRow, deleteRow, destroyRow, type MediaItem } from "@/lib/admin-api";
+import { listRows, insertRow, updateRow, deleteRow, destroyRow, type MediaItem, notifyEventPublished } from "@/lib/admin-api";
 import AdminField from "@/components/admin/AdminField";
 import MediaPickerModal from "@/components/admin/MediaPickerModal";
 import { type CollectionConfig, emptyRecord } from "@/pages/admin/collections/types";
@@ -337,6 +337,22 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
       await updateRow(config.table, row.id, { [config.statusField]: next });
       toast.success(next === "published" ? `${config.singular} published` : `${config.singular} unpublished`);
       invalidate();
+      // Publishing an event that arrived through /list-your-event emails the
+      // organiser their live link. The server decides whether this event is one
+      // of those — it answers "not a form submission" for the imported ones and
+      // "already notified" on a re-publish — so this fires blindly and only
+      // surfaces the outcome when an email actually went out or actually broke.
+      //
+      // Deliberately AFTER invalidate() and deliberately not awaited into the
+      // success path: a mail failure must not make a successful publish look
+      // like it failed.
+      if (config.table === "site_events" && next === "published") {
+        notifyEventPublished(String(row.id))
+          .then((r) => { if (r.sent) toast.success("Organiser emailed their event link."); })
+          .catch((e) => toast.error(
+            `Published, but the organiser was not emailed: ${e instanceof Error ? e.message : "unknown error"}`,
+          ));
+      }
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Update failed.");
     }

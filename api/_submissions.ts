@@ -48,8 +48,11 @@ const EXTRA_KEYS = new Set([
   "transcript", "sessionId",
   // jobs — PostAJob posts jobTitle/jobLink/jobType; Careers adds location on apply
   "jobTitle", "jobLink", "jobType", "location", "resumeUrl", "marketingConsent",
-  // events
+  // events — the full /list-your-event set, so the Form Submissions viewer
+  // shows the whole thing rather than a title with no date, time or venue.
   "eventTitle", "eventDate", "eventLocation",
+  "eventStartDate", "eventEndDate", "eventTime", "eventVenue", "eventFormat",
+  "eventWebsite", "eventDescription",
   // attribution
   "utm_source", "utm_medium", "utm_campaign", "pageUrl",
 ]);

@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   Megaphone, User, Building2, CalendarDays, MapPin, Globe, Image as ImageIcon,
   Upload, X, Send, Loader2, CheckCircle2, Monitor, Users, Boxes, ArrowRight,
@@ -48,6 +48,7 @@ const ListYourEvent = () => {
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const navigate = useNavigate();
   const fileInput = useRef<HTMLInputElement>(null);
 
   const set =
@@ -108,14 +109,30 @@ const ListYourEvent = () => {
       } catch { /* non-blocking — still confirm to the user */ }
     }
     // Upsert the organizer as a GHL lead with the event-submission tag.
+    //
+    // The event fields go too, and they are not decoration: api/lead.ts uses
+    // them to create a DRAFT event in site_events, so the submission lands in
+    // /admin/content/events ready to review, and posts the Slack message with
+    // the Approve / Reject links. Drop a field here and it goes missing from
+    // both the draft and the notification.
     await submitLead("list-event", {
       firstName: form.firstName, lastName: form.lastName, email: form.email,
       mobile: form.mobile, city: form.city, zip: form.zip,
       company: form.company, title: form.title, department: form.department,
       industry: form.industry, subject: form.eventTitle,
+      eventTitle: form.eventTitle, eventLocation: form.eventLocation,
+      eventStartDate: form.eventStartDate, eventEndDate: form.eventEndDate,
+      eventTime: form.eventTime, eventDescription: form.eventDescription,
+      eventWebsite: form.eventWebsite, eventVenue: form.eventVenue,
+      eventFormat,
     });
     setSubmitting(false);
+    // Kept as a fallback: if navigation is ever prevented, the inline block
+    // below still confirms rather than leaving a filled form looking untouched.
     setSubmitted(true);
+    navigate("/list-your-event/thank-you", {
+      state: { eventTitle: form.eventTitle, email: form.email },
+    });
   };
 
   const inputCls =

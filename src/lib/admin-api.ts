@@ -284,3 +284,19 @@ export async function kbUpload(file: File, status: "draft" | "published" = "publ
   if (!r.ok) throw new Error((data as { detail?: string; error?: string }).detail || (data as { error?: string }).error || `Upload failed (${r.status})`);
   return data as { source: string; title: string; chars: number; chunkCount: number };
 }
+
+/**
+ * Tell the server an event was just published, so the organiser who submitted
+ * it gets their live link by email.
+ *
+ * It has to come through the server: the CMS publish toggle writes to Supabase
+ * straight from the browser, which can neither reach GoHighLevel nor read
+ * site_event_submissions (RLS with no policies — migration 0025).
+ *
+ * Safe to call for ANY event. The server answers "not a form submission" for
+ * the imported ones and "already notified" on a re-publish, so the caller does
+ * not have to know which is which.
+ */
+export async function notifyEventPublished(id: string): Promise<{ sent: boolean; detail: string }> {
+  return call<{ sent: boolean; detail: string }>({ op: "event-published", id });
+}

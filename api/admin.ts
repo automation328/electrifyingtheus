@@ -28,6 +28,8 @@ import { randomBytes } from "node:crypto";
 import { getEditor, requireEditor, adminSupabase } from "./_admin-auth.js";
 import { appendActivity, readActivity } from "./_activity-log.js";
 import { checkRateLimit, tooManyRequests } from "./_rate-limit.js";
+import { verifyReview, eventPath } from "./_event-submission.js";
+import { sendEventApprovalEmail } from "./_ghl.js";
 import { analyticsSummary, visitorJourney } from "./_analytics-core.js";
 // NOTE: mammoth / pdf-parse are imported LAZILY inside handleKbUpload — a top-level
 // import of pdf-parse (pdfjs) crashes the whole serverless function at load, which
@@ -668,8 +670,170 @@ async function handleKbUpload(b: Record<string, unknown>, res: any, role: string
   res.status(200).json({ source, title, chars: text.length, chunkCount });
 }
 
+// ── Event submission review (the Slack Approve / Reject links) ───────────────
+
+const htmlEsc = (s: string) =>
+  String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+/** A plain confirmation page. Whoever clicked is a colleague in Slack, not an
+ *  API client, so this answers in something readable rather than JSON. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function reviewPage(res: any, code: number, heading: string, body: string, link?: { href: string; label: string }) {
+  const page = `<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>${htmlEsc(heading)}</title>
+<style>
+ body{margin:0;min-height:100vh;display:grid;place-items:center;background:#f6f8fb;
+      font:16px/1.6 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#1b2430}
+ .card{max-width:34rem;margin:1.5rem;padding:2rem 2.25rem;background:#fff;border:1px solid #dfe6ef;
+       border-radius:1rem;box-shadow:0 1px 3px rgba(16,32,55,.06)}
+ h1{margin:0 0 .5rem;font-size:1.4rem}
+ p{margin:0 0 1rem;color:#4a5769}
+ a{display:inline-block;margin-top:.25rem;padding:.6rem 1.1rem;border-radius:.7rem;
+   background:#0057b8;color:#fff;text-decoration:none;font-weight:600}
+</style></head><body><div class="card">
+<h1>${htmlEsc(heading)}</h1><p>${body}</p>
+${link ? `<a href="${htmlEsc(link.href)}">${htmlEsc(link.label)}</a>` : ""}
+</div></body></html>`;
+  res.setHeader("Content-Type", "text/html; charset=utf-8");
+  res.setHeader("Cache-Control", "no-store");
+  res.status(code).send(page);
+}
+
+/**
+ * Email the organiser that their event is live, and record the outcome.
+ *
+ * Shared by BOTH ways an event gets approved — the Slack link below and the
+ * publish toggle in /admin/content — so the two cannot drift apart.
+ *
+ * approval_emailed_at is what makes this idempotent. An editor who unpublishes
+ * and republishes an event must not email the organiser twice, and re-clicking
+ * a Slack link must not either.
+ */
+export async function notifyOrganiser(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  db: any,
+  eventId: string,
+): Promise<{ sent: boolean; detail: string }> {
+  const { data: ev } = await db
+    .from("site_events").select("id,title,event_date,status").eq("id", eventId).maybeSingle();
+  if (!ev) return { sent: false, detail: "event not found" };
+  if (ev.status !== "published") return { sent: false, detail: "event is not published" };
+
+  const { data: sub } = await db
+    .from("site_event_submissions")
+    .select("id,submitter_name,ghl_contact_id,approval_emailed_at")
+    .eq("event_id", eventId).maybeSingle();
+  // Not every event came from the form. Most did not — 120 arrived by import.
+  if (!sub) return { sent: false, detail: "not a form submission" };
+  if (sub.approval_emailed_at) return { sent: false, detail: "organiser already notified" };
+
+  const site = process.env.PUBLIC_SITE_URL || "https://electrifyingtheus.com";
+  const result = await sendEventApprovalEmail({
+    contactId: sub.ghl_contact_id,
+    toName: sub.submitter_name || "",
+    eventTitle: ev.title || "",
+    eventUrl: `${site}${eventPath(ev.title || "", ev.event_date || "")}`,
+  });
+
+  // Stamp on success only, so a failure can be retried by publishing again.
+  // The error is stored either way — an editor should be able to see WHY the
+  // organiser never heard back without reading server logs.
+  await db.from("site_event_submissions").update(
+    result.ok
+      ? { approval_emailed_at: new Date().toISOString(), approval_email_error: null }
+      : { approval_email_error: result.error?.slice(0, 500) ?? "unknown" },
+  ).eq("id", sub.id);
+
+  return result.ok
+    ? { sent: true, detail: "organiser emailed" }
+    : { sent: false, detail: result.error ?? "email failed" };
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function handleEventReview(req: any, res: any) {
+  // Rate limited like every other unauthenticated path here. A signature guess
+  // is cheap for an attacker and a database round trip for us.
+  const rl = await checkRateLimit(req, { bucket: "event-review", limit: 60, windowMinutes: 60 });
+  if (!rl.ok) { reviewPage(res, 429, "Too many attempts", "Try again in a little while."); return; }
+
+  const id = String(req.query?.id ?? "");
+  const action = String(req.query?.action ?? "");
+  const exp = Number(req.query?.exp ?? 0);
+  const sig = String(req.query?.sig ?? "");
+
+  if (action !== "approve" && action !== "reject") {
+    reviewPage(res, 400, "Unknown action", "That link does not do anything we recognise."); return;
+  }
+
+  const v = verifyReview(id, action, exp, sig);
+  if (!v.ok) {
+    const msg = v.reason === "expired"
+      ? "This approval link has expired. Open the event in the CMS and publish it there instead."
+      : v.reason === "unconfigured"
+        ? "Event review links are not configured on this deployment (EVENT_REVIEW_SECRET is unset)."
+        : "This link is not valid.";
+    reviewPage(res, 400, "Link not accepted", htmlEsc(msg),
+      { href: "/admin/content", label: "Open the CMS" });
+    return;
+  }
+
+  const db = adminSupabase();
+  if (!db) { reviewPage(res, 500, "Not configured", "The database connection is not set up."); return; }
+
+  const { data: ev } = await db
+    .from("site_events").select("id,title,status,event_date").eq("id", id).maybeSingle();
+  if (!ev) {
+    reviewPage(res, 404, "Event not found", "It may have been deleted since this message was posted.",
+      { href: "/admin/content", label: "Open the CMS" });
+    return;
+  }
+
+  // Only a draft is reviewable. Anything else means somebody already dealt with
+  // it — say so plainly rather than silently flipping a live event.
+  if (ev.status !== "draft") {
+    reviewPage(res, 200, "Already handled",
+      `<strong>${htmlEsc(ev.title || "This event")}</strong> is already marked <em>${htmlEsc(ev.status)}</em>, so this link did nothing.`,
+      { href: "/admin/content", label: "Open the CMS" });
+    return;
+  }
+
+  if (action === "reject") {
+    await db.from("site_events").update({ status: "archived" }).eq("id", id);
+    reviewPage(res, 200, "Rejected",
+      `<strong>${htmlEsc(ev.title || "The event")}</strong> has been archived. It is not on the site, and no email was sent to the organiser.`,
+      { href: "/admin/content", label: "Open the CMS" });
+    return;
+  }
+
+  await db.from("site_events").update({ status: "published" }).eq("id", id);
+  const notify = await notifyOrganiser(db, id);
+  const site = process.env.PUBLIC_SITE_URL || "https://electrifyingtheus.com";
+  const path = eventPath(ev.title || "", ev.event_date || "");
+  reviewPage(res, 200, "Published",
+    `<strong>${htmlEsc(ev.title || "The event")}</strong> is now live. ${
+      notify.sent
+        ? "The organiser has been emailed their event link."
+        : `The organiser was <em>not</em> emailed — ${htmlEsc(notify.detail)}.`
+    }`,
+    { href: `${site}${path}`, label: "View the event" });
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default async function handler(req: any, res: any) {
+  // The ONE unauthenticated entry point on this endpoint: the Approve / Reject
+  // links in the Slack event-submission message. A browser follows them, so it
+  // arrives as a GET and answers in HTML rather than JSON.
+  //
+  // It is not protected by a session — it is protected by an expiring HMAC over
+  // (id, action, expiry). Clicking is the authorization, which is why the link
+  // only ever goes to a private internal channel and why it can do exactly two
+  // things to exactly one row. See api/_event-submission.ts.
+  if (req.method === "GET" && String(req.query?.op ?? "") === "event-review") {
+    await handleEventReview(req, res);
+    return;
+  }
   if (req.method !== "POST") { res.status(405).json({ error: "method_not_allowed" }); return; }
 
   const parsed = (typeof req.body === "string" ? safeJson(req.body) : req.body) as Record<string, unknown> | null;
@@ -703,6 +867,23 @@ export default async function handler(req: any, res: any) {
     if (op === "editors") return void (await handleEditors(b, res, role, editor.email));
     if (op === "activity") return void (await handleActivity(res, role));
     if (op === "submissions") return void (await handleSubmissions(b, res, role));
+    // Fired by the CMS right after it publishes an event, so approving in
+    // /admin/content emails the organiser exactly as the Slack link does. It has
+    // to come through the server: the publish toggle writes to Supabase straight
+    // from the browser, which can neither reach GoHighLevel nor read
+    // site_event_submissions (RLS, no policies — 0025).
+    //
+    // Safe to call for ANY event. notifyOrganiser returns "not a form
+    // submission" for the 120 imported ones and "already notified" on a
+    // re-publish, so the CMS can call it blindly without knowing which is which.
+    if (op === "event-published") {
+      if (role === "viewer") return void forbid(res, "Your account has read-only access.");
+      const db = adminSupabase();
+      if (!db) { res.status(500).json({ error: "not_configured" }); return; }
+      const r = await notifyOrganiser(db, String(b.id ?? ""));
+      res.status(200).json({ ok: true, ...r });
+      return;
+    }
     if (op === "analytics") return void (await handleAnalytics(b, res, role));
     if (op === "collection") return void (await handleCollection(b, res, role, editor.email));
     if (op === "upload") { if (role === "viewer") return void forbid(res, "Your account has read-only access."); return void (await handleUpload(b, res)); }

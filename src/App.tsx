@@ -45,6 +45,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy.tsx";
 import TermsConditions from "./pages/TermsConditions.tsx";
 import ContactUs from "./pages/ContactUs.tsx";
 import ThankYou from "./pages/ThankYou.tsx";
+import EventSubmitted from "./pages/EventSubmitted.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import CustomPage from "./pages/CustomPage.tsx";
 import ThemeApplier from "./components/ThemeApplier.tsx";
@@ -127,6 +128,9 @@ const App = () => (
           <Route path="/sustainable-maritime" element={<SustainableMaritime />} />
           <Route path="/contact-us" element={<ContactUs />} />
           <Route path="/thank-you" element={<ThankYou />} />
+          {/* Its own URL, so the copy can be about an event under review and the
+              submission is trackable as a conversion. */}
+          <Route path="/list-your-event/thank-you" element={<EventSubmitted />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/terms" element={<TermsConditions />} />
           {/* Webinar recap (coded page; replaces the earlier CMS page at this path). */}
