@@ -34,8 +34,8 @@ export const TITLE_BY_ID: Record<string, string> = {
   "5254": "Ventura County EV Showcase - Ventura, CA",
   "5199": "EV Expo in Madison - Madison, NJ",
   "5306": "Salem Electric Cars & Coffee - Salem, OR",
-  "5304": "StoreLocal Napa &ndash; Ride and Drive Electric - Napa, CA",
-  "5275": "EV Showcase at the Port of Hueneme Banana Festival - Hueneme, CA",
+  "5304": "Drive Electric, Save Money at StoreLocal Napa - Napa, CA",
+  "5275": "EV Showcase at the Port of Hueneme Banana Festival - Port Hueneme, CA",
 };
 
 /** Exact base title → display title, for events with no stable id (e.g. feeds

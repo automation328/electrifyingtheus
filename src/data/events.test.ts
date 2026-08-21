@@ -10,7 +10,8 @@
 import { describe, it, expect, afterEach, vi } from "vitest";
 import {
   eventEndDate, eventLastDay, isUpcoming, isActive, eventDateRange, eventFullDate,
-  gcalLink, eventDate, shortZone, type EventItem,
+  gcalLink, eventDate, shortZone, eventCity, eventStateCode, eventDisplayTitle,
+  type EventItem,
 } from "@/data/events";
 
 const BASE: EventItem = {
@@ -180,5 +181,83 @@ describe("two-letter timezone abbreviations (shortZone)", () => {
     expect(shortZone("EAST coast")).toBe("EAST coast");
     expect(shortZone("Varies by day - see event details")).toBe("Varies by day - see event details");
     expect(shortZone("")).toBe("");
+  });
+});
+
+
+// ---------------------------------------------------------------------------
+// Card titles.
+//
+// Eight of the 135 live events rendered a title the CMS did not hold, the worst
+// being "Roadmap Conference - Seattle, WA - WA 98101". Two separate faults
+// stacked: the location parser counted segments from the end and a trailing
+// ", United States" shifted every one of them, and eventDisplayTitle appended
+// the result to a stored title that already named the city.
+// ---------------------------------------------------------------------------
+
+const AT = (location: string, over: Partial<EventItem> = {}): EventItem =>
+  ({ ...BASE, title: "EV Expo", location, ...over });
+
+describe("parsing a city and state out of a location", () => {
+  it("ignores a trailing country — the bug behind the doubled titles", () => {
+    const e = AT("Seattle Convention Center - 705 Pike St, Seattle, WA 98101, United States");
+    expect(eventCity(e)).toBe("Seattle");
+    expect(eventStateCode(e)).toBe("WA");
+  });
+
+  it("handles a country sitting behind the postcode, either side of the border", () => {
+    expect(eventCity(AT("430 The Boardwalk, Waterloo, ON N2T 0C2, Canada"))).toBe("Waterloo");
+    expect(eventStateCode(AT("430 The Boardwalk, Waterloo, ON N2T 0C2, Canada"))).toBe("ON");
+    expect(eventCity(AT("3150 Paradise Rd, Las Vegas, NV 89109, USA"))).toBe("Las Vegas");
+  });
+
+  it("still reads a plain address with no country", () => {
+    expect(eventCity(AT("Rose Bowl, 1001 Rose Bowl Dr, Pasadena, CA 91103"))).toBe("Pasadena");
+    expect(eventStateCode(AT("Rose Bowl, 1001 Rose Bowl Dr, Pasadena, CA 91103"))).toBe("CA");
+    expect(eventCity(AT("Great Falls, VA"))).toBe("Great Falls");
+  });
+
+  it("refuses a segment with a digit in it, because that is a street, not a city", () => {
+    // The comma landed in the wrong place: the venue and the street number ran
+    // together, so segment-counting put the address where the city should be.
+    expect(eventCity(AT("Anytime Fitness Parking Lot - 19950 Fisher Ave Poolesville, MD 20837"))).toBe("");
+  });
+
+  it("gives nothing for an online event, so nothing is appended", () => {
+    expect(eventCity(AT("Online — Live Webinar"))).toBe("");
+    expect(eventCity(AT("See event details"))).toBe("");
+    expect(eventCity(AT("Nationwide"))).toBe("");
+  });
+});
+
+describe("which title an event card shows", () => {
+  it("shows a CMS row's title verbatim — an editor typed it, so it wins", () => {
+    const e = AT("Seattle Convention Center - 705 Pike St, Seattle, WA 98101, United States", {
+      id: "36b2d013-bacc-4057-a76e-147c1fdc9523",
+      title: "Roadmap Conference - Seattle, WA",
+    });
+    expect(eventDisplayTitle(e)).toBe("Roadmap Conference - Seattle, WA");
+  });
+
+  it("does not append even when the stored title names no city at all", () => {
+    // The old rule appended here, which is how the back end and the live site
+    // came to disagree. Whatever is in the CMS is what ships; if a title needs a
+    // city, it gets edited in the CMS.
+    const e = AT("Detroit, MI", { id: "row-1", title: "MOVE America 2026" });
+    expect(eventDisplayTitle(e)).toBe("MOVE America 2026");
+  });
+
+  it("still appends the city for a feed event, which has no row and no city", () => {
+    expect(eventDisplayTitle(AT("Park Ridge, IL 60068"))).toBe("EV Expo - Park Ridge, IL");
+  });
+
+  it("appends a bare city when the location carries no state code", () => {
+    expect(eventDisplayTitle(AT("Oslo, Norway", { title: "Nordic EV Summit 2027" })))
+      .toBe("Nordic EV Summit 2027 - Oslo");
+  });
+
+  it("leaves a feed title alone when it already names the city", () => {
+    expect(eventDisplayTitle(AT("Knoxville, TN", { title: "Knoxville Drive Electric Festival" })))
+      .toBe("Knoxville Drive Electric Festival");
   });
 });

@@ -2,11 +2,12 @@
 //
 // Two risks are specific to events and neither exists on blog posts:
 //
-//  1. The page shows DERIVED text. eventDisplayTitle appends " - City" and
-//     eventLocationText substitutes a map pin for a blank location. Editing
-//     those strings would write the derived form into the column — and the
-//     title is part of the event's dedupe key, which decides its slug, which is
-//     its URL. A save could move the page out from under its own link.
+//  1. The page shows DERIVED text. eventLocationText substitutes a map pin for
+//     a blank location, and eventDisplayTitle appends " - City" to an event
+//     that has no site_events row. Editing those strings would write the
+//     derived form into the column — and the title is part of the event's
+//     dedupe key, which decides its slug, which is its URL. A save could move
+//     the page out from under its own link.
 //  2. Some events come from an external feed. They are not ours, and must never
 //     be written to site_events.
 
@@ -29,8 +30,10 @@ vi.mock("@/components/forms/EventActionGate", () => ({
   ),
 }));
 
-// "Nordic EV Summit 2027" with location "Oslo, Norway" — displayed with the
-// city appended, which is exactly the string that must NOT be saved.
+// "Nordic EV Summit 2027" with location "Oslo, Norway". It carries an id, so it
+// is a site_events row and its stored title is shown verbatim. FEED is the same
+// event without a row: that one still gets its city appended, and the appended
+// form is exactly the string that must never be saved.
 const BASE: EventItem = {
   id: "evt-1", month: "MAY", day: "12", year: 2027,
   title: "Nordic EV Summit 2027", type: "Summit",
@@ -38,6 +41,9 @@ const BASE: EventItem = {
   time: "May 12-13, 2027", description: "Europe's policy-leading EV gathering.",
   image: "https://example.com/e.jpg", slug: "nordic-ev-summit-2027",
 };
+
+/** The same event as it arrives from the aggregated feed: no row, no id. */
+const FEED: EventItem = { ...BASE, id: undefined };
 
 const ours = vi.hoisted(() => ({ value: [] as unknown[] }));
 const external = vi.hoisted(() => ({ value: [] as unknown[] }));
@@ -79,8 +85,18 @@ const renderEvent = () => {
 const asEditor = () => { auth.value = { status: "editor", editor: { role: "admin" } }; };
 
 describe("a visitor's event page", () => {
-  it("shows the title with its city appended, as before", () => {
+  it("shows a stored title exactly as the CMS holds it", () => {
+    // The back end and the live page must read the same. Deriving on top of a
+    // stored title is what produced "Roadmap Conference - Seattle, WA - WA
+    // 98101" on eight live events.
     ours.value = [BASE];
+    renderEvent();
+    expect(screen.getByText("Nordic EV Summit 2027")).toBeTruthy();
+    expect(screen.queryByText(/Nordic EV Summit 2027 - Oslo/)).toBeNull();
+  });
+
+  it("still appends the city for a feed event, which has no stored title", () => {
+    ours.value = [FEED];
     renderEvent();
     expect(screen.getByText(/Nordic EV Summit 2027 - Oslo/)).toBeTruthy();
   });
@@ -102,7 +118,7 @@ describe("a visitor's event page", () => {
 describe("an editor edits the RAW value, not the displayed one", () => {
   it("puts the stored title in the editable box, without the appended city", () => {
     asEditor();
-    ours.value = [BASE];
+    ours.value = [FEED];
     renderEvent();
     fireEvent.click(screen.getByText(/Edit this page/i));
     // The derived form must be gone: saving it would rewrite the title, and the
@@ -113,7 +129,7 @@ describe("an editor edits the RAW value, not the displayed one", () => {
 
   it("shows the derived title again when editing stops", () => {
     asEditor();
-    ours.value = [BASE];
+    ours.value = [FEED];
     renderEvent();
     fireEvent.click(screen.getByText(/Edit this page/i));
     // The edit bar's exit is an icon button, titled rather than labelled.

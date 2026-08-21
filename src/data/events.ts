@@ -155,25 +155,74 @@ export const eventFullDate = (e: EventItem): string => {
   return `${weekday ? `${weekday}, ` : ""}${e.month} ${e.day}, ${e.year}`;
 };
 
+// Trailing segments that name the COUNTRY, not the state. Google Maps and
+// the NDEM feed both end an address with one (", Seattle, WA 98101, United
+// States"), which shifted every segment along by one: the city came out as
+// "WA 98101", the state as "", and the card title gained a second, wrong
+// location suffix.
+const COUNTRY_TAIL =
+  /^(united states(?: of america)?|usa|u\.s\.a?\.?|us|canada|mexico|norway|germany|china)$/i;
+
+/** An event's location split into address segments, with the trailing noise
+ *  trimmed. Shared by eventCity and eventStateCode so the two can never
+ *  disagree about which segment the city is. [] for online/see-details. */
+const locParts = (e: EventItem): { parts: string[]; hadCountry: boolean } => {
+  const loc = (e.location || "").trim();
+  if (!loc || /see event details/i.test(loc) || /online|webinar|virtual/i.test(loc)) {
+    return { parts: [], hadCountry: false };
+  }
+  const parts = loc.split(",").map((s) => s.trim()).filter(Boolean);
+  // Country first, then a bare ZIP: the ZIP can sit behind the country.
+  let hadCountry = false;
+  if (parts.length > 1 && COUNTRY_TAIL.test(parts[parts.length - 1])) { parts.pop(); hadCountry = true; }
+  if (parts.length > 1 && /^\d{5}(?:-\d{4})?$/.test(parts[parts.length - 1])) parts.pop();
+  return { parts, hadCountry };
+};
+
 /** Short city/area parsed from an event's location, for appending to card titles.
  *  "…, Park Ridge, IL 60068" → "Park Ridge" (the second-to-last comma segment is
  *  reliably the city in US/CA addresses). Returns "" for online/virtual events,
  *  "See event details", or single-segment locations. */
 export const eventCity = (e: EventItem): string => {
-  const loc = (e.location || "").trim();
-  if (!loc || /see event details/i.test(loc) || /online|webinar|virtual/i.test(loc)) return "";
-  const parts = loc.split(",").map((s) => s.trim()).filter(Boolean);
-  // Drop a trailing bare-ZIP segment ("…, San Marcos, CA, 92178") so the city
-  // lands on the right part instead of the state code.
-  if (parts.length && /^\d{5}(?:-\d{4})?$/.test(parts[parts.length - 1])) parts.pop();
+  const { parts, hadCountry } = locParts(e);
+  // Normally the city is the second-to-last segment, the last being the state.
+  // "Oslo, Norway" has no state: dropping the country leaves the city alone in
+  // the list, and the usual rule would give up and return "". That is how the
+  // country trim briefly cost Nordic EV Summit its " - Oslo".
+  if (parts.length === 1) return hadCountry ? parts[0] : "";
   if (parts.length < 2) return "";
-  return parts[parts.length - 2] || "";
+  const city = parts[parts.length - 2] || "";
+  // A city name has no digit in it. When this segment does, it is really a
+  // street address the location never comma-separated ("Anytime Fitness
+  // Parking Lot - 19950 Fisher Ave Poolesville, MD 20837") or a postcode the
+  // country trim missed. Appending either to a title produces nonsense, so
+  // append nothing.
+  if (/\d/.test(city)) return "";
+  return city;
 };
 
-/** Title shown on event cards. A curated entry in EVENT_TITLE_OVERRIDES wins;
- *  otherwise the event's city is appended ("EV Expo" → "EV Expo - Park Ridge").
- *  No-ops when there's no parseable city or the title already names it. */
+/** Title shown on event cards and the detail page.
+ *
+ *  Precedence: a CMS row's own title (it was typed by an editor), then a
+ *  curated entry in event-titles.ts, then the event's city appended
+ *  ("EV Expo" → "EV Expo - Park Ridge, IL"). No-ops when there is no
+ *  parseable city or the title already names it. */
 export const eventDisplayTitle = (e: EventItem): string => {
+  // A site_events row carries an id; a curated or feed event does not. That id
+  // means somebody typed this title into the CMS, so it is the answer — show it
+  // verbatim and derive nothing.
+  //
+  // Deriving on top of a stored title is what produced "Roadmap Conference -
+  // Seattle, WA - WA 98101" and seven more like it: the CMS was right every
+  // time and the display layer appended a second location to it. The guard
+  // below (title already names the city) was meant to catch that, but it is a
+  // substring test, and it cannot catch a city the parser got wrong — which is
+  // exactly the case where appending does the damage.
+  //
+  // Deriving still earns its keep for the other two sources, which arrive with
+  // bare titles and no city: the aggregated feed, and curated events nobody has
+  // edited yet.
+  if (e.id) return e.title;
   const override = lookupEventTitle(e.registerUrl, e.title);
   if (override) return override;
   const city = eventCity(e);
@@ -189,13 +238,8 @@ export const eventDisplayTitle = (e: EventItem): string => {
 /** Two-letter state code parsed from an event's location (last comma segment,
  *  e.g. "…, Pasadena, CA 91103" → "CA"). "" for online/see-details locations. */
 export const eventStateCode = (e: EventItem): string => {
-  const loc = (e.location || "").trim();
-  if (!loc || /see event details/i.test(loc) || /online|webinar|virtual/i.test(loc)) return "";
-  const parts = loc.split(",").map((s) => s.trim()).filter(Boolean);
-  // Drop a trailing bare-ZIP segment so the state lands on the "…, CA, 92178" part.
-  if (parts.length && /^\d{5}(?:-\d{4})?$/.test(parts[parts.length - 1])) parts.pop();
-  const last = parts[parts.length - 1] || "";
-  const m = last.match(/\b([A-Z]{2})\b/);
+  const { parts } = locParts(e);
+  const m = (parts[parts.length - 1] || "").match(/\b([A-Z]{2})\b/);
   return m ? m[1] : "";
 };
 

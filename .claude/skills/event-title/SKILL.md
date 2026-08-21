@@ -22,16 +22,36 @@ The city and state come from the row's own `region` column, which is already in
 Show` and `Cars & Coffee` are indistinguishable until you read the small grey
 subtitle. The suffix makes the list scannable.
 
-It costs nothing on the public site: `eventTitleClean` (`src/data/events.ts`)
-deliberately **strips** a trailing ` - City, ST` before rendering a card, so the
-venue shows only in the location pin. Editors get the disambiguation, visitors
-get the clean name.
+## The stored title is what ships
+
+`eventDisplayTitle` (`src/data/events.ts`) returns a row's title **verbatim**
+whenever the event has an `id` — and every `site_events` row has one. What you
+type in `/admin/content/events` is exactly what a visitor reads. Nothing is
+stripped and nothing is appended.
+
+This has changed twice, so be careful reading older code or notes:
+
+* It used to be **stripped** by `eventTitleClean`, so the suffix was invisible
+  to visitors. That function is gone.
+* It was then **appended to**, which is worse: a title that already ended in
+  `- Seattle, WA` came out as `Roadmap Conference - Seattle, WA - WA 98101`.
+  Eight live events showed a title the CMS did not hold.
+
+Deriving now happens for the two sources that have no row and arrive with a bare
+title: the **aggregated feed** (`/api/events`) and **curated events nobody has
+edited yet**. For those, `eventCity` + `eventStateCode` parse the location and
+the city is appended. The moment an editor touches such an event it gains a row,
+and from then on its stored title is the whole answer.
+
+Practical consequence: **to change how an event reads on the site, edit its
+title in the CMS.** Do not reach for the parser or for
+`src/data/event-titles.ts` — that registry only reaches events with no row.
 
 ## Curated events do NOT follow this
 
 The `EVENTS` array in `src/data/events.ts` keeps clean titles. Those are ETU's
-own events, there are ~25 of them, and `eventTitleClean` would strip the suffix
-anyway. **Do not add city and state to `data/events.ts`** — and see the second
+own events, there are ~25 of them, and the city is appended for them at render
+time from their `location`. **Do not add city and state to `data/events.ts`** — and see the second
 hazard below for why renaming a curated event is worse than pointless.
 
 ## Two rows you must never rename
