@@ -2,7 +2,8 @@
 // rows (including drafts/archived — admin sees everything) and a side editor for
 // create/edit/delete. All writes go through the editor-gated /api/admin/collection.
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
@@ -167,6 +168,29 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
   };
 
   const close = () => { setEditing(null); setIsNew(false); setFromStatic(false); setDraft({}); setFormError(""); };
+
+  // ── Deep link: /admin/content/events?edit=<id> ─────────────────────────────
+  // Lets a link land on ONE item rather than on the list. The Slack event-
+  // submission message uses it, so "Review in CMS" opens the actual draft
+  // instead of leaving somebody to find it among 140-odd events.
+  //
+  // It switches tab first: a draft is not in the Live tab, so opening the
+  // editor without that would leave the wrong list behind the panel.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const editId = searchParams.get("edit");
+  useEffect(() => {
+    if (!editId || isLoading) return;
+    const row = (rows as Row[]).find((r) => String(r.id ?? "") === editId);
+    if (!row) return;
+    setTab(tabOf(row));
+    openEdit(row);
+    // Drop the param once it has been acted on, so closing the editor does not
+    // immediately reopen it and a refresh does not fight the user.
+    const next = new URLSearchParams(searchParams);
+    next.delete("edit");
+    setSearchParams(next, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editId, isLoading, rows]);
 
   const setField = (name: string, value: unknown) => setDraft((d) => ({ ...d, [name]: value }));
 

@@ -232,10 +232,30 @@ export function buildSlackReview(
     s.submitterPhone && `*Phone:* ${trim(s.submitterPhone, 40)}`,
   ].filter(Boolean).join("\n");
 
+  // Who to ping. MUST be Slack member IDs in <@Uxxxx> form — a plain "@carlos"
+  // is just text and notifies nobody, which is the failure that looks like it
+  // worked. Find an ID in Slack: profile → More (⋯) → Copy member ID.
+  //   SLACK_REVIEW_MENTIONS="<@U01ABC> <@U02DEF> <@U03GHI>"
+  // Unset means no mention line rather than a broken one.
+  const mentions = (process.env.SLACK_REVIEW_MENTIONS || "").trim();
+
+  const reviewUrl = `${siteUrl}/admin/content/events?edit=${eventId}`;
+
   const blocks: Record<string, unknown>[] = [
     { type: "header", text: { type: "plain_text", text: "New event submission", emoji: true } },
-    { type: "section", text: { type: "mrkdwn", text: detail } },
   ];
+  if (mentions) {
+    blocks.push({
+      type: "section",
+      text: { type: "mrkdwn", text: `${mentions} — a new event needs review.` },
+    });
+  }
+  blocks.push(
+    { type: "section", text: { type: "mrkdwn", text: detail } },
+    // The draft itself, as a link as well as a button: a URL can be copied,
+    // forwarded and opened on a phone, and it survives being quoted in a reply.
+    { type: "section", text: { type: "mrkdwn", text: `*Draft event:* <${reviewUrl}|Open it in the CMS>` } },
+  );
 
   if (s.eventDescription) {
     blocks.push({
@@ -268,7 +288,7 @@ export function buildSlackReview(
   elements.push({
     type: "button",
     text: { type: "plain_text", text: "Review in CMS", emoji: true },
-    url: `${siteUrl}/admin/content`,
+    url: reviewUrl,
   });
   blocks.push({ type: "actions", elements });
 
@@ -283,8 +303,10 @@ export function buildSlackReview(
   });
 
   return {
-    // Fallback text for notifications and screen readers, which never render blocks.
-    text: `New event submission: ${trim(s.eventTitle, 120)} — ${dates}`,
+    // Fallback text — this is what a push/desktop notification actually shows,
+    // and what a screen reader gets, because neither renders blocks. The
+    // mentions belong here too or the ping has no text behind it.
+    text: `${mentions ? `${mentions} ` : ""}New event submission: ${trim(s.eventTitle, 120)} — ${dates}`,
     blocks,
   };
 }
