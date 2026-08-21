@@ -141,3 +141,28 @@ describe("keeping an event off the homepage hero (0018)", () => {
     expect(found?.heroHidden).toBe(true);
   });
 });
+
+describe("removal markers when the curated day is unpadded (0016)", () => {
+  // data/events.ts stores the day as the author typed it — six entries use a
+  // bare "1", "5", "6", "7", "8" or "9" — while rowToEvent pads it to two
+  // digits. eventDedupe used the raw string, so a marker keyed …|2026-SEP-09
+  // never matched the event keyed …|2026-SEP-9. The marker did nothing, the
+  // event stayed on the live site, and the CMS showed it as REMOVED because
+  // CollectionManager.keyOf builds its key from the already-padded event_date.
+  const curated = EVENTS.find((e) => e.title === "Fleet Charging and Meet-Up") as EventItem;
+
+  it("the curated entry really is unpadded — the precondition for the bug", () => {
+    expect(curated.day).toBe("9");
+  });
+
+  it("a marker carrying the padded day still removes it", () => {
+    const marker: EventItem = { ...curated, id: "marker-1", day: "09", hidden: true };
+    const merged = mergeEvents([marker]);
+    expect(merged.find((e) => e.title === curated.title)).toBeUndefined();
+  });
+
+  it("and the marker itself is never rendered as an event", () => {
+    const marker: EventItem = { ...curated, id: "marker-1", day: "09", hidden: true };
+    expect(mergeEvents([marker]).some((e) => e.id === "marker-1")).toBe(false);
+  });
+});

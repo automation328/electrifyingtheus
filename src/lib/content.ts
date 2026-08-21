@@ -94,7 +94,26 @@ function rowToPost(r: PostRow): BlogPost {
 // ── Sort keys ────────────────────────────────────────────────────────────────
 const eventKey = (e: EventItem) =>
   e.year * 10000 + (MONTHS.indexOf(e.month) + 1) * 100 + (Number(e.day) || 0);
-const eventDedupe = (e: EventItem) => `${e.title}|${e.year}-${e.month}-${e.day}`;
+/**
+ * The key that decides whether a database row and a curated event are the SAME
+ * event — which drives adoption, slug inheritance, and removal markers (0016).
+ *
+ * The day MUST be normalised. rowToEvent pads it (`padStart(2, "0")`), while
+ * the curated array in data/events.ts writes it however the author typed it —
+ * six entries use a bare "1", "5", "6", "7", "8", "9". So a marker for
+ * "Fleet Charging and Meet-Up" on 9 Sep produced key …|2026-SEP-09 while the
+ * event it was meant to delete produced …|2026-SEP-9, they never matched, and
+ * the event stayed on the live site while the CMS showed it as REMOVED.
+ *
+ * The CMS looked right because CollectionManager.keyOf builds its key from
+ * event_date, which is already padded — two key functions that have to agree
+ * and didn't. Keep them agreeing.
+ *
+ * Title is trimmed for the same reason: a stray trailing space is invisible in
+ * the CMS and silently breaks the match.
+ */
+const eventDedupe = (e: EventItem) =>
+  `${e.title.trim()}|${e.year}-${e.month}-${String(Number(e.day) || 0).padStart(2, "0")}`;
 
 // ── Fetchers ─────────────────────────────────────────────────────────────────
 export async function fetchEvents(): Promise<EventItem[]> {
