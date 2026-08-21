@@ -47,6 +47,70 @@ export interface EventSubmission {
   submitterPhone: string;
   submitterCompany: string;
   ghlContactId?: string;
+  /** The organiser's own flyer, as a data URL, already compressed in the
+   *  browser. Optional — most submissions will not have one. */
+  eventImageDataUrl?: string;
+}
+
+// ── The submitted flyer ──────────────────────────────────────────────────────
+//
+// This is the only place on the site where an UNAUTHENTICATED visitor can put
+// bytes in our storage bucket, so it is deliberately the narrowest path in the
+// codebase:
+//
+//   · one image per submission, never a gallery
+//   · three raster types, and nothing that can carry script — SVG is excluded
+//     on purpose even though the CMS allows it, because an SVG is a document
+//     and this one would be uploaded by a stranger
+//   · a hard 4 MB ceiling AFTER decoding, checked on the server, because the
+//     browser-side compression is a courtesy and not a control
+//   · our own filename, never theirs
+//   · its own prefix, so everything a stranger uploaded can be found, audited
+//     or deleted in one go
+//
+// It also sits behind the /api/lead rate limit (20/hour) and reCAPTCHA, both of
+// which run before any of this is reached.
+
+const SUBMITTED_IMAGE_TYPES: Record<string, string> = {
+  "image/png": "png",
+  "image/jpeg": "jpg",
+  "image/webp": "webp",
+};
+const SUBMITTED_IMAGE_MAX_BYTES = 4 * 1024 * 1024;
+
+/**
+ * Decode a data URL and put it in the media bucket. Returns the public URL, or
+ * null for anything that fails a check — a submission with an unusable image is
+ * still a submission, so this never throws and never blocks the draft.
+ */
+async function uploadSubmittedImage(
+  db: SupabaseClient,
+  dataUrl: string,
+): Promise<string | null> {
+  try {
+    const m = /^data:([a-z]+\/[a-z0-9.+-]+);base64,(.+)$/i.exec(dataUrl || "");
+    if (!m) return null;
+    const ext = SUBMITTED_IMAGE_TYPES[m[1].toLowerCase()];
+    if (!ext) return null;
+
+    const buf = Buffer.from(m[2], "base64");
+    if (buf.length === 0 || buf.length > SUBMITTED_IMAGE_MAX_BYTES) return null;
+
+    // Our name, not theirs. A submitted filename is attacker-controlled text and
+    // has no business becoming a path.
+    const rand = Math.random().toString(36).slice(2, 10);
+    const path = `cms/submissions/${Date.now()}-${rand}.${ext}`;
+
+    const { error } = await db.storage
+      .from("site-media")
+      .upload(path, buf, { contentType: m[1].toLowerCase(), upsert: false });
+    if (error) return null;
+
+    const { data } = db.storage.from("site-media").getPublicUrl(path);
+    return data?.publicUrl ?? null;
+  } catch {
+    return null;
+  }
 }
 
 /** The secret behind the Approve/Reject links. No fallback: without it the
@@ -151,6 +215,13 @@ export async function createDraftEvent(
     // table reads (see 0019) — the CMS shows this under the title.
     const location = [s.eventVenue, s.eventLocation].map((x) => (x || "").trim()).filter(Boolean).join(", ");
 
+    // Their flyer, if they attached one. Best-effort: a failed upload leaves
+    // image null and the event falls back to the stock photo, which is exactly
+    // what happens for a submission with no image at all.
+    const imageUrl = s.eventImageDataUrl
+      ? await uploadSubmittedImage(db, s.eventImageDataUrl)
+      : null;
+
     const { data, error } = await db
       .from("site_events")
       .insert({
@@ -165,7 +236,7 @@ export async function createDraftEvent(
         time: (s.eventTime || "").trim(),
         description: (s.eventDescription || "").trim(),
         register_url: (s.eventWebsite || "").trim() || null,
-        image: null,
+        image: imageUrl,
         featured: false,
         // Someone else's event, and unreviewed at that — it has no business on
         // the homepage carousel even after an editor publishes it (0018).

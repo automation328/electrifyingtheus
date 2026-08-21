@@ -164,6 +164,11 @@ async function handleEventSubmission(opts: {
       eventWebsite: r.eventWebsite ?? "",
       eventVenue: r.eventVenue ?? "",
       eventFormat: r.eventFormat ?? "",
+      // Deliberately NOT in NOTE_EXTRAS or _submissions.ts EXTRA_KEYS: a data
+      // URL is roughly a megabyte of base64 and has no business in a CRM note
+      // or a submissions row. Both of those are allow-lists, so leaving it out
+      // is all it takes to keep it out.
+      eventImageDataUrl: r.eventImage ?? "",
       submitterName: opts.name,
       submitterEmail: opts.email,
       submitterPhone: opts.phone,

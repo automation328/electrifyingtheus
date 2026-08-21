@@ -8,6 +8,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { submitLead } from "@/lib/submitLead";
 import { getRecaptchaToken } from "@/lib/recaptcha";
+import { compressImageForUpload } from "@/lib/image-compress";
 
 // Text fields live in one object; choice/file/consent state is held separately.
 const EMPTY = {
@@ -37,6 +38,38 @@ const FORMATS = [
 
 const MAX_FILES = 3;
 const OK_TYPES = ["image/png", "image/jpeg"];
+
+/** Compress the flyer to about this before base64-ing it into the JSON body.
+ *  Base64 adds a third, so ~900 KB becomes ~1.2 MB on the wire — small enough
+ *  for a public endpoint, large enough to stay legible as an event header. */
+const IMAGE_BUDGET_BYTES = 900 * 1024;
+
+/**
+ * The organiser's flyer, as a data URL, ready to travel in the JSON that
+ * submitLead posts.
+ *
+ * Only the FIRST image is used. site_events holds one image per event, and
+ * silently picking one of three would be worse than saying so, which is why the
+ * form's helper text now states it.
+ *
+ * Returns "" for anything that fails, because a flyer that will not convert
+ * must not cost somebody their whole submission.
+ */
+async function firstImageAsDataUrl(files: File[]): Promise<string> {
+  const file = files[0];
+  if (!file) return "";
+  try {
+    const small = await compressImageForUpload(file, IMAGE_BUDGET_BYTES);
+    return await new Promise<string>((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(typeof reader.result === "string" ? reader.result : "");
+      reader.onerror = () => resolve("");
+      reader.readAsDataURL(small);
+    });
+  } catch {
+    return "";
+  }
+}
 
 const ListYourEvent = () => {
   const [form, setForm] = useState(EMPTY);
@@ -125,6 +158,11 @@ const ListYourEvent = () => {
       eventTime: form.eventTime, eventDescription: form.eventDescription,
       eventWebsite: form.eventWebsite, eventVenue: form.eventVenue,
       eventFormat,
+      // The flyer. It reaches the n8n webhook above as a real file in the
+      // multipart body, but that body never touches /api/lead — which is JSON —
+      // so without this the draft event was created with no image at all and
+      // fell back to the stock photo.
+      eventImage: await firstImageAsDataUrl(files),
     });
     setSubmitting(false);
     // Kept as a fallback: if navigation is ever prevented, the inline block
@@ -317,6 +355,8 @@ const ListYourEvent = () => {
                     <p className="text-xs text-muted-foreground mb-3">
                       Please upload your image in <span className="font-semibold text-foreground">JPG or PNG</span> format only.
                       Other file types will not be accepted. Max {MAX_FILES} files.
+                      {" "}The <span className="font-semibold text-foreground">first image</span> becomes your
+                      event's header picture — an event holds one, so put the one you want shown first.
                     </p>
                     <button
                       type="button"
