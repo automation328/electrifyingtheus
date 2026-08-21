@@ -132,12 +132,18 @@ export function signReview(id: string, action: string, exp: number): string | nu
 /** Constant-time verify. Returns a reason rather than a bare false so the
  *  confirmation page can say "this link expired" instead of "invalid", which is
  *  the difference between a colleague retrying and a colleague giving up. */
+export type ReviewFailure = "unconfigured" | "expired" | "bad_signature";
+
+/** A flat shape, not a discriminated union. This project builds with
+ *  strictNullChecks off, which weakens narrowing on `ok` — a caller writing the
+ *  obvious `if (!v.ok) use(v.reason)` does not compile. An optional field costs
+ *  nothing and works the same under either setting. */
 export function verifyReview(
   id: string,
   action: string,
   exp: number,
   sig: string,
-): { ok: true } | { ok: false; reason: "unconfigured" | "expired" | "bad_signature" } {
+): { ok: boolean; reason?: ReviewFailure } {
   if (!reviewSecret()) return { ok: false, reason: "unconfigured" };
   if (!Number.isFinite(exp) || Date.now() > exp) return { ok: false, reason: "expired" };
   const want = signReview(id, action, exp);

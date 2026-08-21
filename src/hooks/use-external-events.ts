@@ -5,7 +5,7 @@
 // safe no-op until feeds are added.
 
 import { useQuery } from "@tanstack/react-query";
-import { slugify, type EventItem } from "@/data/events";
+import { slugify, shortZone, type EventItem } from "@/data/events";
 import evCharging from "@/assets/ev-charging.jpg";
 import evFamily from "@/assets/ev-family.jpg";
 import workforce from "@/assets/workforce.jpg";
@@ -357,5 +357,9 @@ export function useExternalEvents(): { events: EventItem[]; loading: boolean } {
     queryFn: fetchExternalEvents,
     staleTime: 60 * 60 * 1000, // 1h — matches the CDN cache on /api/events
   });
-  return { events: q.data ?? [], loading: q.isLoading };
+  // Same two-letter zone treatment the CMS/curated events get in useEvents —
+  // feed events sit in the SAME list, so normalising one source and not the
+  // other would leave "MST" and "MT" adjacent on the page.
+  const events = (q.data ?? []).map((e) => ({ ...e, time: shortZone(e.time) }));
+  return { events, loading: q.isLoading };
 }

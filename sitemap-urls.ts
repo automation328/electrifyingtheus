@@ -26,7 +26,10 @@ export const SITEMAP_REDIRECTS: string[] = [
 ];
 
 /** Routes intentionally kept out of the index. */
-export const SITEMAP_EXCLUDE: string[] = ["/admin", "/thank-you"];
+// Post-conversion confirmation pages and the CMS. None of these should be in a
+// sitemap: a thank-you page has nothing to rank for, and an indexed one can be
+// reached without ever submitting the form it is meant to confirm.
+export const SITEMAP_EXCLUDE: string[] = ["/admin", "/thank-you", "/list-your-event/thank-you"];
 
 /** Static top-level pages (App.tsx route literals, minus redirects/excluded). */
 export const SITEMAP_PAGES: string[] = [

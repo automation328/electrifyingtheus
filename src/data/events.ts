@@ -300,6 +300,30 @@ export const eventLocationText = (e: EventItem): string => {
  * clutter, drop the pin (eventLocationPin in Events.tsx), not the title.
  */
 
+/**
+ * Collapse a US timezone abbreviation to its two-letter form: EDT and EST both
+ * become ET, PDT/PST become PT, and so on.
+ *
+ * WHY: event times arrive from three places — curated entries, the CMS, and the
+ * external feed — and each writes whatever the organiser typed. One listing read
+ * "10:00 am MST" next to another reading "10:00 am MT" for the same hour. The
+ * daylight/standard distinction is real, but it is also redundant next to a
+ * date: a reader who knows the date knows which one applies, and one of the two
+ * is always wrong for half the year anyway.
+ *
+ * DELIBERATELY CASE-SENSITIVE. Matching case-insensitively would rewrite the
+ * "est" inside ordinary words the moment a boundary lined up. Zone abbreviations
+ * are always upper case, so requiring that costs nothing and removes the risk.
+ *
+ * AK comes first in the alternation so AKST matches AK, not A. Order is load-
+ * bearing here — with A first, AKST would become "AKT" only by accident.
+ *
+ * Idempotent: ET stays ET, so it is safe to apply to already-converted text and
+ * safe for an editor to save back.
+ */
+export const shortZone = (s: string): string =>
+  String(s ?? "").replace(/\b(AK|E|C|M|P|H|A)[SD]T\b/g, "$1T");
+
 /** URL-safe slug from arbitrary text (≤60 chars). */
 export const slugify = (s: string): string =>
   s.toLowerCase()

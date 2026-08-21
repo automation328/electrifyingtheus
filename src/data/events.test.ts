@@ -10,7 +10,7 @@
 import { describe, it, expect, afterEach, vi } from "vitest";
 import {
   eventEndDate, eventLastDay, isUpcoming, isActive, eventDateRange, eventFullDate,
-  gcalLink, eventDate, type EventItem,
+  gcalLink, eventDate, shortZone, type EventItem,
 } from "@/data/events";
 
 const BASE: EventItem = {
@@ -146,5 +146,39 @@ describe("adding an event to Google Calendar", () => {
   it("rolls over the end of a year", () => {
     const nye = { ...BASE, month: "DEC", day: "31" };
     expect(dates(nye)).toBe("20261231/20270101");
+  });
+});
+
+describe("two-letter timezone abbreviations (shortZone)", () => {
+  // Event times come from three places — curated entries, the CMS and the
+  // external feed — and each carries whatever the organiser typed, so one
+  // listing read "10:00 am MST" beside another reading "10:00 am MT" for the
+  // same hour.
+  it("collapses both daylight and standard forms to the same two letters", () => {
+    expect(shortZone("3:00 - 7:30 pm EDT")).toBe("3:00 - 7:30 pm ET");
+    expect(shortZone("3:00 - 7:30 pm EST")).toBe("3:00 - 7:30 pm ET");
+    expect(shortZone("9:00 am - 1:00 pm MST")).toBe("9:00 am - 1:00 pm MT");
+    expect(shortZone("7:00 am - 12:00 pm PDT")).toBe("7:00 am - 12:00 pm PT");
+    expect(shortZone("9:00 - 11:00 am CDT")).toBe("9:00 - 11:00 am CT");
+  });
+
+  it("keeps the AK prefix — order in the alternation is load-bearing", () => {
+    // With "A" ahead of "AK", AKDT would lose the K.
+    expect(shortZone("11:00 am - 1:00 pm AKDT")).toBe("11:00 am - 1:00 pm AKT");
+    expect(shortZone("10:00 am - 2:00 pm HST")).toBe("10:00 am - 2:00 pm HT");
+  });
+
+  it("is idempotent, so an already-short value survives a round trip", () => {
+    expect(shortZone("9:30 - 10:30 AM MT")).toBe("9:30 - 10:30 AM MT");
+    expect(shortZone(shortZone("1:00 pm PDT"))).toBe("1:00 pm PT");
+  });
+
+  it("leaves ordinary words alone — this is why it is case-sensitive", () => {
+    // A case-insensitive rule would eat the "est" in "best" the moment a word
+    // boundary lined up.
+    expect(shortZone("the best time")).toBe("the best time");
+    expect(shortZone("EAST coast")).toBe("EAST coast");
+    expect(shortZone("Varies by day - see event details")).toBe("Varies by day - see event details");
+    expect(shortZone("")).toBe("");
   });
 });

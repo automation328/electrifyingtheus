@@ -6,7 +6,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { fetchEvents, fetchPosts, fetchGallery, fetchJobs, mergeEvents, mergePosts } from "@/lib/content";
-import { EVENTS, isActive, type EventItem } from "@/data/events";
+import { EVENTS, isActive, shortZone, type EventItem } from "@/data/events";
 import { BLOG_POSTS, type BlogPost } from "@/data/blog-posts";
 import { GALLERY_PHOTOS, GALLERY_VIDEOS, type GalleryPhoto, type GalleryVideo } from "@/data/gallery";
 import { type Job } from "@/data/careers";
@@ -24,7 +24,13 @@ export function useEvents(): { events: EventItem[]; loading: boolean } {
   // upcoming events plus any flagged `ours`). Applies everywhere useEvents feeds:
   // homepage hero/featured, navbar dropdown, the Events list, and EventDetail.
   const base = isSupabaseConfigured ? mergeEvents(q.data ?? []) : EVENTS;
-  return { events: base.filter(isActive), loading: isSupabaseConfigured ? q.isLoading : false };
+  // Two-letter zones (ET, CT, MT, PT) for display. Done HERE rather than at the
+  // fourteen places an event's time is rendered — one of those would inevitably
+  // be missed, and a listing showing "MST" beside another showing "MT" for the
+  // same hour is the bug this removes. The stored value keeps whatever the
+  // organiser typed; only what a reader sees is normalised.
+  const events = base.filter(isActive).map((e) => ({ ...e, time: shortZone(e.time) }));
+  return { events, loading: isSupabaseConfigured ? q.isLoading : false };
 }
 
 export function usePosts(): { posts: BlogPost[]; loading: boolean } {
