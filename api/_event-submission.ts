@@ -15,7 +15,7 @@
 //   3. Approve publishes the draft; Reject archives it. Either way the editor
 //      can also do it by hand in /admin/content/events, where a draft shows up
 //      like any other.
-//   4. Publishing emails the organiser their live link — see _ghl.ts.
+//   4. Publishing emails the organiser their live link — see _approval-email.ts.
 //
 // WHY LINK BUTTONS AND NOT A SLACK APP. Real in-Slack buttons need an app with
 // interactivity enabled, a signing secret and a request URL, all of which is

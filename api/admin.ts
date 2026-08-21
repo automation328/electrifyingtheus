@@ -29,7 +29,7 @@ import { getEditor, requireEditor, adminSupabase } from "./_admin-auth.js";
 import { appendActivity, readActivity } from "./_activity-log.js";
 import { checkRateLimit, tooManyRequests } from "./_rate-limit.js";
 import { verifyReview, eventPath } from "./_event-submission.js";
-import { sendEventApprovalEmail } from "./_ghl.js";
+import { sendEventApprovalEmail } from "./_approval-email.js";
 import { analyticsSummary, visitorJourney } from "./_analytics-core.js";
 // NOTE: mammoth / pdf-parse are imported LAZILY inside handleKbUpload — a top-level
 // import of pdf-parse (pdfjs) crashes the whole serverless function at load, which
@@ -723,7 +723,7 @@ export async function notifyOrganiser(
 
   const { data: sub } = await db
     .from("site_event_submissions")
-    .select("id,submitter_name,ghl_contact_id,approval_emailed_at")
+    .select("id,submitter_name,submitter_email,ghl_contact_id,approval_emailed_at")
     .eq("event_id", eventId).maybeSingle();
   // Not every event came from the form. Most did not — 120 arrived by import.
   if (!sub) return { sent: false, detail: "not a form submission" };
@@ -731,8 +731,9 @@ export async function notifyOrganiser(
 
   const site = process.env.PUBLIC_SITE_URL || "https://electrifyingtheus.com";
   const result = await sendEventApprovalEmail({
-    contactId: sub.ghl_contact_id,
+    toEmail: sub.submitter_email || "",
     toName: sub.submitter_name || "",
+    ghlContactId: sub.ghl_contact_id,
     eventTitle: ev.title || "",
     eventUrl: `${site}${eventPath(ev.title || "", ev.event_date || "")}`,
   });
