@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { gcalLink, isUpcoming, isActive, byDateAsc, eventFullDate, eventTitleClean, eventLocationPin, type EventItem } from "@/data/events";
+import { gcalLink, isUpcoming, isActive, byDateAsc, eventFullDate, eventDisplayTitle, eventLocationPin, type EventItem } from "@/data/events";
 import { splitEventDescription } from "@/lib/event-description";
 import EventSpeakers from "@/components/EventSpeakers";
 import { useEvents } from "@/hooks/use-content";
@@ -344,7 +344,7 @@ const Events = () => {
                     {/* Gradient body */}
                     <div className={`${body} text-primary-foreground p-6 flex flex-col flex-1`}>
                       <span className="inline-block self-start px-2.5 py-0.5 rounded-full bg-white/20 text-[11px] font-semibold mb-2.5">{e.type}</span>
-                      <h3 className="text-lg font-bold font-display leading-snug mb-3">{eventTitleClean(e)}</h3>
+                      <h3 className="text-lg font-bold font-display leading-snug mb-3">{eventDisplayTitle(e)}</h3>
                       <div className="flex flex-wrap items-center gap-2 mb-3">
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 text-xs font-semibold"><MapPin className="w-3.5 h-3.5" /> {eventLocationPin(e) || e.location}</span>
                         <span className="inline-flex items-center gap-1.5 text-xs text-primary-foreground/90"><Clock className="w-3.5 h-3.5" /> {e.time}</span>
@@ -420,10 +420,10 @@ const Events = () => {
                         </div>
                         {e.slug ? (
                           <Link to={`/events/${e.slug}`} className="block">
-                            <h3 className="text-xl font-bold font-display text-foreground mb-2 group-hover:text-primary transition-colors">{eventTitleClean(e)}</h3>
+                            <h3 className="text-xl font-bold font-display text-foreground mb-2 group-hover:text-primary transition-colors">{eventDisplayTitle(e)}</h3>
                           </Link>
                         ) : (
-                          <h3 className="text-xl font-bold font-display text-foreground mb-2">{eventTitleClean(e)}</h3>
+                          <h3 className="text-xl font-bold font-display text-foreground mb-2">{eventDisplayTitle(e)}</h3>
                         )}
                         <div className="flex flex-wrap gap-x-5 gap-y-1 text-sm text-muted-foreground mb-3">
                           <span className="flex items-center gap-1.5"><CalendarDays className="w-4 h-4 text-secondary" /> {eventFullDate(e)}</span>

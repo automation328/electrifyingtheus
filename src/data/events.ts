@@ -179,7 +179,11 @@ export const eventDisplayTitle = (e: EventItem): string => {
   const city = eventCity(e);
   if (!city) return e.title;
   if (e.title.toLowerCase().includes(city.toLowerCase())) return e.title;
-  return `${e.title} - ${city}`;
+  // City AND state, so a derived title reads the same as a stored one — the CMS
+  // holds them as "<Title> - <City>, <ST>" (migration 0020). eventCityState
+  // falls back to the bare city when the location carries no US state code,
+  // which is why "Nordic EV Summit 2027 - Oslo" still comes out right.
+  return `${e.title} - ${eventCityState(e)}`;
 };
 
 /** Two-letter state code parsed from an event's location (last comma segment,
@@ -281,27 +285,20 @@ export const eventLocationText = (e: EventItem): string => {
  *  the location pin, not the title. Strips " - City, ST" / " - City" / ", City,
  *  ST" / ", City" (and en-dash variants) only when it exactly matches the event's
  *  own city/state, so real " - subtitle" titles are left untouched. */
-export const eventTitleClean = (e: EventItem): string => {
-  let title = eventDisplayTitle(e);
-  // Strip a trailing " - City, ST" the feed baked into the title (e.g. a Meetup /
-  // NDEM og:title venue label) so the address shows only in the location pin.
-  // Only fires when the trailing token is a real state code, so real subtitles
-  // like "Part 2 - How EVs Save You Thousands" are left intact.
-  const tr = title.match(/\s[-–—]\s+([A-Z][A-Za-z.'-]+(?:[ ][A-Z][A-Za-z.'-]+){0,3}),\s*([A-Z]{2})\s*$/);
-  if (tr && US_STATE_CODES.has(tr[2])) title = title.slice(0, tr.index).trim();
-  const city = eventCity(e);
-  if (!city) return title;
-  const cands = [eventCityState(e), city].filter(Boolean);
-  for (const c of cands) {
-    for (const sep of [" - ", " – ", " — ", ", "]) {
-      const suffix = sep + c;
-      if (title.toLowerCase().endsWith(suffix.toLowerCase())) {
-        return title.slice(0, title.length - suffix.length).trim();
-      }
-    }
-  }
-  return title;
-};
+/**
+ * REMOVED — the Events cards now render eventDisplayTitle directly.
+ *
+ * This used to strip a trailing " - City, ST" from a card title so the venue
+ * appeared only in the location pin. That made sense when the suffix was
+ * something an external feed had baked into an og:title without being asked.
+ * It stopped making sense once 0020 made "<Title> - <City>, <ST>" the stored
+ * form on purpose: the CMS showed the full title and the live card showed a
+ * shortened one, and the two disagreeing was worse than the repetition.
+ *
+ * The city therefore now appears twice on a card — in the heading and in the
+ * pin beneath it. That is deliberate, not an oversight. If it ever reads as
+ * clutter, drop the pin (eventLocationPin in Events.tsx), not the title.
+ */
 
 /** URL-safe slug from arbitrary text (≤60 chars). */
 export const slugify = (s: string): string =>
