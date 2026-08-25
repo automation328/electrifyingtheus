@@ -207,9 +207,21 @@ const EventDetail = () => {
         </Link>
         <BlockSlot slot="event-top" blocks={blocks} />
 
-        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-start">
+        {/* One flowing column with the poster floated beside it, NOT a two-column
+            grid. A grid gives both columns the same height, so whichever side is
+            shorter leaves dead space: a long description stayed trapped in a
+            half-width column with a tall empty gap beside it, and a short one
+            left the gap on the other side instead. Floating lets the text run
+            beside the poster and then continue at full width underneath it, so
+            the section fills either way and no event needs special handling.
+
+            The width is calc(50% - half the gutter), which is exactly what
+            grid-cols-2 with gap-12 produced, so the top of the page is
+            unchanged. flow-root contains the float so the disclaimer band below
+            cannot ride up into it. */}
+        <div className="lg:flow-root">
           {/* Poster */}
-          <div className="relative animate-fade-up">
+          <div className="relative animate-fade-up mb-8 lg:float-left lg:w-[calc(50%-1.5rem)] lg:mr-12">
             {/* Fixed 4:3 frame so every event's poster is the same size. The whole
                 flyer shows (object-contain), with a soft blurred fill of itself
                 behind so mismatched aspect ratios don't leave flat bars. */}
@@ -275,7 +287,7 @@ const EventDetail = () => {
             </div>
           </div>
 
-          {/* Details */}
+          {/* Details — flows beside the floated poster, then under it. */}
           <div className="animate-fade-up" style={{ animationDelay: "0.08s" }}>
             <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-secondary/10 text-secondary text-sm font-semibold mb-4">
               <Tag className="w-4 h-4" /> {event.type}
