@@ -7,7 +7,10 @@ import {
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { gcalLink, isUpcoming, isActive, byDateAsc, eventFullDate, eventDisplayTitle, eventLocationPin, type EventItem } from "@/data/events";
+import {
+  gcalLink, isUpcoming, isActive, byDateAsc, eventFullDate, eventDisplayTitle,
+  eventLocationPin, eventState, parseStateQuery, startsWord, type EventItem,
+} from "@/data/events";
 import { splitEventDescription } from "@/lib/event-description";
 import EventSpeakers from "@/components/EventSpeakers";
 import { useEvents } from "@/hooks/use-content";
@@ -78,14 +81,30 @@ const Events = () => {
   }, [events, externalEvents]);
 
   const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
+    const q = query.trim().toLowerCase().replace(/\s+/g, " ");
     if (!q) return allUpcoming;
+
+    // A state query is answered by the event's STATE and nothing else.
+    //
+    // This is the whole point of the branch. As a plain substring, "ca" matched
+    // "Showcase", "Car Show" and every ", CA" alike, so searching California
+    // returned 86 of 139 events, most of them in other states. A search for a
+    // place has to be answered by place.
+    const state = parseStateQuery(q);
+    if (state) return allUpcoming.filter((e) => eventState(e) === state);
+
+    // The one other thing people type that is a place rather than a word.
+    if (/^(online|virtual|webinar|remote)$/.test(q)) {
+      return allUpcoming.filter((e) => /online|webinar|virtual/i.test(e.location || ""));
+    }
+
+    // Anything else is a city, venue, ZIP or event name.
     return allUpcoming.filter(
       (e) =>
-        e.region.toLowerCase().includes(q) ||
-        e.location.toLowerCase().includes(q) ||
-        e.title.toLowerCase().includes(q) ||
-        e.type.toLowerCase().includes(q),
+        startsWord(e.region, q) ||
+        startsWord(e.location, q) ||
+        startsWord(e.title, q) ||
+        startsWord(e.type, q),
     );
   }, [query, allUpcoming]);
 

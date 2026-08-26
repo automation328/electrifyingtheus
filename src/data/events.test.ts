@@ -11,6 +11,7 @@ import { describe, it, expect, afterEach, vi } from "vitest";
 import {
   eventEndDate, eventLastDay, isUpcoming, isActive, eventDateRange, eventFullDate,
   gcalLink, eventDate, shortZone, eventCity, eventStateCode, eventDisplayTitle,
+  eventState, parseStateQuery, startsWord,
   type EventItem,
 } from "@/data/events";
 
@@ -259,5 +260,112 @@ describe("which title an event card shows", () => {
   it("leaves a feed title alone when it already names the city", () => {
     expect(eventDisplayTitle(AT("Knoxville, TN", { title: "Knoxville Drive Electric Festival" })))
       .toBe("Knoxville Drive Electric Festival");
+  });
+});
+
+
+// ---------------------------------------------------------------------------
+// Searching the events page by state.
+//
+// The search box matched the query as a raw substring across region, location,
+// title AND type. Typing "ca" for California returned 86 of 139 events, because
+// it also hit "Showcase", "Car Show" and "Chicago". A search for a place has to
+// be answered by place.
+// ---------------------------------------------------------------------------
+
+const AT2 = (over: Partial<EventItem>): EventItem => ({ ...BASE, ...over });
+
+describe("reading which state an event is in", () => {
+  it("takes it from the location", () => {
+    expect(eventState(AT2({ location: "1591 Spinnaker Dr, Ventura, CA 93001" }))).toBe("CA");
+  });
+
+  it("falls back to region when the location is only a venue", () => {
+    expect(eventState(AT2({ location: "Los Angeles Convention Center", region: "Los Angeles, CA" }))).toBe("CA");
+  });
+
+  it("understands a state spelled out in full", () => {
+    expect(eventState(AT2({ location: "Mile High in Denver, Colorado" }))).toBe("CO");
+    expect(eventState(AT2({ location: "", region: "California" }))).toBe("CA");
+  });
+
+  it("prefers the longer name, so West Virginia is not Virginia", () => {
+    expect(eventState(AT2({ location: "Charleston, West Virginia" }))).toBe("WV");
+  });
+
+  it("uses the title only as a last resort, and only precisely", () => {
+    // A trailing ", ST" is our own title convention.
+    expect(eventState(AT2({ location: "", region: "", title: "EV Show - Poolesville, MD" }))).toBe("MD");
+    // A state name as a whole word.
+    expect(eventState(AT2({ location: "Denton Square", title: "North Texas EV Showcase" }))).toBe("TX");
+  });
+
+  it("never reads a state out of a partial word — the bug that started this", () => {
+    // "Showcase" contains "ca". Under the old substring search this event came
+    // back for California; it is in North Carolina.
+    const e = AT2({ title: "EV Showcase", type: "EV Showcase", location: "Raleigh, NC" });
+    expect(eventState(e)).toBe("NC");
+  });
+
+  it("gives nothing for online and out-of-country events", () => {
+    expect(eventState(AT2({ location: "Online — Live Webinar", region: "Online" }))).toBe("");
+    expect(eventState(AT2({ location: "Nationwide", region: "" }))).toBe("");
+    expect(eventState(AT2({ location: "Oslo, Norway", region: "Oslo, Norway" }))).toBe("");
+  });
+});
+
+describe("reading a state out of a search query", () => {
+  it("accepts a code in either case", () => {
+    expect(parseStateQuery("ca")).toBe("CA");
+    expect(parseStateQuery("NY")).toBe("NY");
+    expect(parseStateQuery(" tx ")).toBe("TX");
+  });
+
+  it("accepts a full name, including two-word ones", () => {
+    expect(parseStateQuery("california")).toBe("CA");
+    expect(parseStateQuery("new york")).toBe("NY");
+    expect(parseStateQuery("west virginia")).toBe("WV");
+  });
+
+  it("accepts an unambiguous partial name", () => {
+    expect(parseStateQuery("calif")).toBe("CA");
+    expect(parseStateQuery("penns")).toBe("PA");
+  });
+
+  it("refuses an ambiguous or too-short partial", () => {
+    // Five states start with "new"; picking one silently would be worse than
+    // treating it as ordinary text.
+    expect(parseStateQuery("new")).toBe("");
+    expect(parseStateQuery("mi")).toBe("MI");   // a real code, not a partial
+    expect(parseStateQuery("cal")).toBe("");    // under four characters
+  });
+
+  it("leaves ordinary searches alone", () => {
+    expect(parseStateQuery("napa")).toBe("");
+    expect(parseStateQuery("conference")).toBe("");
+    expect(parseStateQuery("30301")).toBe("");
+    expect(parseStateQuery("")).toBe("");
+  });
+});
+
+describe("matching free text to a word", () => {
+  it("matches the start of a word, not the middle of one", () => {
+    expect(startsWord("EV Showcase", "ca")).toBe(false);
+    expect(startsWord("Tailgate & Car Show", "car")).toBe(true);
+    expect(startsWord("Conference", "conf")).toBe(true);
+  });
+
+  it("matches after punctuation and digits", () => {
+    expect(startsWord("Atlanta, 30301", "30301")).toBe(true);
+    expect(startsWord("StoreLocal Napa, 1111 Soscol Ferry Road", "napa")).toBe(true);
+  });
+
+  it("treats a multi-word query as a phrase", () => {
+    expect(startsWord("San Diego Convention Center", "san diego")).toBe(true);
+    expect(startsWord("San Francisco", "san diego")).toBe(false);
+  });
+
+  it("is safe on blank input", () => {
+    expect(startsWord("", "ca")).toBe(false);
   });
 });

@@ -262,6 +262,109 @@ const US_STATE_CODES = new Set([
   "ON","BC","AB","QC","MB","SK","NS","NB","NL","PE", // a few feed events are cross-border
 ]);
 
+// State / province NAME -> code, for the search box. Someone hunting California
+// events types "california" or "calif" at least as often as "CA", and a feed
+// location can spell the state out too ("Mile High in Denver, Colorado"), where
+// the two-letter parser finds nothing.
+const STATE_NAMES: Record<string, string> = {
+  alabama: "AL", alaska: "AK", arizona: "AZ", arkansas: "AR", california: "CA",
+  colorado: "CO", connecticut: "CT", delaware: "DE", florida: "FL", georgia: "GA",
+  hawaii: "HI", idaho: "ID", illinois: "IL", indiana: "IN", iowa: "IA",
+  kansas: "KS", kentucky: "KY", louisiana: "LA", maine: "ME", maryland: "MD",
+  massachusetts: "MA", michigan: "MI", minnesota: "MN", mississippi: "MS",
+  missouri: "MO", montana: "MT", nebraska: "NE", nevada: "NV",
+  "new hampshire": "NH", "new jersey": "NJ", "new mexico": "NM", "new york": "NY",
+  "north carolina": "NC", "north dakota": "ND", ohio: "OH", oklahoma: "OK",
+  oregon: "OR", pennsylvania: "PA", "rhode island": "RI", "south carolina": "SC",
+  "south dakota": "SD", tennessee: "TN", texas: "TX", utah: "UT", vermont: "VT",
+  virginia: "VA", washington: "WA", "west virginia": "WV", wisconsin: "WI",
+  wyoming: "WY", "district of columbia": "DC", "washington dc": "DC",
+  "puerto rico": "PR",
+  ontario: "ON", "british columbia": "BC", alberta: "AB", quebec: "QC",
+  manitoba: "MB", saskatchewan: "SK", "nova scotia": "NS", "new brunswick": "NB",
+};
+
+// Longest first, so "west virginia" is tested before "virginia" and
+// "north carolina" before any substring of it.
+const STATE_NAMES_BY_LENGTH = Object.keys(STATE_NAMES).sort((a, b) => b.length - a.length);
+
+/**
+ * The two-letter state an event is IN, or "" for online / unplaceable events.
+ *
+ * Three sources, in order of how much we trust them: the location's own state
+ * segment, the region column (curated events set "City, ST" there even when the
+ * location is a bare venue name), and finally a state spelled out in full
+ * anywhere in either. Only location and region are read — never the title or
+ * description, which is how a search for "ca" used to return "EV Showcase".
+ */
+export const eventState = (e: EventItem): string => {
+  const direct = eventStateCode(e);
+  if (direct) return direct;
+
+  const region = (e.region || "").trim();
+  const m = region.match(/\b([A-Z]{2})\b\s*$/);
+  if (m && US_STATE_CODES.has(m[1])) return m[1];
+
+  const hay = `${e.location || ""} ${region}`.toLowerCase();
+  for (const name of STATE_NAMES_BY_LENGTH) {
+    if (hay.includes(name)) return STATE_NAMES[name];
+  }
+
+  // Last resort: the title. Feed events sometimes carry only a venue name
+  // ("Denton Square", "Dorey Park Farmers Market") and no city at all, which
+  // left "North Texas EV Showcase" out of a Texas search.
+  //
+  // Two PRECISE patterns only, never a substring: a trailing ", ST" (our own
+  // title convention, "... - Poolesville, MD") and a state name as a whole
+  // word. A loose title match is exactly what made this search useless before,
+  // so it is not loosened here -- "ca" cannot match a title under either rule.
+  const title = (e.title || "").trim();
+  const suffix = title.match(/,\s*([A-Z]{2})\s*$/);
+  if (suffix && US_STATE_CODES.has(suffix[1])) return suffix[1];
+  const words = title.toLowerCase().split(/[^a-z]+/).filter(Boolean).join(" ");
+  for (const name of STATE_NAMES_BY_LENGTH) {
+    if (words === name || words.startsWith(`${name} `) ||
+        words.endsWith(` ${name}`) || words.includes(` ${name} `)) {
+      return STATE_NAMES[name];
+    }
+  }
+  return "";
+};
+
+/**
+ * True when `q` starts a WORD in `text`, rather than appearing anywhere in it.
+ *
+ * "car" matches "Car Show"; "ca" does not match "Showcase". Raw substring
+ * matching is what made short searches useless -- every two-letter query hit a
+ * dozen unrelated titles. A multi-word query ("san diego") is a phrase, so it
+ * falls back to a plain substring test.
+ */
+export const startsWord = (text: string, q: string): boolean => {
+  const t = (text || "").toLowerCase();
+  if (q.includes(" ")) return t.includes(q);
+  return t.split(/[^a-z0-9]+/).some((w) => w.startsWith(q));
+};
+
+/**
+ * The state a SEARCH QUERY names, or "" if it does not name one.
+ *
+ * Accepts a code ("ca", "NY") or a name, whole or partial ("california",
+ * "calif"). A partial must be at least four characters and match exactly one
+ * state, so "new" stays a plain text search rather than silently picking one of
+ * the five states that start with it.
+ */
+export const parseStateQuery = (query: string): string => {
+  const q = query.trim().toLowerCase().replace(/\s+/g, " ");
+  if (!q) return "";
+  if (/^[a-z]{2}$/.test(q) && US_STATE_CODES.has(q.toUpperCase())) return q.toUpperCase();
+  if (STATE_NAMES[q]) return STATE_NAMES[q];
+  if (q.length >= 4) {
+    const hits = [...new Set(STATE_NAMES_BY_LENGTH.filter((n) => n.startsWith(q)).map((n) => STATE_NAMES[n]))];
+    if (hits.length === 1) return hits[0];
+  }
+  return "";
+};
+
 /** First "City, ST" found in free text (e.g. an event's description body), with
  *  ST validated against the state/province list. City = 1–4 capitalized words.
  *  Returns "" when nothing matches. */
