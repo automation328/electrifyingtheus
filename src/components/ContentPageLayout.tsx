@@ -306,8 +306,12 @@ const ContentPageLayout = ({
             measured at 671px of empty box between the hero and the first block.
             An editor with no video now gets a small "Add a video" pill instead;
             the frame appears once there is something to put in it. */}
-        {(video || editing) && (
-          <section className={`container px-4 max-w-5xl ${video ? "mt-16 md:mt-20" : "mt-6"}`}>
+        {/* extraCta and extraCtaImage live in this section too, so gating it on
+            the video alone made them vanish on a page that has a CTA but no
+            video yet — silently, since nothing errors. A webinar RECAP page,
+            published before its recording is, is exactly that case. */}
+        {(video || editing || extraCta || extraCtaImage) && (
+          <section className={`container px-4 max-w-5xl ${video || extraCta || extraCtaImage ? "mt-16 md:mt-20" : "mt-6"}`}>
             {!video && editing && (
               <div className="flex justify-center">
                 <button

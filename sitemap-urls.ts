@@ -48,6 +48,7 @@ export const SITEMAP_PAGES: string[] = [
   "/evsafetywebinar",
   "/evtol-drone-delivery",
   "/financial-savings",
+  "/from-pump-to-plug-part-2",
   "/find-a-charger",
   "/gallery",
   "/gm-ev-vs-gas",
