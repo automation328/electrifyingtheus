@@ -9,8 +9,9 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import {
   gcalLink, isUpcoming, isActive, byDateAsc, eventFullDate, eventDisplayTitle,
-  eventLocationPin, eventState, parseStateQuery, startsWord, type EventItem,
+  eventLocationPin, type EventItem,
 } from "@/data/events";
+import { filterEvents } from "@/lib/event-search";
 import { splitEventDescription } from "@/lib/event-description";
 import EventSpeakers from "@/components/EventSpeakers";
 import { useEvents } from "@/hooks/use-content";
@@ -80,33 +81,8 @@ const Events = () => {
     return [...etu, ...ext];
   }, [events, externalEvents]);
 
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase().replace(/\s+/g, " ");
-    if (!q) return allUpcoming;
-
-    // A state query is answered by the event's STATE and nothing else.
-    //
-    // This is the whole point of the branch. As a plain substring, "ca" matched
-    // "Showcase", "Car Show" and every ", CA" alike, so searching California
-    // returned 86 of 139 events, most of them in other states. A search for a
-    // place has to be answered by place.
-    const state = parseStateQuery(q);
-    if (state) return allUpcoming.filter((e) => eventState(e) === state);
-
-    // The one other thing people type that is a place rather than a word.
-    if (/^(online|virtual|webinar|remote)$/.test(q)) {
-      return allUpcoming.filter((e) => /online|webinar|virtual/i.test(e.location || ""));
-    }
-
-    // Anything else is a city, venue, ZIP or event name.
-    return allUpcoming.filter(
-      (e) =>
-        startsWord(e.region, q) ||
-        startsWord(e.location, q) ||
-        startsWord(e.title, q) ||
-        startsWord(e.type, q),
-    );
-  }, [query, allUpcoming]);
+  // Every rule the box follows lives in filterEvents, with its own tests.
+  const filtered = useMemo(() => filterEvents(allUpcoming, query), [query, allUpcoming]);
 
   // Paginate the list: show 12, then "View more events" loads 24 more per click.
   //

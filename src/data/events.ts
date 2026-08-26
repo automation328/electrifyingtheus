@@ -171,7 +171,11 @@ const locParts = (e: EventItem): { parts: string[]; hadCountry: boolean } => {
   if (!loc || /see event details/i.test(loc) || /online|webinar|virtual/i.test(loc)) {
     return { parts: [], hadCountry: false };
   }
-  const parts = loc.split(",").map((s) => s.trim()).filter(Boolean);
+  // Periods come out first. "Washington, D.C." split as-is leaves "D.C.", which
+  // no state pattern matches, so the event landed in Washington STATE via the
+  // spelled-out name scan below. Parsing only -- the displayed location keeps
+  // whatever the organiser typed.
+  const parts = loc.replace(/\./g, "").split(",").map((s) => s.trim()).filter(Boolean);
   // Country first, then a bare ZIP: the ZIP can sit behind the country.
   let hadCountry = false;
   if (parts.length > 1 && COUNTRY_TAIL.test(parts[parts.length - 1])) { parts.pop(); hadCountry = true; }
@@ -235,12 +239,28 @@ export const eventDisplayTitle = (e: EventItem): string => {
   return `${e.title} - ${eventCityState(e)}`;
 };
 
+// US state / DC / PR + Canadian province codes — used to validate a "City, ST"
+// pulled from free text so we don't treat any two-capital token as a state.
+const US_STATE_CODES = new Set([
+  "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA","KS",
+  "KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY",
+  "NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV",
+  "WI","WY","DC","PR",
+  "ON","BC","AB","QC","MB","SK","NS","NB","NL","PE", // a few feed events are cross-border
+]);
+
 /** Two-letter state code parsed from an event's location (last comma segment,
  *  e.g. "…, Pasadena, CA 91103" → "CA"). "" for online/see-details locations. */
 export const eventStateCode = (e: EventItem): string => {
   const { parts } = locParts(e);
   const m = (parts[parts.length - 1] || "").match(/\b([A-Z]{2})\b/);
-  return m ? m[1] : "";
+  // Validated, not just shaped. "Berkeley, UC Campus" used to answer "UC", which
+  // is not a state and matches no search -- worse than answering nothing,
+  // because it short-circuits the region and spelled-out-name fallbacks below.
+  //
+  // Uppercase-only is deliberate and load-bearing: matching case-insensitively
+  // would read "La Jolla" as Louisiana and "Or Suite 2" as Oregon.
+  return m && US_STATE_CODES.has(m[1]) ? m[1] : "";
 };
 
 /** "City, ST" for the card's location pin — city + state only, no street address.
@@ -252,15 +272,6 @@ export const eventCityState = (e: EventItem): string => {
   return st ? `${city}, ${st}` : city;
 };
 
-// US state / DC / PR + Canadian province codes — used to validate a "City, ST"
-// pulled from free text so we don't treat any two-capital token as a state.
-const US_STATE_CODES = new Set([
-  "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA","KS",
-  "KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY",
-  "NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV",
-  "WI","WY","DC","PR",
-  "ON","BC","AB","QC","MB","SK","NS","NB","NL","PE", // a few feed events are cross-border
-]);
 
 // State / province NAME -> code, for the search box. Someone hunting California
 // events types "california" or "calif" at least as often as "CA", and a feed
@@ -291,11 +302,15 @@ const STATE_NAMES_BY_LENGTH = Object.keys(STATE_NAMES).sort((a, b) => b.length -
 /**
  * The two-letter state an event is IN, or "" for online / unplaceable events.
  *
- * Three sources, in order of how much we trust them: the location's own state
- * segment, the region column (curated events set "City, ST" there even when the
- * location is a bare venue name), and finally a state spelled out in full
- * anywhere in either. Only location and region are read — never the title or
- * description, which is how a search for "ca" used to return "EV Showcase".
+ * In order of how much each source can be trusted:
+ *   1. the location's own ", ST" segment, validated against the real list;
+ *   2. a ", ST" ending the region column (curated events set "City, ST" there
+ *      even when the location is a bare venue name);
+ *   3. a state spelled out in full as a WHOLE comma segment, read from the end;
+ *   4. a trailing ", ST" on the title, which is this site's own convention.
+ *
+ * Never a substring, and never free text from the title or description — that
+ * is how a search for "ca" used to return "EV Showcase".
  */
 export const eventState = (e: EventItem): string => {
   const direct = eventStateCode(e);
@@ -305,29 +320,34 @@ export const eventState = (e: EventItem): string => {
   const m = region.match(/\b([A-Z]{2})\b\s*$/);
   if (m && US_STATE_CODES.has(m[1])) return m[1];
 
-  const hay = `${e.location || ""} ${region}`.toLowerCase();
-  for (const name of STATE_NAMES_BY_LENGTH) {
-    if (hay.includes(name)) return STATE_NAMES[name];
+  // A state spelled out in full ("Mile High in Denver, Colorado"), but only when
+  // it is a WHOLE comma segment, and reading from the end because that is where
+  // a state sits in an address.
+  //
+  // This used to be a substring scan over the entire address, longest name
+  // first, which read a city as a state ("Kansas City" — KS, when it is
+  // Missouri), a street as a state ("Virginia Ave Park, Santa Monica" — VA),
+  // and preferred the wrong half of "California, Maryland" because "california"
+  // is the longer word.
+  const segments = [
+    ...locParts(e).parts,
+    ...region.replace(/\./g, "").split(",").map((x) => x.trim()).filter(Boolean),
+  ];
+  for (let i = segments.length - 1; i >= 0; i--) {
+    const code = STATE_NAMES[segments[i].toLowerCase()];
+    if (code) return code;
   }
 
-  // Last resort: the title. Feed events sometimes carry only a venue name
-  // ("Denton Square", "Dorey Park Farmers Market") and no city at all, which
-  // left "North Texas EV Showcase" out of a Texas search.
+  // Last resort: a trailing ", ST" on the TITLE. That is this site's own naming
+  // convention ("<Title> - <City>, <ST>"), so it is an assertion by an editor
+  // rather than a guess, and it rescues feed events whose location is a bare
+  // venue name with no city in it at all.
   //
-  // Two PRECISE patterns only, never a substring: a trailing ", ST" (our own
-  // title convention, "... - Poolesville, MD") and a state name as a whole
-  // word. A loose title match is exactly what made this search useless before,
-  // so it is not loosened here -- "ca" cannot match a title under either rule.
-  const title = (e.title || "").trim();
-  const suffix = title.match(/,\s*([A-Z]{2})\s*$/);
+  // A whole-word state NAME in the title was tried here too and removed: it
+  // filed "Washington Auto Show" under Washington State and "Kansas City EV
+  // Club Monthly" under Kansas. Both wrong, and a title is not a location.
+  const suffix = (e.title || "").trim().match(/,\s*([A-Z]{2})\s*$/);
   if (suffix && US_STATE_CODES.has(suffix[1])) return suffix[1];
-  const words = title.toLowerCase().split(/[^a-z]+/).filter(Boolean).join(" ");
-  for (const name of STATE_NAMES_BY_LENGTH) {
-    if (words === name || words.startsWith(`${name} `) ||
-        words.endsWith(` ${name}`) || words.includes(` ${name} `)) {
-      return STATE_NAMES[name];
-    }
-  }
   return "";
 };
 

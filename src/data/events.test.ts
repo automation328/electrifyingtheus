@@ -293,11 +293,42 @@ describe("reading which state an event is in", () => {
     expect(eventState(AT2({ location: "Charleston, West Virginia" }))).toBe("WV");
   });
 
-  it("uses the title only as a last resort, and only precisely", () => {
-    // A trailing ", ST" is our own title convention.
+  it("uses the title only as a last resort, and only for a trailing state code", () => {
+    // A trailing ", ST" is this site's own naming convention, so it is an
+    // editor's assertion rather than a guess.
     expect(eventState(AT2({ location: "", region: "", title: "EV Show - Poolesville, MD" }))).toBe("MD");
-    // A state name as a whole word.
-    expect(eventState(AT2({ location: "Denton Square", title: "North Texas EV Showcase" }))).toBe("TX");
+  });
+
+  it("will not read a state NAME out of a title, however tempting", () => {
+    // This was tried and removed. It filed the Washington Auto Show (a DC event)
+    // under Washington State, and a Kansas City club under Kansas when Kansas
+    // City is in Missouri. A title is not a location. The cost is that a feed
+    // event with a bare venue name and a state only in its title now has no
+    // state at all, which is the honest answer.
+    expect(eventState(AT2({ location: "Online", title: "Washington Auto Show" }))).toBe("");
+    expect(eventState(AT2({ location: "Online", title: "Kansas City EV Club Monthly" }))).toBe("");
+    expect(eventState(AT2({ location: "Denton Square", title: "North Texas EV Showcase" }))).toBe("");
+  });
+
+  it("reads a spelled-out state only as a whole segment, never as a substring", () => {
+    // Each of these was wrong when the name scan was a substring test over the
+    // whole address, longest name first.
+    expect(eventState(AT2({ location: "Kansas City", region: "" }))).toBe("");            // Missouri, not KS
+    expect(eventState(AT2({ location: "California, Maryland" }))).toBe("MD");             // a real town in MD
+    expect(eventState(AT2({ location: "Virginia Ave Park, Santa Monica" }))).toBe("");    // a street, not a state
+    expect(eventState(AT2({ location: "1300 Pennsylvania Ave NW, Washington, DC" }))).toBe("DC");
+  });
+
+  it("handles a state code written with periods", () => {
+    // "D.C." matched no state pattern, so the event fell through to the name
+    // scan and was filed under Washington STATE.
+    expect(eventState(AT2({ location: "Washington, D.C." }))).toBe("DC");
+  });
+
+  it("refuses two capital letters that are not a real state code", () => {
+    // "UC" is not a state. Answering it short-circuited every fallback below
+    // and left the event matching no search at all.
+    expect(eventState(AT2({ location: "Berkeley, UC Campus" }))).toBe("");
   });
 
   it("never reads a state out of a partial word — the bug that started this", () => {
