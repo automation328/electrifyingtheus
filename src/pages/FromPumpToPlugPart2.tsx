@@ -1,9 +1,7 @@
 // Part 2 of the "From the Pump to the Plug" webinar series.
 //
-// Built as a RECAP rather than a replay: the session has run, but the recording
-// is not published yet. Everything the page needs is already here — when the
-// video arrives, uncomment the `video` object below and pass it to the layout,
-// and change the badge/kicker from "Recap" to "Replay". That is the whole job.
+// The recording is up, so this is a REPLAY: the player sits at the top and the
+// panel recap runs underneath it.
 //
 // Part 1 lives at /save-with-evs-webinar and links forward to the event page;
 // this page links back to Part 1, so the series reads in both directions.
@@ -12,11 +10,10 @@ import { PlayCircle, MessageCircle, Calculator, BadgeCheck, Plug } from "lucide-
 import { type ContentSection, type ContentLinkCard } from "@/components/ContentPageLayout";
 import EditableContentPage from "@/components/EditableContentPage";
 
-// Waiting on the published recording. Part 1's id is WaIWh8wY_tI, for shape.
-// const video = {
-//   youtubeId: "",
-//   title: "Webinar Series Part 2: From The Pump To The Plug",
-// };
+const video = {
+  youtubeId: "SGtCmPLpyCI",
+  title: "Webinar Series Part 2: From The Pump To The Plug",
+};
 
 const sections: ContentSection[] = [
   {
@@ -73,19 +70,21 @@ const linkCards: ContentLinkCard[] = [
 const FromPumpToPlugPart2 = () => (
   <EditableContentPage
     path="/from-pump-to-plug-part-2"
-    badge="Webinar Recap"
-    kicker="Webinar Recap"
+    badge="Webinar Replay"
+    kicker="Webinar Replay"
     title="Webinar Series Part 2: From The Pump To The Plug:"
     highlight="How Electric Vehicles Can Save You Thousands"
-    intro="Thank you to everyone who joined us live. Here's a recap of Part 2 of our From the Pump to the Plug series — what our panel from CARB, Coltura, Uber, Austin Energy, and GRID Alternatives shared about the real economics of going electric, and where the savings actually come from."
+    intro="Watch Part 2 of our From the Pump to the Plug series in full, and thank you to everyone who joined us live. Our panel from CARB, Coltura, Uber, Austin Energy, and GRID Alternatives took on the real economics of going electric — where the savings actually come from, and who they reach."
     icon={PlayCircle}
     compactTitle
     hideMeta
     hideCta
+    video={video}
     extraCta={{ label: "Watch Part 1", to: "/save-with-evs-webinar" }}
-    // Part 1 shows the Part 2 flyer here, but that flyer reads "Register now"
-    // over a date that has passed. Forward-looking on Part 1's page, misleading
-    // on this one. The space is where the recording goes.
+    // Part 1 shows the Part 2 flyer beneath this button. Deliberately not repeated
+    // here: it reads "Register now" over a date that has passed, which was
+    // forward-looking on Part 1's page and would be misleading on this one. The
+    // player above is what belongs in that space.
     sections={sections}
     linkCards={linkCards}
   />

@@ -80,7 +80,7 @@ export const OG_ENTRIES: OgEntry[] = [
     path: "/from-pump-to-plug-part-2",
     title: "Webinar Series Part 2: From The Pump To The Plug — How Electric Vehicles Can Save You Thousands",
     description:
-      "A recap of Part 2 of our From the Pump to the Plug webinar — CARB, Coltura, Uber, Austin Energy, and GRID Alternatives on where the savings of going electric actually come from.",
+      "Watch Part 2 of our From the Pump to the Plug webinar — CARB, Coltura, Uber, Austin Energy, and GRID Alternatives on where the savings of going electric actually come from.",
     image: "/og/events-from-pump-to-plug-v2.jpg",
   },
   {
