@@ -12,6 +12,7 @@
 import { describe, it, expect } from "vitest";
 import {
   sourceKeyFromUrl, titleDateKey, isoDate, displayTime, importTitle, toDraftRow, pickNew,
+  headerImage,
   type FeedEvent,
 } from "./_event-import";
 import { sourceEventKey } from "@/hooks/use-external-events";
@@ -129,10 +130,14 @@ describe("building the row", () => {
     expect(toDraftRow(ev({ endISO: "2026-09-01T14:00:00.000Z" }))!.end_date).toBeNull();
   });
 
-  it("leaves the image null rather than inventing one", () => {
-    // A null image gets the site's placeholder anyway, and tells an editor at a
-    // glance which drafts still want a real picture.
-    expect(toDraftRow(ev())!.image).toBeNull();
+  it("always gives the row a picture, the source's own or one of ours", () => {
+    // The first version stored null here, on the theory that a blank thumbnail
+    // flags a draft needing attention. It does not — it just looks broken,
+    // twenty-one grey placeholders down the CMS list, and every one of them would
+    // fall back to the SAME stock photo once published. Migration 0024 dealt out
+    // 30 headers precisely to avoid that.
+    expect(toDraftRow(ev())!.image).toMatch(/\/media\/events\/headers\/\d+\.jpg$/);
+    // A real photo from the source page always wins.
     expect(toDraftRow(ev({ image: "https://cdn.example/x.jpg" }))!.image).toBe("https://cdn.example/x.jpg");
   });
 
@@ -194,5 +199,31 @@ describe("choosing what to import", () => {
     const { usable, fresh } = pickNew(feed, known, TODAY);
     expect(usable).toHaveLength(2);   // past and unusable both excluded
     expect(fresh).toHaveLength(1);
+  });
+});
+
+describe("picking a header image", () => {
+  it("only ever picks one of the 30 headers that exist on disk", () => {
+    // Off-by-one here means a 404 on the card, which is worse than the stock
+    // photo it replaced.
+    for (let i = 0; i < 500; i++) {
+      const n = Number(headerImage(`seed-${i}`).match(/(\d+)\.jpg$/)![1]);
+      expect(n).toBeGreaterThanOrEqual(1);
+      expect(n).toBeLessThanOrEqual(30);
+    }
+  });
+
+  it("is stable, so re-importing an event does not reshuffle its picture", () => {
+    expect(headerImage("https://example.org/event?eventid=5301"))
+      .toBe(headerImage("https://example.org/event?eventid=5301"));
+  });
+
+  it("spreads, so a batch is not one header repeated", () => {
+    const seen = new Set(Array.from({ length: 60 }, (_, i) => headerImage(`https://example.org/e/${i}`)));
+    expect(seen.size).toBeGreaterThan(15);
+  });
+
+  it("handles an empty seed without throwing", () => {
+    expect(headerImage("")).toMatch(/headers\/\d+\.jpg$/);
   });
 });

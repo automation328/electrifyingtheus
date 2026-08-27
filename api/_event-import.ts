@@ -133,6 +133,35 @@ export function importTitle(rawTitle: string, location: string): string {
   return generic && location && location !== "See event details" ? `${t} — ${location}` : t;
 }
 
+/** How many header images live in public/media/events/headers (1.jpg .. 30.jpg). */
+const HEADER_COUNT = 30;
+
+/**
+ * One of the site's own event headers, chosen deterministically from a seed.
+ *
+ * Migration 0024 dealt these 30 headers across every event that had no picture,
+ * precisely so the Events list would not be a column of identical placeholders.
+ * The first version of this importer ignored that and stored null, reasoning
+ * that a blank thumbnail flags "this draft still needs a picture". In the CMS it
+ * just looks broken — twenty-one drafts in a row with an empty grey icon — and
+ * on the public site every one of them would fall back to the SAME stock photo,
+ * which is the identical-thumbnails problem 0024 existed to solve.
+ *
+ * Seeded by the event's own identity rather than its position in the run, so the
+ * same event keeps the same header if it is ever re-imported, and neighbouring
+ * events in a batch get different ones.
+ */
+export function headerImage(seed: string): string {
+  // FNV-1a. Any stable spread would do; this one is short and has no deps.
+  let h = 2166136261;
+  for (let i = 0; i < seed.length; i++) {
+    h ^= seed.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  const n = ((h >>> 0) % HEADER_COUNT) + 1;
+  return `https://electrifyingtheus.com/media/events/headers/${n}.jpg`;
+}
+
 /** A site_events insert for one feed event, or null when the feed gave us too
  *  little to store. A row with no title or no valid date is not an event:
  *  event_date is NOT NULL and drives sorting, the slug, and isActive. */
@@ -159,10 +188,9 @@ export function toDraftRow(e: FeedEvent): Record<string, unknown> | null {
       (e.description || "").slice(0, 1200) ||
       "EV event in the U.S. — see the organizer's page for full details.",
     register_url: (e.url || "").trim() || null,
-    // Whatever the source page advertised. No stock fallback: a null image gets
-    // the site's placeholder anyway, and leaving it null tells an editor at a
-    // glance which drafts still want a real picture.
-    image: (e.image || "").trim() || null,
+    // The source page's own photo when it advertised one, otherwise one of the
+    // site's 30 event headers. Never null: see headerImage above.
+    image: (e.image || "").trim() || headerImage(e.url || `${e.title}|${startDate}`),
     featured: false,
     // 0018. Someone else's unreviewed event has no business on the homepage
     // carousel, even after an editor publishes it.
