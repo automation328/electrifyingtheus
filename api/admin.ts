@@ -29,6 +29,7 @@ import { getEditor, requireEditor, adminSupabase } from "./_admin-auth.js";
 import { appendActivity, readActivity } from "./_activity-log.js";
 import { checkRateLimit, tooManyRequests } from "./_rate-limit.js";
 import { verifyReview, eventPath } from "./_event-submission.js";
+import { runWeeklyImport, buildImportDigest, postDigest } from "./_event-import.js";
 import { sendEventApprovalEmail } from "./_approval-email.js";
 import { analyticsSummary, visitorJourney } from "./_analytics-core.js";
 // NOTE: mammoth / pdf-parse are imported LAZILY inside handleKbUpload — a top-level
@@ -821,6 +822,48 @@ async function handleEventReview(req: any, res: any) {
     { href: `${site}${path}`, label: "View the event" });
 }
 
+/**
+ * The weekly event import, triggered by Vercel Cron every Monday.
+ *
+ * Guarded by CRON_SECRET rather than an editor session: cron has no session to
+ * present. Vercel sends `Authorization: Bearer $CRON_SECRET` on the request,
+ * which is the documented way to prove a hit came from the scheduler and not
+ * from anyone who guessed the URL. With the secret unset the endpoint refuses
+ * outright, so a missing variable fails closed rather than leaving an open
+ * write path into site_events.
+ *
+ * Everything it inserts is a draft, so the worst case for a misfire is some
+ * rows an editor has to delete — never something on the live site.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function handleWeeklyImport(req: any, res: any) {
+  const secret = process.env.CRON_SECRET;
+  const auth = String(req.headers?.authorization ?? req.headers?.Authorization ?? "");
+  if (!secret || auth !== `Bearer ${secret}`) {
+    res.status(401).json({ error: "unauthorized" });
+    return;
+  }
+  const db = adminSupabase();
+  if (!db) { res.status(500).json({ error: "not_configured" }); return; }
+
+  const site = process.env.PUBLIC_SITE_URL || "https://electrifyingtheus.com";
+  const today = new Date().toISOString().slice(0, 10);
+  try {
+    const result = await runWeeklyImport(db, site, today);
+    // After the insert, and never allowed to undo it: a Slack outage must not
+    // turn a successful import into a failed one.
+    await postDigest(buildImportDigest(result, site));
+    await logActivity(
+      db, "cron", "system", "event-import", "site_events",
+      `scanned ${result.scanned} · added ${result.added} · already held ${result.known}` +
+        (result.failed ? ` · failed ${result.failed}` : ""),
+    );
+    res.status(200).json(result);
+  } catch (e) {
+    res.status(500).json({ error: "import_failed", detail: String((e as Error)?.message ?? e) });
+  }
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default async function handler(req: any, res: any) {
   // The ONE unauthenticated entry point on this endpoint: the Approve / Reject
@@ -833,6 +876,15 @@ export default async function handler(req: any, res: any) {
   // things to exactly one row. See api/_event-submission.ts.
   if (req.method === "GET" && String(req.query?.op ?? "") === "event-review") {
     await handleEventReview(req, res);
+    return;
+  }
+
+  // The weekly import, called by Vercel Cron. A GET for the same reason: cron
+  // issues GET requests. Folded into this endpoint rather than given its own
+  // file because the Hobby plan allows 12 Serverless Functions and 11 are
+  // already spoken for.
+  if (req.method === "GET" && String(req.query?.op ?? "") === "weekly-import") {
+    await handleWeeklyImport(req, res);
     return;
   }
   if (req.method !== "POST") { res.status(405).json({ error: "method_not_allowed" }); return; }

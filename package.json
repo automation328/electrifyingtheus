@@ -9,6 +9,8 @@
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
+    "typecheck": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.api.json",
+    "typecheck:api": "tsc --noEmit -p tsconfig.api.json",
     "test": "vitest run",
     "test:watch": "vitest"
   },

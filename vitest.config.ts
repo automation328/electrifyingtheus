@@ -8,7 +8,11 @@ export default defineConfig({
     environment: "jsdom",
     globals: true,
     setupFiles: ["./src/test/setup.ts"],
-    include: ["src/**/*.{test,spec}.{ts,tsx}"],
+    // api/ too. It had NO test coverage and is in no tsconfig project either,
+    // so nothing has ever compiled or exercised the serverless backend. The
+    // weekly event importer writes to site_events on a schedule with no human
+    // in the loop, which is not a thing to ship untested.
+    include: ["src/**/*.{test,spec}.{ts,tsx}", "api/**/*.{test,spec}.ts"],
   },
   resolve: {
     alias: { "@": path.resolve(__dirname, "./src") },

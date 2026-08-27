@@ -1,0 +1,41 @@
+// The serverless backend.
+//
+// api/ used to belong to NO tsconfig project. Vite never compiles it, so nothing
+// type-checked the entire serverless surface — auth, the CMS write endpoint, the
+// event review links — and a real type error sat in api/admin.ts undetected
+// until it was compiled by hand.
+//
+// Its own project rather than a folder added to tsconfig.app.json, because the
+// two run in different worlds: this one is Node on Vercel with no DOM and no "@"
+// alias, that one is a browser bundle. Checking them with one set of options
+// would mean lying to one of them.
+//
+// Tests are excluded on purpose: api/**/*.test.ts imports src through the "@"
+// alias, which does not exist here. They are type-checked by tsconfig.app.json,
+// which owns that alias, and they are run by vitest.
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    // DOM as well as ES2022: these handlers use the global fetch/Response, and
+    // it is DOM that types Response.json() as Promise<any>. With ES2022 alone
+    // the @types/node signature wins, every `await r.json()` becomes `unknown`,
+    // and a dozen existing handlers stop compiling.
+    "lib": ["ES2022", "DOM"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "types": ["node"],
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    // Matches how the project builds. strictNullChecks off is what weakens
+    // discriminated-union narrowing, so prefer a flat { ok, reason? } over a
+    // union in here — see verifyReview in _event-submission.ts.
+    "strict": false,
+    "noImplicitAny": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false
+  },
+  "include": ["api/**/*.ts"],
+  "exclude": ["api/**/*.test.ts"]
+}
