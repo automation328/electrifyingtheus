@@ -1,7 +1,22 @@
 import { VehicleData } from "@/lib/tco-calculator";
 // Type-based fallback photos so a card is never blank when a model lacks a
 // dedicated image (or its remote photo fails to load).
-import evFallback from "@/assets/ev-family.jpg";
+//
+// BOTH OF THESE MUST BE ANONYMOUS — no identifiable car in frame.
+//
+// The EV fallback used to be ev-family.jpg, which is a photograph of a blue Ford
+// Mustang Mach-E parked outside a house. Every EV missing its own photo was
+// therefore shown to visitors AS a Mach-E, on a comparison card sitting directly
+// above that model's name and price: the Mercedes-Benz CLA EV, the Cybertruck,
+// both Hummers, thirteen cars in all. It read as a wrong photo each time,
+// because it was.
+//
+// A fallback is for the case where we do not know what the car looks like, so it
+// must not assert what the car looks like. ev-charging.jpg is a pair of charge
+// posts with no vehicle in the shot; ev-savings.jpg is an anonymous instrument
+// cluster. Neither can be mistaken for a claim about a particular model. If you
+// ever swap these, keep that property.
+import evFallback from "@/assets/ev-charging.jpg";
 import gasFallback from "@/assets/ev-savings.jpg";
 
 // Curated US catalog. Figures are representative 2026 values (MSRP, EPA
@@ -1490,6 +1505,30 @@ const VEHICLE_IMAGES: Record<string, string> = {
   "rolls-royce-ghost": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/97/2022_Rolls-Royce_Ghost_Black_Badge_in_Arctic_White%2C_front_left.jpg/330px-2022_Rolls-Royce_Ghost_Black_Badge_in_Arctic_White%2C_front_left.jpg",
   "rolls-royce-cullinan": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0d/2019_Rolls-Royce_Cullinan_V12_Automatic_6.75_Front.jpg/330px-2019_Rolls-Royce_Cullinan_V12_Automatic_6.75_Front.jpg",
   "lotus-emira": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/aa/2024_Lotus_Emira_First_Edition_3.jpg/330px-2024_Lotus_Emira_First_Edition_3.jpg",
+
+  // Added after every EV without its own photo was found to be rendering the
+  // generic fallback -- which was a picture of a Ford Mustang Mach-E, so all
+  // thirteen of these were being shown to visitors as a Mach-E.
+  //
+  // Each of these was downloaded and LOOKED AT before being added, not just
+  // matched on filename. That matters for the pairs that are near-identical in
+  // a thumbnail: the Hummer pickup is the one with an open bed and the SUV the
+  // one with a rear quarter window; the VinFast VF 6 and VF 7 are told apart by
+  // the Commons caption alone. All are CC BY-SA or CC0 on Wikimedia Commons,
+  // matching the licensing of the 188 entries above.
+  "gmc-hummer-ev": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/2024_GMC_Hummer_EV_Pickup_2X_4WD_Sport_Package_in_Meteorite_Metallic%2C_front_left%2C_2024-03-31.jpg/330px-2024_GMC_Hummer_EV_Pickup_2X_4WD_Sport_Package_in_Meteorite_Metallic%2C_front_left%2C_2024-03-31.jpg",
+  "gmc-hummer-ev-suv": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c4/2024_GMC_Hummer_EV3X_SUV%2C_front_left%2C_10-29-2023.jpg/330px-2024_GMC_Hummer_EV3X_SUV%2C_front_left%2C_10-29-2023.jpg",
+  "jeep-recon": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/26_Jeep_Recon_Moab_AZIAS.jpg/330px-26_Jeep_Recon_Moab_AZIAS.jpg",
+  "audi-a6-etron": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/13/Audi_A6_e-tron_DSC_2835.jpg/330px-Audi_A6_e-tron_DSC_2835.jpg",
+  "audi-e-tron-gt": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/Audi_e-tron_GT_IMG_5689.jpg/330px-Audi_e-tron_GT_IMG_5689.jpg",
+  "mercedes-cla-ev": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/Mercedes-Benz_CLA_250%2B_AMG_Line_Plus_%28C_174%29_%E2%80%93_f_11102025.jpg/330px-Mercedes-Benz_CLA_250%2B_AMG_Line_Plus_%28C_174%29_%E2%80%93_f_11102025.jpg",
+  "mercedes-eqs-suv": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c9/Mercedes-Benz_X296_1X7A6215.jpg/330px-Mercedes-Benz_X296_1X7A6215.jpg",
+  "cadillac-celestiq": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fc/2025_Cadillac_Celestiq_%22Vale%22%2C_front_right_%28Greenwich_2025%29.jpg/330px-2025_Cadillac_Celestiq_%22Vale%22%2C_front_right_%28Greenwich_2025%29.jpg",
+  "tesla-cybertruck": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/99/2024_Tesla_Cybertruck%2C_front_left%2C_07-27-2024.jpg/330px-2024_Tesla_Cybertruck%2C_front_left%2C_07-27-2024.jpg",
+  "polestar-4": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Polestar_4_DSC_8232_%28cropped_2%29.jpg/330px-Polestar_4_DSC_8232_%28cropped_2%29.jpg",
+  "vinfast-vf6": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/VinFast_VF_6_DSC_8468.jpg/330px-VinFast_VF_6_DSC_8468.jpg",
+  "vinfast-vf7": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/VinFast_VF_7_Eco_Crimson_Red.jpg/330px-VinFast_VF_7_Eco_Crimson_Red.jpg",
+  "mercedes-g580-ev": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/Mercedes-Benz_G_580_with_EQ_Technology_DSC_8256.jpg/330px-Mercedes-Benz_G_580_with_EQ_Technology_DSC_8256.jpg",
 };
 
 for (const v of vehicles) {
