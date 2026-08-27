@@ -52,11 +52,20 @@ describe("every vehicle has its own photograph", () => {
       byUrl.set(url, [...(byUrl.get(url) ?? []), v.id]);
     }
 
+    // The prefix rule alone is not enough, and the Audi range shows why: the
+    // petrol "audi-a6" is a prefix of the electric "audi-a6-etron", and those are
+    // two visibly different cars. Same for audi-q8 and audi-q8-etron. So a shared
+    // photo also requires the same powertrain type -- which is what actually
+    // separates "Camry and Camry Hybrid look alike" from "an A6 is not an A6
+    // e-tron".
+    const typeOf = new Map(vehicles.map((v) => [v.id, v.type]));
     const wrong: string[][] = [];
     for (const ids of byUrl.values()) {
       if (ids.length < 2) continue;
       const base = [...ids].sort((a, b) => a.length - b.length)[0];
-      if (!ids.every((id) => id === base || id.startsWith(`${base}-`))) wrong.push(ids);
+      const sameFamily = ids.every((id) => id === base || id.startsWith(`${base}-`));
+      const sameType = new Set(ids.map((id) => typeOf.get(id))).size === 1;
+      if (!sameFamily || !sameType) wrong.push(ids);
     }
 
     expect(wrong).toEqual([]);

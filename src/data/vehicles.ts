@@ -864,6 +864,63 @@ export const vehicles: VehicleData[] = [
     depreciationRate: 0.17, category: "SUV",
     bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "AWD", luxury: true,
   },
+
+  // Audi's petrol range. The calculator asks what a visitor drives TODAY, and it
+  // offered exactly two Audis (A4, Q5) against five Audi EVs -- so an Audi owner
+  // often could not find their own car to compare against. Reported from the
+  // field, hence these seven.
+  //
+  // The A4 entry above is deliberately KEPT even though Audi stopped selling it
+  // new after 2025 (the A5 below is its replacement): plenty of people are
+  // driving a 2016-2025 A4 right now, and theirs is the car this tool prices.
+  //
+  // MSRP is US base excluding destination, and mpg is the EPA COMBINED figure
+  // for the base engine; both were sourced per model. Insurance, maintenance and
+  // depreciation are this file's usual representative values, placed on the same
+  // curve as the neighbouring German luxury entries by price and size band
+  // rather than sourced per model.
+  {
+    id: "audi-a3", name: "Audi A3", type: "gas", msrp: 40100,
+    mpg: 28, maintenanceCostPerMile: 0.112, insuranceAnnual: 2000,
+    depreciationRate: 0.17, category: "Sedan",
+    bodyStyle: "sedan", sizeClass: 2, seats: 5, drivetrain: "AWD", luxury: true,
+  },
+  {
+    id: "audi-a5", name: "Audi A5", type: "gas", msrp: 50200,
+    mpg: 26, maintenanceCostPerMile: 0.115, insuranceAnnual: 2100,
+    depreciationRate: 0.17, category: "Sedan",
+    bodyStyle: "sedan", sizeClass: 2, seats: 5, drivetrain: "AWD", luxury: true,
+  },
+  {
+    id: "audi-a6", name: "Audi A6", type: "gas", msrp: 64100,
+    mpg: 23, maintenanceCostPerMile: 0.12, insuranceAnnual: 2200,
+    depreciationRate: 0.17, category: "Sedan",
+    bodyStyle: "sedan", sizeClass: 3, seats: 5, drivetrain: "AWD", luxury: true,
+  },
+  {
+    id: "audi-a8-l", name: "Audi A8 L", type: "gas", msrp: 95100,
+    mpg: 22, maintenanceCostPerMile: 0.135, insuranceAnnual: 2700,
+    depreciationRate: 0.19, category: "Sedan",
+    bodyStyle: "sedan", sizeClass: 4, seats: 5, drivetrain: "AWD", luxury: true,
+  },
+  {
+    id: "audi-q3", name: "Audi Q3", type: "gas", msrp: 43700,
+    mpg: 25, maintenanceCostPerMile: 0.115, insuranceAnnual: 2050,
+    depreciationRate: 0.17, category: "SUV",
+    bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "AWD", luxury: true,
+  },
+  {
+    id: "audi-q7", name: "Audi Q7", type: "gas", msrp: 62000,
+    mpg: 22, maintenanceCostPerMile: 0.125, insuranceAnnual: 2300,
+    depreciationRate: 0.18, category: "SUV",
+    bodyStyle: "suv-large", sizeClass: 4, seats: 7, drivetrain: "AWD", luxury: true,
+  },
+  {
+    id: "audi-q8", name: "Audi Q8", type: "gas", msrp: 75600,
+    mpg: 19, maintenanceCostPerMile: 0.13, insuranceAnnual: 2450,
+    depreciationRate: 0.18, category: "SUV",
+    bodyStyle: "suv-large", sizeClass: 3, seats: 5, drivetrain: "AWD", luxury: true,
+  },
   // Acura
   {
     id: "acura-integra", name: "Acura Integra", type: "gas", msrp: 33000,
@@ -1529,6 +1586,17 @@ const VEHICLE_IMAGES: Record<string, string> = {
   "vinfast-vf6": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/VinFast_VF_6_DSC_8468.jpg/330px-VinFast_VF_6_DSC_8468.jpg",
   "vinfast-vf7": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/VinFast_VF_7_Eco_Crimson_Red.jpg/330px-VinFast_VF_7_Eco_Crimson_Red.jpg",
   "mercedes-g580-ev": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/Mercedes-Benz_G_580_with_EQ_Technology_DSC_8256.jpg/330px-Mercedes-Benz_G_580_with_EQ_Technology_DSC_8256.jpg",
+
+  // Audi petrol range (see the block above). Each of these was downloaded and
+  // LOOKED AT before being added -- Audi's sedans and SUVs are near-identical
+  // across sizes, so a filename alone cannot tell an A5 from an A6.
+  "audi-a3": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/67/2024_Audi_A3_8Y_Sedan_IMG_1019.jpg/330px-2024_Audi_A3_8Y_Sedan_IMG_1019.jpg",
+  "audi-a5": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Audi_A5_TFSI_quattro_150kW_S_line_%28B10%29_front.jpg/330px-Audi_A5_TFSI_quattro_150kW_S_line_%28B10%29_front.jpg",
+  "audi-a6": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/eb/Audi_A6_C9_IAA_2025_DSC_1920.jpg/330px-Audi_A6_C9_IAA_2025_DSC_1920.jpg",
+  "audi-a8-l": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/Audi_A8_L_D5_FL_quattro_S_Line_Glacier_White_Metallic.jpg/330px-Audi_A8_L_D5_FL_quattro_S_Line_Glacier_White_Metallic.jpg",
+  "audi-q3": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/Audi_Q3_FJ_DSC_3747.jpg/330px-Audi_Q3_FJ_DSC_3747.jpg",
+  "audi-q7": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/25_Audi_Q7_quattro_Premium_Plus_45_TFSI.jpg/330px-25_Audi_Q7_quattro_Premium_Plus_45_TFSI.jpg",
+  "audi-q8": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/Audi_Q8_%284MN%29_Washington_DC_Metro_Area%2C_USA.jpg/330px-Audi_Q8_%284MN%29_Washington_DC_Metro_Area%2C_USA.jpg",
 };
 
 for (const v of vehicles) {
