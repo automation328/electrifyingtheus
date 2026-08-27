@@ -47,7 +47,14 @@ const FEED: EventItem = { ...BASE, id: undefined };
 
 const ours = vi.hoisted(() => ({ value: [] as unknown[] }));
 const external = vi.hoisted(() => ({ value: [] as unknown[] }));
-vi.mock("@/hooks/use-content", () => ({ useEvents: () => ({ events: ours.value, loading: false }) }));
+const draft = vi.hoisted(() => ({ value: undefined as unknown }));
+vi.mock("@/hooks/use-content", () => ({
+  useEvents: () => ({ events: ours.value, loading: false }),
+  // The page also asks for a draft behind this slug when the published lookup
+  // misses. These tests are about the rendered page, not that lookup, so it
+  // answers "no draft" -- but it must EXIST, or the component calls undefined.
+  useDraftEvent: () => ({ event: draft.value, loading: false }),
+}));
 vi.mock("@/hooks/use-external-events", () => ({ useExternalEvents: () => ({ events: external.value, loading: false }) }));
 
 const auth = vi.hoisted(() => ({ value: { status: "signed-out" } as unknown }));
@@ -69,6 +76,7 @@ afterEach(() => {
   auth.value = { status: "signed-out" };
   ours.value = [];
   external.value = [];
+  draft.value = undefined;
 });
 
 const renderEvent = () => {
@@ -266,5 +274,54 @@ describe("an editor changes the Register buttons on the page", () => {
     renderEvent();
     fireEvent.click(screen.getByText(/Edit this page/i));
     expect(screen.queryAllByTestId("gate-event-register")).toHaveLength(0);
+  });
+});
+
+describe("an editor opening a DRAFT from the CMS", () => {
+  // "Edit on page" in the CMS navigates to /events/<slug>. The public site only
+  // fetches published events, so the draft was invisible here -- and because an
+  // imported event usually still exists in the aggregated feed under the same
+  // slug, the page silently rendered the FEED's copy instead. Feed events are
+  // deliberately not editable, so the editor landed on their own draft's URL
+  // looking at someone else's text with no editable fields.
+  const FEED_TWIN = { ...BASE, id: undefined, external: true, title: "Santa Ana", description: "EV event in the U.S." };
+  const DRAFT = { ...BASE, id: "draft-1", title: "Santa Ana EV Showcase", description: "The real write-up." };
+
+  it("shows the draft, not the feed's copy of the same event", () => {
+    external.value = [FEED_TWIN];
+    draft.value = DRAFT;
+    renderEvent();
+    expect(screen.getByText("Santa Ana EV Showcase")).toBeTruthy();
+    expect(screen.queryByText("EV event in the U.S.")).toBeNull();
+  });
+
+  it("gives the editor real editable fields on it", () => {
+    // "Edit this page" alone proves nothing: that is the BLOCK builder, which an
+    // editor gets on any page. What was missing is the event's OWN fields being
+    // editable, and Field only renders a contentEditable box when the event is
+    // ours. That is the thing to assert.
+    asEditor();
+    external.value = [FEED_TWIN];
+    draft.value = DRAFT;
+    const { container } = renderEvent();
+    fireEvent.click(screen.getByText(/Edit this page/i));
+    expect(container.querySelectorAll('[contenteditable="true"]').length).toBeGreaterThan(0);
+  });
+
+  it("still gives a feed event no editable fields, because it is not ours", () => {
+    asEditor();
+    external.value = [FEED_TWIN];
+    draft.value = undefined;
+    const { container } = renderEvent();
+    fireEvent.click(screen.getByText(/Edit this page/i));
+    expect(container.querySelectorAll('[contenteditable="true"]').length).toBe(0);
+  });
+
+  it("prefers a PUBLISHED row over both", () => {
+    ours.value = [{ ...BASE, id: "published-1", title: "The published one" }];
+    external.value = [FEED_TWIN];
+    draft.value = DRAFT;
+    renderEvent();
+    expect(screen.getByText("The published one")).toBeTruthy();
   });
 });

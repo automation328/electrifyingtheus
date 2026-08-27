@@ -5,7 +5,9 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { isSupabaseConfigured } from "@/lib/supabase";
-import { fetchEvents, fetchPosts, fetchGallery, fetchJobs, mergeEvents, mergePosts } from "@/lib/content";
+import { fetchEvents, fetchPosts, fetchGallery, fetchJobs, mergeEvents, mergePosts, eventFromRow } from "@/lib/content";
+import { listRows } from "@/lib/admin-api";
+import { useEditorAuth } from "@/lib/auth";
 import { EVENTS, isActive, shortZone, type EventItem } from "@/data/events";
 import { BLOG_POSTS, type BlogPost } from "@/data/blog-posts";
 import { GALLERY_PHOTOS, GALLERY_VIDEOS, type GalleryPhoto, type GalleryVideo } from "@/data/gallery";
@@ -31,6 +33,45 @@ export function useEvents(): { events: EventItem[]; loading: boolean } {
   // organiser typed; only what a reader sees is normalised.
   const events = base.filter(isActive).map((e) => ({ ...e, time: shortZone(e.time) }));
   return { events, loading: isSupabaseConfigured ? q.isLoading : false };
+}
+
+/**
+ * The site_events row behind a slug REGARDLESS of status, for a signed-in editor.
+ *
+ * The public site only ever fetches published events (fetchEvents filters on it),
+ * which is correct — but it meant the CMS's "Edit on page" button was a dead
+ * end for a draft. It navigates to /events/<slug>, the page could not see the
+ * draft, and for an imported event the SAME event usually still exists in the
+ * aggregated feed — so the page quietly rendered the feed copy instead. Feed
+ * events are deliberately not editable (they are not ours to write), so an editor
+ * clicking "Edit on page" on their own draft landed on a page with no editable
+ * fields at all, showing someone else's version of the text.
+ *
+ * Reads through /api/admin rather than the public client: that path is already
+ * editor-gated and runs with the service role, so it sees drafts without needing
+ * any change to the row-level security that keeps them private.
+ *
+ * `enabled` is passed by the caller so this costs nothing on the normal path —
+ * it only runs when the published lookup already came up empty.
+ */
+export function useDraftEvent(
+  slug: string | undefined,
+  enabled: boolean,
+): { event: EventItem | undefined; loading: boolean } {
+  const auth = useEditorAuth();
+  const on = auth.status === "editor" && !!slug && enabled;
+  const q = useQuery({
+    queryKey: ["admin-events-any-status"],
+    queryFn: () => listRows<Parameters<typeof eventFromRow>[0]>("site_events"),
+    enabled: on,
+    staleTime: FIVE_MIN,
+    retry: false,
+  });
+  if (!on) return { event: undefined, loading: false };
+  const found = (q.data ?? []).map(eventFromRow).find((e) => e.slug === slug);
+  // shortZone for the same reason useEvents applies it: one event must not read
+  // "EDT" on its own page and "ET" in the listing.
+  return { event: found ? { ...found, time: shortZone(found.time) } : undefined, loading: q.isLoading };
 }
 
 export function usePosts(): { posts: BlogPost[]; loading: boolean } {

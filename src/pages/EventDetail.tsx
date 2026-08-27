@@ -16,7 +16,7 @@ import ShareGate from "@/components/forms/ShareGate";
 import EventActionGate from "@/components/forms/EventActionGate";
 import EventDisclaimer from "@/components/EventDisclaimer";
 import { gcalLink, eventFullDate, eventDisplayTitle, eventLocationText, type EventItem } from "@/data/events";
-import { useEvents } from "@/hooks/use-content";
+import { useEvents, useDraftEvent } from "@/hooks/use-content";
 import { useExternalEvents } from "@/hooks/use-external-events";
 
 // Where blocks may be dropped on an event page, in page order.
@@ -148,13 +148,20 @@ const EventDetail = () => {
   const { slug } = useParams<{ slug: string }>();
   const { events, loading } = useEvents();
   const { events: externalEvents, loading: extLoading } = useExternalEvents();
-  // ETU/Supabase events first, then the aggregated US-wide feed (external).
-  const event =
-    events.find((e) => e.slug === slug) ?? externalEvents.find((e) => e.slug === slug);
+  const published = events.find((e) => e.slug === slug);
+  // A draft is invisible to the public site by design, so an editor who clicked
+  // "Edit on page" from the CMS used to land here and get the AGGREGATED FEED's
+  // copy of the same event instead — which is not ours and therefore has no
+  // editable fields. Only looked up when the published lookup missed, and only
+  // for a signed-in editor.
+  const { event: draft, loading: draftLoading } = useDraftEvent(slug, !published);
+  // Ours first (published, then a draft an editor is working on), and only then
+  // the aggregated US-wide feed.
+  const event = published ?? draft ?? externalEvents.find((e) => e.slug === slug);
 
   if (!event) {
     // Supabase + feed events resolve async — show a loader before "not found".
-    if (loading || extLoading) {
+    if (loading || extLoading || draftLoading) {
       return (
         <Shell>
           <div className="flex items-center justify-center py-24 text-muted-foreground">

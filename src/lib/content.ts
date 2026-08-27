@@ -187,10 +187,14 @@ export function eventAdoptRow(e: EventItem): Record<string, unknown> {
  * curated slug (see mergeEvents below). Re-deriving the slug anywhere else
  * would link to /events/<generated> for exactly those events, and 404.
  */
-export function eventDetailPath(row: Parameters<typeof rowToEvent>[0]): string {
+export function eventFromRow(row: Parameters<typeof rowToEvent>[0]): EventItem {
   const e = rowToEvent(row);
   const curated = EVENTS.find((x) => eventDedupe(x) === eventDedupe(e));
-  return `/events/${e.slug || curated?.slug || fallbackSlug(e)}`;
+  return { ...e, slug: e.slug || curated?.slug || fallbackSlug(e) };
+}
+
+export function eventDetailPath(row: Parameters<typeof rowToEvent>[0]): string {
+  return `/events/${eventFromRow(row).slug}`;
 }
 
 // ── Merge dynamic + curated static (dynamic wins on conflicts) ────────────────
