@@ -34,6 +34,10 @@ const statusStyle = (s: string) =>
  */
 const statusLabel = (s: string) => (s === "published" ? "online" : s);
 
+/** The stored value the public site tests for. Everything else — drafts,
+ *  archived rows, removal markers — is defined by NOT being this. */
+const PUBLISHED_STATUS = "published";
+
 // React Query key that the PUBLIC hooks also read (see src/hooks/use-content.ts),
 // so publishing/editing here refreshes the live pages too.
 const publicKeyFor: Record<string, string> = {
@@ -49,6 +53,11 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
   const role = auth.status === "editor" ? auth.editor.role : "viewer";
   const canWrite = role !== "viewer";                       // authors/editors/admins
   const canPublish = role === "admin" || role === "editor"; // authors save drafts only
+  // Where "not live" lives for this collection. Read from the config rather than
+  // hardcoded, so a collection whose first non-published status is called
+  // something else still works. "archived" is excluded: taking a row off the
+  // site is not the same as archiving it, which is what Delete does.
+  const draftStatus = config.statusOptions.find((o) => o !== PUBLISHED_STATUS && o !== "archived") ?? "draft";
   const isAdmin = role === "admin";                         // permanent delete only
   const adminKey = ["admin-collection", config.table];
 
@@ -204,7 +213,19 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
     return "";
   };
 
-  const save = async () => {
+  // What the row being edited is right now. Read from `draft` rather than
+  // `editing` so the footer follows an unsaved status change within the form.
+  const currentStatus = String(draft[config.statusField] ?? (isNew ? config.statusOptions[0] : ""));
+  const isLive = currentStatus === PUBLISHED_STATUS;
+
+  /**
+   * Save, optionally moving the row to a different status.
+   *
+   * `nextStatus` is what the Publish / Save as draft buttons pass. Without it
+   * the row keeps whatever status it already had, which is what a plain Save
+   * should do — editing a live event must never quietly unpublish it.
+   */
+  const save = async (nextStatus?: string) => {
     const v = validate();
     if (v) { setFormError(v); return; }
     setSaving(true); setFormError("");
@@ -220,17 +241,40 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
       payload[f.name] = f.type === "date" && (v === "" || v === undefined) ? null : v;
     }
     // Authors can only save drafts — force it (a published default would 403).
-    payload[config.statusField] = canPublish ? (draft[config.statusField] ?? config.statusOptions[0]) : "draft";
+    const status = canPublish
+      ? (nextStatus ?? draft[config.statusField] ?? config.statusOptions[0])
+      : "draft";
+    payload[config.statusField] = status;
+    const wasLive = String(draft[config.statusField] ?? "") === PUBLISHED_STATUS;
+    const goingLive = status === PUBLISHED_STATUS && !wasLive;
     try {
+      let savedId = editing?.id ? String(editing.id) : "";
       if (isNew) {
-        await insertRow(config.table, payload);
-        toast.success(`${config.singular} created`);
+        const created = await insertRow(config.table, payload);
+        savedId = String((created as Row)?.id ?? "");
+        toast.success(goingLive ? `${config.singular} published` : `${config.singular} created`);
       } else if (editing?.id) {
         await updateRow(config.table, editing.id, payload);
-        toast.success(`${config.singular} saved`);
+        toast.success(
+          goingLive ? `${config.singular} published`
+            : status !== PUBLISHED_STATUS && wasLive ? `${config.singular} taken off the site`
+            : `${config.singular} saved`,
+        );
       }
       invalidate();
       close();
+      // Publishing from the LIST already emailed the organiser (toggleStatus);
+      // publishing from this editor did not, because the editor had no publish
+      // button at all. Now that it does, the two paths have to behave the same
+      // way, or which button you happened to use decides whether the person who
+      // submitted the event ever hears back.
+      if (config.table === "site_events" && goingLive && savedId) {
+        notifyEventPublished(savedId)
+          .then((r) => { if (r.sent) toast.success("Organiser emailed their event link."); })
+          .catch((e) => toast.error(
+            `Published, but the organiser was not emailed: ${e instanceof Error ? e.message : "unknown error"}`,
+          ));
+      }
     } catch (e) {
       setFormError(e instanceof Error ? e.message : "Save failed.");
     } finally {
@@ -655,15 +699,47 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
                   <AlertCircle className="w-4 h-4" /> {formError}
                 </p>
               )}
-              <div className="flex items-center gap-2">
+              {/* Publish / draft lives HERE, not only in the list.
+                  With 21 imported drafts to work through, the review is: open
+                  one, fix the city, publish. Without a publish button in the
+                  editor that middle step meant saving, closing, finding the row
+                  again and hitting the list toggle — four actions to do one
+                  thing, twenty-one times.
+
+                  NOTE the arrow functions. `onClick={save}` would hand the click
+                  Event to save()'s new nextStatus parameter and write a
+                  MouseEvent into the status column. */}
+              <div className="flex flex-wrap items-center gap-2">
+                {canPublish && !isLive && (
+                  <button
+                    onClick={() => save(PUBLISHED_STATUS)}
+                    disabled={saving}
+                    className="inline-flex items-center gap-2 rounded-xl gradient-hero text-white font-semibold px-5 py-2.5 text-sm hover:opacity-90 transition-opacity disabled:opacity-60"
+                  >
+                    {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Eye className="w-4 h-4" />}
+                    Publish
+                  </button>
+                )}
                 <button
-                  onClick={save}
+                  onClick={() => save(canPublish && !isLive ? draftStatus : undefined)}
                   disabled={saving}
-                  className="inline-flex items-center gap-2 rounded-xl gradient-hero text-white font-semibold px-5 py-2.5 text-sm hover:opacity-90 transition-opacity disabled:opacity-60"
+                  className={canPublish && !isLive
+                    ? "inline-flex items-center gap-2 rounded-xl border border-border bg-background px-5 py-2.5 text-sm font-semibold text-foreground hover:bg-muted transition-colors disabled:opacity-60"
+                    : "inline-flex items-center gap-2 rounded-xl gradient-hero text-white font-semibold px-5 py-2.5 text-sm hover:opacity-90 transition-opacity disabled:opacity-60"}
                 >
                   {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                  Save
+                  {canPublish && !isLive ? "Save as draft" : "Save"}
                 </button>
+                {canPublish && isLive && (
+                  <button
+                    onClick={() => save(draftStatus)}
+                    disabled={saving}
+                    title="Keep it here, take it off the live site"
+                    className="inline-flex items-center gap-2 rounded-xl border border-border bg-background px-5 py-2.5 text-sm font-medium text-foreground hover:bg-muted transition-colors disabled:opacity-60"
+                  >
+                    <EyeOff className="w-4 h-4" /> Take offline
+                  </button>
+                )}
                 <button
                   onClick={close}
                   className="rounded-xl border border-border bg-background px-5 py-2.5 text-sm font-medium text-foreground hover:bg-muted transition-colors"
@@ -684,7 +760,13 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
                     <LayoutTemplate className="w-4 h-4" /> {config.editOnPageLabel ?? "Edit on page"}
                   </a>
                 )}
-                {!canPublish && <span className="text-xs text-muted-foreground ml-auto">Saved as a draft — an editor can publish it.</span>}
+                {!canPublish
+                  ? <span className="text-xs text-muted-foreground ml-auto">Saved as a draft — an editor can publish it.</span>
+                  : (
+                    <span className="ml-auto text-xs text-muted-foreground">
+                      {isNew ? "Not saved yet" : <>Currently <span className={`font-semibold ${isLive ? "text-secondary" : "text-foreground"}`}>{statusLabel(currentStatus)}</span></>}
+                    </span>
+                  )}
               </div>
             </div>
           </div>
