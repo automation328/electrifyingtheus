@@ -125,6 +125,29 @@ export async function fetchEvents(): Promise<EventItem[]> {
   return (data as EventRow[]).map(rowToEvent);
 }
 
+/**
+ * Registration URLs claimed by event rows the site does not show — drafts,
+ * archived rows, and removal markers (0030).
+ *
+ * Subtracted from the external feed on the Events page. Without it, archiving an
+ * imported event UN-hides its feed twin: the feed dedupe keys on the source id
+ * of the events it can see, so a row leaving the visible set takes its
+ * suppression with it. Eleven events were live that way.
+ *
+ * Failure is not fatal here. A missing view (a database that has not run 0030
+ * yet) or a transient error must not take the Events page down over a dedupe
+ * refinement — the page falls back to the old behaviour, which is a feed event
+ * showing when it should not, not an empty page.
+ */
+export async function fetchFeedSuppressions(): Promise<string[]> {
+  if (!supabase) return [];
+  const { data, error } = await supabase.from("event_feed_suppressions").select("register_url");
+  if (error || !data) return [];
+  return (data as { register_url: string | null }[])
+    .map((r) => r.register_url)
+    .filter((u): u is string => !!u);
+}
+
 export async function fetchPosts(): Promise<BlogPost[]> {
   if (!supabase) return [];
   const { data, error } = await supabase

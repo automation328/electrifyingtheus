@@ -14,8 +14,9 @@ import {
 import { filterEvents } from "@/lib/event-search";
 import { splitEventDescription } from "@/lib/event-description";
 import EventSpeakers from "@/components/EventSpeakers";
-import { useEvents } from "@/hooks/use-content";
-import { useExternalEvents, sourceEventKey } from "@/hooks/use-external-events";
+import { useEvents, useFeedSuppressions } from "@/hooks/use-content";
+import { useExternalEvents } from "@/hooks/use-external-events";
+import { mergeFeedEvents } from "@/lib/event-feed";
 import { submitLead } from "@/lib/submitLead";
 import EmailShareButton from "@/components/forms/EmailShareButton";
 import ShareGate from "@/components/forms/ShareGate";
@@ -52,34 +53,17 @@ const Events = () => {
 
   const { events } = useEvents();
   const { events: externalEvents } = useExternalEvents();
+  const suppressed = useFeedSuppressions();
 
   // List = ETU's own events first (soonest first), then the aggregated US-wide
   // EV feed (soonest first). Past events are dropped — except our own, which we
   // keep on the site after they're done (isActive). External-feed events always
-  // drop once past.
-  const allUpcoming = useMemo(() => {
-    const etu = events.filter(isActive).sort(byDateAsc);
-    // Drop feed events we already hold ourselves. The /api/events feed
-    // aggregates driveelectricmonth.org, and so did the 0019 import — 57 events
-    // arrive from both directions, and concatenating rendered every one of them
-    // twice. Ours wins: a site_events row carries the full venue address, local
-    // start and end times and a longer description, where the feed has only
-    // what the ICS entry held. The 57th is Poolesville, where "ours" is a
-    // hand-authored row with an uploaded flyer — the feed copy has neither.
-    //
-    // A feed event with no recognisable source id is KEPT. We cannot prove it
-    // is a duplicate, and dropping it on a guess loses a real event.
-    const mine = new Set(
-      etu.map((e) => sourceEventKey(e.registerUrl)).filter((k): k is string => !!k),
-    );
-    const ext = externalEvents
-      .filter((e) => {
-        const k = sourceEventKey(e.registerUrl);
-        return isUpcoming(e) && !(k && mine.has(k));
-      })
-      .sort(byDateAsc);
-    return [...etu, ...ext];
-  }, [events, externalEvents]);
+  // drop once past. The dedupe between the two lives in mergeFeedEvents, with
+  // its own tests.
+  const allUpcoming = useMemo(
+    () => mergeFeedEvents(events.filter(isActive).sort(byDateAsc), externalEvents, suppressed),
+    [events, externalEvents, suppressed],
+  );
 
   // Every rule the box follows lives in filterEvents, with its own tests.
   const filtered = useMemo(() => filterEvents(allUpcoming, query), [query, allUpcoming]);

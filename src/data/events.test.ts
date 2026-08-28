@@ -11,7 +11,7 @@ import { describe, it, expect, afterEach, vi } from "vitest";
 import {
   eventEndDate, eventLastDay, isUpcoming, isActive, eventDateRange, eventFullDate,
   gcalLink, eventDate, shortZone, eventCity, eventStateCode, eventDisplayTitle,
-  eventState, parseStateQuery, startsWord,
+  eventState, parseStateQuery, startsWord, EVENTS,
   type EventItem,
 } from "@/data/events";
 
@@ -398,5 +398,31 @@ describe("matching free text to a word", () => {
 
   it("is safe on blank input", () => {
     expect(startsWord("", "ca")).toBe(false);
+  });
+});
+
+// The Part 2 webinar ran on 27 Aug 2026 and its recording now lives at
+// /from-pump-to-plug-part-2. Its CMS row was set back to draft, which the
+// listing could not act on by itself — mergeEvents re-appends any curated event
+// that no PUBLISHED row matched, so the hardcoded entry outlived its own row and
+// kept a "register now" link live over a date that had passed. It is retired the
+// ordinary way instead: no `ours`, so isActive drops it once the date is behind
+// us. The entry stays in the catalog because /events/from-pump-to-plug is a
+// dedicated route whose page falls back to EVENTS.find(slug).
+describe("the Part 2 webinar is retired, not deleted", () => {
+  const part2 = EVENTS.find((e) => e.slug === "from-pump-to-plug");
+
+  it("is still in the catalog, so its dedicated page can find it", () => {
+    expect(part2).toBeTruthy();
+  });
+
+  it("does not claim `ours`, which would keep it listed forever", () => {
+    expect(part2!.ours).toBeFalsy();
+  });
+
+  it("is no longer active now its date has passed", () => {
+    vi.setSystemTime(new Date("2026-08-29T12:00:00Z"));
+    expect(isActive(part2!)).toBe(false);
+    vi.useRealTimers();
   });
 });

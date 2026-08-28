@@ -543,7 +543,18 @@ export const EVENTS: EventItem[] = [
       "A free one-hour webinar on how switching from gas to electric saves drivers thousands — on fuel, maintenance, and incentives. See real cost comparisons and how to find the rebates available in your area. Powered by Electrifying Michigan, Electrifying the US, and Electrifying Virginia.",
     image: pumpToPlug,
     featured: true,
-    ours: true,
+    // Deliberately NOT `ours: true`, which is what keeps one of our own events
+    // listed after its date. This webinar ran on 27 Aug 2026 and its recording
+    // is published at /from-pump-to-plug-part-2, so a live listing pointing at
+    // a Zoom registration for a date that has passed is the wrong thing to show
+    // — and the CMS row for it was set back to draft, which the listing could
+    // not honour on its own: mergeEvents re-appends any curated event that no
+    // PUBLISHED row matched, so the entry outlived its own row. Dropping the
+    // flag lets isActive retire it the way it retires every other past event.
+    //
+    // The entry itself stays. /events/from-pump-to-plug is a dedicated route
+    // (App.tsx) whose page falls back to EVENTS.find(slug) — delete this and it
+    // falls through to EVENTS[0] and renders a different event entirely.
     slug: "from-pump-to-plug",
     registerUrl: "https://us06web.zoom.us/webinar/register/WN_PtzGLoOyQqmDMg8lXpKRlw#/registration",
   },

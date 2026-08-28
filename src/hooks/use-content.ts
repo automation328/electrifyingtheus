@@ -5,7 +5,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { isSupabaseConfigured } from "@/lib/supabase";
-import { fetchEvents, fetchPosts, fetchGallery, fetchJobs, mergeEvents, mergePosts, eventFromRow } from "@/lib/content";
+import { fetchEvents, fetchPosts, fetchGallery, fetchJobs, fetchFeedSuppressions, mergeEvents, mergePosts, eventFromRow } from "@/lib/content";
 import { listRows } from "@/lib/admin-api";
 import { useEditorAuth } from "@/lib/auth";
 import { EVENTS, isActive, shortZone, type EventItem } from "@/data/events";
@@ -33,6 +33,28 @@ export function useEvents(): { events: EventItem[]; loading: boolean } {
   // organiser typed; only what a reader sees is normalised.
   const events = base.filter(isActive).map((e) => ({ ...e, time: shortZone(e.time) }));
   return { events, loading: isSupabaseConfigured ? q.isLoading : false };
+}
+
+/**
+ * Registration URLs claimed by event rows the site does not show, so the Events
+ * page can drop the feed copies they were suppressing. See fetchFeedSuppressions.
+ *
+ * Same 5-minute staleness as the events themselves: the two are read together
+ * and there is nothing to gain from one being fresher than the other.
+ */
+const NO_SUPPRESSIONS: string[] = [];
+
+export function useFeedSuppressions(): string[] {
+  const q = useQuery({
+    queryKey: ["event-feed-suppressions"],
+    queryFn: fetchFeedSuppressions,
+    enabled: isSupabaseConfigured,
+    staleTime: FIVE_MIN,
+  });
+  // A shared constant, not a fresh `?? []`: the Events page feeds this straight
+  // into a useMemo dependency list, and a new empty array every render would
+  // rebuild the whole merged list on every render.
+  return q.data ?? NO_SUPPRESSIONS;
 }
 
 /**
