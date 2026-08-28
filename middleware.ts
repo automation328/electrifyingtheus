@@ -392,11 +392,20 @@ export default async function middleware(request: Request) {
     }
   }
 
+  // The icon links matter here, not just in index.html. Crawlers matched by
+  // CRAWLER never see the SPA shell — they get THIS head and nothing else, and
+  // it declared no icon at all, leaving them to fall back to whatever sits at
+  // the root /favicon.ico. That fallback was the scaffold logo for months.
+  // (Plain Googlebot is not in CRAWLER and gets the real index.html, so Google
+  // was reaching the same wrong file by the other route.)
   const html = `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${esc(meta.title)}</title>
 <meta name="description" content="${esc(meta.description)}">
 <link rel="canonical" href="${esc(meta.url)}">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" href="/favicon.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <meta property="og:site_name" content="Electrifying the US">
 <meta property="og:type" content="article">
 <meta property="og:title" content="${esc(meta.title)}">

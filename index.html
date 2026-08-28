@@ -2,8 +2,27 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="/favicon.png?v=2" />
-    <link rel="apple-touch-icon" href="/favicon.png?v=2" />
+    <!-- Icons. All three files must physically exist in public/: the catch-all
+         rewrite in vercel.json sends every unmatched path to index.html with a
+         200, so a declared-but-missing icon does not 404 — it serves HTML under
+         an image URL, and the global nosniff header stops the consumer
+         recovering from that. /favicon.ico earns its place even though it is
+         not declared-first: Google and most crawlers probe the root path
+         regardless of what is declared here, and for a long time that root file
+         was still the scaffold logo, which is what Google was putting beside
+         our search results. /apple-touch-icon.png is the same story for
+         iOS/Safari, which probes the root path unconditionally.
+         No ?v= cache-buster. Google's guideline is explicit — "The favicon URL
+         must be stable (don't change the URL frequently)" — so a versioned
+         query string works against us. It buys nothing either: Vercel serves
+         static assets max-age=0, must-revalidate with an ETag (its platform
+         default, not anything vercel.json sets), so replacing the bytes at a
+         fixed path propagates on the next deploy by itself. Dropping the ?v=2
+         that used to be here is one URL change, paid once, to reach a stable
+         path. Don't add another. -->
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Electrifying the US | EV vs Gas Calculator &amp; Zero-Emission Mobility</title>
     <meta name="description" content="See how much you'd save switching to an EV — real U.S. energy prices, state by state. Plus charging, incentives, events, and multimodal e-mobility." />
