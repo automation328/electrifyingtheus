@@ -69,6 +69,7 @@ vi.mock("@/lib/admin-api", () => ({
 }));
 
 import EventDetail from "@/pages/EventDetail";
+import { descriptionBlocks } from "@/lib/event-description";
 
 beforeAll(() => { window.scrollTo = () => {}; });
 afterEach(() => {
@@ -120,6 +121,89 @@ describe("a visitor's event page", () => {
     ours.value = [BASE];
     const { container } = renderEvent();
     expect(container.textContent).not.toContain("Edit this page");
+  });
+});
+
+// The CTAs sit inside the floated poster column. The details block beside it is
+// a later sibling whose animate-fade-up leaves a transform behind (fill mode
+// forwards), which makes a stacking context; its box is full container width,
+// because a float shortens line boxes and never the block box. Without a lift
+// on the poster that block covers the buttons and every CTA on the page stops
+// responding — Add to calendar, Share, Register, List Your Event and View more
+// events all went dead this way. jsdom has no layout, so the guard is on the
+// two classes that produce it rather than on a hit test.
+// Bullets are typed, not marked up: an editor writes "- " or "•" at the start
+// of a line and the reader gets a real list. The rule that matters most is the
+// one about text that types NO bullets — that is every event on the site today,
+// and it has to come out byte for byte as it did before.
+describe("typed bullet lines become a real list", () => {
+  it("leaves ordinary prose as one pre-line paragraph", () => {
+    expect(descriptionBlocks("First line.\nSecond line.")).toEqual([
+      { kind: "p", lines: ["First line.", "Second line."] },
+    ]);
+  });
+
+  it("takes -, * and • as bullets, and drops the marker", () => {
+    expect(descriptionBlocks("- one\n* two\n• three")).toEqual([
+      { kind: "ul", items: ["one", "two", "three"] },
+    ]);
+  });
+
+  it("keeps the prose around a list in its own paragraphs", () => {
+    expect(descriptionBlocks("Visit our tent for:\n- savings\n- charging\nSee you there.")).toEqual([
+      { kind: "p", lines: ["Visit our tent for:"] },
+      { kind: "ul", items: ["savings", "charging"] },
+      { kind: "p", lines: ["See you there."] },
+    ]);
+  });
+
+  it("does not treat an em dash or a bare hyphen as a bullet", () => {
+    // "— Denver, CO" and "well-known" must stay prose. Only a marker followed
+    // by a space starts a list item.
+    expect(descriptionBlocks("— Denver, CO\n-notabullet")).toEqual([
+      { kind: "p", lines: ["— Denver, CO", "-notabullet"] },
+    ]);
+  });
+
+  it("renders the list to the page, with the markers stripped", () => {
+    ours.value = [{ ...BASE, description: "Come by for:\n- EV incentives\n- Public charging" }];
+    const { container } = renderEvent();
+    const items = [...container.querySelectorAll("li")].map((li) => li.textContent);
+    expect(items).toEqual(["EV incentives", "Public charging"]);
+    expect(container.textContent).not.toContain("- EV incentives");
+  });
+});
+
+// The description used to start in the half-width channel beside the floated
+// poster and jump to full width partway through, so one paragraph rendered at
+// two measures. It clears the float instead.
+describe("the description clears the poster", () => {
+  it("starts below the float rather than beside it", () => {
+    ours.value = [BASE];
+    const { container } = renderEvent();
+    const desc = container.querySelector('div[class*="lg:clear-left"]');
+    expect(desc).toBeTruthy();
+    expect(desc!.textContent).toContain("Europe's policy-leading EV gathering");
+  });
+});
+
+describe("the poster column stays above the details block", () => {
+  it("carries a stacking lift, so the CTAs under the poster stay clickable", () => {
+    ours.value = [BASE];
+    const { container } = renderEvent();
+    const poster = container.querySelector('div[class*="lg:float-left"]');
+    expect(poster).toBeTruthy();
+    expect(poster!.className).toMatch(/(^|\s)z-\d+(\s|$)/);
+    expect(poster!.className).toContain("relative");
+  });
+
+  it("is lifted above the sibling whose animation creates the layer", () => {
+    ours.value = [BASE];
+    const { container } = renderEvent();
+    const poster = container.querySelector('div[class*="lg:float-left"]')!;
+    const details = poster.nextElementSibling!;
+    expect(details.className).toContain("animate-fade-up");
+    expect(details.className).not.toMatch(/(^|\s)z-\d+(\s|$)/);
   });
 });
 

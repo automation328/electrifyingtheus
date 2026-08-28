@@ -10,6 +10,7 @@ import EditableText, { PageStylesContext } from "@/components/inline/EditableTex
 import EditableImage from "@/components/inline/EditableImage";
 import LinkPicker from "@/components/inline/LinkPicker";
 import { useInlineEdit } from "@/components/inline/edit-context";
+import { descriptionBlocks } from "@/lib/event-description";
 import { eventAdoptRow } from "@/lib/content";
 import { safeHref } from "@/lib/safe-href";
 import ShareGate from "@/components/forms/ShareGate";
@@ -50,6 +51,33 @@ const Field = ({ path, value, editable }: { path: string; value: string; editabl
   const ctx = useInlineEdit();
   if (!editable || !ctx?.editing) return <>{value}</>;
   return <EditableText path={path}>{value}</EditableText>;
+};
+
+/**
+ * The event description. Bullet lines an editor typed come out as a real list;
+ * see @/lib/event-description for what counts as one and why.
+ *
+ * While editing, none of that applies: the editor gets the raw stored string in
+ * one box, because that is the thing being saved. Parsed output is for readers.
+ */
+const Description = ({ path, value, editable }: { path: string; value: string; editable: boolean }) => {
+  const ctx = useInlineEdit();
+  if (editable && ctx?.editing) {
+    return <p className="whitespace-pre-line"><EditableText path={path}>{value}</EditableText></p>;
+  }
+  return (
+    <>
+      {descriptionBlocks(value).map((b, i) =>
+        b.kind === "ul" ? (
+          <ul key={i} className="list-disc pl-5 space-y-1 my-2">
+            {b.items.map((item, j) => <li key={j}>{item}</li>)}
+          </ul>
+        ) : (
+          <p key={i} className="whitespace-pre-line">{b.lines.join("\n")}</p>
+        ),
+      )}
+    </>
+  );
 };
 
 /** Built-in wording for the two Register buttons, used when the event sets none. */
@@ -228,7 +256,19 @@ const EventDetail = () => {
             cannot ride up into it. */}
         <div className="lg:flow-root">
           {/* Poster */}
-          <div className="relative animate-fade-up mb-8 lg:float-left lg:w-[calc(50%-1.5rem)] lg:mr-12">
+          {/* z-10 is load-bearing, not decoration. The details block below is a
+              later sibling carrying animate-fade-up, whose `forwards` fill mode
+              leaves transform: translateY(0) on the element for good — a no-op
+              visually, but any transform other than `none` makes a stacking
+              context. That put the details block on its own layer above this
+              floated one, and its box is the FULL container width (the float
+              only shortens line boxes, never the block box), so the description
+              paragraph lay invisibly across the poster and swallowed the clicks
+              for every CTA underneath it: Add to calendar, Share, Register, List
+              Your Event and View more events were all dead. Lifting the poster
+              puts the buttons back on top. Do not drop this without either
+              removing the animation below or clearing its transform. */}
+          <div className="relative z-10 animate-fade-up mb-8 lg:float-left lg:w-[calc(50%-1.5rem)] lg:mr-12">
             {/* Fixed 4:3 frame so every event's poster is the same size. The whole
                 flyer shows (object-contain), with a soft blurred fill of itself
                 behind so mismatched aspect ratios don't leave flat bars. */}
@@ -315,9 +355,18 @@ const EventDetail = () => {
               <span className="flex items-center gap-2.5"><MapPin className="w-5 h-5 text-primary shrink-0" /> <RawEditable path="fields.location" raw={f.location ?? event.location} display={eventLocationText(event)} editable={ownEvent} /></span>
             </div>
 
-            <p className="text-foreground leading-relaxed whitespace-pre-line">
-              <Field path="fields.description" value={f.description ?? event.description} editable={ownEvent} />
-            </p>
+            {/* clear-left drops the description below the poster instead of
+                letting it start in the half-width channel beside it and then
+                jump to full width partway through a sentence. The badge, title
+                and the date/time/location block still sit beside the poster —
+                they are short and fixed-height, so they read as a column. Prose
+                is not: it changed measure mid-paragraph, which looked like two
+                unrelated blocks of text, and a bullet list would have been
+                worse — the same list rendered at two different widths. Below
+                the float it has one measure, whatever the event writes. */}
+            <div className="text-foreground leading-relaxed lg:clear-left lg:pt-6">
+              <Description path="fields.description" value={f.description ?? event.description} editable={ownEvent} />
+            </div>
           </div>
         </div>
 

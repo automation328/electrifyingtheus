@@ -40,3 +40,42 @@ export function splitEventDescription(description: string): { intro: string; spe
 
   return { intro: text.slice(0, marker.index).trim(), speakers };
 }
+
+// ── Typed bullet lines ───────────────────────────────────────────────────────
+//
+// The description is one plain-text column that an editor types into, and what
+// they type is what is stored. That is worth keeping, so bullets stay something
+// you TYPE ("- ", "* " or "•") rather than markup you have to know. The parsing
+// happens on the way out, here.
+//
+// Why bother: as literal characters in a pre-line paragraph, a bullet that
+// wraps puts its second line flush against the left margin, directly under the
+// dot, so one three-line bullet reads as three separate points. A real <li>
+// hangs the indent and the wrapped text lines up under the first word.
+//
+// Runs of ordinary lines are joined back together and stay in a pre-line
+// paragraph, which is what the whole description used to be — so an event that
+// types no bullets renders character for character as it did before.
+
+const BULLET = /^\s*[-*•]\s+/;
+
+export type DescBlock =
+  | { kind: "p"; lines: string[] }
+  | { kind: "ul"; items: string[] };
+
+export function descriptionBlocks(text: string): DescBlock[] {
+  const blocks: DescBlock[] = [];
+  for (const line of text.split("\n")) {
+    const last = blocks[blocks.length - 1];
+    if (BULLET.test(line)) {
+      const item = line.replace(BULLET, "").trim();
+      if (last?.kind === "ul") last.items.push(item);
+      else blocks.push({ kind: "ul", items: [item] });
+    } else if (last?.kind === "p") {
+      last.lines.push(line);
+    } else {
+      blocks.push({ kind: "p", lines: [line] });
+    }
+  }
+  return blocks;
+}
