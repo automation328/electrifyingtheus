@@ -11,7 +11,7 @@ import { type ContentSection, type ContentLinkCard } from "@/components/ContentP
 import EditableContentPage from "@/components/EditableContentPage";
 
 const video = {
-  youtubeId: "SGtCmPLpyCI",
+  youtubeId: "_HRXa3hjlec",
   title: "Webinar Series Part 2: From The Pump To The Plug",
 };
 
@@ -72,8 +72,8 @@ const FromPumpToPlugPart2 = () => (
     path="/from-pump-to-plug-part-2"
     badge="Webinar Replay"
     kicker="Webinar Replay"
-    title="Webinar Series Part 2: From The Pump To The Plug:"
-    highlight="How Electric Vehicles Can Save You Thousands"
+    title="Watch The Webinar: Part 2 - From The Pump To The Plug,"
+    highlight="How EVs Can Save Thousands"
     intro="Watch Part 2 of our From the Pump to the Plug series in full, and thank you to everyone who joined us live. Our panel from CARB, Coltura, Uber, Austin Energy, and GRID Alternatives took on the real economics of going electric — where the savings actually come from, and who they reach."
     icon={PlayCircle}
     compactTitle
