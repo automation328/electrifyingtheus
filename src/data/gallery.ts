@@ -51,13 +51,14 @@ export const GALLERY_VIDEOS: GalleryVideo[] = [
     poster: "/media/testimonial-1-poster.jpg",
   },
   // Webinar replay — the card links to the replay page rather than playing here,
-  // so visitors land on the full write-up (and its Part 2 registration CTA).
+  // so visitors land on the full write-up. Part 1 stays live at
+  // /save-with-evs-webinar; this card carries the newer episode.
   {
     provider: "youtube",
-    id: "WaIWh8wY_tI",
-    title: "Webinar Part 1: From The Pump To The Plug",
-    poster: "https://i.ytimg.com/vi/WaIWh8wY_tI/maxresdefault.jpg",
-    href: "/save-with-evs-webinar",
+    id: "_HRXa3hjlec",
+    title: "Webinar Part 2: From The Pump To The Plug",
+    poster: "https://i.ytimg.com/vi/_HRXa3hjlec/maxresdefault.jpg",
+    href: "/from-pump-to-plug-part-2",
   },
   {
     provider: "file",
