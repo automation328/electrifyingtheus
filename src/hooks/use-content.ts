@@ -5,7 +5,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { isSupabaseConfigured } from "@/lib/supabase";
-import { fetchEvents, fetchPosts, fetchGallery, fetchJobs, fetchFeedSuppressions, mergeEvents, mergePosts, eventFromRow } from "@/lib/content";
+import { fetchEvents, fetchPosts, fetchGallery, fetchJobs, fetchFeedSuppressions, mergeEvents, mergeGallery, mergePosts, eventFromRow } from "@/lib/content";
 import { listRows } from "@/lib/admin-api";
 import { useEditorAuth } from "@/lib/auth";
 import { EVENTS, isActive, shortZone, type EventItem } from "@/data/events";
@@ -135,10 +135,7 @@ export function useGallery(): { photos: GalleryPhoto[]; videos: GalleryVideo[]; 
   });
   if (!isSupabaseConfigured) return { photos: GALLERY_PHOTOS, videos: GALLERY_VIDEOS, loading: false };
   const d = q.data ?? { photos: [], videos: [] };
-  // Submitted media first, then the curated seed.
-  return {
-    photos: [...d.photos, ...GALLERY_PHOTOS],
-    videos: [...d.videos, ...GALLERY_VIDEOS],
-    loading: q.isLoading,
-  };
+  // Submitted media first, then whatever the seed still adds — a curated entry
+  // the CMS has already imported as a row is dropped, or it renders twice.
+  return { ...mergeGallery(d), loading: q.isLoading };
 }

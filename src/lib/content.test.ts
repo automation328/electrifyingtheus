@@ -6,7 +6,8 @@
 // behaviour so that can't creep back in.
 
 import { describe, it, expect } from "vitest";
-import { eventDetailPath, eventAdoptRow, mergeEvents } from "@/lib/content";
+import { eventDetailPath, eventAdoptRow, mergeEvents, mergeGallery } from "@/lib/content";
+import { GALLERY_PHOTOS, GALLERY_VIDEOS, type GalleryVideo } from "@/data/gallery";
 import { EVENTS, type EventItem } from "@/data/events";
 
 // The curated webinar: { month: "AUG", day: "27", year: 2026, slug: "from-pump-to-plug" }.
@@ -164,5 +165,51 @@ describe("removal markers when the curated day is unpadded (0016)", () => {
   it("and the marker itself is never rendered as an event", () => {
     const marker: EventItem = { ...curated, id: "marker-1", day: "09", hidden: true };
     expect(mergeEvents([marker]).some((e) => e.id === "marker-1")).toBe(false);
+  });
+});
+
+// ── gallery: the same media must not render twice ────────────────────────────
+//
+// The CMS "import" button writes the curated seed into site_gallery and strips
+// the __static marker, so the row is indistinguishable from an upload. The
+// gallery used to concatenate rows and seed unconditionally, which showed every
+// imported video and photo twice on /gallery.
+
+describe("merging gallery rows with the curated seed", () => {
+  const curatedVideo = GALLERY_VIDEOS[0];
+  const curatedPhoto = GALLERY_PHOTOS[0];
+
+  it("keeps the curated entries when the database is empty", () => {
+    const merged = mergeGallery({ photos: [], videos: [] });
+    expect(merged.videos).toHaveLength(GALLERY_VIDEOS.length);
+    expect(merged.photos).toHaveLength(GALLERY_PHOTOS.length);
+  });
+
+  it("drops the curated copy of a video a row already carries", () => {
+    // What galleryStaticRows writes, round-tripped through fetchGallery: a file
+    // video keeps its src, an embed keeps its id.
+    const asRow: GalleryVideo = { ...curatedVideo, title: "Renamed in the CMS" };
+    const merged = mergeGallery({ photos: [], videos: [asRow] });
+    const key = (v: GalleryVideo) => v.id ?? v.src;
+    expect(merged.videos.filter((v) => key(v) === key(curatedVideo))).toHaveLength(1);
+  });
+
+  it("and the row wins, so a CMS edit is what shows", () => {
+    const asRow: GalleryVideo = { ...curatedVideo, title: "Renamed in the CMS" };
+    const merged = mergeGallery({ photos: [], videos: [asRow] });
+    expect(merged.videos[0].title).toBe("Renamed in the CMS");
+  });
+
+  it("drops the curated copy of a photo a row already carries", () => {
+    const asRow = { ...curatedPhoto, caption: "Renamed in the CMS" };
+    const merged = mergeGallery({ photos: [asRow], videos: [] });
+    expect(merged.photos.filter((p) => p.src === curatedPhoto.src)).toHaveLength(1);
+  });
+
+  it("keeps a row that matches nothing curated", () => {
+    const uploaded: GalleryVideo = { provider: "file", title: "", src: "/media/uploaded.mp4" };
+    const merged = mergeGallery({ photos: [], videos: [uploaded] });
+    expect(merged.videos).toHaveLength(GALLERY_VIDEOS.length + 1);
+    expect(merged.videos[0].src).toBe("/media/uploaded.mp4");
   });
 });

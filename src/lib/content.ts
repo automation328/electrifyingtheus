@@ -5,7 +5,7 @@
 import { supabase } from "@/lib/supabase";
 import { EVENTS, slugify, type EventItem } from "@/data/events";
 import { BLOG_POSTS, type BlogPost } from "@/data/blog-posts";
-import type { GalleryPhoto, GalleryVideo } from "@/data/gallery";
+import { GALLERY_PHOTOS, GALLERY_VIDEOS, type GalleryPhoto, type GalleryVideo } from "@/data/gallery";
 import type { Job } from "@/data/careers";
 import type { VideoProvider } from "@/components/VideoEmbed";
 import type { VehicleData } from "@/lib/tco-calculator";
@@ -304,6 +304,38 @@ export async function fetchGallery(): Promise<{ photos: GalleryPhoto[]; videos: 
       };
     });
   return { photos, videos };
+}
+
+/**
+ * What a gallery entry is, for the purpose of spotting the same media twice.
+ * `galleryStaticRows` writes `url: v.id ?? v.src` for a video and `url: p.src`
+ * for a photo, and `fetchGallery` maps that url back to `id` or `src`, so this
+ * is the one value a curated entry and its row copy are guaranteed to share.
+ */
+const videoKey = (v: GalleryVideo): string => v.id ?? v.src ?? "";
+
+/**
+ * Merge the published rows with the curated seed, dropping the curated copy of
+ * anything a row already carries.
+ *
+ * A curated entry can also exist as a row: the CMS "import" button writes the
+ * seed into site_gallery and strips the `__static` marker on the way in
+ * (CollectionManager.tsx:162), so the copy is indistinguishable from an upload.
+ * Without this filter both render and the gallery shows every seeded video and
+ * photo twice.
+ *
+ * The row wins, which is the same precedence mergeEvents uses: an editor can
+ * change a row in the CMS, and cannot change the constant without a deploy.
+ */
+export function mergeGallery(
+  dynamic: { photos: GalleryPhoto[]; videos: GalleryVideo[] },
+): { photos: GalleryPhoto[]; videos: GalleryVideo[] } {
+  const rowVideos = new Set(dynamic.videos.map(videoKey));
+  const rowPhotos = new Set(dynamic.photos.map((p) => p.src));
+  return {
+    photos: [...dynamic.photos, ...GALLERY_PHOTOS.filter((p) => !rowPhotos.has(p.src))],
+    videos: [...dynamic.videos, ...GALLERY_VIDEOS.filter((v) => !rowVideos.has(videoKey(v)))],
+  };
 }
 
 // ── Jobs (site_jobs) ─────────────────────────────────────────────────────────
