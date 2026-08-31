@@ -5,49 +5,44 @@ src/assets/logo-colored.png. Idempotent: re-running reproduces the committed fil
 byte for byte.
 
 Run:
-  pip install pillow numpy
+  pip install pillow
   python scripts/make-icons.py
 
-Two marks, chosen per size, because an ICO carries separate artwork per entry.
+One mark at every size: the lockup from the navbar - map outline, ELECTRIFYING THE
+U.S., the three vehicles. Brand consistency is the point, so it is used even at the
+sizes where it does not fully resolve. Be aware of what that costs: the map outline
+is a hairline stroke and the wordmark is text, so 64 and up are clean, 48 is soft,
+and 32 and 16 read as a blue smudge with a green core rather than as a map. 16 is
+the size a browser tab draws, so that is what a tab shows.
 
-The lockup - map outline, ELECTRIFYING THE U.S., the three vehicles - is what
-people recognise from the navbar. It holds at 64px, where the wordmark is still
-discernible. At 48 the outline has washed out to a tint and the letters have gone;
-at 32 and 16 it is a pale blur, and 16 is the size a browser tab actually draws.
-
-So 16, 32 and 48 get the filled map silhouette instead: the same map path, flooded
-solid, which is the only version that reads that small. 64 and up - the bookmark
-bar, Windows, the iOS home screen, Google's result row - get the lockup.
-
-Both marks come from the same crop, so they cannot drift apart if the source art is
-ever redrawn.
+If legibility at tab size ever matters more than consistency, the alternative is a
+filled silhouette of the same map path - see 9d516f5, which shipped exactly that.
 """
 import io
 import struct
-from collections import deque
 from pathlib import Path
 
-import numpy as np
 from PIL import Image, ImageEnhance
 
 ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "src" / "assets" / "logo-colored.png"
 OUT = ROOT / "public"
 
-BLUE = (12, 74, 177)
-GREEN = (25, 126, 50)
 WHITE = (255, 255, 255)
 
 # The lockup without the ElectrifyingTheUS.com line, which is the crop that makes
 # the mark legible small. Full resolution, so 256 is never upscaled.
 LOCKUP_BOX = (75, 255, 1488, 1137)
 
-# Below this, draw the silhouette instead of the lockup.
-LOCKUP_MIN = 64
+# The lockup is wide, so fitting it to the tile width leaves the square
+# letterboxed. Give it as much width as possible - it needs every pixel.
+PAD = 0.98
 
 # Sharpening for the sizes with no pixels to spare. The 8x box average is correct
-# but soft; without this the 16px coastline is a gradient, not an edge.
-SHARPEN = {16: 1.8, 32: 1.4}
+# but soft; below 64 the coastline is a gradient rather than an edge without this.
+# 2.6 is measured against 1.0 / 1.8 / 3.4 - it is the most contrast at 16 and 32
+# before the outline starts breaking into speckle.
+SHARPEN = {16: 2.6, 32: 2.6, 48: 2.0}
 
 ICO_SIZES = [16, 32, 48, 64, 128, 256]
 
@@ -60,52 +55,18 @@ def flatten(im):
     return ground.convert("RGB")
 
 
-def silhouette(source):
-    """Solid mask of the map: flood the outside, keep interior plus the stroke."""
-    ink = np.array(source.convert("RGBA").crop(LOCKUP_BOX).split()[3]) > 40
-    h, w = ink.shape
-    padded = np.zeros((h + 2, w + 2), bool)
-    padded[1:-1, 1:-1] = ink
-    outside = np.zeros_like(padded)
-    outside[0, 0] = True
-    queue = deque([(0, 0)])
-    while queue:
-        y, x = queue.popleft()
-        for dy, dx in ((1, 0), (-1, 0), (0, 1), (0, -1)):
-            ny, nx = y + dy, x + dx
-            if (0 <= ny < padded.shape[0] and 0 <= nx < padded.shape[1]
-                    and not outside[ny, nx] and not padded[ny, nx]):
-                outside[ny, nx] = True
-                queue.append((ny, nx))
-    mask = Image.fromarray((~outside[1:-1, 1:-1] * 255).astype("uint8"))
-    return mask.crop(mask.getbbox())
-
-
-SOURCE = Image.open(SRC)
-LOCKUP = flatten(SOURCE.crop(LOCKUP_BOX))
-MASK = silhouette(SOURCE)
+LOCKUP = flatten(Image.open(SRC).crop(LOCKUP_BOX))
 
 
 def tile(size):
     """One icon, supersampled 8x so edges antialias before the reduction."""
     n = size * 8
     canvas = Image.new("RGB", (n, n), WHITE)
-    if size >= LOCKUP_MIN:
-        pad = 0.98            # the lockup needs every pixel it can get
-        tw = int(n * pad)
-        th = max(1, int(tw * LOCKUP.height / LOCKUP.width))
-        canvas.paste(LOCKUP.resize((tw, th), Image.LANCZOS),
-                     ((n - tw) // 2, (n - th) // 2))
-    else:
-        pad = 0.96
-        tw = int(n * pad)
-        th = max(1, int(tw * MASK.height / MASK.width))
-        mask = MASK.resize((tw, th), Image.LANCZOS)
-        art = Image.new("RGB", (tw, th), GREEN)
-        art.paste(Image.new("RGB", (tw // 2, th), BLUE), (0, 0))
-        canvas.paste(art, ((n - tw) // 2, (n - th) // 2), mask)
+    tw = int(n * PAD)
+    th = max(1, int(tw * LOCKUP.height / LOCKUP.width))
+    canvas.paste(LOCKUP.resize((tw, th), Image.LANCZOS), ((n - tw) // 2, (n - th) // 2))
     # BOX at an exact 8x reduction is a true area average - no Lanczos ringing,
-    # which at 16px smeared the coastline into a halo.
+    # which at the small sizes smeared the outline into a halo.
     icon = canvas.resize((size, size), Image.BOX)
     if size in SHARPEN:
         icon = ImageEnhance.Sharpness(icon).enhance(SHARPEN[size])
