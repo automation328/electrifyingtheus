@@ -199,14 +199,42 @@ export async function destroyRow(table: AdminTable, id: string): Promise<void> {
   await call<{ ok: true }>({ op: "collection", action: "destroy", table, id });
 }
 
+/** Largest file the bucket takes — mirrors MAX_BYTES in api/admin.ts. */
+const MAX_DIRECT_BYTES = 50 * 1024 * 1024;
+
 /**
- * Upload an image to the CMS media bucket via /api/admin/upload and return its
- * public URL. Sends the file base64-encoded in JSON.
+ * Send the file straight to Supabase Storage using a one-shot signed URL, so the
+ * bytes never pass through the serverless function and its 4.5 MB body cap.
+ * Used for anything too big for the JSON path — video, mostly.
+ */
+async function uploadViaSignedUrl(file: File): Promise<string> {
+  const { uploadUrl, url } = await call<{ uploadUrl: string; url: string }>({
+    op: "upload-url", filename: file.name, contentType: file.type, size: file.size,
+  });
+  const put = await fetch(uploadUrl, {
+    method: "PUT",
+    headers: { "Content-Type": file.type },
+    body: file,
+  });
+  if (!put.ok) {
+    // Storage answers with XML/plain text, not our JSON envelope.
+    const detail = await put.text().catch(() => "");
+    throw new Error(detail.slice(0, 200) || `Upload failed (${put.status})`);
+  }
+  return url;
+}
+
+/**
+ * Upload an image or video to the CMS media bucket and return its public URL.
  *
- * Base64 costs 4 bytes for every 3, so the original file has to be well under
- * the request budget. Anything bigger is downscaled here first; if it STILL
- * doesn't fit we say so in plain words, because the platform's own rejection
- * arrives as plain text and used to surface as a bare "Upload failed (413)".
+ * Two routes, picked by size. Small files go base64-encoded in JSON through
+ * /api/admin, which is the proven path. Base64 costs 4 bytes for every 3 and a
+ * Vercel Function's body caps at 4.5 MB, so that route tops out near 2.86 MB —
+ * images bigger than that are downscaled to fit first.
+ *
+ * Video cannot be downscaled here (shouldCompress only re-encodes rasterisable
+ * image types), so anything still over the budget takes a signed upload URL
+ * straight to Storage, where the bucket's own 50 MB limit is the only ceiling.
  */
 export async function uploadImage(file: File): Promise<string> {
   const token = await getAccessToken();
@@ -216,7 +244,10 @@ export async function uploadImage(file: File): Promise<string> {
   const envelope = 200 + file.name.length + (file.type.length || 0);
   const limit = maxBinaryBytes(envelope);
   const sending = await compressImageForUpload(file, limit);
-  if (sending.size > limit) throw new Error(describeTooLarge(sending.size, limit));
+  if (sending.size > limit) {
+    if (sending.size > MAX_DIRECT_BYTES) throw new Error(describeTooLarge(sending.size, MAX_DIRECT_BYTES));
+    return uploadViaSignedUrl(sending);
+  }
 
   const dataUrl = await new Promise<string>((resolve, reject) => {
     const reader = new FileReader();

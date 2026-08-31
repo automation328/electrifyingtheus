@@ -19,6 +19,7 @@
 //   { op: "collection", action: "update", table, id, row } → { row }
 //   { op: "collection", action: "delete", table, id }      → { ok }
 //   { op: "upload", filename, contentType, dataUrl }        → { url }
+//   { op: "upload-url", filename, contentType, size }       → { uploadUrl, path, url }
 //   { op: "kb", action: "reembed", source, title, body }    → { chunkCount }
 //   { op: "kb", action: "remove",  source }                 → { ok }
 //
@@ -487,6 +488,37 @@ async function handleUpload(b: Record<string, unknown>, res: any) {
   res.status(200).json({ url: data.publicUrl });
 }
 
+/**
+ * Hand the browser a one-shot signed URL so the file goes straight to Storage.
+ *
+ * handleUpload above cannot carry more than ~2.86 MB: a Vercel Function's
+ * request body caps at 4.5 MB (413 FUNCTION_PAYLOAD_TOO_LARGE) and base64 costs
+ * 4 bytes for every 3. That is a TRANSPORT limit, not a storage one — the bucket
+ * has accepted 50 MB since 0009_media_bucket.sql, and no plan upgrade moves the
+ * 4.5 MB. A signed upload URL skips the function, so the bucket's own
+ * file_size_limit becomes the real ceiling.
+ *
+ * `size` is what the browser claims, so the check below only spares an editor a
+ * doomed upload. The bucket enforces the limit for real on the PUT.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function handleUploadUrl(b: Record<string, unknown>, res: any) {
+  const contentType = String(b.contentType ?? "").toLowerCase();
+  const filename = String(b.filename ?? "file");
+  const size = Number(b.size ?? 0);
+  if (!ALLOWED_MIME.has(contentType)) { res.status(400).json({ error: "unsupported_type", detail: "Use PNG, JPEG, WebP, GIF, MP4, WebM, or MOV." }); return; }
+  if (!Number.isFinite(size) || size <= 0) { res.status(400).json({ error: "bad_size", detail: "Could not read the file size." }); return; }
+  if (size > MAX_BYTES) { res.status(400).json({ error: "too_large", detail: "Max file size is 50 MB." }); return; }
+
+  const db = adminSupabase();
+  if (!db) { res.status(500).json({ error: "not_configured" }); return; }
+  const path = `cms/${Date.now()}-${slugName(filename)}`;
+  const { data, error } = await db.storage.from(BUCKET).createSignedUploadUrl(path);
+  if (error || !data) { res.status(400).json({ error: "sign_failed", detail: error?.message ?? "No signed URL returned." }); return; }
+  const { data: pub } = db.storage.from(BUCKET).getPublicUrl(path);
+  res.status(200).json({ uploadUrl: data.signedUrl, path, url: pub.publicUrl });
+}
+
 // List everything in the media bucket (images + any video files) so the CMS can
 // offer a "pick from library" experience instead of re-uploading.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -940,6 +972,7 @@ export default async function handler(req: any, res: any) {
     if (op === "analytics") return void (await handleAnalytics(b, res, role));
     if (op === "collection") return void (await handleCollection(b, res, role, editor.email));
     if (op === "upload") { if (role === "viewer") return void forbid(res, "Your account has read-only access."); return void (await handleUpload(b, res)); }
+    if (op === "upload-url") { if (role === "viewer") return void forbid(res, "Your account has read-only access."); return void (await handleUploadUrl(b, res)); }
     if (op === "media-list") return void (await handleMediaList(res));
     if (op === "media-delete") { if (!canPublish(role)) return void forbid(res, "Only editors and admins can delete media."); return void (await handleMediaDelete(b, res)); }
     if (op === "kb") { if (!canKb(role)) return void forbid(res, "Only editors and admins can change the knowledge base."); return void (await handleKb(b, res, role, editor.email)); }
