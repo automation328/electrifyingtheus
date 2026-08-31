@@ -102,6 +102,8 @@ export const galleryConfig: CollectionConfig = {
   staticRows: galleryStaticRows,
   keyOf: (r) => `${str(r.kind)}|${str(r.url)}`,
   sortRows: (a, b) => asNum(a.sort) - asNum(b.sort),
+  orderField: "sort",
+  orderGroupBy: "kind",
   fields: [
     { name: "kind", label: "Kind", type: "select", options: [{ value: "photo", label: "Photo" }, { value: "video", label: "Video" }], defaultValue: "photo", width: "half" },
     { name: "provider", label: "Video provider", type: "select", options: [{ value: "", label: "—" }, { value: "youtube", label: "YouTube" }, { value: "vimeo", label: "Vimeo" }, { value: "file", label: "File" }], width: "half", help: "Videos only." },

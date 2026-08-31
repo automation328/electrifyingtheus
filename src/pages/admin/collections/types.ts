@@ -82,6 +82,41 @@ export interface CollectionConfig {
   fields: FieldDef[];
   /** Optional row → default sort key (desc). Falls back to created_at. */
   sortRows?: (a: Record<string, unknown>, b: Record<string, unknown>) => number;
+  /** Numeric column holding display order. Set it to get ↑/↓ buttons on each
+   *  row; a move renumbers the whole group rather than swapping two values,
+   *  because rows commonly arrive sharing one default (uploads all land on 0)
+   *  and swapping equal numbers would leave the order unchanged. */
+  orderField?: string;
+  /** Reorder only within rows sharing this column's value. The gallery renders
+   *  Videos and Photos as separate sections, so moving a photo "up" past a video
+   *  would move it nowhere a visitor can see. */
+  orderGroupBy?: string;
+}
+
+/**
+ * Move `from` to `to` within one group and return only the rows whose order
+ * value actually changes.
+ *
+ * The group is RENUMBERED rather than having two values swapped. Rows commonly
+ * share a default — every gallery upload lands on sort 0 — and swapping 0 for 0
+ * writes nothing, so the row would appear to move and then snap back on refresh.
+ * Renumbering also repairs those ties permanently, on the first move.
+ *
+ * Returns an empty list for a no-op move (either end of the group) so callers
+ * can skip the round trip.
+ */
+export function reorderWrites(
+  peers: Record<string, unknown>[],
+  field: string,
+  from: number,
+  to: number,
+): { row: Record<string, unknown>; value: number }[] {
+  if (from < 0 || to < 0 || from >= peers.length || to >= peers.length || from === to) return [];
+  const next = [...peers];
+  [next[from], next[to]] = [next[to], next[from]];
+  return next
+    .map((row, value) => ({ row, value }))
+    .filter(({ row, value }) => Number(row[field] ?? 0) !== value);
 }
 
 /** Blank record seeded from a config's field defaults. */

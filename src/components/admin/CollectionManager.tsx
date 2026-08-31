@@ -7,12 +7,12 @@ import { useSearchParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
-  Plus, Pencil, Trash2, Loader2, X, Save, AlertCircle, Eye, EyeOff, Image as ImageIcon, FolderOpen, ExternalLink, Search, RotateCcw, LayoutTemplate, Copy,
+  Plus, Pencil, Trash2, Loader2, X, Save, AlertCircle, Eye, EyeOff, Image as ImageIcon, FolderOpen, ExternalLink, Search, RotateCcw, LayoutTemplate, Copy, ArrowUp, ArrowDown,
 } from "lucide-react";
 import { listRows, insertRow, updateRow, deleteRow, destroyRow, type MediaItem, notifyEventPublished } from "@/lib/admin-api";
 import AdminField from "@/components/admin/AdminField";
 import MediaPickerModal from "@/components/admin/MediaPickerModal";
-import { type CollectionConfig, emptyRecord } from "@/pages/admin/collections/types";
+import { type CollectionConfig, emptyRecord, reorderWrites } from "@/pages/admin/collections/types";
 import { useEditorAuth } from "@/lib/auth";
 
 type Row = Record<string, unknown> & { id?: string };
@@ -438,6 +438,43 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
   // by a field) recomputes from the filtered set.
   const q = query.trim().toLowerCase();
   const filtered = q ? inTab.filter((r) => `${titleOf(r)} ${subtitleOf(r)}`.toLowerCase().includes(q)) : inTab;
+
+  // ── Reordering (collections that declare an orderField) ────────────────────
+  //
+  // Only offered on the unfiltered Live tab. "Up" has to mean up in the list the
+  // visitor gets, and a searched or half-hidden list cannot promise that.
+  const [ordering, setOrdering] = useState(false);
+  const canReorder = !!config.orderField && canWrite && !q && tab === "live";
+
+  /** The rows a move can shuffle: database rows in the same group, in view order. */
+  const peersOf = (row: Row): Row[] => {
+    const group = config.orderGroupBy;
+    // A built-in has no database row, so there is nothing to write an order to.
+    // Editing one adopts it, and it can be moved from then on.
+    return filtered.filter((r) => !r.__static && (!group || r[group] === row[group]));
+  };
+
+  const move = async (row: Row, delta: -1 | 1) => {
+    const field = config.orderField;
+    if (!field || !row.id || ordering) return;
+    const peers = peersOf(row);
+    const from = peers.findIndex((r) => String(r.id) === String(row.id));
+    const to = from + delta;
+    if (from < 0 || to < 0 || to >= peers.length) return;
+
+    const writes = reorderWrites(peers, field, from, to);
+    if (!writes.length) return;
+
+    setOrdering(true);
+    try {
+      for (const { row: r, value } of writes) await updateRow(config.table, String(r.id), { [field]: value });
+      invalidate();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Couldn't change the order.");
+    } finally {
+      setOrdering(false);
+    }
+  };
   const groups = (() => {
     if (!config.groupField) return null;
     const map = new Map<string, Row[]>();
@@ -494,6 +531,34 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
             <ExternalLink className="w-4 h-4" />
           </a>
         )}
+        {/* Reordering. A built-in has no row to hold a position, so it shows no
+            arrows — its tooltip says what to do instead. Ends are disabled
+            rather than hidden, so the control never moves under the cursor. */}
+        {canReorder && !isStatic && !archived && (() => {
+          const peers = peersOf(row);
+          const at = peers.findIndex((r) => String(r.id) === String(row.id));
+          const groupLabel = config.orderGroupBy ? String(row[config.orderGroupBy] ?? "item") : "item";
+          return (
+            <>
+              <button
+                onClick={() => move(row, -1)}
+                disabled={ordering || at <= 0}
+                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed"
+                title={at <= 0 ? `Already the first ${groupLabel}` : `Move earlier — shows sooner on the live page`}
+              >
+                <ArrowUp className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => move(row, 1)}
+                disabled={ordering || at < 0 || at >= peers.length - 1}
+                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed"
+                title={at >= peers.length - 1 ? `Already the last ${groupLabel}` : `Move later — shows further down the live page`}
+              >
+                <ArrowDown className="w-4 h-4" />
+              </button>
+            </>
+          );
+        })()}
         {canWrite && (
           <button onClick={() => duplicate(row)} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors" title={`Make a copy — saved as a draft`}>
             <Copy className="w-4 h-4" />
