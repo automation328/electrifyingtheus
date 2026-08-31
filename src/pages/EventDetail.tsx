@@ -264,9 +264,8 @@ const EventDetail = () => {
               floated one, and its box is the FULL container width (the float
               only shortens line boxes, never the block box), so the description
               paragraph lay invisibly across the poster and swallowed the clicks
-              for every CTA underneath it: Add to calendar, Share, Register, List
-              Your Event and View more events were all dead. Lifting the poster
-              puts the buttons back on top. Do not drop this without either
+              underneath it — the CTA row that used to live here, and now the
+              image and date badge. Lifting the poster puts them back on top. Do not drop this without either
               removing the animation below or clearing its transform. */}
           <div className="relative z-10 animate-fade-up mb-8 lg:float-left lg:w-[calc(50%-1.5rem)] lg:mr-12">
             {/* Fixed 4:3 frame so every event's poster is the same size. The whole
@@ -290,9 +289,34 @@ const EventDetail = () => {
               <div className="bg-secondary text-primary-foreground text-[11px] font-bold tracking-wider py-1">{event.month}</div>
               <div className="text-foreground text-3xl font-bold font-display leading-none py-2">{event.day}</div>
             </div>
+          </div>
 
-            {/* CTAs — below the image. Each captures the visitor's first name + email. */}
-            <div className="flex flex-wrap items-center gap-2.5 mt-6">
+          {/* Details — flows beside the floated poster, then under it. */}
+          <div className="animate-fade-up" style={{ animationDelay: "0.08s" }}>
+            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-secondary/10 text-secondary text-sm font-semibold mb-4">
+              <Tag className="w-4 h-4" /> {event.type}
+            </span>
+
+            <h1 className="text-3xl md:text-4xl font-bold font-display text-foreground leading-tight mb-4">
+              <RawEditable path="fields.title" raw={f.title ?? event.title} display={eventDisplayTitle(event)} editable={ownEvent} />
+            </h1>
+
+            <div className="flex flex-col gap-2 text-foreground mb-5">
+              {/* Not editable here: the dates are stored as event_date/end_date
+                  and shown split, and the start decides the event's slug. They
+                  stay in the CMS form where they are real date fields.
+                  eventFullDate gives "Thursday, AUG 27, 2026" for a single day
+                  and "SEP 11 – OCT 12, 2026" when the event spans a range. */}
+              <span className="flex items-center gap-2.5"><CalendarDays className="w-5 h-5 text-primary shrink-0" /> {eventFullDate(event)}</span>
+              <span className="flex items-center gap-2.5"><Clock className="w-5 h-5 text-primary shrink-0" /> <Field path="fields.time" value={f.time ?? event.time} editable={ownEvent} /></span>
+              <span className="flex items-center gap-2.5"><MapPin className="w-5 h-5 text-primary shrink-0" /> <RawEditable path="fields.location" raw={f.location ?? event.location} display={eventLocationText(event)} editable={ownEvent} /></span>
+            </div>
+
+            {/* CTAs — full width under the poster, so all five sit on one line
+                instead of wrapping into a ragged stack in the half-width poster
+                column. lg:clear-left drops the row below the floated poster;
+                without it the row would start in the narrow channel beside it. */}
+            <div className="flex flex-wrap items-center gap-2.5 mt-6 lg:clear-left lg:pt-6">
               <EventActionGate
                 href={gcalLink(event)}
                 formType="event-calendar"
@@ -332,29 +356,6 @@ const EventDetail = () => {
                 <CalendarDays className="w-5 h-5" /> View more events
               </Link>
             </div>
-          </div>
-
-          {/* Details — flows beside the floated poster, then under it. */}
-          <div className="animate-fade-up" style={{ animationDelay: "0.08s" }}>
-            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-secondary/10 text-secondary text-sm font-semibold mb-4">
-              <Tag className="w-4 h-4" /> {event.type}
-            </span>
-
-            <h1 className="text-3xl md:text-4xl font-bold font-display text-foreground leading-tight mb-4">
-              <RawEditable path="fields.title" raw={f.title ?? event.title} display={eventDisplayTitle(event)} editable={ownEvent} />
-            </h1>
-
-            <div className="flex flex-col gap-2 text-foreground mb-5">
-              {/* Not editable here: the dates are stored as event_date/end_date
-                  and shown split, and the start decides the event's slug. They
-                  stay in the CMS form where they are real date fields.
-                  eventFullDate gives "Thursday, AUG 27, 2026" for a single day
-                  and "SEP 11 – OCT 12, 2026" when the event spans a range. */}
-              <span className="flex items-center gap-2.5"><CalendarDays className="w-5 h-5 text-primary shrink-0" /> {eventFullDate(event)}</span>
-              <span className="flex items-center gap-2.5"><Clock className="w-5 h-5 text-primary shrink-0" /> <Field path="fields.time" value={f.time ?? event.time} editable={ownEvent} /></span>
-              <span className="flex items-center gap-2.5"><MapPin className="w-5 h-5 text-primary shrink-0" /> <RawEditable path="fields.location" raw={f.location ?? event.location} display={eventLocationText(event)} editable={ownEvent} /></span>
-            </div>
-
             {/* clear-left drops the description below the poster instead of
                 letting it start in the half-width channel beside it and then
                 jump to full width partway through a sentence. The badge, title
@@ -364,7 +365,7 @@ const EventDetail = () => {
                 unrelated blocks of text, and a bullet list would have been
                 worse — the same list rendered at two different widths. Below
                 the float it has one measure, whatever the event writes. */}
-            <div className="text-foreground leading-relaxed lg:clear-left lg:pt-6">
+            <div className="mt-6 text-foreground leading-relaxed lg:clear-left lg:pt-6">
               <Description path="fields.description" value={f.description ?? event.description} editable={ownEvent} />
             </div>
           </div>

@@ -181,7 +181,9 @@ describe("the description clears the poster", () => {
   it("starts below the float rather than beside it", () => {
     ours.value = [BASE];
     const { container } = renderEvent();
-    const desc = container.querySelector('div[class*="lg:clear-left"]');
+    // The CTA row clears the float too, so match on the description's own
+    // prose class rather than on lg:clear-left alone.
+    const desc = container.querySelector('div[class*="lg:clear-left"][class*="leading-relaxed"]');
     expect(desc).toBeTruthy();
     expect(desc!.textContent).toContain("Europe's policy-leading EV gathering");
   });
