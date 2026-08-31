@@ -60,7 +60,7 @@ const cards: Card[] = [
   {
     icon: BatteryCharging,
     title: "EV Charging 101",
-    desc: "240,000+ public charging ports across 78,000+ stations. Ultra-fast tech allows 200 miles of range in just 15 minutes. Goal: 500,000 chargers by 2030.",
+    desc: "250,000+ public charging ports across 78,000+ stations. Ultra-fast tech allows 200 miles of range in just 15 minutes. Goal: 500,000 chargers by 2030.",
     link: "/ev-charging-101",
     internal: true,
     image: evCharging,

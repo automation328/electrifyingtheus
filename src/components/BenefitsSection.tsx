@@ -39,7 +39,7 @@ const benefits = [
   {
     icon: Plug,
     title: "Expanding Charging Network",
-    desc: "240,000+ public charging ports across 78,000+ stations nationwide, with ultra-fast charging adding 200 miles in 15 minutes.",
+    desc: "250,000+ public charging ports across 78,000+ stations nationwide, with ultra-fast charging adding 200 miles in 15 minutes.",
     link: "https://www.telemetryagency.com/post/january-22-2026-ev-charging-still-expanding-in-us",
     gradient: "gradient-green",
   },

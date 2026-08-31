@@ -79,7 +79,7 @@ const PRESET_QA: { q: string; a: string }[] = [
   },
   {
     q: "What are the EV charging levels?",
-    a: "There are three main ways to charge:\n- **Level 1 (120V):** standard wall outlet, ~3–5 miles of range per hour — fine for overnight top-ups\n- **Level 2 (240V):** home or public station, ~20–40 miles per hour — the everyday standard\n- **DC Fast Charging:** public stations, **10–80% in ~20–40 min** — great for road trips\n\nConnectors are moving toward the **NACS** standard (Tesla-style), with **CCS** still widely used. The U.S. now has **240K+ public charging ports** and growing.",
+    a: "There are three main ways to charge:\n- **Level 1 (120V):** standard wall outlet, ~3–5 miles of range per hour — fine for overnight top-ups\n- **Level 2 (240V):** home or public station, ~20–40 miles per hour — the everyday standard\n- **DC Fast Charging:** public stations, **10–80% in ~20–40 min** — great for road trips\n\nConnectors are moving toward the **NACS** standard (Tesla-style), with **CCS** still widely used. The U.S. now has **250K+ public charging ports** and growing.",
   },
   {
     q: "How can I get involved or partner with you?",
