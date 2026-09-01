@@ -36,6 +36,14 @@ export const STATE_INCENTIVES: Record<string, Partial<Record<CatKey, Incentive[]
   CA: {
     vehicle: [
       {
+        name: "MyFirstEV",
+        jurisdiction: "California Incentive",
+        amount: "$3,500 new / $1,750 used",
+        used: true,
+        desc: "A point-of-sale rebate for Californians buying or leasing their first zero-emission vehicle: $3,500 off a new ZEV with an MSRP up to $50,000, or $1,750 off a used ZEV sold for up to $25,000. It comes off the price at the dealership, so there is no tax return to wait for and nothing to mail in, and there is no income cap. The state's $135.5 million is matched dollar for dollar by the participating automakers, and the funding is finite — the rebate lasts while it does. Hyundai, Lucid and Tesla offered it first, with Chevrolet, Ford, Kia and Rivian following, then Toyota, Lexus, Honda and Subaru.",
+        link: "https://ww2.arb.ca.gov/myfirstev",
+      },
+      {
         name: "Vehicle Retirement Consumer Assistance Program",
         jurisdiction: "California Incentive",
         amount: "$1,350 - $2,000",
