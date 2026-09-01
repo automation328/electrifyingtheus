@@ -16,16 +16,19 @@
 
 const STATIONS_ENDPOINT = "https://developer.nlr.gov/api/alt-fuel-stations/v1/nearest.json";
 
-// ZIP → coordinates. NREL dropped its own `location` parameter in February 2025
-// ("Pass in the 'latitude' and 'longitude' parameters instead"), so the ZIP has
-// to be resolved before the station call. Zippopotam is free and needs no key;
-// Nominatim is the fallback. Both answers are cached by the CDN with the station
-// list, so a given ZIP is looked up once per day no matter how many visitors ask.
-const ZIPPOPOTAM = "https://api.zippopotam.us/us";
-const NOMINATIM = "https://nominatim.openstreetmap.org/search";
+// Typed text → coordinates. NREL dropped its own `location` parameter in
+// February 2025 ("Pass in the 'latitude' and 'longitude' parameters instead"),
+// so whatever the visitor typed has to be resolved before the station call.
+// _geocode.ts does that and also reports HOW BROAD the match was, which is what
+// picks the radius: fifteen miles around a street address, a few hundred around
+// a state. Every answer is cached by the CDN with the station list, so a given
+// search is looked up once per day no matter how many visitors ask.
+import { resolveQuery, MAX_RADIUS, MAX_RESULTS, type Place } from "./_geocode.js";
 
-// Fair-use identification for Nominatim, whose policy asks for a real contact.
-const UA = "ElectrifyingTheUS/1.0 (+https://electrifyingtheus.com)";
+// The longest search worth honouring. It bounds the upstream URL and, because
+// the response is cached per query string, the number of distinct cache entries
+// a bored visitor can create.
+const MAX_QUERY = 120;
 
 const LEVELS = new Set(["all", "dc_fast", "level2"]);
 
@@ -36,37 +39,6 @@ const num = (v: unknown): number | null => {
   const n = typeof v === "number" ? v : parseFloat(String(v ?? ""));
   return Number.isFinite(n) ? n : null;
 };
-
-interface Center { lat: number; lon: number; city?: string; state?: string }
-
-async function geocodeZip(zip: string): Promise<Center | null> {
-  try {
-    const r = await fetch(`${ZIPPOPOTAM}/${zip}`, { headers: { "User-Agent": UA } });
-    if (r.ok) {
-      const d = await r.json();
-      const p = Array.isArray(d?.places) ? d.places[0] : null;
-      const lat = num(p?.latitude);
-      const lon = num(p?.longitude);
-      if (lat !== null && lon !== null) {
-        return { lat, lon, city: p?.["place name"], state: p?.["state abbreviation"] };
-      }
-    }
-  } catch { /* fall through to Nominatim */ }
-
-  try {
-    const params = new URLSearchParams({ postalcode: zip, country: "us", format: "json", limit: "1" });
-    const r = await fetch(`${NOMINATIM}?${params}`, { headers: { "User-Agent": UA } });
-    if (r.ok) {
-      const d = await r.json();
-      const hit = Array.isArray(d) ? d[0] : null;
-      const lat = num(hit?.lat);
-      const lon = num(hit?.lon);
-      if (lat !== null && lon !== null) return { lat, lon };
-    }
-  } catch { /* no coordinates — the caller reports it */ }
-
-  return null;
-}
 
 /** The ten fields the map and the list actually render. */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -93,25 +65,32 @@ const trim = (s: any) => ({
 export default async function handler(req: any, res: any) {
   if (req.method !== "GET") { res.status(405).json({ error: "Method not allowed" }); return; }
 
-  const q = req.query ?? {};
-  const zip = pick(q.zip, "").replace(/\D/g, "").slice(0, 5);
-  const level = pick(q.level, "all").toLowerCase();
-  // Radius is clamped rather than rejected: it only widens the search, and a
-  // silly value should still return a map rather than an error.
-  const radius = Math.min(Math.max(num(q.radius) ?? 15, 1), 50);
-  let lat = num(q.lat);
-  let lon = num(q.lon);
+  const query = req.query ?? {};
+  // `q` is what the box sends now; `zip` is what links shared before free-text
+  // search did, and what the IP auto-detect still hands us.
+  const text = pick(query.q, pick(query.zip, "")).trim().slice(0, MAX_QUERY);
+  const level = pick(query.level, "all").toLowerCase();
+  // A radius arrives only when the VISITOR chose one (the "search 50 miles
+  // instead" button). Left off, the geocoder's own answer decides — which is the
+  // only way "Georgia" and "1000 University Center Lane" can both be sensible.
+  // Clamped rather than rejected: a silly number should still return a map.
+  const asked = num(query.radius);
+  let lat = num(query.lat);
+  let lon = num(query.lon);
 
   if (!LEVELS.has(level)) { res.status(400).json({ error: "Invalid level" }); return; }
 
-  let center: Center | null = lat !== null && lon !== null ? { lat, lon } : null;
-  if (!center) {
-    if (zip.length !== 5) { res.status(400).json({ error: "Pass a five-digit ZIP, or lat + lon." }); return; }
-    center = await geocodeZip(zip);
-    if (!center) { res.status(404).json({ error: `Couldn't find ZIP ${zip}.` }); return; }
+  let place: Place | null = lat !== null && lon !== null
+    ? { lat, lon, label: "", kind: "address", radius: 15 }
+    : null;
+  if (!place) {
+    if (!text) { res.status(400).json({ error: "Pass a ZIP code, city, state or address — or lat + lon." }); return; }
+    place = await resolveQuery(text);
+    if (!place) { res.status(404).json({ error: `Couldn't find "${text}". Try a ZIP code, a city and state, or a street address.` }); return; }
   }
-  lat = center.lat;
-  lon = center.lon;
+  lat = place.lat;
+  lon = place.lon;
+  const radius = Math.min(Math.max(asked ?? place.radius, 1), MAX_RADIUS);
 
   const params = new URLSearchParams({
     api_key: process.env.NREL_API_KEY || "DEMO_KEY",
@@ -123,7 +102,7 @@ export default async function handler(req: any, res: any) {
     latitude: String(lat),
     longitude: String(lon),
     radius: String(radius),
-    limit: "150",
+    limit: String(MAX_RESULTS),
   });
   // NREL filters by level upstream, so a filtered view fetches only what it draws.
   if (level !== "all") params.set("ev_charging_level", level === "level2" ? "2" : "dc_fast");
@@ -142,7 +121,12 @@ export default async function handler(req: any, res: any) {
         // of serve-stale while revalidating behind it.
         res.setHeader("Cache-Control", "public, s-maxage=86400, stale-while-revalidate=604800");
         res.status(200).json({
-          center: { lat, lon, city: center.city ?? "", state: center.state ?? "" },
+          center: { lat, lon, city: place.city ?? "", state: place.state ?? "" },
+          // What was matched, and how broadly — the page names the place back to
+          // the visitor rather than echoing their typing, and hides the
+          // "widen the search" offer when the search is already state-sized.
+          label: place.label,
+          kind: place.kind,
           radius,
           stations: data.fuel_stations.map(trim).filter((s) => s.lat !== null && s.lon !== null),
         });

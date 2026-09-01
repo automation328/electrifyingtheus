@@ -15,23 +15,34 @@ import {
 // draws a map, so it loads on its own, after the page has rendered.
 const ChargerMap = lazy(() => import("@/components/ChargerMap"));
 
-// A shared link reopens the page on the same location: /find-a-charger?zip=30301
-const initialZipFromUrl = (): string => {
+// The longest search worth carrying. Matches the cap the proxy applies.
+const MAX_QUERY = 120;
+
+/**
+ * A shared link reopens the page on the same location: /find-a-charger?q=Atlanta,%20GA
+ *
+ * `zip` is read too, and not only for tidiness — every link shared before the
+ * box took free text carries it, and stripping the parameter would land those
+ * visitors on a blank map.
+ */
+const initialQueryFromUrl = (): string => {
   if (typeof window === "undefined") return "";
-  return (new URLSearchParams(window.location.search).get("zip") || "").replace(/\D/g, "").slice(0, 5);
+  const p = new URLSearchParams(window.location.search);
+  return (p.get("q") || p.get("zip") || "").trim().slice(0, MAX_QUERY);
 };
 
 /**
- * The search Google Maps runs, for a five-digit US ZIP.
+ * The search Google Maps runs for whatever the visitor searched here.
  *
  * ", USA" is not decoration. A bare "30031" is a number, not an address, so
  * Google resolves it against the VIEWER's region — a visitor abroad searching
  * 30031 was shown chargers in their own country, thousands of miles from the
- * ZIP they typed. Naming the country pins it to the ZIP the visitor asked for,
- * whoever is looking.
+ * ZIP they typed. Naming the country pins it to the place they asked for,
+ * whoever is looking. It does the same job for "Georgia", which is a country as
+ * well as a state.
  *
- * With no ZIP the search stays "near me": that one is meant to follow the
- * viewer, and there is no ZIP to disagree with.
+ * With nothing searched the query stays "near me": that one is meant to follow
+ * the viewer, and there is nothing for it to disagree with.
  */
 const searchFor = (q: string) =>
   q.trim() ? `EV charging stations near ${q.trim()}, USA` : "EV charging stations near me";
@@ -66,13 +77,16 @@ const FindACharger = () => {
   const embed = typeof window !== "undefined" &&
     new URLSearchParams(window.location.search).get("embed") === "1";
   useEmbedFrame(embed);
-  const urlZip = initialZipFromUrl();
-  const [zip, setZip] = useState(urlZip);
-  const [query, setQuery] = useState(urlZip); // the applied search term that drives the map
+  const urlQuery = initialQueryFromUrl();
+  const [typed, setTyped] = useState(urlQuery);
+  const [query, setQuery] = useState(urlQuery); // the applied search term that drives the map
   const [detected, setDetected] = useState(false);
-  const [detecting, setDetecting] = useState(!urlZip);
+  const [detecting, setDetecting] = useState(!urlQuery);
   const [level, setLevel] = useState<LevelFilter>("all");
-  const [radius, setRadius] = useState(DEFAULT_RADIUS);
+  // null = let the server size the search from what it matched. A number only
+  // once the visitor has asked for a wider one.
+  const [radius, setRadius] = useState<number | null>(null);
+  const searched = query.trim().length > 0;
   // Which station's popup the map should open — set by clicking a list card.
   const [selectedId, setSelectedId] = useState<number | null>(null);
 
@@ -81,14 +95,19 @@ const FindACharger = () => {
   // costs no extra upstream calls.
   const stationsQ = useQuery({
     queryKey: ["stations", query, level, radius],
-    queryFn: () => fetchStations({ zip: query }, level, radius),
-    enabled: query.length === 5,
+    queryFn: () => fetchStations({ q: query }, level, radius),
+    enabled: searched,
     staleTime: 30 * 60 * 1000,
     retry: 1,
-    // Hold the previous filter's results on screen while the next set loads.
-    // Without this the map unmounts on every pill click, which throws away the
-    // tiles and redraws the whole thing from scratch.
-    placeholderData: keepPreviousData,
+    // Hold the previous results on screen while the next set loads, but only
+    // while the PLACE is the same. Without it the map unmounts on every pill
+    // click, throwing away the tiles and redrawing from scratch. Carrying it
+    // across a NEW search is a different thing entirely: the response now
+    // carries the matched place's name and radius, so the toolbar would keep
+    // naming the old city, and the "widen the search" offer would be answering
+    // for a search nobody is running any more.
+    placeholderData: (prev, prevQuery) =>
+      (prevQuery?.queryKey as unknown[] | undefined)?.[1] === query ? prev : undefined,
   });
   const stations: Station[] = useMemo(() => stationsQ.data?.stations ?? [], [stationsQ.data]);
 
@@ -96,8 +115,8 @@ const FindACharger = () => {
   // "what is out there", not "what is left after the filter I already applied".
   const allQ = useQuery({
     queryKey: ["stations", query, "all", radius],
-    queryFn: () => fetchStations({ zip: query }, "all", radius),
-    enabled: query.length === 5,
+    queryFn: () => fetchStations({ q: query }, "all", radius),
+    enabled: searched,
     staleTime: 30 * 60 * 1000,
     retry: 1,
   });
@@ -117,7 +136,7 @@ const FindACharger = () => {
   // Auto-detect the visitor's ZIP from their IP and center the map there — unless
   // a ZIP arrived in the URL (a shared link), which always wins.
   useEffect(() => {
-    if (urlZip) return;
+    if (urlQuery) return;
     let cancelled = false;
     (async () => {
       try {
@@ -142,7 +161,7 @@ const FindACharger = () => {
         }
         if (cancelled) return;
         if (postal.length === 5) {
-          setZip(postal);
+          setTyped(postal);
           setQuery(postal);
           setDetected(true);
         }
@@ -158,23 +177,36 @@ const FindACharger = () => {
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const z = zip.trim();
-    setQuery(z);
+    const next = typed.trim().slice(0, MAX_QUERY);
+    setQuery(next);
     setDetected(false);
-    // A new place deserves the normal radius back, and the old station's popup
-    // has nothing to do with it.
-    setRadius(DEFAULT_RADIUS);
+    // A new place gets its own radius back — the server sizes it from what it
+    // matched — and the old station's popup has nothing to do with it.
+    setRadius(null);
     setSelectedId(null);
     // Reflect the specific result in the URL so it can be shared / reopened.
+    // The legacy `zip` key is cleared so a reopened link cannot carry both.
     if (typeof window !== "undefined") {
       const u = new URL(window.location.href);
-      if (z) u.searchParams.set("zip", z); else u.searchParams.delete("zip");
+      u.searchParams.delete("zip");
+      if (next) u.searchParams.set("q", next); else u.searchParams.delete("q");
       window.history.replaceState({}, "", u.toString());
     }
   };
 
+  // What the geocoder matched, which is what the page should name back. Falls
+  // back to the raw typing while the first request is still in flight.
+  const resolved = stationsQ.data ?? allQ.data;
+  const placeLabel = resolved?.label || query;
+  // Miles actually searched, which the server decides unless the visitor has
+  // overridden it.
+  const shownRadius = resolved?.radius ?? radius ?? DEFAULT_RADIUS;
+  // A state-sized search has already swept a few hundred miles; offering to
+  // widen it to fifty would narrow it.
+  const canWiden = resolved?.kind !== "state" && shownRadius < WIDE_RADIUS;
+
   // Shareable link + Google Maps deep link for the currently shown location.
-  const shareUrl = `/find-a-charger${query ? `?zip=${encodeURIComponent(query)}` : ""}`;
+  const shareUrl = `/find-a-charger${query ? `?q=${encodeURIComponent(query)}` : ""}`;
   const shareTitle = query
     ? `EV charging stations near ${query} — Electrifying the US`
     : "Find EV charging stations near you — Electrifying the US";
@@ -196,7 +228,7 @@ const FindACharger = () => {
               </h1>
               <p className="text-muted-foreground text-lg">
                 Locate public EV charging stations across the U.S. We auto-detect your area —
-                or search any ZIP code to explore charging nearby.
+                or search any ZIP code, city, state, or address to explore charging nearby.
               </p>
             </div>
 
@@ -206,12 +238,15 @@ const FindACharger = () => {
                 <div className="relative flex-1">
                   <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
                   <input
-                    value={zip}
-                    onChange={(e) => setZip(e.target.value.replace(/\D/g, "").slice(0, 5))}
-                    inputMode="numeric"
-                    maxLength={5}
-                    placeholder={detecting ? "Detecting your location…" : "Enter ZIP code"}
-                    aria-label="ZIP code"
+                    value={typed}
+                    onChange={(e) => setTyped(e.target.value.slice(0, MAX_QUERY))}
+                    // No inputMode="numeric": that hands a phone a keypad with no
+                    // letters on it, which is its own way of making the box
+                    // ZIP-only however permissive the code above is.
+                    inputMode="search"
+                    maxLength={MAX_QUERY}
+                    placeholder={detecting ? "Detecting your location…" : "ZIP, city, state, or address"}
+                    aria-label="ZIP, city, state, or address"
                     className="w-full rounded-xl border border-border bg-card pl-10 pr-3 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                   />
                 </div>
@@ -219,9 +254,9 @@ const FindACharger = () => {
                   <Search className="w-4 h-4" /> Search
                 </Button>
               </div>
-              {detected && zip && (
+              {detected && typed && (
                 <p className="mt-2 text-xs text-secondary flex items-center justify-center gap-1.5">
-                  <Locate className="w-3.5 h-3.5" /> Showing chargers near your detected area ({zip}).
+                  <Locate className="w-3.5 h-3.5" /> Showing chargers near your detected area ({typed}).
                 </p>
               )}
             </form>
@@ -234,8 +269,8 @@ const FindACharger = () => {
           <div className="mb-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
             <p className="text-sm text-muted-foreground flex items-center gap-1.5">
               <MapPin className="w-4 h-4 text-primary shrink-0" />
-              {query
-                ? <>Showing chargers near <span className="font-semibold text-foreground">{query}</span></>
+              {searched
+                ? <>Showing chargers near <span className="font-semibold text-foreground">{placeLabel}</span></>
                 : "Showing chargers near you"}
             </p>
             <div className="flex items-center gap-2">
@@ -274,7 +309,7 @@ const FindACharger = () => {
                   }`}
                 >
                   {l.label}
-                  {query.length === 5 && !allQ.isLoading && (
+                  {searched && !allQ.isLoading && (
                     <span className={`text-[11px] font-bold tabular-nums rounded-full px-1.5 py-0.5 ${
                       on ? "bg-white/20" : "bg-muted text-muted-foreground"}`}>{counts[l.key]}</span>
                   )}
@@ -284,7 +319,7 @@ const FindACharger = () => {
           </div>
 
           <div className="rounded-3xl overflow-hidden border border-border shadow-elevated bg-muted relative">
-            {query.length === 5 && center ? (
+            {searched && center ? (
               <Suspense fallback={<div className="h-[460px] md:h-[560px] grid place-items-center text-sm text-muted-foreground">Loading the map...</div>}>
                 <ChargerMap
                   stations={stations}
@@ -306,7 +341,7 @@ const FindACharger = () => {
                   </p>
                 ) : (
                   <p className="text-sm text-muted-foreground max-w-sm">
-                    Enter a ZIP code above to map the public charging stations around it.
+                    Enter a ZIP code, city, state, or address above to map the public charging stations around it.
                   </p>
                 )}
               </div>
@@ -333,7 +368,7 @@ const FindACharger = () => {
 
           {/* Station list. The map answers "where", this answers "what will I
               find when I get there" - ports, connectors, network. */}
-          {query.length === 5 && stationsQ.isError && (
+          {searched && stationsQ.isError && (
             <div className="mt-6 rounded-2xl border border-border bg-card p-6 text-center">
               <p className="text-sm text-muted-foreground">
                 {(stationsQ.error as Error)?.message ?? "Couldn't load charging stations."}
@@ -344,13 +379,13 @@ const FindACharger = () => {
             </div>
           )}
 
-          {query.length === 5 && stationsQ.isSuccess && (
+          {searched && stationsQ.isSuccess && (
             stations.length === 0 ? (
               <div className="mt-6 rounded-2xl border border-border bg-card p-6 text-center">
                 <p className="text-sm text-muted-foreground">
-                  No {level === "dc_fast" ? "DC fast chargers" : level === "level2" ? "Level 2 chargers" : "public chargers"} within {radius} miles of {query}.
+                  No {level === "dc_fast" ? "DC fast chargers" : level === "level2" ? "Level 2 chargers" : "public chargers"} within {shownRadius} miles of {placeLabel}.
                 </p>
-                {radius < WIDE_RADIUS && (
+                {canWiden && (
                   <Button variant="outline" className="mt-3 rounded-xl" onClick={() => setRadius(WIDE_RADIUS)}>
                     Search {WIDE_RADIUS} miles instead
                   </Button>
@@ -359,7 +394,7 @@ const FindACharger = () => {
             ) : (
               <div className="mt-6">
                 <h2 className="font-display font-bold text-foreground text-lg mb-3">
-                  {stations.length} station{stations.length === 1 ? "" : "s"} within {radius} miles
+                  {stations.length} station{stations.length === 1 ? "" : "s"} within {shownRadius} miles
                 </h2>
                 <ul className="grid sm:grid-cols-2 gap-3">
                   {stations.map((s) => {

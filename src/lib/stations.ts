@@ -26,9 +26,16 @@ export interface Station {
 
 export interface StationsResult {
   center: { lat: number; lon: number; city: string; state: string };
+  /** The place as the geocoder named it — "Atlanta, Georgia", not what was typed. */
+  label?: string;
+  /** How broad the match was. A state search has no useful "widen it" offer. */
+  kind?: PlaceKind;
   radius: number;
   stations: Station[];
 }
+
+/** Mirrors api/_geocode.ts. How broad the thing the visitor searched for is. */
+export type PlaceKind = "zip" | "address" | "city" | "county" | "state";
 
 /** What a station offers. "both" is common — a fast charger with L2 beside it. */
 export type StationKind = "dc" | "both" | "l2" | "other";
@@ -88,27 +95,47 @@ export const portSummary = (s: Pick<Station, "dcFast" | "level2">): string => {
 export const distanceLabel = (miles: number | null): string =>
   miles === null ? "" : miles < 10 ? `${miles.toFixed(1)} mi` : `${Math.round(miles)} mi`;
 
-/** Query string for /api/stations. ZIP wins; coordinates are the fallback. */
+/** Where to search: what the visitor typed, or coordinates. */
+export interface StationsWhere { q?: string; lat?: number; lon?: number }
+
+/**
+ * Query string for /api/stations. The typed text wins; coordinates are the
+ * fallback.
+ *
+ * `radius` is left OUT unless the visitor picked one. The server sizes the
+ * search from what it matched — fifteen miles around a street address, a few
+ * hundred around a state — and a radius sent on every request would flatten
+ * that back to one number for every kind of place.
+ *
+ * The text is squared up first — trimmed, inner runs of spaces collapsed,
+ * lower-cased. Geocoders do not care about any of that, but the CDN does: the
+ * response is cached for a day PER URL, so "Atlanta, GA" and "atlanta,  ga"
+ * would otherwise be two entries holding the same answer, and every variant
+ * anyone types is another upstream lookup.
+ */
+export const canonicalPlace = (text: string): string =>
+  text.trim().replace(/\s+/g, " ").toLowerCase();
+
 export const stationsQuery = (
-  where: { zip?: string; lat?: number; lon?: number },
+  where: StationsWhere,
   level: LevelFilter,
-  radius = 15,
+  radius?: number | null,
 ): string => {
   const p = new URLSearchParams();
-  if (where.zip) p.set("zip", where.zip);
+  if (where.q) p.set("q", canonicalPlace(where.q));
   else if (typeof where.lat === "number" && typeof where.lon === "number") {
     p.set("lat", String(where.lat));
     p.set("lon", String(where.lon));
   }
   if (level !== "all") p.set("level", level);
-  p.set("radius", String(radius));
+  if (typeof radius === "number") p.set("radius", String(radius));
   return p.toString();
 };
 
 export async function fetchStations(
-  where: { zip?: string; lat?: number; lon?: number },
+  where: StationsWhere,
   level: LevelFilter,
-  radius = 15,
+  radius?: number | null,
 ): Promise<StationsResult> {
   const res = await fetch(`/api/stations?${stationsQuery(where, level, radius)}`);
   const data = await res.json().catch(() => null);

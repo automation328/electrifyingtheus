@@ -83,22 +83,40 @@ describe("distanceLabel", () => {
 });
 
 describe("stationsQuery", () => {
-  it("sends the ZIP when there is one", () => {
-    expect(stationsQuery({ zip: "30031" }, "all")).toBe("zip=30031&radius=15");
+  it("sends whatever was searched for", () => {
+    expect(stationsQuery({ q: "30031" }, "all")).toBe("q=30031");
+    expect(stationsQuery({ q: "Atlanta, GA" }, "all")).toBe("q=atlanta%2C+ga");
+  });
+
+  // The response is CDN-cached per URL for a day, so every spelling variant of
+  // the same place would otherwise be its own entry and its own upstream lookup.
+  it("squares the text up so one place is one cache entry", () => {
+    const one = stationsQuery({ q: "Atlanta, GA" }, "all");
+    expect(stationsQuery({ q: "  atlanta,   ga " }, "all")).toBe(one);
+    expect(stationsQuery({ q: "ATLANTA, GA" }, "all")).toBe(one);
   });
 
   // 'all' is the API default, so leaving it out keeps one CDN cache entry per
-  // ZIP+radius rather than two that hold the same answer.
+  // search rather than two that hold the same answer.
   it("omits the level for 'all' and sends it otherwise", () => {
-    expect(stationsQuery({ zip: "30031" }, "dc_fast")).toBe("zip=30031&level=dc_fast&radius=15");
+    expect(stationsQuery({ q: "30031" }, "dc_fast")).toBe("q=30031&level=dc_fast");
   });
 
-  it("falls back to coordinates when there is no ZIP", () => {
+  // The server sizes the search from what it matched — fifteen miles around an
+  // address, a few hundred around a state. Sending a radius every time would
+  // flatten that back to one number for every kind of place.
+  it("leaves the radius out unless the visitor picked one", () => {
+    expect(stationsQuery({ q: "Georgia" }, "all")).toBe("q=georgia");
+    expect(stationsQuery({ q: "Georgia" }, "all", null)).toBe("q=georgia");
+    expect(stationsQuery({ q: "Georgia" }, "all", 50)).toBe("q=georgia&radius=50");
+  });
+
+  it("falls back to coordinates when there is no search text", () => {
     expect(stationsQuery({ lat: 33.89, lon: -84.07 }, "all", 25)).toBe("lat=33.89&lon=-84.07&radius=25");
   });
 
-  // A half-typed ZIP must not silently become a coordinate search elsewhere.
-  it("sends nothing but the radius when it has neither", () => {
-    expect(stationsQuery({}, "all")).toBe("radius=15");
+  // A half-typed search must not silently become a coordinate search elsewhere.
+  it("sends nothing at all when it has neither", () => {
+    expect(stationsQuery({}, "all")).toBe("");
   });
 });
