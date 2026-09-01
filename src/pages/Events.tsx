@@ -13,7 +13,8 @@ import {
 } from "@/data/events";
 import { filterEvents } from "@/lib/event-search";
 import { EVENT_THIRD_PARTY_NOTICE } from "@/lib/disclaimers";
-import { splitEventDescription } from "@/lib/event-description";
+import { splitEventDescription, descriptionPreview } from "@/lib/event-description";
+import EventDescription from "@/components/EventDescription";
 import EventSpeakers from "@/components/EventSpeakers";
 import { useEvents, useFeedSuppressions } from "@/hooks/use-content";
 import { useExternalEvents } from "@/hooks/use-external-events";
@@ -336,7 +337,7 @@ const Events = () => {
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 text-xs font-semibold"><MapPin className="w-3.5 h-3.5" /> {eventLocationPin(e) || e.location}</span>
                         <span className="inline-flex items-center gap-1.5 text-xs text-primary-foreground/90"><Clock className="w-3.5 h-3.5" /> {e.time}</span>
                       </div>
-                      <p className="text-sm text-primary-foreground/90 mb-4">{intro}</p>
+                      <p className="text-sm text-primary-foreground/90 mb-4">{descriptionPreview(intro)}</p>
                       <EventSpeakers speakers={speakers} tone="gradient" className="mb-4" />
                       <FeaturedActions e={e} />
                     </div>
@@ -364,10 +365,16 @@ const Events = () => {
                 const key = `${e.title}-${i}`;
                 const open = expandedEvents.has(key);
                 const { intro, speakers } = splitEventDescription(e.description);
-                const clipped = intro.length > 180;
+                // Clamped against the FLAT text: a bullet list shown as a teaser has
+                // its markers stripped, so measuring the raw string would cut in the
+                // wrong place.
+                const flat = descriptionPreview(intro);
+                const clipped = flat.length > 180;
                 // Speakers sit behind "More Info" so the collapsed card stays compact.
                 const long = clipped || speakers.length > 0;
-                const preview = clipped ? `${intro.slice(0, 180).trimEnd()}…` : intro;
+                // Trailing separators go with the trailing space: cutting a
+                // middle-dot-joined list mid-way left "… charging ·…" on the card.
+                const preview = clipped ? `${flat.slice(0, 180).replace(/[\s·]+$/, "")}…` : flat;
                 return (
                   <article
                     key={key}
@@ -419,9 +426,11 @@ const Events = () => {
                             <span className="flex items-center gap-1.5"><MapPin className="w-4 h-4 text-secondary" /> {eventLocationPin(e)}</span>
                           )}
                         </div>
-                        <p className={`text-sm text-muted-foreground ${open ? "whitespace-pre-line" : ""}`}>
-                          {open ? intro : preview}
-                        </p>
+                        {open ? (
+                          <div className="text-sm text-muted-foreground"><EventDescription text={intro} /></div>
+                        ) : (
+                          <p className="text-sm text-muted-foreground">{preview}</p>
+                        )}
                         {open && <EventSpeakers speakers={speakers} tone="card" className="mt-4" />}
                         {long && (
                           <button

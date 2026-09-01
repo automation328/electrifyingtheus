@@ -8,9 +8,10 @@ import InlinePageEditor from "@/components/inline/InlinePageEditor";
 import BlockSlot from "@/components/inline/blocks/BlockSlot";
 import EditableText, { PageStylesContext } from "@/components/inline/EditableText";
 import EditableImage from "@/components/inline/EditableImage";
+import DescriptionEditor from "@/components/inline/DescriptionEditor";
 import LinkPicker from "@/components/inline/LinkPicker";
 import { useInlineEdit } from "@/components/inline/edit-context";
-import { descriptionBlocks } from "@/lib/event-description";
+import EventDescription from "@/components/EventDescription";
 import { eventAdoptRow } from "@/lib/content";
 import { safeHref } from "@/lib/safe-href";
 import ShareGate from "@/components/forms/ShareGate";
@@ -22,7 +23,7 @@ import { useEvents, useDraftEvent } from "@/hooks/use-content";
 import { useExternalEvents } from "@/hooks/use-external-events";
 
 // Where blocks may be dropped on an event page, in page order.
-const EVENT_SLOTS = ["event-top", "event-end"];
+const EVENT_SLOTS = ["event-top", "event-body", "event-end"];
 
 /**
  * Shows a visitor the DERIVED display text, but hands an editor the RAW stored
@@ -58,27 +59,19 @@ const Field = ({ path, value, editable }: { path: string; value: string; editabl
  * The event description. Bullet lines an editor typed come out as a real list;
  * see @/lib/event-description for what counts as one and why.
  *
- * While editing, none of that applies: the editor gets the raw stored string in
- * one box, because that is the thing being saved. Parsed output is for readers.
+ * Editing shows those same blocks as the thing you type into — a box per
+ * paragraph, a row per bullet — and serialises them straight back to the one
+ * stored string. It used to be a single contentEditable span instead, which
+ * blurs on Enter: there was no way to start a new line, so no way to type a
+ * bullet, and an editor who wanted one had to reach for the block palette and
+ * watch the list land under "Save your spot".
  */
 const Description = ({ path, value, editable }: { path: string; value: string; editable: boolean }) => {
   const ctx = useInlineEdit();
   if (editable && ctx?.editing) {
-    return <p className="whitespace-pre-line"><EditableText path={path}>{value}</EditableText></p>;
+    return <DescriptionEditor value={value} onChange={(text) => ctx.set(path, text)} styleKey={path} />;
   }
-  return (
-    <>
-      {descriptionBlocks(value).map((b, i) =>
-        b.kind === "ul" ? (
-          <ul key={i} className="list-disc pl-5 space-y-1 my-2">
-            {b.items.map((item, j) => <li key={j}>{item}</li>)}
-          </ul>
-        ) : (
-          <p key={i} className="whitespace-pre-line">{b.lines.join("\n")}</p>
-        ),
-      )}
-    </>
-  );
+  return <EventDescription text={value} styleKey={path} />;
 };
 
 /** Built-in wording for the two Register buttons, used when the event sets none. */
@@ -371,6 +364,11 @@ const EventDetail = () => {
             <div className="mt-6 text-foreground leading-relaxed lg:clear-left lg:pt-6">
               <Description path="fields.description" value={f.description ?? event.description} editable={ownEvent} />
             </div>
+            {/* Somewhere to drop a block that belongs WITH the write-up. Without
+                it the only insertion points bracketed the whole page, and the
+                lower one sits under the register band — so anything added to
+                the description ended up below "Save your spot". */}
+            <BlockSlot slot="event-body" blocks={blocks} />
           </div>
         </div>
 

@@ -69,7 +69,7 @@ vi.mock("@/lib/admin-api", () => ({
 }));
 
 import EventDetail from "@/pages/EventDetail";
-import { descriptionBlocks } from "@/lib/event-description";
+import { descriptionBlocks, blocksToText, descriptionPreview, splitEventDescription } from "@/lib/event-description";
 
 beforeAll(() => { window.scrollTo = () => {}; });
 afterEach(() => {
@@ -171,6 +171,139 @@ describe("typed bullet lines become a real list", () => {
     const items = [...container.querySelectorAll("li")].map((li) => li.textContent);
     expect(items).toEqual(["EV incentives", "Public charging"]);
     expect(container.textContent).not.toContain("- EV incentives");
+  });
+
+  // The block editor re-parses the stored string on every render and writes it
+  // back through blocksToText, so anything the pair cannot round-trip would be
+  // lost the moment an editor touched an unrelated part of the description.
+  it("round-trips back to the same string through blocksToText", () => {
+    for (const text of [
+      "",
+      "First line.\nSecond line.",
+      "para one\n\npara two",
+      "Visit our tent for:\n- savings\n- charging\nSee you there.",
+      "Intro text.\n\n- one\n- two\n\nOutro text.",
+      "\u2014 Denver, CO\n-notabullet",
+    ]) {
+      expect(blocksToText(descriptionBlocks(text))).toBe(text);
+    }
+  });
+
+  it("settles * and \u2022 on a single marker once a description is edited", () => {
+    // The parser drops the marker, so there is nowhere to remember which one
+    // was typed. The reader sees the same list either way.
+    expect(blocksToText(descriptionBlocks("- one\n* two\n\u2022 three"))).toBe("- one\n- two\n- three");
+  });
+
+  // The events list clamps a description to a couple of lines. Left as typed,
+  // "- savings\n- charging" collapsed to "- savings - charging" there, which
+  // reads as a typo rather than a list.
+  it("flattens to a teaser with the markers off and the items separated", () => {
+    expect(descriptionPreview("Visit our tent for:\n- savings\n- charging\nSee you there."))
+      .toBe("Visit our tent for: savings \u00b7 charging See you there.");
+  });
+
+  it("leaves ordinary prose as one line, blank lines and all", () => {
+    expect(descriptionPreview("Para one.\n\nPara two.")).toBe("Para one. Para two.");
+    expect(descriptionPreview("")).toBe("");
+  });
+});
+
+// A speaker panel is stored inline in the same description column, and the
+// block editor writes a list as "- " lines. The entry splitter breaks on
+// newlines but not on the marker, so without stripping it every speaker card on
+// the events page showed "- Jane Doe".
+describe("speakers typed as a bulleted list", () => {
+  it("keeps the marker out of the speaker's name", () => {
+    const { speakers } = splitEventDescription("Speakers Includes:\n- Jane Doe - ACME\n- John Smith - Beta Corp");
+    expect(speakers).toEqual([
+      { name: "Jane Doe", org: "ACME", role: undefined },
+      { name: "John Smith", org: "Beta Corp", role: undefined },
+    ]);
+  });
+
+  it("still reads the run-on form the events already store", () => {
+    const { intro, speakers } = splitEventDescription(
+      "A panel on charging. Speakers Includes: \u2022 Terry Travis (Moderator) - EVNoire \u2022 Jane Doe - ACME",
+    );
+    expect(intro).toBe("A panel on charging.");
+    expect(speakers).toEqual([
+      { name: "Terry Travis", org: "EVNoire", role: "Moderator" },
+      { name: "Jane Doe", org: "ACME", role: undefined },
+    ]);
+  });
+});
+
+// An editor could not type a bullet into the description at all. It was one
+// contentEditable span, and EditableText blurs a span on Enter, so there was no
+// way to start a line — which is what sent an editor to the block palette, whose
+// only insertion points bracket the page. Anything added there landed under the
+// "Save your spot" band.
+describe("an editor writes the description as blocks", () => {
+  const prose = () => screen.getByPlaceholderText("Write a paragraph\u2026") as HTMLTextAreaElement;
+  /** Show the working draft through the read-only components, as a visitor gets it. */
+  const previewDraft = () => fireEvent.click(screen.getByTitle("Preview as a visitor"));
+
+  it("keeps a line typed with Enter all the way to the rendered page", () => {
+    asEditor();
+    ours.value = [{ ...BASE, description: "One line only." }];
+    const { container } = renderEvent();
+    fireEvent.click(screen.getByText(/Edit this page/i));
+    const box = prose();
+    fireEvent.change(box, { target: { value: "One line only.\nA second line." } });
+    fireEvent.blur(box);
+    previewDraft();
+    const paras = [...container.querySelectorAll("p.whitespace-pre-line")].map((p) => p.textContent);
+    expect(paras).toContain("One line only.\nA second line.");
+  });
+
+  it("does not eat the blank line between paragraphs when the box is merely focused", () => {
+    asEditor();
+    ours.value = [{ ...BASE, description: "Para one.\n\nPara two." }];
+    const { container } = renderEvent();
+    fireEvent.click(screen.getByText(/Edit this page/i));
+    const box = prose();
+    expect(box.value).toBe("Para one.\n\nPara two.");
+    fireEvent.blur(box);
+    previewDraft();
+    const paras = [...container.querySelectorAll("p.whitespace-pre-line")].map((p) => p.textContent);
+    expect(paras).toContain("Para one.\n\nPara two.");
+  });
+
+  it("turns selected lines into a real list on the page, not text below the register band", () => {
+    asEditor();
+    ours.value = [{ ...BASE, description: "Bring these:\nEV incentives and savings" }];
+    const { container } = renderEvent();
+    fireEvent.click(screen.getByText(/Edit this page/i));
+    const box = prose();
+    const at = box.value.indexOf("EV incentives and savings");
+    box.setSelectionRange(at, at + "EV incentives and savings".length);
+    fireEvent.click(screen.getByTitle("Bulleted list"));
+    previewDraft();
+
+    const desc = container.querySelector('div[class*="lg:clear-left"][class*="leading-relaxed"]')!;
+    expect([...desc.querySelectorAll("li")].map((li) => li.textContent)).toEqual(["EV incentives and savings"]);
+    // The register band is where the list used to end up.
+    const band = container.querySelector('div[class*="gradient-hero"]')!;
+    expect(band.querySelector("li")).toBeNull();
+  });
+
+  it("gives the description boxes instead of a contentEditable span", () => {
+    asEditor();
+    ours.value = [BASE];
+    const { container } = renderEvent();
+    fireEvent.click(screen.getByText(/Edit this page/i));
+    const desc = container.querySelector('div[class*="lg:clear-left"][class*="leading-relaxed"]')!;
+    expect(desc.querySelector('[contenteditable="true"]')).toBeNull();
+    expect(desc.querySelector("textarea")).toBeTruthy();
+  });
+
+  it("leaves a feed event's description alone, because it is not ours", () => {
+    asEditor();
+    external.value = [{ ...BASE, id: undefined, external: true }];
+    const { container } = renderEvent();
+    fireEvent.click(screen.getByText(/Edit this page/i));
+    expect(container.querySelector("textarea")).toBeNull();
   });
 });
 

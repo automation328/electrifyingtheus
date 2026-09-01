@@ -50,6 +50,11 @@ const slotName = (slot: string): string => {
   if (slot === "hero") return "Inside the hero";
   if (slot === "after-stats") return "Top of page";
   if (slot === "end") return "End of page";
+  // An event page's slots read as slugs otherwise ("event-end"), which is how
+  // an editor ends up dropping a block below the register band by accident.
+  if (slot === "event-top") return "Top of the event";
+  if (slot === "event-body") return "Under the description";
+  if (slot === "event-end") return "Below Save your spot";
   const m = /^after-section-(\d+)$/.exec(slot);
   if (m) return `After section ${Number(m[1]) + 1}`;
   return slot || "Page";
