@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { recommendEvs } from "./ev-match";
-import { vehicles, getVehicleById } from "@/data/vehicles";
+import { vehicles, getVehicleById, getVehiclesByType } from "@/data/vehicles";
 
 const rec = (id: string) => recommendEvs(getVehicleById(id)!, vehicles);
 const ids = (id: string) => rec(id).map((m) => m.ev.id);
@@ -64,5 +64,30 @@ describe("recommendEvs — class matching (spec §6)", () => {
     const matches = rec("toyota-rav4");
     const cheapest = matches.find((m) => m.label === "Lowest total cost")!;
     expect(Math.min(...matches.map((m) => m.fiveYearTotal))).toBe(cheapest.fiveYearTotal);
+  });
+
+  it("holds that claim for EVERY gas car in the catalog, not just the RAV4", () => {
+    // The three matches are shown side by side with their five-year totals on
+    // them, so "Lowest total cost" is checkable by eye. It once wasn't true: one
+    // EV can win both class fit and cost, and when the IONIQ 5 took "Closest
+    // match" for a RAV4 shopper, the cost badge fell through to an EV6 costing
+    // $3,033 more -- displayed directly beside the cheaper car.
+    //
+    // A single-vehicle assertion missed it for as long as the catalog's numbers
+    // happened to avoid the collision, so this sweeps the whole gas side.
+    const violations: string[] = [];
+    for (const gas of getVehiclesByType("gas")) {
+      const matches = recommendEvs(gas, vehicles);
+      if (!matches.length) continue;
+      const tagged = matches.find((m) => m.label === "Lowest total cost");
+      const min = Math.min(...matches.map((m) => m.fiveYearTotal));
+      if (!tagged || tagged.fiveYearTotal !== min) {
+        violations.push(`${gas.id}: badge ${tagged?.fiveYearTotal} vs cheapest ${min}`);
+      }
+      if (new Set(matches.map((m) => m.label)).size !== matches.length) {
+        violations.push(`${gas.id}: repeated label`);
+      }
+    }
+    expect(violations).toEqual([]);
   });
 });

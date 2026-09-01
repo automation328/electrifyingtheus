@@ -28,27 +28,27 @@ export const vehicles: VehicleData[] = [
   // Compact sedans
   {
     id: "tesla-model-3", name: "Tesla Model 3", type: "ev", msrp: 38630,
-    mpge: 132, kwhPer100mi: 25, maintenanceCostPerMile: 0.06, insuranceAnnual: 1920,
+    mpge: 139, kwhPer100mi: 24, maintenanceCostPerMile: 0.06, insuranceAnnual: 1920,
     depreciationRate: 0.15, category: "Sedan",
-    bodyStyle: "sedan", sizeClass: 2, seats: 5, drivetrain: "RWD", rangeMi: 272,
+    bodyStyle: "sedan", sizeClass: 2, seats: 5, drivetrain: "RWD", rangeMi: 321,
   },
   {
     id: "tesla-model-3-performance", name: "Tesla Model 3 Performance", type: "ev", msrp: 52990,
-    mpge: 113, kwhPer100mi: 30, maintenanceCostPerMile: 0.066, insuranceAnnual: 2200,
+    mpge: 111, kwhPer100mi: 30, maintenanceCostPerMile: 0.066, insuranceAnnual: 2200,
     depreciationRate: 0.16, category: "Sedan",
-    bodyStyle: "sedan", sizeClass: 2, seats: 5, drivetrain: "AWD", rangeMi: 296, performance: true,
+    bodyStyle: "sedan", sizeClass: 2, seats: 5, drivetrain: "AWD", rangeMi: 314, performance: true,
   },
   {
     id: "hyundai-ioniq-6", name: "Hyundai IONIQ 6", type: "ev", msrp: 37850,
-    mpge: 140, kwhPer100mi: 24, maintenanceCostPerMile: 0.057, insuranceAnnual: 1820,
+    mpge: 132, kwhPer100mi: 26, maintenanceCostPerMile: 0.057, insuranceAnnual: 1820,
     depreciationRate: 0.17, category: "Sedan",
-    bodyStyle: "sedan", sizeClass: 2, seats: 5, drivetrain: "RWD", rangeMi: 305,
+    bodyStyle: "sedan", sizeClass: 2, seats: 5, drivetrain: "RWD", rangeMi: 342,
   },
   {
     id: "polestar-2", name: "Polestar 2", type: "ev", msrp: 49900,
-    mpge: 107, kwhPer100mi: 31, maintenanceCostPerMile: 0.062, insuranceAnnual: 1980,
+    mpge: 114, kwhPer100mi: 30, maintenanceCostPerMile: 0.062, insuranceAnnual: 1980,
     depreciationRate: 0.19, category: "Sedan",
-    bodyStyle: "sedan", sizeClass: 2, seats: 5, drivetrain: "RWD", rangeMi: 270,
+    bodyStyle: "sedan", sizeClass: 2, seats: 5, drivetrain: "RWD", rangeMi: 314,
   },
   {
     id: "bmw-i4", name: "BMW i4", type: "ev", msrp: 52200,
@@ -84,7 +84,7 @@ export const vehicles: VehicleData[] = [
   },
   {
     id: "chevy-equinox-ev", name: "Chevrolet Equinox EV", type: "ev", msrp: 34995,
-    mpge: 126, kwhPer100mi: 27, maintenanceCostPerMile: 0.061, insuranceAnnual: 1800,
+    mpge: 108, kwhPer100mi: 31, maintenanceCostPerMile: 0.061, insuranceAnnual: 1800,
     depreciationRate: 0.18, category: "SUV",
     bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "FWD", rangeMi: 319,
   },
@@ -121,7 +121,7 @@ export const vehicles: VehicleData[] = [
   // Performance SUVs
   {
     id: "ford-mustang-mach-e-gt", name: "Ford Mustang Mach-E GT", type: "ev", msrp: 53995,
-    mpge: 84, kwhPer100mi: 40, maintenanceCostPerMile: 0.07, insuranceAnnual: 2300,
+    mpge: 90, kwhPer100mi: 37, maintenanceCostPerMile: 0.07, insuranceAnnual: 2300,
     depreciationRate: 0.18, category: "SUV",
     bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "AWD", rangeMi: 280, performance: true,
   },
@@ -134,9 +134,9 @@ export const vehicles: VehicleData[] = [
   // 3-row / large SUVs
   {
     id: "kia-ev9", name: "Kia EV9", type: "ev", msrp: 54900,
-    mpge: 95, kwhPer100mi: 35, maintenanceCostPerMile: 0.06, insuranceAnnual: 2150,
+    mpge: 89, kwhPer100mi: 38, maintenanceCostPerMile: 0.06, insuranceAnnual: 2150,
     depreciationRate: 0.18, category: "SUV",
-    bodyStyle: "suv-large", sizeClass: 4, seats: 7, drivetrain: "AWD", rangeMi: 304,
+    bodyStyle: "suv-large", sizeClass: 4, seats: 7, drivetrain: "AWD", rangeMi: 305,
   },
   {
     id: "rivian-r1s", name: "Rivian R1S", type: "ev", msrp: 75900,
@@ -173,15 +173,15 @@ export const vehicles: VehicleData[] = [
   },
   {
     id: "audi-q6-etron", name: "Audi Q6 e-tron", type: "ev", msrp: 63800,
-    mpge: 84, kwhPer100mi: 40, maintenanceCostPerMile: 0.072, insuranceAnnual: 2300,
+    mpge: 100, kwhPer100mi: 34, maintenanceCostPerMile: 0.072, insuranceAnnual: 2300,
     depreciationRate: 0.2, category: "SUV",
-    bodyStyle: "suv-compact", sizeClass: 3, seats: 5, drivetrain: "AWD", rangeMi: 307, luxury: true,
+    bodyStyle: "suv-compact", sizeClass: 3, seats: 5, drivetrain: "AWD", rangeMi: 310, luxury: true,
   },
   {
     id: "bmw-ix-xdrive40", name: "BMW iX xDrive40", type: "ev", msrp: 67100,
     mpge: 86, kwhPer100mi: 39, maintenanceCostPerMile: 0.075, insuranceAnnual: 2450,
     depreciationRate: 0.2, category: "SUV",
-    bodyStyle: "suv-large", sizeClass: 4, seats: 5, drivetrain: "AWD", rangeMi: 309, luxury: true,
+    bodyStyle: "suv-large", sizeClass: 4, seats: 5, drivetrain: "AWD", rangeMi: 217, luxury: true,
   },
   {
     id: "cadillac-lyriq", name: "Cadillac LYRIQ", type: "ev", msrp: 58000,
@@ -257,9 +257,9 @@ export const vehicles: VehicleData[] = [
   },
   {
     id: "mercedes-eqs-580", name: "Mercedes-Benz EQS 580 4MATIC", type: "ev", msrp: 105000,
-    mpge: 94, kwhPer100mi: 36, maintenanceCostPerMile: 0.082, insuranceAnnual: 2800,
+    mpge: 93, kwhPer100mi: 36, maintenanceCostPerMile: 0.082, insuranceAnnual: 2800,
     depreciationRate: 0.24, category: "Sedan",
-    bodyStyle: "sedan", sizeClass: 3, seats: 5, drivetrain: "AWD", rangeMi: 340, luxury: true,
+    bodyStyle: "sedan", sizeClass: 3, seats: 5, drivetrain: "AWD", rangeMi: 371, luxury: true,
   },
   {
     id: "polestar-3", name: "Polestar 3", type: "ev", msrp: 73400,
@@ -275,7 +275,7 @@ export const vehicles: VehicleData[] = [
   },
   {
     id: "vw-id-buzz", name: "Volkswagen ID. Buzz", type: "ev", msrp: 61545,
-    mpge: 76, kwhPer100mi: 44, maintenanceCostPerMile: 0.066, insuranceAnnual: 2150,
+    mpge: 83, kwhPer100mi: 41, maintenanceCostPerMile: 0.066, insuranceAnnual: 2150,
     depreciationRate: 0.2, category: "Minivan",
     bodyStyle: "minivan", sizeClass: 4, seats: 7, drivetrain: "RWD", rangeMi: 234,
   },
@@ -469,22 +469,22 @@ export const vehicles: VehicleData[] = [
   },
   {
     id: "volvo-ex90", name: "Volvo EX90", type: "ev", msrp: 79995,
-    mpge: 81, kwhPer100mi: 42, maintenanceCostPerMile: 0.075, insuranceAnnual: 2500,
+    mpge: 92, kwhPer100mi: 37, maintenanceCostPerMile: 0.075, insuranceAnnual: 2500,
     depreciationRate: 0.21, category: "SUV",
-    bodyStyle: "suv-large", sizeClass: 4, seats: 7, drivetrain: "AWD", rangeMi: 310, luxury: true,
+    bodyStyle: "suv-large", sizeClass: 4, seats: 7, drivetrain: "AWD", rangeMi: 276, luxury: true,
   },
   {
     id: "volvo-c40", name: "Volvo EC40", type: "ev", msrp: 53900,
-    mpge: 87, kwhPer100mi: 39, maintenanceCostPerMile: 0.068, insuranceAnnual: 2050,
+    mpge: 106, kwhPer100mi: 32, maintenanceCostPerMile: 0.068, insuranceAnnual: 2050,
     depreciationRate: 0.2, category: "SUV",
-    bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "AWD", rangeMi: 257, luxury: true,
+    bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "AWD", rangeMi: 298, luxury: true,
   },
   // Subaru
   {
     id: "subaru-solterra", name: "Subaru Solterra", type: "ev", msrp: 38495,
-    mpge: 104, kwhPer100mi: 32, maintenanceCostPerMile: 0.06, insuranceAnnual: 1850,
+    mpge: 120, kwhPer100mi: 28, maintenanceCostPerMile: 0.06, insuranceAnnual: 1850,
     depreciationRate: 0.19, category: "SUV",
-    bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "AWD", rangeMi: 227,
+    bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "AWD", rangeMi: 288,
   },
   // Mini
   {
@@ -502,9 +502,9 @@ export const vehicles: VehicleData[] = [
   },
   {
     id: "porsche-macan-electric", name: "Porsche Macan Electric", type: "ev", msrp: 75300,
-    mpge: 87, kwhPer100mi: 39, maintenanceCostPerMile: 0.076, insuranceAnnual: 2650,
+    mpge: 97, kwhPer100mi: 35, maintenanceCostPerMile: 0.076, insuranceAnnual: 2650,
     depreciationRate: 0.21, category: "SUV",
-    bodyStyle: "suv-compact", sizeClass: 3, seats: 5, drivetrain: "AWD", rangeMi: 308, luxury: true, performance: true,
+    bodyStyle: "suv-compact", sizeClass: 3, seats: 5, drivetrain: "AWD", rangeMi: 309, luxury: true, performance: true,
   },
   // Lexus
   {
@@ -516,22 +516,22 @@ export const vehicles: VehicleData[] = [
   // VinFast
   {
     id: "vinfast-vf8", name: "VinFast VF 8", type: "ev", msrp: 41000,
-    mpge: 86, kwhPer100mi: 39, maintenanceCostPerMile: 0.064, insuranceAnnual: 1950,
+    mpge: 73, kwhPer100mi: 46, maintenanceCostPerMile: 0.064, insuranceAnnual: 1950,
     depreciationRate: 0.23, category: "SUV",
-    bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "AWD", rangeMi: 264,
+    bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "AWD", rangeMi: 256,
   },
   {
     id: "vinfast-vf9", name: "VinFast VF 9", type: "ev", msrp: 57000,
-    mpge: 74, kwhPer100mi: 46, maintenanceCostPerMile: 0.07, insuranceAnnual: 2200,
+    mpge: 68, kwhPer100mi: 50, maintenanceCostPerMile: 0.07, insuranceAnnual: 2200,
     depreciationRate: 0.24, category: "SUV",
-    bodyStyle: "suv-large", sizeClass: 4, seats: 7, drivetrain: "AWD", rangeMi: 330,
+    bodyStyle: "suv-large", sizeClass: 4, seats: 7, drivetrain: "AWD", rangeMi: 287,
   },
   // Jeep
   {
     id: "jeep-wagoneer-s", name: "Jeep Wagoneer S", type: "ev", msrp: 71995,
-    mpge: 78, kwhPer100mi: 43, maintenanceCostPerMile: 0.07, insuranceAnnual: 2350,
+    mpge: 93, kwhPer100mi: 36, maintenanceCostPerMile: 0.07, insuranceAnnual: 2350,
     depreciationRate: 0.2, category: "SUV",
-    bodyStyle: "suv-mid", sizeClass: 3, seats: 5, drivetrain: "AWD", rangeMi: 303,
+    bodyStyle: "suv-mid", sizeClass: 3, seats: 5, drivetrain: "AWD", rangeMi: 294,
   },
   // Dodge
   {
@@ -543,7 +543,7 @@ export const vehicles: VehicleData[] = [
   // Fiat
   {
     id: "fiat-500e", name: "Fiat 500e", type: "ev", msrp: 32500,
-    mpge: 102, kwhPer100mi: 33, maintenanceCostPerMile: 0.061, insuranceAnnual: 1700,
+    mpge: 116, kwhPer100mi: 29, maintenanceCostPerMile: 0.061, insuranceAnnual: 1700,
     depreciationRate: 0.21, category: "Sedan",
     bodyStyle: "hatchback", sizeClass: 1, seats: 4, drivetrain: "FWD", rangeMi: 149,
   },
@@ -580,7 +580,7 @@ export const vehicles: VehicleData[] = [
   },
   {
     id: "cadillac-vistiq", name: "Cadillac VISTIQ", type: "ev", msrp: 78790,
-    mpge: 79, kwhPer100mi: 43, maintenanceCostPerMile: 0.072, insuranceAnnual: 2500,
+    mpge: 86, kwhPer100mi: 39, maintenanceCostPerMile: 0.072, insuranceAnnual: 2500,
     depreciationRate: 0.21, category: "SUV",
     bodyStyle: "suv-large", sizeClass: 4, seats: 7, drivetrain: "AWD", rangeMi: 305, luxury: true,
   },
@@ -604,9 +604,9 @@ export const vehicles: VehicleData[] = [
   },
   {
     id: "jeep-recon", name: "Jeep Recon", type: "ev", msrp: 65000,
-    mpge: 80, kwhPer100mi: 43, maintenanceCostPerMile: 0.065, insuranceAnnual: 2200,
+    mpge: 71, kwhPer100mi: 48, maintenanceCostPerMile: 0.065, insuranceAnnual: 2200,
     depreciationRate: 0.2, category: "SUV",
-    bodyStyle: "suv-mid", sizeClass: 3, seats: 5, drivetrain: "4WD", rangeMi: 250,
+    bodyStyle: "suv-mid", sizeClass: 3, seats: 5, drivetrain: "4WD", rangeMi: 222,
   },
   {
     id: "audi-a6-etron", name: "Audi A6 e-tron", type: "ev", msrp: 66800,
@@ -634,7 +634,7 @@ export const vehicles: VehicleData[] = [
   },
   {
     id: "cadillac-celestiq", name: "Cadillac CELESTIQ", type: "ev", msrp: 340000,
-    mpge: 75, kwhPer100mi: 45, maintenanceCostPerMile: 0.09, insuranceAnnual: 5000,
+    mpge: 81, kwhPer100mi: 42, maintenanceCostPerMile: 0.09, insuranceAnnual: 5000,
     depreciationRate: 0.25, category: "Sedan",
     bodyStyle: "sedan", sizeClass: 4, seats: 4, drivetrain: "AWD", rangeMi: 303, luxury: true,
   },
@@ -643,15 +643,15 @@ export const vehicles: VehicleData[] = [
   // lazy-loaded and couldn't be scraped). Representative 2026 specs.
   {
     id: "tesla-cybertruck", name: "Tesla Cybertruck", type: "ev", msrp: 79990,
-    mpge: 48, kwhPer100mi: 46, maintenanceCostPerMile: 0.06, insuranceAnnual: 2800,
+    mpge: 79, kwhPer100mi: 43, maintenanceCostPerMile: 0.06, insuranceAnnual: 2800,
     depreciationRate: 0.2, category: "Truck",
     bodyStyle: "truck", sizeClass: 4, seats: 5, drivetrain: "AWD", rangeMi: 325,
   },
   {
     id: "polestar-4", name: "Polestar 4", type: "ev", msrp: 54900,
-    mpge: 102, kwhPer100mi: 33, maintenanceCostPerMile: 0.062, insuranceAnnual: 2100,
+    mpge: 95, kwhPer100mi: 35, maintenanceCostPerMile: 0.062, insuranceAnnual: 2100,
     depreciationRate: 0.19, category: "SUV",
-    bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "RWD", rangeMi: 300, luxury: true,
+    bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "RWD", rangeMi: 310, luxury: true,
   },
   {
     id: "mercedes-g580-ev", name: "Mercedes-Benz G 580 (EV)", type: "ev", msrp: 162650,
@@ -697,9 +697,9 @@ export const vehicles: VehicleData[] = [
   },
   {
     id: "subaru-trailseeker", name: "Subaru Trailseeker", type: "ev", msrp: 45000,
-    mpge: 95, kwhPer100mi: 36, maintenanceCostPerMile: 0.063, insuranceAnnual: 1980,
+    mpge: 117, kwhPer100mi: 29, maintenanceCostPerMile: 0.063, insuranceAnnual: 1980,
     depreciationRate: 0.19, category: "SUV",
-    bodyStyle: "suv-mid", sizeClass: 3, seats: 5, drivetrain: "AWD", rangeMi: 260,
+    bodyStyle: "suv-mid", sizeClass: 3, seats: 5, drivetrain: "AWD", rangeMi: 281,
   },
   {
     id: "subaru-uncharted", name: "Subaru Uncharted", type: "ev", msrp: 35000,
@@ -1395,9 +1395,9 @@ export const vehicles: VehicleData[] = [
   },
   {
     id: "maserati-granturismo-folgore", name: "Maserati GranTurismo Folgore", type: "ev", msrp: 200000,
-    mpge: 75, kwhPer100mi: 45, maintenanceCostPerMile: 0.085, insuranceAnnual: 3000,
+    mpge: 83, kwhPer100mi: 41, maintenanceCostPerMile: 0.085, insuranceAnnual: 3000,
     depreciationRate: 0.2, category: "Coupe",
-    bodyStyle: "coupe", sizeClass: 3, seats: 4, drivetrain: "AWD", rangeMi: 280, luxury: true, performance: true,
+    bodyStyle: "coupe", sizeClass: 3, seats: 4, drivetrain: "AWD", rangeMi: 233, luxury: true, performance: true,
   },
 ];
 

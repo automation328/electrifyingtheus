@@ -203,6 +203,12 @@ export function recommendEvs(
   });
 
   // Pick winners for each label, then dedupe, filling from best composite.
+  //
+  // byCost deliberately sorts on the ROUNDED costScore, not the raw total. Ties
+  // are the point: when two EVs cost within a rounding step of each other over
+  // five years, the tiebreak takes the better composite, which keeps class fit
+  // in play. Sorting on the raw total instead answers a Highlander with an EQB
+  // that happens to be $127 cheaper and seats the family far worse.
   const byClass = [...scored].sort((a, b) => b.classMatch - a.classMatch || b.composite - a.composite);
   const byCost = [...scored].sort((a, b) => b.costScore - a.costScore || b.composite - a.composite);
   const byComposite = [...scored].sort((a, b) => b.composite - a.composite);
@@ -213,8 +219,12 @@ export function recommendEvs(
     { pick: byComposite[0], label: "Best overall value" },
   ];
 
+  // Choose the three vehicles. Collisions fall back to the best composite, which
+  // keeps class fit in the running -- falling back within the cost ordering alone
+  // would answer a Highlander with whatever cheap EV sits lowest in the list,
+  // regardless of whether it seats the family.
   const used = new Set<string>();
-  const result: EvMatch[] = [];
+  const picked: { pick: typeof scored[number]; label: MatchLabel }[] = [];
   for (const { pick, label } of order) {
     let chosen = pick;
     if (used.has(chosen.ev.id)) {
@@ -222,18 +232,33 @@ export function recommendEvs(
     }
     if (!chosen || used.has(chosen.ev.id)) continue;
     used.add(chosen.ev.id);
-    result.push({
-      ev: chosen.ev, label,
-      classMatchScore: Math.round(chosen.classMatch),
-      costScore: chosen.costScore,
-      valueScore: chosen.valueScore,
-      composite: Math.round(chosen.composite),
-      fiveYearTotal: Math.round(chosen.total),
-      reason: reasonFor(label, user, chosen.ev),
-      caveat: tierCaveat,
-    });
-    if (result.length >= limit) break;
+    picked.push({ pick: chosen, label });
+    if (picked.length >= limit) break;
   }
 
-  return result;
+  // Make each label true OF THE CARDS ACTUALLY SHOWN. The three sit side by side
+  // with their five-year totals on them, so "Lowest total cost" has to be the
+  // cheapest of the three. One EV can win on both class fit and cost; when that
+  // happened, it took "Closest match" and the cost badge fell to a runner-up,
+  // putting a visibly cheaper car next to the one claiming to be cheapest.
+  const cheapest = [...picked].sort((a, b) => a.pick.total - b.pick.total)[0];
+  const rest = picked.filter((p) => p !== cheapest);
+  const closest = [...rest].sort((a, b) => b.pick.classMatch - a.pick.classMatch)[0];
+  const labelled: { pick: typeof scored[number]; label: MatchLabel }[] = [];
+  if (closest) labelled.push({ pick: closest.pick, label: "Closest match" });
+  if (cheapest) labelled.push({ pick: cheapest.pick, label: "Lowest total cost" });
+  for (const p of rest) {
+    if (p !== closest) labelled.push({ pick: p.pick, label: "Best overall value" });
+  }
+
+  return labelled.map(({ pick, label }) => ({
+    ev: pick.ev, label,
+    classMatchScore: Math.round(pick.classMatch),
+    costScore: pick.costScore,
+    valueScore: pick.valueScore,
+    composite: Math.round(pick.composite),
+    fiveYearTotal: Math.round(pick.total),
+    reason: reasonFor(label, user, pick.ev),
+    caveat: tierCaveat,
+  }));
 }
