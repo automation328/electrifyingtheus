@@ -823,14 +823,26 @@ export const vehicles: VehicleData[] = [
     depreciationRate: 0.16, category: "SUV",
     bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "AWD",
   },
-  // The petrol Charger. It shares its body with the Charger Daytona EV listed
-  // above, which is exactly why it needs its own entry AND its own photo: the
-  // two are the same car to look at, and the only thing separating them is
-  // what is under the hood. MSRP and mpg are Dodge's own published figures for
-  // the base two-door R/T (a four-door adds $2,000).
+  // The petrol Chargers. They share a body with the Charger Daytona EV listed
+  // above, which is exactly why they need their own entries AND their own
+  // photos: the cars are the same to look at, and the only thing separating
+  // them is what is under the hood.
+  //
+  // MSRP is Dodge's published base for the two-door (a four-door adds $2,000),
+  // excluding the $1,995 destination charge. mpg is the EPA COMBINED figure,
+  // per this file's convention -- NOT Dodge's marketing number. Dodge's own
+  // Charger page advertises "a combined 23 mpg" for the R/T; the EPA rates that
+  // same Charger R/T AWD at 20 combined (17 city / 26 highway), and it is the
+  // EPA figure that matches how the calculator spends a gallon.
   {
     id: "dodge-charger-sixpack", name: "Dodge Charger Sixpack", type: "gas", msrp: 49995,
-    mpg: 23, maintenanceCostPerMile: 0.108, insuranceAnnual: 2350,
+    mpg: 20, maintenanceCostPerMile: 0.108, insuranceAnnual: 2350,
+    depreciationRate: 0.16, category: "Coupe",
+    bodyStyle: "coupe", sizeClass: 3, seats: 5, drivetrain: "AWD", performance: true,
+  },
+  {
+    id: "dodge-charger-scat-pack", name: "Dodge Charger Scat Pack", type: "gas", msrp: 54995,
+    mpg: 19, maintenanceCostPerMile: 0.112, insuranceAnnual: 2450,
     depreciationRate: 0.16, category: "Coupe",
     bodyStyle: "coupe", sizeClass: 3, seats: 5, drivetrain: "AWD", performance: true,
   },
@@ -1453,6 +1465,9 @@ const VEHICLE_IMAGES: Record<string, string> = {
   // car -- the Commons file records this one as a 3.0 litre biturbo R6 (petrol),
   // and it was looked at to confirm the R/T badge and the vented hood.
   "dodge-charger-sixpack": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/48/Dodge_Charger_R_T_%282026%29_%2855208228377%29.jpg/330px-Dodge_Charger_R_T_%282026%29_%2855208228377%29.jpg",
+  // The Scat Pack is the higher-output petrol Charger, NOT the 670 hp all-electric
+  // Charger Daytona Scat Pack. Commons files this one under Dodge Charger Sixpack.
+  "dodge-charger-scat-pack": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/26_Dodge_Charger_Scat_Pack.jpg/330px-26_Dodge_Charger_Scat_Pack.jpg",
   "fiat-500e": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Fiat-500-vorne2.jpg/330px-Fiat-500-vorne2.jpg",
   "chevy-blazer-ev": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/43/2024_Chevrolet_Blazer_EV_2LT_AWD_in_Summit_White%2C_front_right%2C_2024-03-31.jpg/330px-2024_Chevrolet_Blazer_EV_2LT_AWD_in_Summit_White%2C_front_right%2C_2024-03-31.jpg",
   "bmw-i7": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/BMW_7-Series_%28G70%29_750e_IMG_9358.jpg/330px-BMW_7-Series_%28G70%29_750e_IMG_9358.jpg",
