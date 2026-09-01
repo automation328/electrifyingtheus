@@ -101,6 +101,7 @@ const Gallery = () => {
               {videos.map((v) => (
                 <figure key={v.id ?? v.src ?? v.title} className="space-y-2">
                   <VideoEmbed
+                    aspect="square"
                     title={v.title}
                     provider={v.provider}
                     id={v.id}

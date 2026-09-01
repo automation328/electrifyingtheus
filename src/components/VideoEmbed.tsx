@@ -30,6 +30,11 @@ interface VideoEmbedProps {
   /** When set, the card is a link to this route instead of an inline player —
    *  for videos that live on their own page (e.g. a webinar replay). */
   href?: string;
+  /** Card shape. "square" crops the poster to a 1:1 tile — the gallery wall uses
+   *  it so the video row matches the photo tiles beside it. The player keeps the
+   *  same box: a 16:9 video is width-bound either way, so it renders at the same
+   *  size with bars above and below rather than resizing the card mid-play. */
+  aspect?: "video" | "square";
   className?: string;
 }
 
@@ -40,7 +45,7 @@ const embedSrc = (provider: VideoProvider, id: string) =>
     ? `https://drive.google.com/file/d/${id}/preview`
     : `https://player.vimeo.com/video/${id}?autoplay=1`;
 
-const VideoEmbed = ({ title, provider = "youtube", id, src, captions, poster, href, className = "" }: VideoEmbedProps) => {
+const VideoEmbed = ({ title, provider = "youtube", id, src, captions, poster, href, aspect = "video", className = "" }: VideoEmbedProps) => {
   const [playing, setPlaying] = useState(false);
   const isFile = provider === "file";
   const img = poster ?? (provider === "youtube" && id ? `https://i.ytimg.com/vi/${id}/hqdefault.jpg` : "");
@@ -67,7 +72,7 @@ const VideoEmbed = ({ title, provider = "youtube", id, src, captions, poster, hr
   );
 
   return (
-    <div className={`relative aspect-video overflow-hidden rounded-2xl bg-muted ring-1 ring-border ${className}`}>
+    <div className={`relative ${aspect === "square" ? "aspect-square" : "aspect-video"} overflow-hidden rounded-2xl bg-muted ring-1 ring-border ${className}`}>
       {playing ? (
         isFile ? (
           <video
