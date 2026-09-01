@@ -51,6 +51,20 @@ function preview(text: string, limit = PREVIEW_CHARS): string {
   return `${(word > 0 ? window.slice(0, word) : window).replace(/[,;:\-–—]$/, "")}...`;
 }
 
+// Who the email says shared it: the sender's NAME, never their address.
+//
+// The address is still required and validated on every send — that plus
+// reCAPTCHA is what keeps a send attributable — but attribution is a server-side
+// property. Printing "Name (name@example.com)" in the body put a raw mailbox in
+// front of the recipient without giving them anything to act on.
+//
+// A self-send has no "shared by" line at all: the recipient is the sender.
+export function senderLabel(senderName: string, to: string, senderEmail: string): string {
+  const isSelfSend = to.trim().toLowerCase() === senderEmail.trim().toLowerCase();
+  if (isSelfSend || !senderName.trim()) return "";
+  return senderName.trim().slice(0, 80);
+}
+
 // Minimal HTML-escape for text we drop into the template.
 function esc(v: unknown): string {
   return String(v ?? "")
@@ -269,7 +283,7 @@ export default async function handler(req: any, res: any) {
   const img = /^https?:\/\//i.test(safeImage) ? safeImage : "";
 
   const isSelfSend = to.trim().toLowerCase() === senderEmail.trim().toLowerCase();
-  const sharedBy = !isSelfSend && senderName ? `${cap(senderName, 80)} (${senderEmail.trim()})` : "";
+  const sharedBy = senderLabel(senderName, to, senderEmail);
   const greetName = cap(recipientName, 80) || (isSelfSend ? cap(senderName, 80) : "");
 
   const html = buildHtml({

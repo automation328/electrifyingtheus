@@ -9,7 +9,7 @@
 // buried in it. Events now get labelled rows instead.
 
 import { describe, it, expect } from "vitest";
-import { buildHtml, buildText } from "./share-email";
+import { buildHtml, buildText, senderLabel } from "./share-email";
 
 const EVENT = {
   title: "Montbello Alive EV Ride & Drive - Denver, CO",
@@ -17,7 +17,7 @@ const EVENT = {
     "Come celebrate Montbello Alive with a free, family-friendly morning of community, music, food, and electric vehicles! Following the Montbello Alive 5K, Women Who Charge and the Colorado Branch of EVA invite you to stop by our EV Ride & Drive and experience electric driving for yourself. Take a spin in one of the latest EVs, try a vehicle you've been thinking about, or discover a model you may not have considered.",
   url: "https://electrifyingtheus.com/events/montbello",
   greetName: "Terry",
-  sharedBy: "ETUS Team (info@electrifyingtheus.com)",
+  sharedBy: "ETUS Team",
   eventDateTime: "Saturday, SEP 19, 2026 · 11a - 4p",
   ctaLabel: "Events Details",
   disclaimer: "This event is organized and managed by an independent third party.",
@@ -65,6 +65,35 @@ describe("event share email", () => {
   });
 });
 
+describe("who it says shared it", () => {
+  it("is the sender's name and never their email address", () => {
+    expect(senderLabel("Dana Reyes", "friend@example.com", "dana@example.com")).toBe("Dana Reyes");
+  });
+
+  it("keeps the address out of the rendered email entirely", () => {
+    const html = buildHtml({
+      ...EVENT,
+      sharedBy: senderLabel("Dana Reyes", "friend@example.com", "dana@example.com"),
+    });
+    expect(html).toContain("Dana Reyes shared this with you:");
+    expect(html).not.toContain("dana@example.com");
+    expect(html).not.toContain("@example.com");
+  });
+
+  it("says nothing at all on a self-send — the recipient IS the sender", () => {
+    expect(senderLabel("Dana Reyes", "dana@example.com", "Dana@Example.com ")).toBe("");
+    const html = buildHtml({
+      ...EVENT,
+      sharedBy: senderLabel("Dana Reyes", "dana@example.com", "dana@example.com"),
+    });
+    expect(html).not.toContain("shared this with you:");
+  });
+
+  it("says nothing when the sender left their name blank", () => {
+    expect(senderLabel("   ", "friend@example.com", "dana@example.com")).toBe("");
+  });
+});
+
 describe("footer", () => {
   it("keeps the shared-from line even when a disclaimer is present", () => {
     // It used to be either/or, so every send carrying legal fine print — exactly
@@ -89,7 +118,7 @@ describe("non-event shares are untouched", () => {
     meta: "News · Aug 27, 2026",
     url: "https://electrifyingtheus.com/blog/tipping-point",
     greetName: "Terry",
-    sharedBy: "ETUS Team (info@electrifyingtheus.com)",
+    sharedBy: "ETUS Team",
   };
 
   it("still renders the eyebrow + headline and the default CTA", () => {
