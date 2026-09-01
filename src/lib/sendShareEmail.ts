@@ -20,8 +20,13 @@ export interface ShareEmailPayload {
   meta?: string;
   /** Absolute thumbnail URL (rendered inline in the email). */
   imageUrl?: string;
-  /** Absolute page URL the "Read more" button links to. */
+  /** Absolute page URL the CTA button links to. */
   url: string;
+  /** "Saturday, SEP 19, 2026 · 11a - 4p". Presence of this switches the email to
+   *  the labelled event layout (Event: / Date/Time: / Event details:). */
+  eventDateTime?: string;
+  /** CTA button text, without the arrow. Defaults to "Read more". */
+  ctaLabel?: string;
   /** Optional legal disclaimer rendered in the email footer (replaces the
    *  generic informational line). */
   disclaimer?: string;

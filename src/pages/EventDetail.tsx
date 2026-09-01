@@ -16,6 +16,7 @@ import { safeHref } from "@/lib/safe-href";
 import ShareGate from "@/components/forms/ShareGate";
 import EventActionGate from "@/components/forms/EventActionGate";
 import EventDisclaimer from "@/components/EventDisclaimer";
+import { EVENT_THIRD_PARTY_NOTICE } from "@/lib/disclaimers";
 import { gcalLink, eventFullDate, eventDisplayTitle, eventLocationText, type EventItem } from "@/data/events";
 import { useEvents, useDraftEvent } from "@/hooks/use-content";
 import { useExternalEvents } from "@/hooks/use-external-events";
@@ -333,6 +334,8 @@ const EventDetail = () => {
                 description={event.description}
                 image={event.image}
                 meta={`${event.type} · ${event.location} · ${event.month} ${event.day}, ${event.year} · ${event.time}`}
+                eventDateTime={`${eventFullDate(event)} · ${event.time}`}
+                disclaimer={EVENT_THIRD_PARTY_NOTICE}
                 formType="event-share"
                 variant="label"
                 label="Share"

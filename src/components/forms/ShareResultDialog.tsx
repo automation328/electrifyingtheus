@@ -45,7 +45,10 @@ interface ShareResultDialogProps {
   senderNameDefault?: string;
   senderEmailDefault?: string;
   /** When set, the email channel also delivers the branded HTML email. */
-  emailContent?: { title: string; description?: string; meta?: string; imageUrl?: string };
+  emailContent?: {
+    title: string; description?: string; meta?: string; imageUrl?: string;
+    eventDateTime?: string; ctaLabel?: string;
+  };
   /** Dialog headline + sub-line (defaults are generic). */
   dialogTitle?: string;
   dialogDescription?: string;
@@ -161,6 +164,8 @@ const ShareResultDialog = ({
         description: emailContent.description,
         meta: emailContent.meta,
         imageUrl: emailContent.imageUrl,
+        eventDateTime: emailContent.eventDateTime,
+        ctaLabel: emailContent.ctaLabel,
         url: absoluteUrl,
         disclaimer,
       });

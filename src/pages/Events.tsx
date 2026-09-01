@@ -12,6 +12,7 @@ import {
   eventLocationPin, type EventItem,
 } from "@/data/events";
 import { filterEvents } from "@/lib/event-search";
+import { EVENT_THIRD_PARTY_NOTICE } from "@/lib/disclaimers";
 import { splitEventDescription } from "@/lib/event-description";
 import EventSpeakers from "@/components/EventSpeakers";
 import { useEvents, useFeedSuppressions } from "@/hooks/use-content";
@@ -23,6 +24,9 @@ import ShareGate from "@/components/forms/ShareGate";
 
 const eventShareUrl = (e: EventItem) => (e.slug ? `/events/${e.slug}` : "/events");
 const eventShareSummary = (e: EventItem) => `${e.location} · ${e.month} ${e.day}, ${e.year}`;
+// Weekday + date + time, for the labelled share email. Deliberately without the
+// venue: the address goes on the page the button leads to.
+const eventShareDateTime = (e: EventItem) => `${eventFullDate(e)} · ${e.time}`;
 
 const isValidEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
 const shareBase = typeof window !== "undefined" ? `${window.location.origin}/events` : "https://electrifyingtheus.com/events";
@@ -128,6 +132,8 @@ const Events = () => {
             description={e.description}
             image={e.image}
             meta={`${e.type} · ${eventShareSummary(e)} · ${e.time}`}
+            eventDateTime={eventShareDateTime(e)}
+            disclaimer={EVENT_THIRD_PARTY_NOTICE}
             formType="event-share"
             className="grid place-items-center w-9 h-9 rounded-lg border border-border text-muted-foreground hover:text-primary hover:border-primary/40 transition"
           />
@@ -151,6 +157,8 @@ const Events = () => {
         description={e.description}
         image={e.image}
         meta={`${e.type} · ${eventShareSummary(e)} · ${e.time}`}
+        eventDateTime={eventShareDateTime(e)}
+        disclaimer={EVENT_THIRD_PARTY_NOTICE}
         formType="event-share"
         className="grid place-items-center w-9 h-9 rounded-lg bg-white/15 text-primary-foreground hover:bg-white/25 transition"
       />

@@ -65,11 +65,16 @@ interface ShareGateProps {
   /** Extra surface-specific legal disclaimer shown above the standard one (e.g.
    *  the calculator estimate disclaimer). Also forwarded to the send dialog. */
   disclaimer?: string;
+  /** Event shares only: "Saturday, SEP 19, 2026 · 11a - 4p". Passing this
+   *  switches the share EMAIL to the labelled event layout and the CTA to
+   *  "Events Details". The on-page share sheet is unaffected. */
+  eventDateTime?: string;
 }
 
 const ShareGate = ({
   url, title, formType, summary, description, image, meta,
   variant = "icon", label = "Share", className, stopNav = true, disclaimer,
+  eventDateTime,
 }: ShareGateProps) => {
   const [open, setOpen] = useState(false);
   const [captured, setCaptured] = useState(false);
@@ -305,6 +310,8 @@ const ShareGate = ({
           description: description || summary,
           meta,
           imageUrl: absoluteImage || undefined,
+          eventDateTime,
+          ctaLabel: eventDateTime ? "Events Details" : undefined,
         }}
       />
     </>

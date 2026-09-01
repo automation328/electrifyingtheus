@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
 import { MapPin, Clock, ArrowRight, CalendarDays, Star, Newspaper } from "lucide-react";
 import { useEvents, usePosts } from "@/hooks/use-content";
+import { eventFullDate } from "@/data/events";
+import { EVENT_THIRD_PARTY_NOTICE } from "@/lib/disclaimers";
 import ShareGate from "@/components/forms/ShareGate";
 
 // Green share trigger overlaid on each card image.
@@ -81,6 +83,8 @@ const FeaturedEventsSection = () => {
                       description={e.description}
                       image={e.image}
                       meta={`${e.type} · ${e.location} · ${e.month} ${e.day}, ${e.year} · ${e.time}`}
+                      eventDateTime={`${eventFullDate(e)} · ${e.time}`}
+                      disclaimer={EVENT_THIRD_PARTY_NOTICE}
                       formType="event-share"
                       className={GREEN_SHARE}
                     />

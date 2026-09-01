@@ -11,6 +11,7 @@ import WebinarRegisterForm from "@/components/forms/WebinarRegisterForm";
 import EventSpeakers from "@/components/EventSpeakers";
 import { EVENTS, eventFullDate, gcalLink } from "@/data/events";
 import { splitEventDescription, type EventSpeaker } from "@/lib/event-description";
+import { EVENT_THIRD_PARTY_NOTICE } from "@/lib/disclaimers";
 import { useEvents } from "@/hooks/use-content";
 import flyer from "@/assets/general-flyer.jpg";
 
@@ -91,6 +92,8 @@ const EventFromPumpToPlug = () => {
                   description={event.description}
                   image={event.image}
                   meta={`${event.type} · ${event.location} · ${event.month} ${event.day}, ${event.year} · ${event.time}`}
+                  eventDateTime={`${eventFullDate(event)} · ${event.time}`}
+                  disclaimer={EVENT_THIRD_PARTY_NOTICE}
                   formType="event-share"
                   variant="label"
                   label="Share"

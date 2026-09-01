@@ -9,6 +9,8 @@
 //                    Falls back to Resend's onboarding address (test-only delivery).
 //   RECAPTCHA_SECRET_KEY  Optional — when set, the share token is verified.
 
+// Blank-line paragraph split for multi-paragraph disclaimers.
+const SPLIT_PARAS = /\n{2,}/;
 const RESEND_ENDPOINT = "https://api.resend.com/emails";
 const DEFAULT_FROM = "Electrifying the US <onboarding@resend.dev>";
 const SITE = "https://electrifyingtheus.vercel.app";
@@ -27,6 +29,26 @@ const BRAND = {
 
 function safeJson(s: string): Record<string, unknown> {
   try { return JSON.parse(s); } catch { return {}; }
+}
+
+// Trim a description down to a preview and mark that it IS one.
+//
+// The email is a teaser -- the button carries the reader to the full page -- but
+// the old build just let the 600-char payload cap fall where it landed, so a
+// share ended "...While you're here, visit our tent to" with no ellipsis and no
+// full stop. That reads as a truncated send, not a preview. Cut on a word
+// boundary, prefer a sentence end when one is close to the limit, and always say
+// it continues.
+const PREVIEW_CHARS = 300;
+function preview(text: string, limit = PREVIEW_CHARS): string {
+  const t = text.trim();
+  if (t.length <= limit) return t;
+  const window = t.slice(0, limit);
+  const sentence = Math.max(window.lastIndexOf(". "), window.lastIndexOf("! "), window.lastIndexOf("? "));
+  // Only honour a sentence break in the last third, else the preview loses too much.
+  if (sentence > limit * 0.6) return `${window.slice(0, sentence + 1)}..`;
+  const word = window.lastIndexOf(" ");
+  return `${(word > 0 ? window.slice(0, word) : window).replace(/[,;:\-–—]$/, "")}...`;
 }
 
 // Minimal HTML-escape for text we drop into the template.
@@ -59,11 +81,13 @@ async function verifyRecaptcha(token: string): Promise<boolean> {
   }
 }
 
-function buildHtml(opts: {
+export function buildHtml(opts: {
   title: string; description?: string; meta?: string; imageUrl?: string; url: string;
   greetName?: string; sharedBy?: string; disclaimer?: string;
+  eventDateTime?: string; ctaLabel?: string;
 }): string {
-  const { title, description, meta, imageUrl, url, greetName, sharedBy, disclaimer } = opts;
+  const { title, description, meta, imageUrl, url, greetName, sharedBy, disclaimer,
+          eventDateTime, ctaLabel } = opts;
   const hero = imageUrl
     ? `<tr><td style="padding:0">
          <a href="${esc(url)}" target="_blank" style="text-decoration:none">
@@ -72,8 +96,24 @@ function buildHtml(opts: {
          </a>
        </td></tr>`
     : "";
+  // An event share is READ, not skimmed for a headline: the recipient wants what
+  // it is, when it is, and what happens there. So events get a labelled layout --
+  // "Event:", "Date/Time:", "Event details:" -- instead of the eyebrow + headline
+  // treatment the other shares use.
+  //
+  // It also replaces the old green eyebrow, which concatenated type, venue, street
+  // address, date and time into one line. Mail clients auto-linked the address
+  // out of the middle of it, so the eyebrow rendered as a green sentence with a
+  // blue underlined postal address embedded in it, and the date after that.
+  const isEvent = !!eventDateTime;
   const greeting = greetName
-    ? `<p style="margin:0 0 14px;font:600 15px/1.5 Arial,Helvetica,sans-serif;color:${BRAND.ink}">Hi ${esc(greetName)},</p>`
+    ? `<p style="margin:0 0 ${isEvent ? 2 : 14}px;font:600 15px/1.5 Arial,Helvetica,sans-serif;color:${BRAND.ink}">Hi ${esc(greetName)},</p>`
+    : "";
+  // Who sent it leads the message for an event -- it is the reason the recipient
+  // opens a mail about a stranger's ride & drive -- rather than sitting in the
+  // footer under the fine print.
+  const sharedByTop = (isEvent && sharedBy)
+    ? `<p style="margin:0 0 18px;font:400 15px/1.5 Arial,Helvetica,sans-serif;color:${BRAND.ink}">${esc(sharedBy)} shared this with you:</p>`
     : "";
   // When the headline contains "about " (the calculator's "saves about …" line),
   // inline the savings figure (meta) in GREEN right after "about", leaving the rest
@@ -90,6 +130,20 @@ function buildHtml(opts: {
   const desc = description
     ? `<p style="margin:0 0 24px;font:400 15px/1.65 Arial,Helvetica,sans-serif;color:${BRAND.muted}">${esc(description)}</p>`
     : "";
+
+  // Labelled event rows. The description is trimmed to a clean sentence-ish stop
+  // and given an ellipsis: the button is what carries the reader to the rest, and
+  // the old layout cut mid-sentence ("visit our tent to") with no ellipsis, which
+  // read as a broken send rather than a preview.
+  const eventBody = isEvent ? `
+          <p style="margin:0 0 6px;font:800 20px/1.3 Arial,Helvetica,sans-serif;color:${BRAND.ink}">Event: ${esc(title)}</p>
+          <p style="margin:0 0 18px;font:800 17px/1.4 Arial,Helvetica,sans-serif;color:${BRAND.green}">Date/Time: ${esc(eventDateTime)}</p>
+          ${description ? `<p style="margin:0 0 24px;font:400 15px/1.65 Arial,Helvetica,sans-serif;color:${BRAND.ink}"><span style="font-weight:700">Event details:</span> ${esc(preview(description))}</p>` : ""}` : "";
+
+  const headlineBlock = isEvent ? eventBody : `
+          ${metaRow}
+          <h1 style="margin:0 0 14px;font:800 24px/1.25 Arial,Helvetica,sans-serif;color:${BRAND.ink}">${headlineHtml}</h1>
+          ${desc}`;
 
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -113,31 +167,41 @@ function buildHtml(opts: {
         <!-- Body -->
         <tr><td style="padding:28px 28px 8px">
           ${greeting}
-          ${metaRow}
-          <h1 style="margin:0 0 14px;font:800 24px/1.25 Arial,Helvetica,sans-serif;color:${BRAND.ink}">${headlineHtml}</h1>
-          ${desc}
+          ${sharedByTop}
+          ${headlineBlock}
           <table role="presentation" cellpadding="0" cellspacing="0"><tr><td
              style="border-radius:12px;background:${BRAND.blue}">
             <a href="${esc(url)}" target="_blank"
                style="display:inline-block;padding:13px 26px;font:700 15px/1 Arial,Helvetica,sans-serif;color:#ffffff;text-decoration:none;border-radius:12px">
-               Read more &rarr;</a>
+               ${esc(ctaLabel || "Read more")} &rarr;</a>
           </td></tr></table>
         </td></tr>
         <!-- Footer -->
         <tr><td style="padding:24px 28px 28px">
-          <hr style="border:none;border-top:1px solid ${BRAND.line};margin:0 0 16px" />
-          ${sharedBy ? `<p style="margin:0 0 8px;font:600 13px/1.6 Arial,Helvetica,sans-serif;color:${BRAND.ink}">${esc(sharedBy)} shared this with you.</p>` : ""}
-          ${disclaimer
-            ? disclaimer.split(/\n{2,}/).map((p) =>
-                `<p style="margin:0 0 8px;font:400 11px/1.55 Arial,Helvetica,sans-serif;color:#9aa7b4">${esc(p.trim())}</p>`,
-              ).join("")
-            : `<p style="margin:0 0 6px;font:400 12px/1.6 Arial,Helvetica,sans-serif;color:${BRAND.muted}">
-            Shared from <a href="${SITE}" style="color:${BRAND.blue};text-decoration:none">ElectrifyingTheUS.com</a> —
-            your guide to electric vehicles, charging, and going electric.
+          ${!isEvent && sharedBy ? `<p style="margin:0 0 8px;font:600 13px/1.6 Arial,Helvetica,sans-serif;color:${BRAND.ink}">${esc(sharedBy)} shared this with you.</p>` : ""}
+          <!-- The "shared from" line is no longer EITHER/OR with the disclaimer. It
+               says who the mail is from, which a recipient needs most on the sends
+               that also carry legal fine print -- and those were exactly the ones
+               that used to drop it. -->
+          <p style="margin:0 0 14px;font:400 12px/1.6 Arial,Helvetica,sans-serif;color:${BRAND.muted}">
+            Shared from <a href="${SITE}" style="color:${BRAND.blue};text-decoration:none">ElectrifyingTheUS.com</a> &mdash;
+            your guide to clean transportation and clean energy, EV info, rebates &amp; Incentives, news, events, and more
           </p>
-          <p style="margin:0;font:400 11px/1.5 Arial,Helvetica,sans-serif;color:#9aa7b4">
+          ${disclaimer
+            ? disclaimer.split(SPLIT_PARAS).map((para, i) =>
+                `<p style="margin:0 0 8px;font:400 11px/1.55 Arial,Helvetica,sans-serif;color:#9aa7b4">${
+                  i === 0 && isEvent
+                    ? `<span style="font-weight:700;color:${BRAND.muted}">Disclaimer/Third Party Event:</span> `
+                    : ""
+                }${esc(para.trim())}</p>`,
+              ).join("")
+            : `<p style="margin:0;font:400 11px/1.5 Arial,Helvetica,sans-serif;color:#9aa7b4">
             You received this because you chose to share this content. Informational only; not financial, legal, or tax advice.
           </p>`}
+          <p style="margin:8px 0 0;font:400 11px/1.55 Arial,Helvetica,sans-serif;color:#9aa7b4">
+            <a href="${SITE}/privacy-policy" style="color:#9aa7b4;text-decoration:underline">Privacy Policy</a>
+            &amp; <a href="${SITE}/terms" style="color:#9aa7b4;text-decoration:underline">Terms &amp; Conditions</a>
+          </p>
         </td></tr>
       </table>
     </td></tr>
@@ -145,9 +209,24 @@ function buildHtml(opts: {
 </body></html>`;
 }
 
-function buildText(opts: { title: string; description?: string; meta?: string; url: string }): string {
-  return [opts.title, opts.meta, opts.description, `Read more: ${opts.url}`]
-    .filter(Boolean).join("\n\n");
+export function buildText(opts: {
+  title: string; description?: string; meta?: string; url: string;
+  eventDateTime?: string; ctaLabel?: string; sharedBy?: string;
+}): string {
+  // The text/plain part is what a plain-text client and many screen readers
+  // actually render, so it carries the same labels as the HTML rather than a
+  // bare title followed by an undifferentiated blob.
+  const cta = `${opts.ctaLabel || "Read more"}: ${opts.url}`;
+  if (opts.eventDateTime) {
+    return [
+      opts.sharedBy ? `${opts.sharedBy} shared this with you:` : "",
+      `Event: ${opts.title}`,
+      `Date/Time: ${opts.eventDateTime}`,
+      opts.description ? `Event details: ${preview(opts.description)}` : "",
+      cta,
+    ].filter(Boolean).join("\n\n");
+  }
+  return [opts.title, opts.meta, opts.description, cta].filter(Boolean).join("\n\n");
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -161,7 +240,7 @@ export default async function handler(req: any, res: any) {
   const {
     to = "", recipientName = "", senderEmail = "", senderName = "",
     title = "", description = "", meta = "", imageUrl = "", url = "",
-    disclaimer = "", recaptchaToken = "",
+    disclaimer = "", recaptchaToken = "", eventDateTime = "", ctaLabel = "",
   } = body as Record<string, string>;
 
   if (!(await verifyRecaptcha(recaptchaToken))) {
@@ -182,6 +261,8 @@ export default async function handler(req: any, res: any) {
   const safeDescription = cap(description, 600);
   const safeMeta = cap(meta, 200);
   const safeDisclaimer = cap(disclaimer, 1200);
+  const safeDateTime = cap(eventDateTime, 120);
+  const safeCta = cap(ctaLabel, 40);
   const safeUrl = cap(url, 2048);
   const safeImage = cap(imageUrl, 2048);
   if (!/^https?:\/\//i.test(safeUrl)) { res.status(400).json({ error: "Invalid link" }); return; }
@@ -194,8 +275,12 @@ export default async function handler(req: any, res: any) {
   const html = buildHtml({
     title: safeTitle, description: safeDescription, meta: safeMeta,
     imageUrl: img, url: safeUrl, greetName, sharedBy, disclaimer: safeDisclaimer,
+    eventDateTime: safeDateTime, ctaLabel: safeCta,
   });
-  const text = buildText({ title: safeTitle, description: safeDescription, meta: safeMeta, url: safeUrl });
+  const text = buildText({
+    title: safeTitle, description: safeDescription, meta: safeMeta, url: safeUrl,
+    eventDateTime: safeDateTime, ctaLabel: safeCta, sharedBy,
+  });
 
   try {
     const r = await fetch(RESEND_ENDPOINT, {
