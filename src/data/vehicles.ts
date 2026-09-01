@@ -144,19 +144,7 @@ export const vehicles: VehicleData[] = [
     depreciationRate: 0.2, category: "SUV",
     bodyStyle: "suv-large", sizeClass: 4, seats: 7, drivetrain: "AWD", rangeMi: 320,
   },
-  {
-    id: "tesla-model-x", name: "Tesla Model X", type: "ev", msrp: 79990,
-    mpge: 102, kwhPer100mi: 33, maintenanceCostPerMile: 0.072, insuranceAnnual: 2700,
-    depreciationRate: 0.2, category: "SUV",
-    bodyStyle: "suv-large", sizeClass: 4, seats: 7, drivetrain: "AWD", rangeMi: 335, luxury: true,
-  },
   // Electric trucks
-  {
-    id: "ford-f150-lightning", name: "Ford F-150 Lightning", type: "ev", msrp: 54780,
-    mpge: 70, kwhPer100mi: 48, maintenanceCostPerMile: 0.07, insuranceAnnual: 2300,
-    depreciationRate: 0.2, category: "Truck",
-    bodyStyle: "truck", sizeClass: 4, seats: 5, drivetrain: "4WD", rangeMi: 320,
-  },
   {
     id: "chevy-silverado-ev", name: "Chevrolet Silverado EV", type: "ev", msrp: 73000,
     mpge: 66, kwhPer100mi: 51, maintenanceCostPerMile: 0.072, insuranceAnnual: 2400,
@@ -190,12 +178,6 @@ export const vehicles: VehicleData[] = [
     bodyStyle: "suv-compact", sizeClass: 3, seats: 5, drivetrain: "AWD", rangeMi: 307, luxury: true,
   },
   {
-    id: "audi-q8-etron", name: "Audi Q8 e-tron", type: "ev", msrp: 74400,
-    mpge: 81, kwhPer100mi: 42, maintenanceCostPerMile: 0.075, insuranceAnnual: 2450,
-    depreciationRate: 0.22, category: "SUV",
-    bodyStyle: "suv-large", sizeClass: 4, seats: 5, drivetrain: "AWD", rangeMi: 285, luxury: true,
-  },
-  {
     id: "bmw-ix-xdrive40", name: "BMW iX xDrive40", type: "ev", msrp: 67100,
     mpge: 86, kwhPer100mi: 39, maintenanceCostPerMile: 0.075, insuranceAnnual: 2450,
     depreciationRate: 0.2, category: "SUV",
@@ -220,7 +202,7 @@ export const vehicles: VehicleData[] = [
     bodyStyle: "suv-large", sizeClass: 4, seats: 7, drivetrain: "AWD", rangeMi: 460, luxury: true,
   },
   {
-    id: "chevy-bolt-ev", name: "Chevrolet Bolt EV", type: "ev", msrp: 27600,
+    id: "chevy-bolt-ev", name: "Chevrolet Bolt", type: "ev", msrp: 29990,
     mpge: 120, kwhPer100mi: 28, maintenanceCostPerMile: 0.057, insuranceAnnual: 1700,
     depreciationRate: 0.18, category: "Sedan",
     bodyStyle: "hatchback", sizeClass: 1, seats: 5, drivetrain: "FWD", rangeMi: 262,
@@ -262,12 +244,6 @@ export const vehicles: VehicleData[] = [
     bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "AWD", rangeMi: 296,
   },
   {
-    id: "hyundai-kona-electric", name: "Hyundai Kona Electric", type: "ev", msrp: 33000,
-    mpge: 120, kwhPer100mi: 28, maintenanceCostPerMile: 0.057, insuranceAnnual: 1720,
-    depreciationRate: 0.18, category: "SUV",
-    bodyStyle: "suv-compact", sizeClass: 1, seats: 5, drivetrain: "FWD", rangeMi: 261,
-  },
-  {
     id: "kia-niro-ev", name: "Kia Niro EV", type: "ev", msrp: 39700,
     mpge: 113, kwhPer100mi: 30, maintenanceCostPerMile: 0.058, insuranceAnnual: 1780,
     depreciationRate: 0.18, category: "SUV",
@@ -292,13 +268,7 @@ export const vehicles: VehicleData[] = [
     bodyStyle: "suv-large", sizeClass: 4, seats: 5, drivetrain: "AWD", rangeMi: 315, luxury: true,
   },
   {
-    id: "tesla-model-s", name: "Tesla Model S", type: "ev", msrp: 74990,
-    mpge: 120, kwhPer100mi: 28, maintenanceCostPerMile: 0.072, insuranceAnnual: 2650,
-    depreciationRate: 0.21, category: "Sedan",
-    bodyStyle: "sedan", sizeClass: 3, seats: 5, drivetrain: "AWD", rangeMi: 402, luxury: true,
-  },
-  {
-    id: "toyota-bz4x", name: "Toyota bZ4X", type: "ev", msrp: 34900,
+    id: "toyota-bz4x", name: "Toyota bZ", type: "ev", msrp: 34900,
     mpge: 114, kwhPer100mi: 30, maintenanceCostPerMile: 0.058, insuranceAnnual: 1820,
     depreciationRate: 0.19, category: "SUV",
     bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "FWD", rangeMi: 252,
@@ -504,7 +474,7 @@ export const vehicles: VehicleData[] = [
     bodyStyle: "suv-large", sizeClass: 4, seats: 7, drivetrain: "AWD", rangeMi: 310, luxury: true,
   },
   {
-    id: "volvo-c40", name: "Volvo C40 Recharge", type: "ev", msrp: 53900,
+    id: "volvo-c40", name: "Volvo EC40", type: "ev", msrp: 53900,
     mpge: 87, kwhPer100mi: 39, maintenanceCostPerMile: 0.068, insuranceAnnual: 2050,
     depreciationRate: 0.2, category: "SUV",
     bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "AWD", rangeMi: 257, luxury: true,
@@ -518,23 +488,10 @@ export const vehicles: VehicleData[] = [
   },
   // Mini
   {
-    id: "mini-cooper-se", name: "Mini Cooper SE", type: "ev", msrp: 31895,
-    mpge: 100, kwhPer100mi: 34, maintenanceCostPerMile: 0.062, insuranceAnnual: 1780,
-    depreciationRate: 0.2, category: "Sedan",
-    bodyStyle: "hatchback", sizeClass: 1, seats: 4, drivetrain: "FWD", rangeMi: 200,
-  },
-  {
-    id: "mini-countryman-electric", name: "Mini Countryman Electric", type: "ev", msrp: 45200,
+    id: "mini-countryman-electric", name: "Mini Countryman SE ALL4", type: "ev", msrp: 45200,
     mpge: 92, kwhPer100mi: 37, maintenanceCostPerMile: 0.065, insuranceAnnual: 1950,
     depreciationRate: 0.2, category: "SUV",
     bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "AWD", rangeMi: 212,
-  },
-  // Jaguar
-  {
-    id: "jaguar-i-pace", name: "Jaguar I-PACE", type: "ev", msrp: 72475,
-    mpge: 76, kwhPer100mi: 44, maintenanceCostPerMile: 0.075, insuranceAnnual: 2450,
-    depreciationRate: 0.23, category: "SUV",
-    bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "AWD", rangeMi: 246, luxury: true,
   },
   // Porsche
   {
@@ -697,22 +654,76 @@ export const vehicles: VehicleData[] = [
     bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "RWD", rangeMi: 300, luxury: true,
   },
   {
-    id: "vinfast-vf6", name: "VinFast VF 6", type: "ev", msrp: 32000,
-    mpge: 100, kwhPer100mi: 34, maintenanceCostPerMile: 0.06, insuranceAnnual: 1800,
-    depreciationRate: 0.22, category: "SUV",
-    bodyStyle: "suv-compact", sizeClass: 1, seats: 5, drivetrain: "FWD", rangeMi: 235,
-  },
-  {
-    id: "vinfast-vf7", name: "VinFast VF 7", type: "ev", msrp: 40000,
-    mpge: 96, kwhPer100mi: 35, maintenanceCostPerMile: 0.062, insuranceAnnual: 1900,
-    depreciationRate: 0.22, category: "SUV",
-    bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "FWD", rangeMi: 260,
-  },
-  {
     id: "mercedes-g580-ev", name: "Mercedes-Benz G 580 (EV)", type: "ev", msrp: 162650,
     mpge: 45, kwhPer100mi: 49, maintenanceCostPerMile: 0.085, insuranceAnnual: 3500,
     depreciationRate: 0.24, category: "SUV",
     bodyStyle: "suv-large", sizeClass: 4, seats: 5, drivetrain: "4WD", rangeMi: 239, luxury: true,
+  },
+
+  // ───────── 2026/2027 EVs the catalog was missing ─────────
+  // Reconciled against the US new-vehicle lineup as of late August 2026: these
+  // eight nameplates are on sale (or launching for 2026/27) and had no entry
+  // here, so an EV shopper could not find them on the EV side of the compare.
+  //
+  // Only the EV side was reconciled that way. The gas side is deliberately the
+  // INSTALLED BASE, not the new-car lineup — see the Audi A4 note below — so a
+  // nameplate leaving showrooms is not a reason to drop it from the gas list.
+  //
+  // MSRP is US base excluding destination and range is the manufacturer or EPA
+  // figure where published; several of these are new enough that the EPA has not
+  // rated them yet, so mpge/kwhPer100mi are derived from the published
+  // efficiency and sit on the same curve as their size-and-price neighbours
+  // above. Insurance, maintenance and depreciation are this file's usual
+  // representative values, not per-model sourced.
+  //
+  // Every photo below was downloaded and LOOKED AT before it was added.
+  {
+    id: "bmw-ix3", name: "BMW iX3", type: "ev", msrp: 60000,
+    mpge: 102, kwhPer100mi: 33, maintenanceCostPerMile: 0.072, insuranceAnnual: 2250,
+    depreciationRate: 0.19, category: "SUV",
+    bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "AWD", rangeMi: 400, luxury: true,
+  },
+  {
+    id: "kia-ev4", name: "Kia EV4", type: "ev", msrp: 37500,
+    mpge: 121, kwhPer100mi: 28, maintenanceCostPerMile: 0.057, insuranceAnnual: 1780,
+    depreciationRate: 0.18, category: "Sedan",
+    bodyStyle: "sedan", sizeClass: 2, seats: 5, drivetrain: "FWD", rangeMi: 330,
+  },
+  {
+    id: "rivian-r2", name: "Rivian R2", type: "ev", msrp: 45000,
+    mpge: 96, kwhPer100mi: 35, maintenanceCostPerMile: 0.064, insuranceAnnual: 2050,
+    depreciationRate: 0.19, category: "SUV",
+    bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "AWD", rangeMi: 300,
+  },
+  {
+    id: "subaru-trailseeker", name: "Subaru Trailseeker", type: "ev", msrp: 45000,
+    mpge: 95, kwhPer100mi: 36, maintenanceCostPerMile: 0.063, insuranceAnnual: 1980,
+    depreciationRate: 0.19, category: "SUV",
+    bodyStyle: "suv-mid", sizeClass: 3, seats: 5, drivetrain: "AWD", rangeMi: 260,
+  },
+  {
+    id: "subaru-uncharted", name: "Subaru Uncharted", type: "ev", msrp: 35000,
+    mpge: 110, kwhPer100mi: 31, maintenanceCostPerMile: 0.058, insuranceAnnual: 1820,
+    depreciationRate: 0.19, category: "SUV",
+    bodyStyle: "suv-compact", sizeClass: 1, seats: 5, drivetrain: "FWD", rangeMi: 290,
+  },
+  {
+    id: "volvo-es90", name: "Volvo ES90", type: "ev", msrp: 75000,
+    mpge: 100, kwhPer100mi: 34, maintenanceCostPerMile: 0.072, insuranceAnnual: 2400,
+    depreciationRate: 0.21, category: "Sedan",
+    bodyStyle: "sedan", sizeClass: 3, seats: 5, drivetrain: "AWD", rangeMi: 350, luxury: true,
+  },
+  {
+    id: "mercedes-glc-ev", name: "Mercedes-Benz GLC with EQ Technology", type: "ev", msrp: 68000,
+    mpge: 95, kwhPer100mi: 35, maintenanceCostPerMile: 0.076, insuranceAnnual: 2450,
+    depreciationRate: 0.21, category: "SUV",
+    bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "AWD", rangeMi: 340, luxury: true,
+  },
+  {
+    id: "porsche-cayenne-ev", name: "Porsche Cayenne Electric", type: "ev", msrp: 99000,
+    mpge: 80, kwhPer100mi: 42, maintenanceCostPerMile: 0.082, insuranceAnnual: 2900,
+    depreciationRate: 0.22, category: "SUV",
+    bodyStyle: "suv-mid", sizeClass: 3, seats: 5, drivetrain: "AWD", rangeMi: 340, luxury: true, performance: true,
   },
 
   // ───────── Expanded brand coverage (gas) ─────────
@@ -1389,14 +1400,11 @@ const VEHICLE_IMAGES: Record<string, string> = {
   "nissan-ariya": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/64/2023_Nissan_Ariya_Advance_Front.jpg/330px-2023_Nissan_Ariya_Advance_Front.jpg",
   "kia-ev9": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Kia_EV9_1X7A2472.jpg/330px-Kia_EV9_1X7A2472.jpg",
   "rivian-r1s": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/89/2023_Rivian_R1S_Adventure%2C_front_1.29.23.jpg/330px-2023_Rivian_R1S_Adventure%2C_front_1.29.23.jpg",
-  "tesla-model-x": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/2017_Tesla_Model_X_100D_Front.jpg/330px-2017_Tesla_Model_X_100D_Front.jpg",
-  "ford-f150-lightning": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/76/2022_Ford_F-150_Lightning_Lariat_in_Atlas_Blue_Metallic%2C_Front_Right%2C_08-06-2022.jpg/330px-2022_Ford_F-150_Lightning_Lariat_in_Atlas_Blue_Metallic%2C_Front_Right%2C_08-06-2022.jpg",
   "chevy-silverado-ev": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/2024_Chevrolet_Silverado_EV_4WT_AWD_in_Summit_White%2C_front_left%2C_2024-06-30.jpg/330px-2024_Chevrolet_Silverado_EV_4WT_AWD_in_Summit_White%2C_front_left%2C_2024-06-30.jpg",
   "rivian-r1t": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/2022_Rivian_R1T_%28in_Glacier_White%29%2C_front_6.21.22.jpg/330px-2022_Rivian_R1T_%28in_Glacier_White%29%2C_front_6.21.22.jpg",
   "acura-zdx": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c9/2024_Acura_ZDX_Type_S%2C_front_2.6.25.jpg/330px-2024_Acura_ZDX_Type_S%2C_front_2.6.25.jpg",
   "audi-q4-etron": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/2021_Audi_Q4_e-tron_Sport_35.jpg/330px-2021_Audi_Q4_e-tron_Sport_35.jpg",
   "audi-q6-etron": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/Audi_Q6_e-tron_DSC_7829.jpg/330px-Audi_Q6_e-tron_DSC_7829.jpg",
-  "audi-q8-etron": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/2020_Audi_e-Tron_Sport_50_Quattro.jpg/330px-2020_Audi_e-Tron_Sport_50_Quattro.jpg",
   "bmw-ix-xdrive40": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/2022_BMW_iX_xDrive_40_CRI_12_2021_2727.jpg/330px-2022_BMW_iX_xDrive_40_CRI_12_2021_2727.jpg",
   "cadillac-lyriq": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/2023_Cadillac_Lyriq_in_Satin_Steel_Metallic%2C_front_left.jpg/330px-2023_Cadillac_Lyriq_in_Satin_Steel_Metallic%2C_front_left.jpg",
   "cadillac-optiq": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/Cadillac_Optiq_%28IQ_Aoge%29_01_China_2024-04-23.jpg/330px-Cadillac_Optiq_%28IQ_Aoge%29_01_China_2024-04-23.jpg",
@@ -1408,12 +1416,10 @@ const VEHICLE_IMAGES: Record<string, string> = {
   "genesis-gv70-electrified": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Genesis_GV70_IAA_2021_1X7A0228.jpg/330px-Genesis_GV70_IAA_2021_1X7A0228.jpg",
   "gmc-sierra-ev": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/db/2024_GMC_Sierra_EV_Denali_front_view.jpg/330px-2024_GMC_Sierra_EV_Denali_front_view.jpg",
   "honda-prologue": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d8/2024_Honda_Prologue_Touring%2C_front_7.11.25.jpg/330px-2024_Honda_Prologue_Touring%2C_front_7.11.25.jpg",
-  "hyundai-kona-electric": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ed/Hyundai_Kona_Electric_%28SX2%29_1X7A1554.jpg/330px-Hyundai_Kona_Electric_%28SX2%29_1X7A1554.jpg",
   "kia-niro-ev": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cb/Kia_Niro_EV_%28SG2%29_1X7A7188.jpg/330px-Kia_Niro_EV_%28SG2%29_1X7A7188.jpg",
   "mercedes-eqe-suv": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/Mercedes-Benz_X294_IMG_8682.jpg/330px-Mercedes-Benz_X294_IMG_8682.jpg",
   "mercedes-eqs-580": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/Mercedes-Benz_V297_Classic-Days_2022_DSC_0016.jpg/330px-Mercedes-Benz_V297_Classic-Days_2022_DSC_0016.jpg",
   "polestar-3": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/Polestar_3_Auto_Zuerich_2023_1X7A1307.jpg/330px-Polestar_3_Auto_Zuerich_2023_1X7A1307.jpg",
-  "tesla-model-s": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Tesla_Model_S_%28Facelift_ab_04-2016%29_%28cropped%29.jpg/330px-Tesla_Model_S_%28Facelift_ab_04-2016%29_%28cropped%29.jpg",
   "toyota-bz4x": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Toyota_bZ4X_Automesse_Ludwigsburg_2022_1X7A5895.jpg/330px-Toyota_bZ4X_Automesse_Ludwigsburg_2022_1X7A5895.jpg",
   "vw-id-buzz": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Volkswagen_ID._Buzz_1X7A6263.jpg/330px-Volkswagen_ID._Buzz_1X7A6263.jpg",
 
@@ -1424,9 +1430,7 @@ const VEHICLE_IMAGES: Record<string, string> = {
   "volvo-ex90": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/31/Volvo_EX90_autoMOBIL_T%C3%BCbingen_2025_DSC_2740.jpg/330px-Volvo_EX90_autoMOBIL_T%C3%BCbingen_2025_DSC_2740.jpg",
   "volvo-c40": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/2022_Volvo_C40_Recharge_-_Tesla_charging_stations.jpg/330px-2022_Volvo_C40_Recharge_-_Tesla_charging_stations.jpg",
   "subaru-solterra": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/2023_Subaru_Solterra_AWD_Technology_Package_in_Smoked_Carbon%2C_Front_Left%2C_07-14-2023.jpg/330px-2023_Subaru_Solterra_AWD_Technology_Package_in_Smoked_Carbon%2C_Front_Left%2C_07-14-2023.jpg",
-  "mini-cooper-se": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/29/Mini_Hatch_%28F56%29_Electric_IMG_2679.jpg/330px-Mini_Hatch_%28F56%29_Electric_IMG_2679.jpg",
   "mini-countryman-electric": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bc/2018_Mini_Countryman_Cooper_S_2.0_Front.jpg/330px-2018_Mini_Countryman_Cooper_S_2.0_Front.jpg",
-  "jaguar-i-pace": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/2018_Jaguar_I-Pace_EV400_AWD_Front.jpg/330px-2018_Jaguar_I-Pace_EV400_AWD_Front.jpg",
   "porsche-taycan": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/2020_Porsche_Taycan_4S_79kWh_Front.jpg/330px-2020_Porsche_Taycan_4S_79kWh_Front.jpg",
   "porsche-macan-electric": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Porsche_Macan_4_IMG_2153.jpg/330px-Porsche_Macan_4_IMG_2153.jpg",
   "lexus-rz-450e": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/81/Lexus_RZ_300e_%28XEBM10%29_IMG_6622.jpg/330px-Lexus_RZ_300e_%28XEBM10%29_IMG_6622.jpg",
@@ -1583,8 +1587,6 @@ const VEHICLE_IMAGES: Record<string, string> = {
   "cadillac-celestiq": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fc/2025_Cadillac_Celestiq_%22Vale%22%2C_front_right_%28Greenwich_2025%29.jpg/330px-2025_Cadillac_Celestiq_%22Vale%22%2C_front_right_%28Greenwich_2025%29.jpg",
   "tesla-cybertruck": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/99/2024_Tesla_Cybertruck%2C_front_left%2C_07-27-2024.jpg/330px-2024_Tesla_Cybertruck%2C_front_left%2C_07-27-2024.jpg",
   "polestar-4": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Polestar_4_DSC_8232_%28cropped_2%29.jpg/330px-Polestar_4_DSC_8232_%28cropped_2%29.jpg",
-  "vinfast-vf6": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/VinFast_VF_6_DSC_8468.jpg/330px-VinFast_VF_6_DSC_8468.jpg",
-  "vinfast-vf7": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/VinFast_VF_7_Eco_Crimson_Red.jpg/330px-VinFast_VF_7_Eco_Crimson_Red.jpg",
   "mercedes-g580-ev": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/Mercedes-Benz_G_580_with_EQ_Technology_DSC_8256.jpg/330px-Mercedes-Benz_G_580_with_EQ_Technology_DSC_8256.jpg",
 
   // Audi petrol range (see the block above). Each of these was downloaded and
@@ -1597,6 +1599,18 @@ const VEHICLE_IMAGES: Record<string, string> = {
   "audi-q3": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/Audi_Q3_FJ_DSC_3747.jpg/330px-Audi_Q3_FJ_DSC_3747.jpg",
   "audi-q7": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/25_Audi_Q7_quattro_Premium_Plus_45_TFSI.jpg/330px-25_Audi_Q7_quattro_Premium_Plus_45_TFSI.jpg",
   "audi-q8": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/Audi_Q8_%284MN%29_Washington_DC_Metro_Area%2C_USA.jpg/330px-Audi_Q8_%284MN%29_Washington_DC_Metro_Area%2C_USA.jpg",
+
+  // 2026/2027 EVs added in the lineup reconciliation above. Each of these was
+  // downloaded and LOOKED AT: several are show-floor shots of brand-new models
+  // whose names alone would not tell an iX3 from an X3, or an ES90 from an EX90.
+  "bmw-ix3": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/BMW_iX3_NA5_IAA_2025_DSC_1684.jpg/330px-BMW_iX3_NA5_IAA_2025_DSC_1684.jpg",
+  "kia-ev4": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/2026_Kia_EV4_-_02.jpg/330px-2026_Kia_EV4_-_02.jpg",
+  "rivian-r2": "https://upload.wikimedia.org/wikipedia/commons/f/fc/Rivian_R2.jpg",
+  "subaru-trailseeker": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/2026_Subaru_Trailseeker_ET-HS.jpg/330px-2026_Subaru_Trailseeker_ET-HS.jpg",
+  "subaru-uncharted": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/56/Subaru_Uncharted_Auto_Zuerich_2025_DSC_3071.jpg/330px-Subaru_Uncharted_Auto_Zuerich_2025_DSC_3071.jpg",
+  "volvo-es90": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/21/Volvo_ES90_IAA_2025_DSC_1357.jpg/330px-Volvo_ES90_IAA_2025_DSC_1357.jpg",
+  "mercedes-glc-ev": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/Mercedes-Benz_GLC_with_EQ_Technology_IAA_2025_DSC_2106.jpg/330px-Mercedes-Benz_GLC_with_EQ_Technology_IAA_2025_DSC_2106.jpg",
+  "porsche-cayenne-ev": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/Porsche_Cayenne_Electric_IMG_8088.jpg/330px-Porsche_Cayenne_Electric_IMG_8088.jpg",
 };
 
 for (const v of vehicles) {

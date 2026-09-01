@@ -62,7 +62,7 @@ const CLASS_OPTIONS: {
   { key: "compact-sedan", label: "Compact Sedan",  iconSrc: iconCompactSedan, gas: "honda-civic",       ev: "hyundai-ioniq-6" },
   { key: "midsize-sedan", label: "Mid-Size Sedan", iconSrc: iconMidsizeSedan, gas: "toyota-camry",      ev: "tesla-model-3" },
   { key: "small-suv",     label: "Small SUV",      iconSrc: iconSmallSuv,     gas: "chevy-equinox",     ev: "chevy-equinox-ev" },
-  { key: "pickup",        label: "EV Pick-Up",     iconSrc: iconPickup,       gas: "ford-f150",         ev: "ford-f150-lightning" },
+  { key: "pickup",        label: "EV Pick-Up",     iconSrc: iconPickup,       gas: "ford-f150",         ev: "chevy-silverado-ev" },
   { key: "full-suv",      label: "Full-Size SUV",  iconSrc: iconFullSuv,      gas: "toyota-highlander", ev: "kia-ev9" },
 ];
 

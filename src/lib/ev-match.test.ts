@@ -35,7 +35,7 @@ describe("recommendEvs — class matching (spec §6)", () => {
     expect(matches.length).toBeGreaterThan(0);
     expect(matches.every((m) => m.ev.bodyStyle === "truck")).toBe(true);
     expect(ids("ford-f150")).toEqual(
-      expect.arrayContaining(["ford-f150-lightning"]),
+      expect.arrayContaining(["chevy-silverado-ev"]),
     );
     expect(ids("ford-f150").some((id) => id.includes("model-3"))).toBe(false);
   });
