@@ -188,6 +188,7 @@ CDN-cache hard so thousands of visitors collapse into a few upstream calls.
 | `/api/events` | ICS/RSS event feeds + OG enrichment | `EVENT_FEEDS` | ~1h |
 | `/api/jobs` | ATS boards — Greenhouse / Lever / Ashby (public JSON) | `JOB_BOARDS` | 1h fresh, 6h stale |
 | `/api/incentives` | NREL AFDC Laws & Incentives | `NREL_API_KEY` | 1d fresh, 1wk stale |
+| `/api/stations` | NREL AFDC charging stations (Find a Charger map) | `NREL_API_KEY` | 1d fresh, 1wk stale |
 
 ### 3.5 n8n content-management forms
 
@@ -260,8 +261,8 @@ using the Supabase **service-role** key. Never exposes raw rows wholesale.
   Slack webhooks live in Vercel env vars only; the browser sees none of them.
 - **Attributable shares** — a sender email is required for every branded email
   send.
-- **Allowlists** — `/api/incentives` and `/api/jobs` validate/allowlist their
-  params so they can't be abused as open proxies.
+- **Allowlists** — `/api/incentives`, `/api/jobs` and `/api/stations` validate
+  or clamp their params so they can't be abused as open proxies.
 - **Pre-launch gate** — HttpOnly `etu_gate` cookie checked at the edge; per-user
   passwords with shared-login detection.
 
