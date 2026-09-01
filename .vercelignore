@@ -1,0 +1,15 @@
+# Keep test files out of the serverless build.
+#
+# Vercel turns every .ts file under api/ into a function, compiling it with its
+# own settings (moduleResolution node16) rather than tsconfig.api.json — which
+# deliberately excludes tests, because they import src through the "@" alias that
+# does not exist in the Node project. So the first test ever added under api/
+# failed the production build on an import that type-checks fine locally:
+#
+#   api/share-email.test.ts(12,38): error TS2835: Relative import paths need
+#   explicit file extensions ... Did you mean './share-email.js'?
+#
+# Ignoring them here is also the right outcome on its own terms: a test file in
+# api/ would otherwise be deployed as a public endpoint at /api/<name>.test.
+api/**/*.test.ts
+api/**/*.spec.ts
