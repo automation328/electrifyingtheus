@@ -63,9 +63,14 @@ export interface CollectionConfig {
    *  page — so those say which page they open, rather than implying the button
    *  edits the row you have open. */
   editOnPageLabel?: string;
-  /** Optional row field to group the list by (e.g. vehicle type). */
+  /** Optional row field to group the list by (e.g. vehicle type). Each group
+   *  renders as its own section with a heading and a count. */
   groupField?: string;
-  /** Pretty labels for group values (e.g. { ev: "Electric", gas: "Gas" }). */
+  /** Pretty labels for group values (e.g. { ev: "Electric", gas: "Gas" }).
+   *  KEY ORDER IS SECTION ORDER: the gallery lists Videos above Photos here
+   *  because the public page does, and a CMS list that disagrees with the page
+   *  it edits makes the editor guess. Values with no label here follow, in the
+   *  order the rows arrive. */
   groupLabels?: Record<string, string>;
   /** Optional two-column split by a field value (e.g. Electric | Gas). Overrides grouping. */
   splitBy?: { field: string; left: string; leftLabel: string; right: string[]; rightLabel: string };
@@ -91,6 +96,10 @@ export interface CollectionConfig {
    *  Videos and Photos as separate sections, so moving a photo "up" past a video
    *  would move it nowhere a visitor can see. */
   orderGroupBy?: string;
+  /** Pills that narrow the list to one column value, under the Live/Draft tabs.
+   *  Separate from those tabs because they answer a different question: those
+   *  say whether a row is on the site, these say what kind of thing it is. */
+  filterTabs?: { field: string; allLabel: string; options: { value: string; label: string }[] };
 }
 
 /**

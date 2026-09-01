@@ -92,10 +92,16 @@ export const galleryConfig: CollectionConfig = {
   singular: "Gallery item",
   plural: "Gallery",
   titleField: "title",
-  subtitleFields: ["kind", "album"],
+  // "kind" is not listed: the list is sectioned by it, so the heading above the
+  // row already says whether it is a video or a photo.
+  subtitleFields: ["album"],
   imageField: "url",
   description: "Your public gallery page — curate it from the Media library, or add items by hand.",
-  mediaImport: (m) => ({ kind: m.kind, url: m.url, title: m.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " "), album: "", poster: "", provider: m.kind === "video" ? "file" : "", sort: 0, status: "published" }),
+  // The media library calls a still image "image"; site_gallery calls it
+  // "photo" (0003) — and so do the built-in rows, the dedupe key below and the
+  // Kind field in the editor. Map it on the way in or the imported row lands in
+  // a category nothing else uses.
+  mediaImport: (m) => ({ kind: m.kind === "video" ? "video" : "photo", url: m.url, title: m.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " "), album: "", poster: "", provider: m.kind === "video" ? "file" : "", sort: 0, status: "published" }),
   viewUrl: () => "/gallery",
   statusField,
   statusOptions: STATUS,
@@ -104,6 +110,14 @@ export const galleryConfig: CollectionConfig = {
   sortRows: (a, b) => asNum(a.sort) - asNum(b.sort),
   orderField: "sort",
   orderGroupBy: "kind",
+  // Videos first, then photos — the same order the public page renders them in.
+  groupField: "kind",
+  groupLabels: { video: "Videos", photo: "Photos" },
+  filterTabs: {
+    field: "kind",
+    allLabel: "All",
+    options: [{ value: "photo", label: "Photos" }, { value: "video", label: "Videos" }],
+  },
   fields: [
     { name: "kind", label: "Kind", type: "select", options: [{ value: "photo", label: "Photo" }, { value: "video", label: "Video" }], defaultValue: "photo", width: "half" },
     { name: "provider", label: "Video provider", type: "select", options: [{ value: "", label: "—" }, { value: "youtube", label: "YouTube" }, { value: "vimeo", label: "Vimeo" }, { value: "file", label: "File" }], width: "half", help: "Videos only." },

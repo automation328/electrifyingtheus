@@ -138,9 +138,27 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
     { id: "archive", label: "Archive", hint: `Removed from the site — restorable` },
   ];
 
-  const inTab = useMemo(() => sorted.filter((r) => tabOf(r) === tab),
+  // Kind pills (Photos / Videos). A separate axis from the tabs above: those say
+  // whether a row is on the site, this says what kind of thing it is. "" is all.
+  const [kind, setKind] = useState("");
+
+  const inTab = useMemo(() => {
+    const byTab = sorted.filter((r) => tabOf(r) === tab);
+    const f = config.filterTabs;
+    return f && kind ? byTab.filter((r) => String(r[f.field] ?? "") === kind) : byTab;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [sorted, tab, config]);
+  }, [sorted, tab, kind, config]);
+
+  /** How many rows each kind pill would show, within the current tab. */
+  const kindCounts = useMemo(() => {
+    const f = config.filterTabs;
+    if (!f) return null;
+    const byTab = sorted.filter((r) => tabOf(r) === tab);
+    const map: Record<string, number> = { "": byTab.length };
+    for (const o of f.options) map[o.value] = byTab.filter((r) => String(r[f.field] ?? "") === o.value).length;
+    return map;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sorted, tab, config]);
 
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: adminKey });
@@ -444,7 +462,12 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
   // Only offered on the unfiltered Live tab. "Up" has to mean up in the list the
   // visitor gets, and a searched or half-hidden list cannot promise that.
   const [ordering, setOrdering] = useState(false);
-  const canReorder = !!config.orderField && canWrite && !q && tab === "live";
+  // A kind pill is only safe to reorder under when it filters by the SAME column
+  // the order is grouped by — then the visible rows ARE the peers and nothing is
+  // hidden. Filtering on some other column could conceal a row that "up" would
+  // jump over, so the arrows step aside rather than lie.
+  const filterHidesPeers = !!kind && config.filterTabs?.field !== config.orderGroupBy;
+  const canReorder = !!config.orderField && canWrite && !q && tab === "live" && !filterHidesPeers;
 
   /** The rows a move can shuffle: database rows in the same group, in view order. */
   const peersOf = (row: Row): Row[] => {
@@ -475,15 +498,21 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
       setOrdering(false);
     }
   };
+  // Sections, for a collection that declares a groupField. `groupLabels` sets
+  // the section order (the gallery wants Videos above Photos); a value with no
+  // label follows in the order its first row arrived. Rows keep their order
+  // within a section, so the reorder arrows still move a row past the row drawn
+  // above it. Empty sections are dropped rather than shown as a bare heading.
   const groups = (() => {
     if (!config.groupField) return null;
     const map = new Map<string, Row[]>();
+    for (const key of Object.keys(config.groupLabels ?? {})) map.set(key, []);
     for (const r of filtered) {
       const g = String(r[config.groupField] ?? "");
       if (!map.has(g)) map.set(g, []);
       map.get(g)!.push(r);
     }
-    return [...map.entries()];
+    return [...map.entries()].filter(([, rows]) => rows.length > 0);
   })();
 
   const renderRow = (row: Row) => {
@@ -654,6 +683,28 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
                   {t.label}
                   <span className={`ml-1.5 text-[11px] font-bold tabular-nums rounded-full px-1.5 py-0.5 ${
                     on ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>{counts[t.id]}</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Kind pills. Shaped like the ones on the public gallery page, so the
+            two read as the same control. Counts are within the current tab. */}
+        {!isLoading && config.filterTabs && kindCounts && (
+          <div className="mt-3 flex items-center gap-1.5 flex-wrap">
+            {[{ value: "", label: config.filterTabs.allLabel }, ...config.filterTabs.options].map((o) => {
+              const on = kind === o.value;
+              return (
+                <button
+                  key={o.value || "all"}
+                  onClick={() => setKind(o.value)}
+                  className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold transition-colors ${
+                    on ? "bg-primary text-white" : "bg-muted text-muted-foreground hover:text-foreground"}`}
+                >
+                  {o.label}
+                  <span className={`text-[11px] font-bold tabular-nums rounded-full px-1.5 ${
+                    on ? "bg-white/20" : "bg-background/70"}`}>{kindCounts[o.value] ?? 0}</span>
                 </button>
               );
             })}
