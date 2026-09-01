@@ -12,19 +12,32 @@ const initialZipFromUrl = (): string => {
   return (new URLSearchParams(window.location.search).get("zip") || "").replace(/\D/g, "").slice(0, 5);
 };
 
+/**
+ * The search Google Maps runs, for a five-digit US ZIP.
+ *
+ * ", USA" is not decoration. A bare "30031" is a number, not an address, so
+ * Google resolves it against the VIEWER's region — a visitor abroad searching
+ * 30031 was shown chargers in their own country, thousands of miles from the
+ * ZIP they typed. Naming the country pins it to the ZIP the visitor asked for,
+ * whoever is looking.
+ *
+ * With no ZIP the search stays "near me": that one is meant to follow the
+ * viewer, and there is no ZIP to disagree with.
+ */
+const searchFor = (q: string) =>
+  q.trim() ? `EV charging stations near ${q.trim()}, USA` : "EV charging stations near me";
+
 // Direct Google Maps search link for the same result (good for pasting anywhere).
-const mapsLink = (q: string) =>
-  `https://www.google.com/maps/search/${encodeURIComponent(
-    q.trim() ? `EV charging stations near ${q.trim()}` : "EV charging stations near me",
-  )}`;
+const mapsLink = (q: string) => `https://www.google.com/maps/search/${encodeURIComponent(searchFor(q))}`;
 
 // Official Alternative Fueling Station Locator (authoritative source).
 const STATION_LOCATOR_URL = "https://afdc.energy.gov/fuels/electricity-locations#/find/nearest?fuel=ELEC";
 
-const buildMapSrc = (q: string) => {
-  const query = q.trim() ? `EV charging stations near ${q.trim()}` : "EV charging stations near me";
-  return `https://www.google.com/maps?q=${encodeURIComponent(query)}&output=embed`;
-};
+// `gl=us` biases the search to the United States and `hl=en` keeps the labels in
+// English — the second half of the same fix, so an embed loaded from abroad
+// resolves the ZIP the way a US visitor's would.
+const buildMapSrc = (q: string) =>
+  `https://www.google.com/maps?q=${encodeURIComponent(searchFor(q))}&output=embed&hl=en&gl=us`;
 
 const CONNECTORS = [
   { icon: Plug, title: "Level 2 (240V)", desc: "Everyday charging at home, work, and public lots — ~20–40 miles of range per hour." },
