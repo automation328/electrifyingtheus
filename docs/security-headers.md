@@ -61,17 +61,30 @@ Known soft spots in the current policy, all of which are why it starts Report-On
   images.
 - `api.openai.com` is listed because the OpenAI SDK is still shipped in the bundle
   (see below). Remove it when the assistant moves behind a server proxy.
+- `frame-src` has to name every video host the site can embed, and the site can
+  embed more than YouTube: `VideoEmbed.tsx` and the CMS video block both offer
+  Vimeo, and `VideoEmbed` also offers Google Drive. Both were missing until the
+  policy was still Report-Only, so nothing broke — enforcing it as it stood would
+  have blanked every Vimeo and Drive embed on the site. **Adding a provider to
+  those components means adding its host here.**
 
 ---
 
 ## Framing: why there is no site-wide `X-Frame-Options`
 
-**Six pages are meant to be iframed on third-party sites.** `public/embed.js` is a
+**Seven pages are meant to be iframed on third-party sites.** `public/embed.js` is a
 published loader that any partner can drop onto their page; it iframes the tool with
 `?embed=1` and auto-resizes it via `postMessage`. The embeddable routes are:
 
 `/calculator` · `/electricity-vs-gasoline` · `/gm-ev-vs-gas` · `/find-a-charger` ·
-`/rebates-incentives` · `/rebate-eligibility`
+`/rebates-incentives` · `/rebate-eligibility` · `/assistant`
+
+That list lives in two places that must agree: `TOOLS` in `public/embed.js` (a
+partner cannot load what has no key there) and `EMBED_TOOL_PATHS` in
+`middleware.ts` (a path missing there serves the password gate inside the
+partner's iframe once `GATE_TOKEN` is set). `/rebate-eligibility` was in neither
+for a while despite rendering embed mode, and `/assistant` was missing from this
+document — check all three when the set changes.
 
 `X-Frame-Options` has no "allow any origin" value — only `DENY` and `SAMEORIGIN` —
 so setting it site-wide would break every embed. `frame-ancestors *` says the same
