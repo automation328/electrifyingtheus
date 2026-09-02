@@ -31,25 +31,6 @@ const initialQueryFromUrl = (): string => {
   return (p.get("q") || p.get("zip") || "").trim().slice(0, MAX_QUERY);
 };
 
-/**
- * The search Google Maps runs for whatever the visitor searched here.
- *
- * ", USA" is not decoration. A bare "30031" is a number, not an address, so
- * Google resolves it against the VIEWER's region — a visitor abroad searching
- * 30031 was shown chargers in their own country, thousands of miles from the
- * ZIP they typed. Naming the country pins it to the place they asked for,
- * whoever is looking. It does the same job for "Georgia", which is a country as
- * well as a state.
- *
- * With nothing searched the query stays "near me": that one is meant to follow
- * the viewer, and there is nothing for it to disagree with.
- */
-const searchFor = (q: string) =>
-  q.trim() ? `EV charging stations near ${q.trim()}, USA` : "EV charging stations near me";
-
-// Direct Google Maps search link for the same result (good for pasting anywhere).
-const mapsLink = (q: string) => `https://www.google.com/maps/search/${encodeURIComponent(searchFor(q))}`;
-
 // Official Alternative Fueling Station Locator (authoritative source).
 const STATION_LOCATOR_URL = "https://afdc.energy.gov/fuels/electricity-locations#/find/nearest?fuel=ELEC";
 
@@ -265,8 +246,8 @@ const FindACharger = () => {
 
         {/* Map */}
         <div className="container px-4 max-w-5xl mt-10">
-          {/* Result toolbar — share THIS location's map, or open it in Google Maps. */}
-          <div className="mb-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
+          {/* Result toolbar — what was searched, and a link to share it. */}
+          <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
             <p className="text-sm text-muted-foreground flex items-center gap-1.5">
               <MapPin className="w-4 h-4 text-primary shrink-0" />
               {searched
@@ -274,10 +255,6 @@ const FindACharger = () => {
                 : "Showing chargers near you"}
             </p>
             <div className="flex items-center gap-2">
-              <a href={mapsLink(query)} target="_blank" rel="noopener noreferrer"
-                 className="inline-flex items-center gap-1.5 rounded-full bg-card border border-border px-3 py-1.5 text-xs font-semibold text-foreground hover:border-primary/40 hover:text-primary transition">
-                <ExternalLink className="w-3.5 h-3.5" /> Open in Google Maps
-              </a>
               <ShareGate
                 url={shareUrl}
                 title={shareTitle}
@@ -290,37 +267,43 @@ const FindACharger = () => {
               />
             </div>
           </div>
-          {/* Charger-level filter. The pills carry counts from the unfiltered
-              search, so "DC fast 12" answers the question before you click it. */}
-          <div className="mb-3 flex flex-wrap items-center gap-2">
-            {LEVELS.map((l) => {
-              const on = level === l.key;
-              return (
-                <button
-                  key={l.key}
-                  type="button"
-                  onClick={() => { setLevel(l.key); setSelectedId(null); }}
-                  title={l.hint}
-                  aria-pressed={on}
-                  className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
-                    on
-                      ? "gradient-primary text-primary-foreground shadow-card"
-                      : "bg-card border border-border text-foreground hover:border-primary/40 hover:text-primary"
-                  }`}
-                >
-                  {l.label}
-                  {searched && !allQ.isLoading && (
-                    <span className={`text-[11px] font-bold tabular-nums rounded-full px-1.5 py-0.5 ${
-                      on ? "bg-white/20" : "bg-muted text-muted-foreground"}`}>{counts[l.key]}</span>
-                  )}
-                </button>
-              );
-            })}
+          {/* Charger-level filter — the one control on this page, so it is
+              centered above the map at a size worth aiming at on a phone.
+              The pills carry counts from the UNFILTERED search, so "DC fast 41"
+              answers the question before you click it. Grouping them on a single
+              track reads as one switch with three positions, rather than three
+              loose buttons that happen to sit next to each other. */}
+          <div className="mb-4 flex justify-center">
+            <div className="inline-flex flex-wrap justify-center gap-1.5 rounded-full border border-border bg-card/70 p-1.5 shadow-card">
+              {LEVELS.map((l) => {
+                const on = level === l.key;
+                return (
+                  <button
+                    key={l.key}
+                    type="button"
+                    onClick={() => { setLevel(l.key); setSelectedId(null); }}
+                    title={l.hint}
+                    aria-pressed={on}
+                    className={`inline-flex items-center gap-2.5 rounded-full px-5 md:px-7 py-2.5 md:py-3 text-sm md:text-base font-semibold transition-all ${
+                      on
+                        ? "gradient-primary text-primary-foreground shadow-card"
+                        : "text-muted-foreground hover:bg-muted hover:text-primary"
+                    }`}
+                  >
+                    {l.label}
+                    {searched && !allQ.isLoading && (
+                      <span className={`text-xs font-bold tabular-nums rounded-full px-2 py-0.5 ${
+                        on ? "bg-white/20" : "bg-muted text-foreground"}`}>{counts[l.key]}</span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
-          {/* Legend + result count sit above the map: the pin colors and the
-              headline number tell you what you are looking at before you look. */}
-          <div className="mb-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-muted-foreground">
+          {/* The legend keys the pill colors to the pins, so it is centered under
+              the filter it belongs to rather than drifting off to one side. */}
+          <div className="mb-3 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-muted-foreground">
             {(["dc", "both", "l2"] as const).map((k) => (
               <span key={k} className="inline-flex items-center gap-1.5">
                 <span className="w-3 h-3 rounded-full" style={{ background: KIND_COLORS[k] }} />
