@@ -26,6 +26,7 @@
     "calculator": "/calculator",
     "find-a-charger": "/find-a-charger",
     "rebates": "/rebates-incentives",
+    "rebate-eligibility": "/rebate-eligibility",
     "assistant": "/assistant",
   };
 
