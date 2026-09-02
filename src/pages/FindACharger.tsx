@@ -53,7 +53,6 @@ const mapsLink = (q: string) => `https://www.google.com/maps/search/${encodeURIC
 // Official Alternative Fueling Station Locator (authoritative source).
 const STATION_LOCATOR_URL = "https://afdc.energy.gov/fuels/electricity-locations#/find/nearest?fuel=ELEC";
 
-
 // The question this page exists to answer: fast charger, or Level 2?
 const LEVELS: { key: LevelFilter; label: string; hint: string }[] = [
   { key: "all", label: "All chargers", hint: "Every public station nearby" },
@@ -219,16 +218,17 @@ const FindACharger = () => {
         <section className="relative overflow-hidden">
           {!embed && <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-secondary/5 to-transparent" aria-hidden />}
           <div className="container relative z-10 px-4 max-w-5xl">
-            <div className="text-center max-w-2xl mx-auto">
+            <div className="text-center max-w-3xl mx-auto">
               <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-semibold mb-4">
                 <MapPin className="w-3.5 h-3.5" /> Charging Map
               </span>
               <h1 className="text-4xl md:text-6xl font-bold font-display text-foreground mb-4">
-                Find a <span className="text-gradient-primary">Charger</span> Near You
+                Find an EV <span className="text-gradient-primary">Charger</span> Near You
               </h1>
-              <p className="text-muted-foreground text-lg">
-                Locate public EV charging stations across the U.S. We auto-detect your area —
-                or search any ZIP code, city, state, or address to explore charging nearby.
+              <p className="text-muted-foreground">
+                There are <strong className="font-semibold text-foreground">250,000+ EV Charging Ports</strong> across the
+                country with more coming online every week. This tool helps you locate public EV charging stations across
+                the U.S. You can search any ZIP code, city, state, or address to explore charging nearby.
               </p>
             </div>
 
@@ -318,6 +318,23 @@ const FindACharger = () => {
             })}
           </div>
 
+          {/* Legend + result count sit above the map: the pin colors and the
+              headline number tell you what you are looking at before you look. */}
+          <div className="mb-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-muted-foreground">
+            {(["dc", "both", "l2"] as const).map((k) => (
+              <span key={k} className="inline-flex items-center gap-1.5">
+                <span className="w-3 h-3 rounded-full" style={{ background: KIND_COLORS[k] }} />
+                {KIND_LABELS[k]}
+              </span>
+            ))}
+          </div>
+
+          {searched && stationsQ.isSuccess && stations.length > 0 && (
+            <h2 className="font-display font-bold text-foreground text-lg mb-3">
+              {stations.length} station{stations.length === 1 ? "" : "s"} within {shownRadius} miles
+            </h2>
+          )}
+
           <div className="rounded-3xl overflow-hidden border border-border shadow-elevated bg-muted relative">
             {searched && center ? (
               <Suspense fallback={<div className="h-[460px] md:h-[560px] grid place-items-center text-sm text-muted-foreground">Loading the map...</div>}>
@@ -353,19 +370,6 @@ const FindACharger = () => {
             )}
           </div>
 
-          {/* Legend - the pin colors are the answer to "which of these is fast?" */}
-          <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-muted-foreground">
-            {(["dc", "both", "l2"] as const).map((k) => (
-              <span key={k} className="inline-flex items-center gap-1.5">
-                <span className="w-3 h-3 rounded-full" style={{ background: KIND_COLORS[k] }} />
-                {KIND_LABELS[k]}
-              </span>
-            ))}
-            <span className="ml-auto">
-              Station data: <a href={STATION_LOCATOR_URL} target="_blank" rel="noopener noreferrer" className="font-semibold hover:text-primary">U.S. DOE Alternative Fuels Data Center</a>
-            </span>
-          </div>
-
           {/* Station list. The map answers "where", this answers "what will I
               find when I get there" - ports, connectors, network. */}
           {searched && stationsQ.isError && (
@@ -393,9 +397,6 @@ const FindACharger = () => {
               </div>
             ) : (
               <div className="mt-6">
-                <h2 className="font-display font-bold text-foreground text-lg mb-3">
-                  {stations.length} station{stations.length === 1 ? "" : "s"} within {shownRadius} miles
-                </h2>
                 <ul className="grid sm:grid-cols-2 gap-3">
                   {stations.map((s) => {
                     const kind = kindOf(s);
