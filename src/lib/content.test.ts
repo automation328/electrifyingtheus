@@ -206,6 +206,22 @@ describe("merging gallery rows with the curated seed", () => {
     expect(merged.photos.filter((p) => p.src === curatedPhoto.src)).toHaveLength(1);
   });
 
+  // The webinar replay card routes to its own page instead of opening the
+  // lightbox, and that route lives only in the curated seed — site_gallery has
+  // no column for it. Importing the video into the CMS must not strip the link.
+  it("carries the curated href onto the row for the same video", () => {
+    const linked = GALLERY_VIDEOS.find((v) => v.href) as GalleryVideo;
+    const asRow: GalleryVideo = { ...linked, href: undefined };
+    const merged = mergeGallery({ photos: [], videos: [asRow] });
+    expect(merged.videos[0].href).toBe(linked.href);
+  });
+
+  it("leaves an uploaded row without a curated twin unlinked", () => {
+    const uploaded: GalleryVideo = { provider: "file", title: "", src: "/media/uploaded.mp4" };
+    const merged = mergeGallery({ photos: [], videos: [uploaded] });
+    expect(merged.videos[0].href).toBeUndefined();
+  });
+
   it("keeps a row that matches nothing curated", () => {
     const uploaded: GalleryVideo = { provider: "file", title: "", src: "/media/uploaded.mp4" };
     const merged = mergeGallery({ photos: [], videos: [uploaded] });

@@ -334,8 +334,29 @@ export function mergeGallery(
   const rowPhotos = new Set(dynamic.photos.map((p) => p.src));
   return {
     photos: [...dynamic.photos, ...GALLERY_PHOTOS.filter((p) => !rowPhotos.has(p.src))],
-    videos: [...dynamic.videos, ...GALLERY_VIDEOS.filter((v) => !rowVideos.has(videoKey(v)))],
+    videos: [
+      ...dynamic.videos.map(withCuratedHref),
+      ...GALLERY_VIDEOS.filter((v) => !rowVideos.has(videoKey(v))),
+    ],
   };
+}
+
+/**
+ * `site_gallery` has no column for `href`, the route a replay card links to
+ * instead of opening the lightbox — it only lives in the curated seed. Importing
+ * a curated video into the CMS therefore used to strip the link and turn the
+ * webinar card back into a lightbox, because the row wins the merge above.
+ *
+ * So carry the curated `href` onto the row that is the same video. Everything
+ * else still comes from the row, and a row matching nothing curated is untouched.
+ */
+const curatedHref = new Map(
+  GALLERY_VIDEOS.filter((v) => v.href).map((v) => [videoKey(v), v.href as string]),
+);
+
+function withCuratedHref(v: GalleryVideo): GalleryVideo {
+  const href = v.href ?? curatedHref.get(videoKey(v));
+  return href ? { ...v, href } : v;
 }
 
 // ── Jobs (site_jobs) ─────────────────────────────────────────────────────────
