@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { MapPin, Search, ExternalLink, Plug, Zap, Gauge, Locate, Navigation, Loader2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
@@ -58,6 +58,20 @@ const FindACharger = () => {
     new URLSearchParams(window.location.search).get("embed") === "1";
   useEmbedFrame(embed);
   const urlQuery = initialQueryFromUrl();
+  // The map sits above a list that can run to 200 cards, so a card near the
+  // bottom selects a pin the visitor cannot see. Clicking one brings the map
+  // back to them; `scroll-mt` on the map keeps it clear of the fixed navbar.
+  const mapRef = useRef<HTMLDivElement>(null);
+  const showOnMap = (id: number) => {
+    setSelectedId(id);
+    mapRef.current?.scrollIntoView({
+      // Honour a visitor who has asked the OS for less motion: they still get
+      // taken to the map, just without the ride.
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+      block: "start",
+    });
+  };
+
   const [typed, setTyped] = useState(urlQuery);
   const [query, setQuery] = useState(urlQuery); // the applied search term that drives the map
   const [detected, setDetected] = useState(false);
@@ -322,7 +336,7 @@ const FindACharger = () => {
             </div>
           </div>
 
-          <div className="rounded-3xl overflow-hidden border border-border shadow-elevated bg-muted relative">
+          <div ref={mapRef} className="scroll-mt-24 rounded-3xl overflow-hidden border border-border shadow-elevated bg-muted relative">
             {searched && center ? (
               <Suspense fallback={<div className="h-[460px] md:h-[560px] grid place-items-center text-sm text-muted-foreground">Loading the map...</div>}>
                 <ChargerMap
@@ -392,7 +406,7 @@ const FindACharger = () => {
                       <li key={s.id}>
                         <button
                           type="button"
-                          onClick={() => setSelectedId(s.id)}
+                          onClick={() => showOnMap(s.id)}
                           className={`w-full text-left rounded-2xl border bg-card p-4 transition-colors ${
                             active ? "border-primary ring-2 ring-primary/20" : "border-border hover:border-primary/40"
                           }`}
