@@ -80,6 +80,9 @@ const FromPumpToPlugPart2 = () => (
     hideMeta
     hideCta
     video={video}
+    // The recording is the thing people came for, so it is the one video on the
+    // site worth asking for a profile before playing.
+    gateVideo
     extraCta={{ label: "Watch Part 1", to: "/save-with-evs-webinar" }}
     // Part 1 shows the Part 2 flyer beneath this button. Deliberately not repeated
     // here: it reads "Register now" over a date that has passed, which was

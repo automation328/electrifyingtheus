@@ -9,6 +9,8 @@ import EditableText, { PageStylesContext } from "@/components/inline/EditableTex
 import EditableImage from "@/components/inline/EditableImage";
 import BlockSlot from "@/components/inline/blocks/BlockSlot";
 import HeroSection, { heroLayout } from "@/components/inline/HeroSection";
+import VideoGateDialog from "@/components/forms/VideoGateDialog";
+import { hasVideoAccess } from "@/lib/videoAccess";
 import type { PageBlock, ElemStyle, PageHero } from "@/lib/page-content";
 
 export interface ContentStat {
@@ -63,6 +65,10 @@ interface ContentPageLayoutProps {
   pullQuote?: string;
   gallery?: ContentShot[];
   video?: ContentVideo;
+  /** Ask for the visitor's details before this page's video plays. Opt-in per
+   *  page: the webinar replays are the recordings worth trading for, and a gate
+   *  on every content page would tax pages whose video is a 40-second explainer. */
+  gateVideo?: boolean;
   /** Optional CTA button shown directly under the stats row. */
   statsCta?: { label: string; to: string };
   /** Render the hero title at a smaller size (for long, multi-line titles). */
@@ -89,10 +95,11 @@ interface ContentPageLayoutProps {
 
 const ContentPageLayout = ({
   badge, title, highlight, intro, heroImage, icon: Icon,
-  stats, sections, sources = [], kicker, pullQuote, gallery, video, statsCta, compactTitle, extraCta,
+  stats, sections, sources = [], kicker, pullQuote, gallery, video, gateVideo, statsCta, compactTitle, extraCta,
   extraCtaImage, hideMeta, hideCta, linkCards, blocks, styles, hero,
 }: ContentPageLayoutProps) => {
   const [playing, setPlaying] = useState(false);
+  const [gateOpen, setGateOpen] = useState(false);
   const ctx = useInlineEdit();
   const editing = !!ctx?.editing;
   const [vidEdit, setVidEdit] = useState(false);
@@ -341,7 +348,7 @@ const ContentPageLayout = ({
               ) : (
                 <button
                   type="button"
-                  onClick={() => setPlaying(true)}
+                  onClick={() => (gateVideo && !hasVideoAccess() ? setGateOpen(true) : setPlaying(true))}
                   className="group absolute inset-0 w-full h-full"
                   aria-label={`Play video: ${video.title}`}
                 >
@@ -373,6 +380,14 @@ const ContentPageLayout = ({
                 </button>
               )}
             </div>
+            {gateVideo && (
+              <VideoGateDialog
+                open={gateOpen}
+                onOpenChange={setGateOpen}
+                onUnlock={() => setPlaying(true)}
+                videoTitle={video.title}
+              />
+            )}
             </>
             )}
 

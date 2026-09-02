@@ -1,16 +1,9 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Play } from "lucide-react";
-import VideoGateDialog from "@/components/forms/VideoGateDialog";
-import { hasVideoAccess } from "@/lib/videoAccess";
 
 // Lazy "facade" video embed — shows a poster + play button and only loads the
 // player (iframe or <video> bytes) on click. Keeps the page fast.
-//
-// The click is also where the video gate sits: the first play in a browser
-// opens VideoGateDialog and the player mounts only once the profile is given.
-// Because the player is behind a facade already, the gate costs nothing extra —
-// no bytes of the video load while the dialog is open.
 //
 // Sources:
 //   provider "youtube" / "vimeo"  → embed by id (no third-party JS until play)
@@ -54,7 +47,6 @@ const embedSrc = (provider: VideoProvider, id: string) =>
 
 const VideoEmbed = ({ title, provider = "youtube", id, src, captions, poster, href, aspect = "video", className = "" }: VideoEmbedProps) => {
   const [playing, setPlaying] = useState(false);
-  const [gateOpen, setGateOpen] = useState(false);
   const isFile = provider === "file";
   const img = poster ?? (provider === "youtube" && id ? `https://i.ytimg.com/vi/${id}/hqdefault.jpg` : "");
 
@@ -115,20 +107,13 @@ const VideoEmbed = ({ title, provider = "youtube", id, src, captions, poster, hr
       ) : (
         <button
           type="button"
-          onClick={() => (hasVideoAccess() ? setPlaying(true) : setGateOpen(true))}
+          onClick={() => setPlaying(true)}
           aria-label={`Play video: ${title}`}
           className="group absolute inset-0 h-full w-full"
         >
           {facade}
         </button>
       )}
-
-      <VideoGateDialog
-        open={gateOpen}
-        onOpenChange={setGateOpen}
-        onUnlock={() => setPlaying(true)}
-        videoTitle={title}
-      />
     </div>
   );
 };

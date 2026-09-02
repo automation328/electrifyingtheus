@@ -3,20 +3,12 @@
 // with the curated seed as fallback). Video cards open in a lightbox (YouTube id
 // or self-hosted file); photo cards open the image. Below the grid, a
 // "View More photos and videos" button links to the gallery.
-//
-// Video is gated: the first video play in a browser opens VideoGateDialog and
-// nothing plays until the profile is given (src/lib/videoAccess.ts). That covers
-// BOTH ways a video starts here — the lightbox click and the hover preview a
-// self-hosted card plays inline — since a hover that plays the clip unprompted
-// would hand over the very thing the gate trades for. Photo cards stay open.
 
 import { useState, useMemo, useRef } from "react";
 import { Link } from "react-router-dom";
 import { Play, Image as ImageIcon, ArrowRight } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useGallery } from "@/hooks/use-content";
-import VideoGateDialog from "@/components/forms/VideoGateDialog";
-import { hasVideoAccess } from "@/lib/videoAccess";
 import LogoWatermark from "@/components/LogoWatermark";
 import { toast } from "sonner";
 // Fixed feature images + a poster for the video fallback.
@@ -38,12 +30,9 @@ interface MediaItem {
 
 // Square media card. Self-hosted videos preview on hover with sound, and pause +
 // reset (and re-mute) on leave; click opens the lightbox with sound.
-// `canPreview` is the gate on the hover preview: until the visitor has unlocked
-// video, the hover handlers are never attached, so the card stays a still poster.
-const MediaCard = ({ m, onOpen, canPreview }: { m: MediaItem; onOpen: (m: MediaItem) => void; canPreview: boolean }) => {
+const MediaCard = ({ m, onOpen }: { m: MediaItem; onOpen: (m: MediaItem) => void }) => {
   const vidRef = useRef<HTMLVideoElement>(null);
   const isFileVideo = m.type === "video" && !!m.src;
-  const previewable = isFileVideo && canPreview;
 
   const onEnter = () => {
     const v = vidRef.current;
@@ -117,8 +106,8 @@ const MediaCard = ({ m, onOpen, canPreview }: { m: MediaItem; onOpen: (m: MediaI
     <button
       type="button"
       onClick={() => onOpen(m)}
-      onMouseEnter={previewable ? onEnter : undefined}
-      onMouseLeave={previewable ? onLeave : undefined}
+      onMouseEnter={isFileVideo ? onEnter : undefined}
+      onMouseLeave={isFileVideo ? onLeave : undefined}
       className={cardCls}
     >
       {inner}
@@ -129,10 +118,6 @@ const MediaCard = ({ m, onOpen, canPreview }: { m: MediaItem; onOpen: (m: MediaI
 const VideoTestimonialsSection = () => {
   const { videos } = useGallery();
   const [active, setActive] = useState<MediaItem | null>(null);
-  // The video the visitor clicked while still gated — played the moment the
-  // profile lands, so the click they made is the click that gets honoured.
-  const [pending, setPending] = useState<MediaItem | null>(null);
-  const [unlocked, setUnlocked] = useState(() => hasVideoAccess());
 
   // Fixed 4-item rail, alternating photo / video: etu-09 → video → etu-51 →
   // video. Videos come from the gallery; a missing video still renders a poster
@@ -163,13 +148,8 @@ const VideoTestimonialsSection = () => {
 
   const open = (m: MediaItem) => {
     if (m.type === "photo") { setActive(m); return; }
-    if (!m.youtubeId && !m.src) {
-      toast("Video coming soon", { description: "This testimonial will be added shortly." });
-      return;
-    }
-    // Gated: ask for the profile first, then play what they clicked.
-    if (unlocked) setActive(m);
-    else setPending(m);
+    if (m.youtubeId || m.src) setActive(m);
+    else toast("Video coming soon", { description: "This testimonial will be added shortly." });
   };
 
   return (
@@ -186,7 +166,7 @@ const VideoTestimonialsSection = () => {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {media.map((m, i) => (
-            <MediaCard key={`${m.name}-${i}`} m={m} onOpen={open} canPreview={unlocked} />
+            <MediaCard key={`${m.name}-${i}`} m={m} onOpen={open} />
           ))}
         </div>
 
@@ -200,13 +180,6 @@ const VideoTestimonialsSection = () => {
           </Link>
         </div>
       </div>
-
-      <VideoGateDialog
-        open={!!pending}
-        onOpenChange={(o) => !o && setPending(null)}
-        onUnlock={() => { setUnlocked(true); setActive(pending); }}
-        videoTitle={pending?.name}
-      />
 
       {/* Lightbox — video (YouTube/mp4) or photo */}
       <Dialog open={!!active} onOpenChange={(o) => !o && setActive(null)}>
