@@ -117,12 +117,20 @@ Flow per submission:
    (`website-lead` + a specific tag + `source:<form>`). Empty values are dropped
    so we never overwrite existing GHL data with blanks. The share link is stashed
    on `contact.website` for GHL templates.
-3. **Attach a note** (best-effort, needs `GHL_USER_ID`) with everything the
+3. **Custom fields** — job title, department and industry have no standard GHL
+   contact field, so they are sent as custom fields on the same upsert. The ids
+   are resolved once per location (`api/_ghl-fields.ts`) by field key, then by
+   field name, with `GHL_CF_TITLE` / `GHL_CF_DEPARTMENT` / `GHL_CF_INDUSTRY` as
+   an override. A location with no such custom fields sends none of them and
+   upserts exactly as before.
+4. **Attach a note** (best-effort, needs `GHL_USER_ID`) with everything the
    standard fields don't hold: title, department, industry, message, share
    channel/summary, "shared by", session id, and the **full EVan transcript**.
-4. **Calculator share only:** also upsert the *sender* as their own contact
+   The three custom fields are repeated here on purpose — the note is the only
+   record on a location that has not created them.
+5. **Calculator share only:** also upsert the *sender* as their own contact
    (tagged `calculator-share-sender`) so they aren't messaged as a lead.
-5. **Slack alert** (§4.1).
+6. **Slack alert** (§4.1).
 
 **Form types & tags** (`api/lead.ts:19`):
 
@@ -137,13 +145,16 @@ Flow per submission:
 | `calculator-unlock` | `calculator-lead` | Calculator unlock |
 | `calculator-share`, `*-share` | `content-share` + surface tag | Share dialogs (§2) |
 | `event-register`, `event-calendar` | `event-register` / `event-calendar` | Event CTAs, webinar |
+| `video-access` | `video-lead` | Video gate — gallery + homepage rail |
 
 > **The important handoff:** internal team alerts and any lead-nurture email/SMS
 > are driven **inside GHL** by workflows triggered on these tags ("tag added →
 > Slack / send email / send SMS"). The site's job is to land the tagged contact;
 > GHL owns what happens next.
 
-Env: `GHL_API_KEY`, `GHL_LOCATION_ID`, `GHL_USER_ID` (optional, enables notes).
+Env: `GHL_API_KEY`, `GHL_LOCATION_ID`, `GHL_USER_ID` (optional, enables notes),
+`GHL_CF_TITLE` / `GHL_CF_DEPARTMENT` / `GHL_CF_INDUSTRY` (optional, only to
+override the custom-field lookup).
 
 ### 3.2 EVan chatbot → n8n AI agent
 

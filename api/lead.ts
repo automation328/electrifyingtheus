@@ -10,10 +10,19 @@
 //   GHL_LOCATION_ID   The GHL sub-account (location) id.
 // Optional:
 //   GHL_USER_ID       A GHL user id — set it to enable note attachment.
+//   GHL_CF_TITLE      Custom-field ids for job title / department / industry.
+//   GHL_CF_DEPARTMENT GHL has no standard field for these three, so they are
+//   GHL_CF_INDUSTRY   written as custom fields. Leave them unset and the ids
+//                     are looked up from the location by field key or name —
+//                     set them only when a location names its fields something
+//                     the lookup would not guess. Nothing breaks when a
+//                     location has no such custom fields: the three values
+//                     still go into the note and into site_form_submissions.
 
 import { recordSubmission } from "./_submissions.js";
 import { checkRateLimit, tooManyRequests } from "./_rate-limit.js";
 import { createDraftEvent, buildSlackReview, type EventSubmission } from "./_event-submission.js";
+import { buildCustomFields, customFieldIds } from "./_ghl-fields.js";
 import { createClient } from "@supabase/supabase-js";
 
 /** The only extra keys allowed into a GoHighLevel note beyond the fields this
@@ -57,6 +66,7 @@ const FORM_TAGS: Record<string, string[]> = {
   "charger-share":   ["website-lead", "content-share", "charger-share", "source:charger-share"],
   "eligibility-plan":     ["website-lead", "eligibility-lead", "source:rebate-eligibility-plan"],
   "eligibility-coverage": ["website-lead", "eligibility-waitlist", "source:rebate-eligibility-coverage"],
+  "video-access":         ["website-lead", "video-lead", "source:video-gate"],
 };
 
 const SOURCE_LABEL: Record<string, string> = {
@@ -81,6 +91,7 @@ const SOURCE_LABEL: Record<string, string> = {
   "charger-share": "Charging map share",
   "eligibility-plan": "Rebate eligibility (email me this plan)",
   "eligibility-coverage": "Rebate eligibility (notify me when covered)",
+  "video-access": "Video gate (gallery / homepage video)",
 };
 
 const safeJson = (s: string) => { try { return JSON.parse(s); } catch { return {}; } };
@@ -300,6 +311,14 @@ export default async function handler(req: any, res: any) {
         Accept: "application/json",
       },
     });
+
+  // Title, department and industry have no standard GHL field, so they ride
+  // as custom fields when the location has them. Best-effort by design: an
+  // unresolvable id sends nothing, and the note below still records the value
+  // as text — see api/_ghl-fields.ts.
+  const cfIds = await customFieldIds(ghl, locationId);
+  const customFields = buildCustomFields(cfIds, { title, department, industry });
+  if (customFields.length) contact.customFields = customFields;
 
   try {
     const upsertRes = await ghl("/contacts/upsert", { method: "POST", body: JSON.stringify(contact) });

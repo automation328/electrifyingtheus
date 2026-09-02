@@ -28,7 +28,8 @@ export type LeadFormType =
   | "job-share"
   | "charger-share"
   | "eligibility-plan"
-  | "eligibility-coverage";
+  | "eligibility-coverage"
+  | "video-access";
 
 export async function submitLead(
   formType: LeadFormType,
