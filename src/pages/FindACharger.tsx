@@ -267,14 +267,19 @@ const FindACharger = () => {
               />
             </div>
           </div>
-          {/* Charger-level filter — the one control on this page, so it is
-              centered above the map at a size worth aiming at on a phone.
-              The pills carry counts from the UNFILTERED search, so "DC fast 41"
-              answers the question before you click it. Grouping them on a single
-              track reads as one switch with three positions, rather than three
-              loose buttons that happen to sit next to each other. */}
-          <div className="mb-4 flex justify-center">
-            <div className="inline-flex flex-wrap justify-center gap-1.5 rounded-full border border-border bg-card/70 p-1.5 shadow-card">
+          {/* The band above the map: what you can change on the left, what you
+              are looking at on the right.
+
+              The filter is the one control on this page, so it gets the size and
+              the leading edge. Its pills carry counts from the UNFILTERED search,
+              so "DC fast 41" answers the question before you click it, and a
+              single track reads as one switch with three positions rather than
+              three loose buttons. Opposite it, the pin key and the result count
+              read together as the caption for the map below — the count last and
+              largest, because it is the answer. Stacked on a phone, where there
+              is no room for two columns. */}
+          <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between lg:gap-6">
+            <div className="inline-flex flex-wrap gap-1.5 rounded-full border border-border bg-card/70 p-1.5 shadow-card">
               {LEVELS.map((l) => {
                 const on = level === l.key;
                 return (
@@ -299,24 +304,23 @@ const FindACharger = () => {
                 );
               })}
             </div>
-          </div>
 
-          {/* The legend keys the pill colors to the pins, so it is centered under
-              the filter it belongs to rather than drifting off to one side. */}
-          <div className="mb-3 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-muted-foreground">
-            {(["dc", "both", "l2"] as const).map((k) => (
-              <span key={k} className="inline-flex items-center gap-1.5">
-                <span className="w-3 h-3 rounded-full" style={{ background: KIND_COLORS[k] }} />
-                {KIND_LABELS[k]}
-              </span>
-            ))}
+            <div className="flex flex-col gap-1.5 lg:items-end">
+              <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-muted-foreground">
+                {(["dc", "both", "l2"] as const).map((k) => (
+                  <span key={k} className="inline-flex items-center gap-1.5">
+                    <span className="w-3 h-3 rounded-full" style={{ background: KIND_COLORS[k] }} />
+                    {KIND_LABELS[k]}
+                  </span>
+                ))}
+              </div>
+              {searched && stationsQ.isSuccess && stations.length > 0 && (
+                <h2 className="font-display font-bold text-foreground text-lg md:text-xl">
+                  {stations.length} station{stations.length === 1 ? "" : "s"} within {shownRadius} miles
+                </h2>
+              )}
+            </div>
           </div>
-
-          {searched && stationsQ.isSuccess && stations.length > 0 && (
-            <h2 className="font-display font-bold text-foreground text-lg mb-3">
-              {stations.length} station{stations.length === 1 ? "" : "s"} within {shownRadius} miles
-            </h2>
-          )}
 
           <div className="rounded-3xl overflow-hidden border border-border shadow-elevated bg-muted relative">
             {searched && center ? (
