@@ -407,12 +407,13 @@ describe("matching free text to a word", () => {
 // that no PUBLISHED row matched, so the hardcoded entry outlived its own row and
 // kept a "register now" link live over a date that had passed. It is retired the
 // ordinary way instead: no `ours`, so isActive drops it once the date is behind
-// us. The entry stays in the catalog because /events/from-pump-to-plug is a
-// dedicated route whose page falls back to EVENTS.find(slug).
+// us. The entry stays in the catalog as the record of a real past event; its
+// registration page is retired and /events/from-pump-to-plug now redirects to
+// the recording at /from-pump-to-plug-part-2 (App.tsx).
 describe("the Part 2 webinar is retired, not deleted", () => {
   const part2 = EVENTS.find((e) => e.slug === "from-pump-to-plug");
 
-  it("is still in the catalog, so its dedicated page can find it", () => {
+  it("is still in the catalog as the record of a past event", () => {
     expect(part2).toBeTruthy();
   });
 

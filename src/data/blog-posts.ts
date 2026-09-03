@@ -82,7 +82,7 @@ Perhaps the most persuasive voice in any EV savings conversation isn't a researc
 
 The timing of this webinar couldn't be more relevant. With gas prices projected to remain elevated for years — and EV technology, range, and [charging infrastructure](/find-a-charger) all continuing to improve — the financial calculus for going electric is shifting decisively in favor of the plug.
 
-If you've been on the fence about making the switch, this webinar is one of the clearest, most expert-backed breakdowns of the EV savings argument available. **[Watch Webinar Series Part 1: From The Pump To The Plug](/save-with-evs-webinar)** in full, then **[register for Part 2](/events/from-pump-to-plug)** to go even deeper on the savings.
+If you've been on the fence about making the switch, this webinar is one of the clearest, most expert-backed breakdowns of the EV savings argument available. **[Watch Webinar Series Part 1: From The Pump To The Plug](/save-with-evs-webinar)** in full, then **[watch Part 2](/from-pump-to-plug-part-2)** to go even deeper on the savings.
 
 ## Frequently Asked Questions
 

@@ -51,11 +51,11 @@ const SaveWithEvsWebinar = () => (
     compactTitle
     hideMeta
     hideCta
-    extraCta={{ label: "Register for Part 2", to: "/events/from-pump-to-plug" }}
+    extraCta={{ label: "Watch Part 2", to: "/from-pump-to-plug-part-2" }}
     extraCtaImage={{
       src: part2Flyer,
-      alt: "From The Pump To The Plug, Part 2: How Electric Vehicles Can Save You Thousands — webinar, Thursday August 27, 2–3 PM ET. Tap to register.",
-      to: "/events/from-pump-to-plug",
+      alt: "From The Pump To The Plug, Part 2: How Electric Vehicles Can Save You Thousands — watch the recording.",
+      to: "/from-pump-to-plug-part-2",
     }}
     video={video}
     sections={sections}

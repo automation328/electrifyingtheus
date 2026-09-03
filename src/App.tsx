@@ -13,7 +13,6 @@ import GmEvVsGas from "./pages/GmEvVsGas.tsx";
 import News from "./pages/News.tsx";
 import BlogPost from "./pages/BlogPost.tsx";
 import Events from "./pages/Events.tsx";
-import EventFromPumpToPlug from "./pages/EventFromPumpToPlug.tsx";
 import EvSafetyWebinar from "./pages/EvSafetyWebinar.tsx";
 import EventDetail from "./pages/EventDetail.tsx";
 import Gallery from "./pages/Gallery.tsx";
@@ -100,7 +99,9 @@ const App = () => (
           <Route path="/blog/cleaner-air-healthier-neighborhoods" element={<Navigate to="/blog/electric-vehicles-air-quality-public-health-benefits" replace />} />
           <Route path="/blog/:slug" element={<BlogPost />} />
           <Route path="/events" element={<Events />} />
-          <Route path="/events/from-pump-to-plug" element={<EventFromPumpToPlug />} />
+          {/* The Part 2 webinar ran on 27 Aug 2026; its registration page is retired.
+              Send the old URL to the recording, the same way past blog slugs redirect. */}
+          <Route path="/events/from-pump-to-plug" element={<Navigate to="/from-pump-to-plug-part-2" replace />} />
           <Route path="/events/:slug" element={<EventDetail />} />
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/list-your-event" element={<ListYourEvent />} />

@@ -552,9 +552,11 @@ export const EVENTS: EventItem[] = [
     // PUBLISHED row matched, so the entry outlived its own row. Dropping the
     // flag lets isActive retire it the way it retires every other past event.
     //
-    // The entry itself stays. /events/from-pump-to-plug is a dedicated route
-    // (App.tsx) whose page falls back to EVENTS.find(slug) — delete this and it
-    // falls through to EVENTS[0] and renders a different event entirely.
+    // The entry stays as the record of a real past event (and the test fixture
+    // in content.test.ts / events.test.ts). Its registration page is gone:
+    // /events/from-pump-to-plug now redirects to the recording at
+    // /from-pump-to-plug-part-2 (App.tsx), so this slug no longer needs to
+    // resolve to a live page.
     slug: "from-pump-to-plug",
     registerUrl: "https://us06web.zoom.us/webinar/register/WN_PtzGLoOyQqmDMg8lXpKRlw#/registration",
   },

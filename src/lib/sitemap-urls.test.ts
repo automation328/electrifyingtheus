@@ -44,9 +44,13 @@ describe("sitemap URL inventory", () => {
     expect(missing, `add to SITEMAP_BLOG: ${missing.join(", ")}`).toEqual([]);
   });
 
-  it("covers every curated event slug", () => {
-    const missing = slugsIn("src/data/events.ts", "/events/").filter((p) => !SITEMAP_EVENTS.includes(p));
-    expect(missing, `add to SITEMAP_EVENTS: ${missing.join(", ")}`).toEqual([]);
+  it("covers every curated event slug, unless its page redirects", () => {
+    // A retired event whose registration page now redirects (e.g.
+    // /events/from-pump-to-plug → the recording) belongs in SITEMAP_REDIRECTS,
+    // not the index — same allowance the static-route test above makes.
+    const missing = slugsIn("src/data/events.ts", "/events/")
+      .filter((p) => !SITEMAP_EVENTS.includes(p) && !isSitemapExcluded(p));
+    expect(missing, `add to SITEMAP_EVENTS or SITEMAP_REDIRECTS: ${missing.join(", ")}`).toEqual([]);
   });
 
   it("never lists a redirect or an excluded path", () => {
