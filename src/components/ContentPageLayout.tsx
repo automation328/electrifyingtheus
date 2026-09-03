@@ -10,7 +10,7 @@ import EditableImage from "@/components/inline/EditableImage";
 import BlockSlot from "@/components/inline/blocks/BlockSlot";
 import HeroSection, { heroLayout } from "@/components/inline/HeroSection";
 import VideoGateDialog from "@/components/forms/VideoGateDialog";
-import { hasVideoAccess } from "@/lib/videoAccess";
+import { hasLeadIdentity } from "@/lib/leadIdentity";
 import type { PageBlock, ElemStyle, PageHero } from "@/lib/page-content";
 
 export interface ContentStat {
@@ -65,7 +65,8 @@ interface ContentPageLayoutProps {
   pullQuote?: string;
   gallery?: ContentShot[];
   video?: ContentVideo;
-  /** Ask for the visitor's details before this page's video plays. Opt-in per
+  /** Ask for a first name and email before this page's video plays, unless the
+   *  visitor has already given them at any other gate on the site. Opt-in per
    *  page: the webinar replays are the recordings worth trading for, and a gate
    *  on every content page would tax pages whose video is a 40-second explainer. */
   gateVideo?: boolean;
@@ -348,7 +349,7 @@ const ContentPageLayout = ({
               ) : (
                 <button
                   type="button"
-                  onClick={() => (gateVideo && !hasVideoAccess() ? setGateOpen(true) : setPlaying(true))}
+                  onClick={() => (gateVideo && !hasLeadIdentity() ? setGateOpen(true) : setPlaying(true))}
                   className="group absolute inset-0 w-full h-full"
                   aria-label={`Play video: ${video.title}`}
                 >

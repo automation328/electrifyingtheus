@@ -145,7 +145,7 @@ Flow per submission:
 | `calculator-unlock` | `calculator-lead` | Calculator unlock |
 | `calculator-share`, `*-share` | `content-share` + surface tag | Share dialogs (§2) |
 | `event-register`, `event-calendar` | `event-register` / `event-calendar` | Event CTAs, webinar |
-| `video-access` | `video-lead` | Video gate — gallery + homepage rail |
+| `video-access` | `video-lead` | Video gate — the webinar replay player |
 
 > **The important handoff:** internal team alerts and any lead-nurture email/SMS
 > are driven **inside GHL** by workflows triggered on these tags ("tag added →

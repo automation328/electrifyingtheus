@@ -1,11 +1,12 @@
-// The video gate, tested where it now lives: the featured video on a content
-// page, opt-in per page via `gateVideo`.
+// The video gate: the featured video on a content page, opt-in per page via
+// `gateVideo`.
 //
-// Two things have to hold, and they pull in opposite directions. On a page that
-// opts in, the player must NOT mount until the profile is given — asserting on
-// the iframe rather than on the dialog, because a gate that renders a form while
-// the video loads behind it has gated nothing. On every other page, which is all
-// of them, the click must still play the video with no dialog at all.
+// Three things have to hold. On a page that opts in, the player must NOT mount
+// until the visitor is known — asserted on the iframe rather than on the dialog,
+// because a gate that renders a form while the video loads behind it has gated
+// nothing. A visitor already known from ANY other gate on the site is not asked
+// again. And on every other page, which is all of them, the click plays the
+// video with no dialog at all.
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, cleanup, fireEvent } from "@testing-library/react";
@@ -51,11 +52,24 @@ describe("a page that opts into the gate", () => {
     renderPage({ gateVideo: true });
     play();
     expect(screen.getByRole("dialog")).toBeInTheDocument();
-    expect(screen.getByLabelText(/Industry/)).toBeInTheDocument();
   });
 
-  it("plays straight away for a visitor who already gave them", () => {
-    localStorage.setItem("etu_video_access", "1");
+  it("asks for a first name and an email, and nothing else", () => {
+    renderPage({ gateVideo: true });
+    play();
+    expect(screen.getByLabelText("First name")).toBeInTheDocument();
+    expect(screen.getByLabelText("Email")).toBeInTheDocument();
+    // The fuller profile belongs on the contact form, not in front of a video.
+    expect(screen.queryByLabelText(/Industry/)).toBeNull();
+    expect(screen.queryByLabelText(/Department/)).toBeNull();
+  });
+
+  it("does not ask a visitor who identified at any other gate on the site", () => {
+    // What CalculatorGateDialog, ShareGate and EventActionGate all write.
+    localStorage.setItem(
+      "etu_lead_identity",
+      JSON.stringify({ firstName: "Alex", email: "alex@example.com" }),
+    );
     renderPage({ gateVideo: true });
     play();
     expect(player()).not.toBeNull();
@@ -75,6 +89,6 @@ describe("every other content page", () => {
     // The dialog is only mounted for a page that opted in, so an unrelated page
     // carries none of its markup.
     renderPage();
-    expect(screen.queryByText("Watch the video")).toBeNull();
+    expect(screen.queryByText("Watch the replay")).toBeNull();
   });
 });
