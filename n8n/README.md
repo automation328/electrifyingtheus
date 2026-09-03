@@ -17,12 +17,21 @@ The knowledge base source documents (chunked + embedded into the vector store):
 - `Michigan EV Charging Incentives Guide_2026-07-28.docx` — *Michigan EV & Charging Incentives Guide* (state-specific; DOCUMENT 3)
 - `GM EV Knowledge Base_2026-07-28.docx` — *General Motors: EV & EV Charging* (DOCUMENT 4) and *Gasoline-Powered Vehicle Lineup* (DOCUMENT 5)
 - `Washington_SeattleCityLight_EV_Incentives_Guide.docx` — *Washington State & Seattle City Light EV & Charging Incentives Guide* (state-specific; DOCUMENT 6)
+- `oregon-ev-incentives-kb.md` — *Oregon EV & Charging Incentives Guide* (state-specific; DOCUMENT 7). Lives in this folder as markdown, unlike the .docx documents above: it was written here rather than supplied, so the source of every figure is reviewable in git.
 
 Key files in this folder:
 
 > - **`EVA-system-prompt.md`** — the full knowledge base (DOCUMENTS 1–5). This is the **ingestion source** (chunked + embedded), no longer pasted into the agent.
 > - **`EVA-system-prompt-RAG.md`** — the compact prompt actually running in the live agent's System Message.
 > - **`etus_kb_documents.sql`** — the Supabase table + match function DDL.
+> - **`oregon-ev-incentives-kb.md`** — the Oregon state guide, ready to paste or upload
+>   into the CMS (admin → EVan knowledge base → new document → **Save & re-embed**),
+>   which chunks and embeds it into `etus_kb_documents` with no deploy.
+
+> **When you add a state guide,** also add the state to the grounding-rules sentence in
+> `EVA-system-prompt-RAG.md` (it names which state guides the corpus holds) and to the
+> list above. Retrieval is semantic and will surface the document either way, but the
+> prompt tells the agent what it is allowed to believe it knows.
 
 ## The live workflow
 
