@@ -12,8 +12,15 @@
 // Blank-line paragraph split for multi-paragraph disclaimers.
 const SPLIT_PARAS = /\n{2,}/;
 const RESEND_ENDPOINT = "https://api.resend.com/emails";
+// Test-only. onboarding@resend.dev is a domain shared with every other Resend
+// account, so mail from it is filtered hard — if a real send lands here, the
+// environment is misconfigured and the recipient will likely never see it.
 const DEFAULT_FROM = "Electrifying the US <onboarding@resend.dev>";
-const SITE = "https://electrifyingtheus.vercel.app";
+// The apex domain, NOT the vercel.app host. Every link in a share email — logo,
+// CTA, privacy policy, terms — resolves against this, and a mail whose From is
+// @electrifyingtheus.com while its links point at a different domain is a
+// textbook spam signal. The apex serves all of these paths.
+const SITE = "https://electrifyingtheus.com";
 // Site logo served from /public (static → reachable without the password gate).
 const LOGO_URL = `${SITE}/email-logo.png`;
 
@@ -333,16 +340,36 @@ export default async function handler(req: any, res: any) {
     disclaimer: safeDisclaimer,
   });
 
+  const from = process.env.RESEND_FROM || DEFAULT_FROM;
+  if (!process.env.RESEND_FROM) {
+    // Not fatal — a dev environment without the variable should still work — but
+    // this is worth seeing in the logs, because in production it means every
+    // share is going out from a shared domain and landing in spam.
+    console.warn("share-email: RESEND_FROM is unset; sending from the shared Resend domain");
+  }
+  // Gmail and Yahoo weigh an unsubscribe path even on one-to-one mail. Only
+  // emitted when there is a real mailbox to point at — an invented address that
+  // bounces is worse than no header at all.
+  const contact = (process.env.SITE_EMAIL || "").trim();
+  const unsubscribe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact)
+    ? `<mailto:${contact}?subject=Unsubscribe>`
+    : "";
+
   try {
     const r = await fetch(RESEND_ENDPOINT, {
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        from: process.env.RESEND_FROM || DEFAULT_FROM,
+        from,
         to: [to.trim()],
+        // The recipient's natural reply is to the person who shared it, not to the
+        // site. This is also where the sender's address belongs — in a header the
+        // mail client can act on, rather than printed in the body.
+        reply_to: senderEmail.trim(),
         subject: safeTitle,
         html,
         text,
+        ...(unsubscribe ? { headers: { "List-Unsubscribe": unsubscribe } } : {}),
       }),
     });
     if (!r.ok) {

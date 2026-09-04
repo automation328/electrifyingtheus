@@ -248,6 +248,22 @@ describe("the CTA button always renders as a button", () => {
   });
 });
 
+// A mail whose From is @electrifyingtheus.com while every link points at a
+// different host is a spam signal, and some of these were landing in spam.
+describe("every link sits on the sending domain", () => {
+  it("never points an email at the vercel.app host", () => {
+    const html = buildHtml({ title: "T", url: "https://electrifyingtheus.com/x", ctaLabel: "Go" });
+    expect(html).not.toContain("vercel.app");
+    expect(buildText({ title: "T", url: "https://electrifyingtheus.com/x" })).not.toContain("vercel.app");
+  });
+
+  it("puts the legal links on the apex domain", () => {
+    const html = buildHtml({ title: "T", url: "https://electrifyingtheus.com/x" });
+    expect(html).toContain("https://electrifyingtheus.com/privacy-policy");
+    expect(html).toContain("https://electrifyingtheus.com/terms");
+  });
+});
+
 describe("the plain-text part is a whole email", () => {
   const ARTICLE = {
     title: "Why 2026 is the tipping point",
