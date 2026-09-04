@@ -19,6 +19,7 @@ The knowledge base source documents (chunked + embedded into the vector store):
 - `Washington_SeattleCityLight_EV_Incentives_Guide.docx` — *Washington State & Seattle City Light EV & Charging Incentives Guide* (state-specific; DOCUMENT 6)
 - `oregon-ev-incentives-kb.md` — *Oregon EV & Charging Incentives Guide* (state-specific; DOCUMENT 7). Lives in this folder as markdown, unlike the .docx documents above: it was written here rather than supplied, so the source of every figure is reviewable in git.
 - `seattle-city-light-kb.md` — *Seattle City Light EV & Charging Incentives Guide* (utility-specific; DOCUMENT 8). **Supersedes the Seattle City Light half of DOCUMENT 6**, whose figures came from a City Light manual that has since been replaced. Markdown in this folder for the same reason as the Oregon guide.
+- `puget-sound-energy-kb.md` — *Puget Sound Energy EV & Charging Incentives Guide* (utility-specific; DOCUMENT 9). Companion to DOCUMENT 8: PSE bills the parts of Burien, Renton, SeaTac, Shoreline and Tukwila that Seattle City Light does not, and unlike City Light it pays a residential home charger rebate. The two guides cross-reference each other.
 
 Key files in this folder:
 
@@ -28,6 +29,9 @@ Key files in this folder:
 > - **`oregon-ev-incentives-kb.md`** — the Oregon state guide, ready to paste or upload
 >   into the CMS (admin → EVan knowledge base → new document → **Save & re-embed**),
 >   which chunks and embeds it into `etus_kb_documents` with no deploy.
+> - **`puget-sound-energy-kb.md`** — the Puget Sound Energy guide, loaded the same way.
+>   Carries time-sensitive status: PSE HELP is paused for September 2026 and the TER
+>   Project Grant is closed until 2027, so re-check those two before a later re-embed.
 > - **`seattle-city-light-kb.md`** — the Seattle City Light guide, loaded the same way.
 >   It contradicts DOCUMENT 6 on purpose: City Light reactivated market-rate multifamily
 >   incentives on 12 Nov 2025 and renamed the fleet programme, so the older document is
