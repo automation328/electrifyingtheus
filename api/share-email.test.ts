@@ -80,6 +80,10 @@ describe("who it says shared it", () => {
     expect(html).not.toContain("@example.com");
   });
 
+  it("carries the same attribution in the plain-text part", () => {
+    expect(buildText(EVENT)).toContain("ETUS Team shared this with you:");
+  });
+
   it("says nothing at all on a self-send — the recipient IS the sender", () => {
     expect(senderLabel("Dana Reyes", "dana@example.com", "Dana@Example.com ")).toBe("");
     const html = buildHtml({
@@ -109,9 +113,28 @@ describe("footer", () => {
       expect(html).toContain("/terms");
     }
   });
+
+  // The disclaimer slot is never empty. A surface without its own legal copy used
+  // to reach the inbox with no informational notice at all.
+  it("labels the disclaimer as a third-party event notice on an event", () => {
+    expect(buildHtml(EVENT)).toContain("Disclaimer/Third Party Event:");
+  });
+
+  it("still shows a labelled disclaimer when the caller sent none", () => {
+    const html = buildHtml({ title: "T", url: "https://x.test" });
+    expect(html).toContain("Disclaimer:");
+    expect(html).toContain("not constitute financial, legal, or tax advice");
+  });
+
+  it("carries the disclaimer and both legal links in the plain-text part", () => {
+    const text = buildText({ title: "T", url: "https://x.test" });
+    expect(text).toContain("Disclaimer: ");
+    expect(text).toContain("Privacy Policy: ");
+    expect(text).toContain("Terms & Conditions: ");
+  });
 });
 
-describe("non-event shares are untouched", () => {
+describe("non-event shares keep the eyebrow + headline layout", () => {
   const ARTICLE = {
     title: "Why 2026 is the tipping point",
     description: "A look at the year EVs stopped being the alternative.",
@@ -130,14 +153,123 @@ describe("non-event shares are untouched", () => {
     expect(html).not.toContain("Date/Time:");
   });
 
-  it("keeps the sender attribution in the footer, not the top", () => {
-    const html = buildHtml(ARTICLE);
-    expect(html).toContain("shared this with you.");
-    const details = html.indexOf("<h1");
-    expect(html.indexOf("shared this with you.")).toBeGreaterThan(details);
+  it("carries the CTA label the surface asked for", () => {
+    expect(buildHtml({ ...ARTICLE, ctaLabel: "Read Article" })).toContain("Read Article &rarr;");
+    expect(buildHtml({ ...ARTICLE, ctaLabel: "View Job" })).toContain("View Job &rarr;");
   });
 
   it("does not truncate a short description", () => {
     expect(buildHtml(ARTICLE)).toContain(ARTICLE.description);
+  });
+});
+
+// Greeting, then "<sender> shared this with you:", then the content, then a CTA,
+// then the footer with both legal links. An article share used to open cold on a
+// headline and bury the sender under the fine print; only events got the full
+// treatment. Every surface now sends the same shape.
+describe("every share opens the same way", () => {
+  const ARTICLE = {
+    title: "Why 2026 is the tipping point",
+    description: "A look at the year EVs stopped being the alternative.",
+    url: "https://electrifyingtheus.com/blog/tipping-point",
+    greetName: "Terry",
+    sharedBy: "ETUS Team",
+    ctaLabel: "Read Article",
+  };
+
+  it("leads with the sender on a non-event share too", () => {
+    const html = buildHtml(ARTICLE);
+    const sender = html.indexOf("ETUS Team shared this with you:");
+    const headline = html.indexOf("<h1");
+    expect(sender).toBeGreaterThan(-1);
+    expect(sender).toBeLessThan(headline);
+  });
+
+  it("says it only once", () => {
+    expect(buildHtml(ARTICLE).split("shared this with you:")).toHaveLength(2);
+  });
+
+  it("greets even when the sender did not name the recipient", () => {
+    expect(buildHtml({ ...ARTICLE, greetName: undefined })).toContain("Hi there,");
+    expect(buildHtml(ARTICLE)).toContain("Hi Terry,");
+  });
+});
+
+// The calculator is the only surface whose headline restates its own number, so
+// it is the only one where meta can collide with the title.
+describe("a calculator share headline", () => {
+  const RESULT = {
+    title: "The Kia EV6 saves about $1,135/year on fuel vs the Toyota RAV4",
+    url: "https://electrifyingtheus.com/electricity-vs-gasoline",
+    ctaLabel: "See Full Results",
+  };
+
+  it("colours the figure in place when the headline already states it", () => {
+    const html = buildHtml({ ...RESULT, meta: "$1,135/year" });
+    expect(html).toContain("saves about <span style=\"color:#2f9e57\">$1,135/year</span> on fuel");
+    // No eyebrow: the figure is inside the headline, not repeated above it.
+    expect(html).not.toContain("font:800 22px/1.2");
+  });
+
+  it("falls back to the eyebrow when meta is a different figure", () => {
+    // The regression: "saves about $9,000 saved over 5 years on fuel — $1,135/year
+    // on fuel vs the Toyota RAV4" — stated twice, sentence broken by an em dash.
+    const html = buildHtml({ ...RESULT, meta: "$9,000 saved over 5 years on fuel" });
+    expect(html).not.toContain("saves about $9,000");
+    expect(html).toContain(">$9,000 saved over 5 years on fuel</p>");
+    expect(html).toContain("The Kia EV6 saves about $1,135/year on fuel vs the Toyota RAV4");
+  });
+});
+
+// A share that reaches an inbox with no visible button is a share that goes
+// nowhere. Clients differ on which of the two background mechanisms they keep,
+// so the button must survive losing either one.
+describe("the CTA button always renders as a button", () => {
+  const ARTICLE = { title: "T", url: "https://x.test", ctaLabel: "Read Article" };
+
+  it("colours the cell with both a bgcolor attribute and a style", () => {
+    const html = buildHtml(ARTICLE);
+    expect(html).toContain('bgcolor="#0b5fd4"');
+    expect(html).toContain("background-color:#0b5fd4");
+  });
+
+  it("puts the colour on the link itself, not only the cell", () => {
+    // White label on a cell that lost its background is an invisible button.
+    const html = buildHtml(ARTICLE);
+    const link = html.slice(html.indexOf("<a href=\"https://x.test\""));
+    expect(link).toContain("color:#ffffff");
+    expect(link).toContain("background-color:#0b5fd4");
+    expect(link).toContain("border:1px solid");
+  });
+
+  it("renders on every share, labelled or not", () => {
+    expect(buildHtml({ title: "T", url: "https://x.test" })).toContain("Read more &rarr;");
+    expect(buildHtml(ARTICLE)).toContain("Read Article &rarr;");
+  });
+});
+
+describe("the plain-text part is a whole email", () => {
+  const ARTICLE = {
+    title: "Why 2026 is the tipping point",
+    description: "A look at the year EVs stopped being the alternative.",
+    url: "https://electrifyingtheus.com/blog/tipping-point",
+    greetName: "Terry",
+    sharedBy: "ETUS Team",
+    ctaLabel: "Read Article",
+  };
+
+  it("greets, attributes, links and closes with the legal pages", () => {
+    const text = buildText(ARTICLE);
+    expect(text).toContain("Hi Terry,");
+    expect(text).toContain("ETUS Team shared this with you:");
+    expect(text).toContain("Read Article: https://electrifyingtheus.com/blog/tipping-point");
+    expect(text).toContain("Privacy Policy: ");
+    expect(text).toContain("Terms & Conditions: ");
+  });
+
+  it("carries the legal links on an event share as well", () => {
+    const text = buildText(EVENT);
+    expect(text).toContain("Privacy Policy: ");
+    expect(text).toContain("Terms & Conditions: ");
   });
 });

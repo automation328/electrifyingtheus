@@ -20,13 +20,12 @@ import { Button } from "@/components/ui/button";
 import { submitLead, type LeadFormType } from "@/lib/submitLead";
 import { rememberLeadEmail } from "@/lib/emailCompose";
 import { getLeadIdentity, saveLeadIdentity } from "@/lib/leadIdentity";
+import { shareCtaLabel } from "@/lib/shareCta";
+import { SHARE_DISCLAIMER } from "@/lib/disclaimers";
 import ShareResultDialog from "@/components/forms/ShareResultDialog";
 import { toast } from "sonner";
 
 const isEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
-
-const SHARE_DISCLAIMER =
-  "The vehicle information, consumer data, pricing, range estimates, and charging data presented here are sourced from publicly available information and industry research. This content is intended for general informational purposes only and is subject to change without notice. ElectrifyingTheUS.com and its staff make no representations or warranties regarding the accuracy, completeness, or timeliness of this information. This content does not constitute a recommendation, endorsement, or advice of any kind. Consumers are solely responsible for conducting their own due diligence, verifying current pricing and availability with licensed dealers, and making independent purchase decisions. ElectrifyingTheUS.com assumes no liability for decisions made based on the information provided here.";
 
 // X (Twitter) wordmark — lucide ships only the legacy bird.
 const XLogo = ({ className }: { className?: string }) => (
@@ -66,15 +65,18 @@ interface ShareGateProps {
    *  the calculator estimate disclaimer). Also forwarded to the send dialog. */
   disclaimer?: string;
   /** Event shares only: "Saturday, SEP 19, 2026 · 11a - 4p". Passing this
-   *  switches the share EMAIL to the labelled event layout and the CTA to
-   *  "Events Details". The on-page share sheet is unaffected. */
+   *  switches the share EMAIL to the labelled event layout. The on-page share
+   *  sheet is unaffected. */
   eventDateTime?: string;
+  /** Override the share email's CTA button text. Omit to take the label for
+   *  this surface's formType (see lib/shareCta). */
+  ctaLabel?: string;
 }
 
 const ShareGate = ({
   url, title, formType, summary, description, image, meta,
   variant = "icon", label = "Share", className, stopNav = true, disclaimer,
-  eventDateTime,
+  eventDateTime, ctaLabel,
 }: ShareGateProps) => {
   const [open, setOpen] = useState(false);
   const [captured, setCaptured] = useState(false);
@@ -304,14 +306,17 @@ const ShareGate = ({
         summary={summary}
         senderNameDefault={firstName.trim() || undefined}
         senderEmailDefault={email.trim() || undefined}
-        disclaimer={disclaimer}
+        // The email's disclaimer slot is never empty: a surface without its own
+        // legal copy carries the standing share disclaimer, the same text the
+        // dialog above shows the sender.
+        disclaimer={disclaimer || SHARE_DISCLAIMER}
         emailContent={{
           title,
           description: description || summary,
           meta,
           imageUrl: absoluteImage || undefined,
           eventDateTime,
-          ctaLabel: eventDateTime ? "Events Details" : undefined,
+          ctaLabel: shareCtaLabel(formType, ctaLabel),
         }}
       />
     </>

@@ -28,6 +28,7 @@ import Navbar from "@/components/Navbar";
 import { useEmbedFrame } from "@/hooks/useEmbedFrame";
 import ShareResultDialog from "@/components/forms/ShareResultDialog";
 import ShareGate from "@/components/forms/ShareGate";
+import { shareCtaLabel } from "@/lib/shareCta";
 import CalculatorGateDialog from "@/components/forms/CalculatorGateDialog";
 import { openEmailCompose } from "@/lib/emailCompose";
 import { CALCULATOR_DISCLAIMER } from "@/lib/disclaimers";
@@ -45,6 +46,9 @@ import { getLeadIdentity, hasLeadIdentity } from "@/lib/leadIdentity";
 import {
   SOURCES, CONFIDENCE_COPY, overallConfidence, type SourceMeta, type Confidence,
 } from "@/data/sources";
+
+// Hero image for a shared calculator result (share email + OG card).
+const CALCULATOR_SHARE_IMAGE = "/og/calculator.jpg";
 
 const EV_COLOR = "hsl(145, 55%, 42%)"; // green
 const GAS_COLOR = "#f97316"; // orange
@@ -984,6 +988,7 @@ const ElectricityVsGasoline = () => {
                       ? `${currency(Math.abs(calc.res.horizonTotalSaved))} saved over ${ownershipYears} years on fuel`
                       : undefined}
                     description={`${ev.name} vs ${gas.name} — compared on real U.S. energy prices.`}
+                    image={CALCULATOR_SHARE_IMAGE}
                     formType="calculator-share"
                     variant="label"
                     label="Share this result"
@@ -991,12 +996,28 @@ const ElectricityVsGasoline = () => {
                     disclaimer={CALCULATOR_DISCLAIMER}
                     className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-2 text-sm font-semibold text-primary shadow-sm hover:bg-white/90 transition-colors"
                   />
+                  {/* Without emailContent this dialog captured the lead but sent
+                      no email of its own, so "Email result" delivered nothing the
+                      recipient could read. It now sends the same branded share
+                      template as every other surface. */}
                   <ShareResultDialog
                     shareUrl={typeof window !== "undefined" ? window.location.href : ""}
                     contentTitle={`${ev.name} vs ${gas.name}`}
                     summary={evWinsFuel
                       ? `${currency(Math.abs(calc.res.horizonTotalSaved))} saved over ${ownershipYears} years on fuel`
                       : undefined}
+                    formType="calculator-share"
+                    emailContent={{
+                      title: buildShare().text,
+                      description: `${ev.name} vs ${gas.name} — compared on real U.S. energy prices.`,
+                      meta: evWinsFuel
+                        ? `${currency(Math.abs(calc.res.horizonTotalSaved))} saved over ${ownershipYears} years on fuel`
+                        : undefined,
+                      imageUrl: typeof window !== "undefined"
+                        ? `${window.location.origin}${CALCULATOR_SHARE_IMAGE}`
+                        : undefined,
+                      ctaLabel: shareCtaLabel("calculator-share"),
+                    }}
                     dialogTitle="Send this result"
                     dialogDescription={`Email or text the ${ev.name} vs ${gas.name} comparison — it reopens exactly as you see it.`}
                     disclaimer={CALCULATOR_DISCLAIMER}

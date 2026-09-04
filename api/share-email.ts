@@ -27,6 +27,15 @@ const BRAND = {
   bg: "#eef2f7",
 };
 
+// Last-resort disclaimer, for a caller that sends none. Every on-site surface
+// forwards one (its own, or the standing SHARE_DISCLAIMER from lib/disclaimers),
+// so the template's disclaimer slot is never empty — an empty slot is how a
+// share used to reach an inbox with no informational notice at all.
+const FALLBACK_DISCLAIMER =
+  "This content is provided for general informational purposes only and is subject to change without notice. "
+  + "ElectrifyingTheUS.com makes no representations or warranties as to its accuracy, completeness, or timeliness, "
+  + "and it does not constitute financial, legal, or tax advice.";
+
 function safeJson(s: string): Record<string, unknown> {
   try { return JSON.parse(s); } catch { return {}; }
 }
@@ -100,8 +109,8 @@ export function buildHtml(opts: {
   greetName?: string; sharedBy?: string; disclaimer?: string;
   eventDateTime?: string; ctaLabel?: string;
 }): string {
-  const { title, description, meta, imageUrl, url, greetName, sharedBy, disclaimer,
-          eventDateTime, ctaLabel } = opts;
+  const { title, description, meta, imageUrl, url, greetName, sharedBy,
+          disclaimer, eventDateTime, ctaLabel } = opts;
   const hero = imageUrl
     ? `<tr><td style="padding:0">
          <a href="${esc(url)}" target="_blank" style="text-decoration:none">
@@ -120,26 +129,35 @@ export function buildHtml(opts: {
   // out of the middle of it, so the eyebrow rendered as a green sentence with a
   // blue underlined postal address embedded in it, and the date after that.
   const isEvent = !!eventDateTime;
-  const greeting = greetName
-    ? `<p style="margin:0 0 ${isEvent ? 2 : 14}px;font:600 15px/1.5 Arial,Helvetica,sans-serif;color:${BRAND.ink}">Hi ${esc(greetName)},</p>`
-    : "";
-  // Who sent it leads the message for an event -- it is the reason the recipient
-  // opens a mail about a stranger's ride & drive -- rather than sitting in the
-  // footer under the fine print.
-  const sharedByTop = (isEvent && sharedBy)
+  // Who sent it leads the message on EVERY share, not just events -- it is the
+  // reason the recipient opens a mail about a stranger's ride & drive, a rebate
+  // or an article, rather than something to find in the footer under the fine
+  // print. A self-send has no attribution line (the recipient IS the sender).
+  const sharedByTop = sharedBy
     ? `<p style="margin:0 0 18px;font:400 15px/1.5 Arial,Helvetica,sans-serif;color:${BRAND.ink}">${esc(sharedBy)} shared this with you:</p>`
     : "";
-  // When the headline contains "about " (the calculator's "saves about …" line),
-  // inline the savings figure (meta) in GREEN right after "about", leaving the rest
-  // — e.g. the "$1,135/year" — in the headline's normal black. Other shares keep
-  // meta as a separate green eyebrow above the title.
+  // The greeting always opens the mail. Without a recipient name it is still a
+  // greeting -- an email that starts cold on a headline reads like a broadcast.
+  const greeting =
+    `<p style="margin:0 0 ${sharedByTop ? 2 : 14}px;font:600 15px/1.5 Arial,Helvetica,sans-serif;color:${BRAND.ink}">Hi ${esc(greetName || "there")},</p>`;
+  // When the headline already states the savings figure ("…saves about $1,135/year
+  // on fuel…"), colour that figure GREEN where it stands. Other shares keep meta as
+  // a separate green eyebrow above the title.
+  //
+  // The inline path used to fire on the word "about" alone and splice whatever meta
+  // carried in after it, so a calculator share whose meta was the multi-year total
+  // rendered "saves about $9,000 saved over 5 years on fuel — $1,135/year on fuel
+  // vs the Toyota RAV4" — the figure stated twice and the sentence broken by an
+  // em dash. A meta that is not literally the next words of the title now falls
+  // back to the eyebrow.
   const aboutIdx = meta ? title.indexOf("about ") : -1;
-  const inlineMeta = aboutIdx !== -1;
+  const inlineMeta = aboutIdx !== -1 && title.startsWith(meta as string, aboutIdx + 6);
   const metaRow = (meta && !inlineMeta)
     ? `<p style="margin:0 0 10px;font:800 22px/1.2 Arial,Helvetica,sans-serif;letter-spacing:-.01em;color:${BRAND.green}">${esc(meta)}</p>`
     : "";
   const headlineHtml = inlineMeta
-    ? `${esc(title.slice(0, aboutIdx + 6))}<span style="color:${BRAND.green}">${esc(meta)}</span> — ${esc(title.slice(aboutIdx + 6))}`
+    ? `${esc(title.slice(0, aboutIdx + 6))}<span style="color:${BRAND.green}">${esc(meta)}</span>${
+        esc(title.slice(aboutIdx + 6 + (meta as string).length))}`
     : esc(title);
   const desc = description
     ? `<p style="margin:0 0 24px;font:400 15px/1.65 Arial,Helvetica,sans-serif;color:${BRAND.muted}">${esc(description)}</p>`
@@ -154,6 +172,17 @@ export function buildHtml(opts: {
           <p style="margin:0 0 18px;font:800 17px/1.4 Arial,Helvetica,sans-serif;color:${BRAND.green}">Date/Time: ${esc(eventDateTime)}</p>
           ${description ? `<p style="margin:0 0 24px;font:400 15px/1.65 Arial,Helvetica,sans-serif;color:${BRAND.ink}"><span style="font-weight:700">Event details:</span> ${esc(preview(description))}</p>` : ""}` : "";
 
+  // Every send carries a labelled disclaimer block, as the approved template
+  // shows: the surface's own legal copy when it sent one, otherwise the standing
+  // notice. One paragraph per blank-line-separated block.
+  const disclaimerParas = ((disclaimer || "").trim() || FALLBACK_DISCLAIMER).split(SPLIT_PARAS);
+  const disclaimerLabel = isEvent ? "Disclaimer/Third Party Event:" : "Disclaimer:";
+  const disclaimerBlock = disclaimerParas.map((para, i) =>
+    `<p style="margin:0 0 ${i === disclaimerParas.length - 1 ? "0" : "8px"};font:400 11px/1.55 Arial,Helvetica,sans-serif;color:#9aa7b4">${
+      i === 0 ? `<span style="font-weight:700;color:${BRAND.muted}">${disclaimerLabel}</span> ` : ""
+    }${esc(para.trim())}</p>`,
+  ).join("");
+
   const headlineBlock = isEvent ? eventBody : `
           ${metaRow}
           <h1 style="margin:0 0 14px;font:800 24px/1.25 Arial,Helvetica,sans-serif;color:${BRAND.ink}">${headlineHtml}</h1>
@@ -162,15 +191,23 @@ export function buildHtml(opts: {
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="light only"><title>${esc(title)}</title></head>
-<body style="margin:0;padding:0;background:${BRAND.bg}">
+<body bgcolor="${BRAND.bg}" style="margin:0;padding:0;background-color:${BRAND.bg}">
   <div style="display:none;max-height:0;overflow:hidden;opacity:0">${esc(description || title)}</div>
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${BRAND.bg};padding:28px 12px">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" bgcolor="${BRAND.bg}" style="background-color:${BRAND.bg};padding:28px 12px">
     <tr><td align="center">
       <table role="presentation" width="600" cellpadding="0" cellspacing="0"
-             style="width:600px;max-width:600px;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 8px 30px rgba(11,95,212,.10)">
-        <!-- Header — gradient accent strip + the real site logo and wordmark -->
-        <tr><td style="background:${BRAND.blueDeep};background:linear-gradient(135deg,${BRAND.blue},${BRAND.green});height:6px;line-height:6px;font-size:0">&nbsp;</td></tr>
-        <tr><td style="background:#ffffff;padding:16px 28px;text-align:center;border-bottom:1px solid ${BRAND.line}">
+             bgcolor="#ffffff" style="width:600px;max-width:600px;background-color:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 8px 30px rgba(11,95,212,.10)">
+        <!-- Header — gradient accent strip + the real site logo and wordmark.
+             The wordmark is TEXT, not part of the logo image, so a blocked or
+             stripped image still leaves the sender identifiable.
+
+             Every coloured block carries both a bgcolor attribute and an inline
+             background-color. Some clients drop one or the other; the CTA in
+             particular was white text on a background-less cell — an invisible
+             button — wherever the cell background did not survive, so the colour
+             sits on the link as well, with a border under it. -->
+        <tr><td bgcolor="${BRAND.blueDeep}" style="background-color:${BRAND.blueDeep};background:linear-gradient(135deg,${BRAND.blue},${BRAND.green});height:6px;line-height:6px;font-size:0">&nbsp;</td></tr>
+        <tr><td bgcolor="#ffffff" style="background-color:#ffffff;padding:16px 28px;text-align:center;border-bottom:1px solid ${BRAND.line}">
           <a href="${SITE}" target="_blank" style="text-decoration:none;display:inline-block">
             <img src="${LOGO_URL}" width="56" height="56" alt="ElectrifyingTheUS.com"
                  style="display:inline-block;width:56px;height:56px;border:0;vertical-align:middle" />
@@ -184,15 +221,14 @@ export function buildHtml(opts: {
           ${sharedByTop}
           ${headlineBlock}
           <table role="presentation" cellpadding="0" cellspacing="0"><tr><td
-             style="border-radius:12px;background:${BRAND.blue}">
+             bgcolor="${BRAND.blue}" style="border-radius:12px;background-color:${BRAND.blue}">
             <a href="${esc(url)}" target="_blank"
-               style="display:inline-block;padding:13px 26px;font:700 15px/1 Arial,Helvetica,sans-serif;color:#ffffff;text-decoration:none;border-radius:12px">
+               style="display:inline-block;padding:13px 26px;font:700 15px/1 Arial,Helvetica,sans-serif;color:#ffffff;background-color:${BRAND.blue};border:1px solid ${BRAND.blueDeep};text-decoration:none;border-radius:12px">
                ${esc(ctaLabel || "Read more")} &rarr;</a>
           </td></tr></table>
         </td></tr>
         <!-- Footer -->
         <tr><td style="padding:24px 28px 28px">
-          ${!isEvent && sharedBy ? `<p style="margin:0 0 8px;font:600 13px/1.6 Arial,Helvetica,sans-serif;color:${BRAND.ink}">${esc(sharedBy)} shared this with you.</p>` : ""}
           <!-- The "shared from" line is no longer EITHER/OR with the disclaimer. It
                says who the mail is from, which a recipient needs most on the sends
                that also carry legal fine print -- and those were exactly the ones
@@ -201,17 +237,7 @@ export function buildHtml(opts: {
             Shared from <a href="${SITE}" style="color:${BRAND.blue};text-decoration:none">ElectrifyingTheUS.com</a> &mdash;
             your guide to clean transportation and clean energy, EV info, rebates &amp; Incentives, news, events, and more
           </p>
-          ${disclaimer
-            ? disclaimer.split(SPLIT_PARAS).map((para, i) =>
-                `<p style="margin:0 0 8px;font:400 11px/1.55 Arial,Helvetica,sans-serif;color:#9aa7b4">${
-                  i === 0 && isEvent
-                    ? `<span style="font-weight:700;color:${BRAND.muted}">Disclaimer/Third Party Event:</span> `
-                    : ""
-                }${esc(para.trim())}</p>`,
-              ).join("")
-            : `<p style="margin:0;font:400 11px/1.5 Arial,Helvetica,sans-serif;color:#9aa7b4">
-            You received this because you chose to share this content. Informational only; not financial, legal, or tax advice.
-          </p>`}
+          ${disclaimerBlock}
           <p style="margin:8px 0 0;font:400 11px/1.55 Arial,Helvetica,sans-serif;color:#9aa7b4">
             <a href="${SITE}/privacy-policy" style="color:#9aa7b4;text-decoration:underline">Privacy Policy</a>
             &amp; <a href="${SITE}/terms" style="color:#9aa7b4;text-decoration:underline">Terms &amp; Conditions</a>
@@ -225,22 +251,32 @@ export function buildHtml(opts: {
 
 export function buildText(opts: {
   title: string; description?: string; meta?: string; url: string;
-  eventDateTime?: string; ctaLabel?: string; sharedBy?: string;
+  greetName?: string; eventDateTime?: string; ctaLabel?: string;
+  sharedBy?: string; disclaimer?: string;
 }): string {
   // The text/plain part is what a plain-text client and many screen readers
-  // actually render, so it carries the same labels as the HTML rather than a
-  // bare title followed by an undifferentiated blob.
+  // actually render, so it carries every element the HTML does: the greeting,
+  // the attribution, the labelled body, the CTA, the disclaimer and both legal
+  // links.
   const cta = `${opts.ctaLabel || "Read more"}: ${opts.url}`;
-  if (opts.eventDateTime) {
-    return [
-      opts.sharedBy ? `${opts.sharedBy} shared this with you:` : "",
-      `Event: ${opts.title}`,
-      `Date/Time: ${opts.eventDateTime}`,
-      opts.description ? `Event details: ${preview(opts.description)}` : "",
-      cta,
-    ].filter(Boolean).join("\n\n");
-  }
-  return [opts.title, opts.meta, opts.description, cta].filter(Boolean).join("\n\n");
+  const sender = opts.sharedBy ? `${opts.sharedBy} shared this with you:` : "";
+  const opening = [`Hi ${opts.greetName || "there"},`, sender];
+  const body = opts.eventDateTime
+    ? [
+        `Event: ${opts.title}`,
+        `Date/Time: ${opts.eventDateTime}`,
+        opts.description ? `Event details: ${preview(opts.description)}` : "",
+      ]
+    : [opts.title, opts.meta, opts.description];
+  const label = opts.eventDateTime ? "Disclaimer/Third Party Event:" : "Disclaimer:";
+  const footer = [
+    "Shared from ElectrifyingTheUS.com \u2014 your guide to clean transportation and clean energy, "
+      + "EV info, rebates & Incentives, news, events, and more",
+    `${label} ${((opts.disclaimer || "").trim() || FALLBACK_DISCLAIMER).split(SPLIT_PARAS).map(p => p.trim()).join("\n\n")}`,
+    `Privacy Policy: ${SITE}/privacy-policy`,
+    `Terms & Conditions: ${SITE}/terms`,
+  ];
+  return [...opening, ...body, cta, ...footer].filter(Boolean).join("\n\n");
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -288,12 +324,13 @@ export default async function handler(req: any, res: any) {
 
   const html = buildHtml({
     title: safeTitle, description: safeDescription, meta: safeMeta,
-    imageUrl: img, url: safeUrl, greetName, sharedBy, disclaimer: safeDisclaimer,
-    eventDateTime: safeDateTime, ctaLabel: safeCta,
+    imageUrl: img, url: safeUrl, greetName, sharedBy,
+    disclaimer: safeDisclaimer, eventDateTime: safeDateTime, ctaLabel: safeCta,
   });
   const text = buildText({
     title: safeTitle, description: safeDescription, meta: safeMeta, url: safeUrl,
-    eventDateTime: safeDateTime, ctaLabel: safeCta, sharedBy,
+    greetName, eventDateTime: safeDateTime, ctaLabel: safeCta, sharedBy,
+    disclaimer: safeDisclaimer,
   });
 
   try {
