@@ -18,6 +18,7 @@ The knowledge base source documents (chunked + embedded into the vector store):
 - `GM EV Knowledge Base_2026-07-28.docx` — *General Motors: EV & EV Charging* (DOCUMENT 4) and *Gasoline-Powered Vehicle Lineup* (DOCUMENT 5)
 - `Washington_SeattleCityLight_EV_Incentives_Guide.docx` — *Washington State & Seattle City Light EV & Charging Incentives Guide* (state-specific; DOCUMENT 6)
 - `oregon-ev-incentives-kb.md` — *Oregon EV & Charging Incentives Guide* (state-specific; DOCUMENT 7). Lives in this folder as markdown, unlike the .docx documents above: it was written here rather than supplied, so the source of every figure is reviewable in git.
+- `seattle-city-light-kb.md` — *Seattle City Light EV & Charging Incentives Guide* (utility-specific; DOCUMENT 8). **Supersedes the Seattle City Light half of DOCUMENT 6**, whose figures came from a City Light manual that has since been replaced. Markdown in this folder for the same reason as the Oregon guide.
 
 Key files in this folder:
 
@@ -27,6 +28,11 @@ Key files in this folder:
 > - **`oregon-ev-incentives-kb.md`** — the Oregon state guide, ready to paste or upload
 >   into the CMS (admin → EVan knowledge base → new document → **Save & re-embed**),
 >   which chunks and embeds it into `etus_kb_documents` with no deploy.
+> - **`seattle-city-light-kb.md`** — the Seattle City Light guide, loaded the same way.
+>   It contradicts DOCUMENT 6 on purpose: City Light reactivated market-rate multifamily
+>   incentives on 12 Nov 2025 and renamed the fleet programme, so the older document is
+>   wrong on those points. Re-embed this one; do not delete DOCUMENT 6, which still
+>   carries the Washington State and federal programmes.
 
 > **When you add a state guide,** also add the state to the grounding-rules sentence in
 > `EVA-system-prompt-RAG.md` (it names which state guides the corpus holds) and to the
