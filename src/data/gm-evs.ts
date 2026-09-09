@@ -69,6 +69,14 @@ export const GM_EVS: VehicleData[] = [
     depreciationRate: 0.21, category: "Truck",
     bodyStyle: "truck", sizeClass: 4, seats: 5, drivetrain: "4WD", rangeMi: 478,
   },
+  {
+    // Denali trim — technical figures carried from the base Sierra EV above;
+    // MSRP is the published Denali starting price ($84,400).
+    id: "gmc-sierra-ev-denali", name: "GMC Sierra EV Denali", type: "ev", msrp: 84400,
+    mpge: 64, kwhPer100mi: 53, maintenanceCostPerMile: 0.073, insuranceAnnual: 2600,
+    depreciationRate: 0.21, category: "Truck",
+    bodyStyle: "truck", sizeClass: 4, seats: 5, drivetrain: "4WD", rangeMi: 478, luxury: true,
+  },
 
   // ───────────────────────── Cadillac ─────────────────────────
   {
