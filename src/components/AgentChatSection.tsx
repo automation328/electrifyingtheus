@@ -195,6 +195,33 @@ For context, the average American drives about **37 miles per day**, well within
 - Hyundai Ioniq 6 (SE Long Range RWD): Up to 361 miles.
 - Tesla Model 3 (Long Range): Up to 363 miles.`;
 
+const LARGEST_ELECTRIC_SUVS_ANSWER = `If you need three rows, real cargo room, and space for the whole family, the electric SUV segment now runs all the way up to full-size. These are the largest all-electric SUVs on sale in the U.S. today.
+
+### 🚙 Largest All-Electric SUVs
+
+| Model | Size | Seats | Range |
+| --- | --- | --- | --- |
+| Cadillac Escalade IQ / IQL | 224+ in long | Up to 7 | Up to 465 mi |
+| GMC Hummer EV SUV | 9,000+ lb | 5 | Up to 303 mi |
+| Rivian R1S | ~201 in long | 7 | Up to 410 mi |
+| Hyundai IONIQ 9 | Three-row | 7 | Up to 335 mi |
+| Kia EV9 | Three-row | 6–7 | Up to 305 mi |
+| Volvo EX90 | 198.3 in long | 7 | Up to 276 mi |
+
+**Cadillac Escalade IQ / IQL** — at over 224 inches long, this ultra-luxury three-row is the biggest full-size electric SUV available, with up to 465 miles of range and seating for up to seven.
+
+**GMC Hummer EV SUV** — tipping the scales at over 9,000 pounds, this super-sized off-road machine matches the physical presence of a heavy-duty truck while providing a fully enclosed cabin.
+
+**Rivian R1S** — roughly 201 inches long, a highly capable premium three-row with seating for seven and ample cargo space.
+
+**Hyundai IONIQ 9** — Hyundai's largest electric offering: a spacious, futuristic three-row built to maximize cabin and cargo volume.
+
+**Kia EV9** — sharing platform ties with Hyundai, the full-size EV9 offers roomy three-row seating for six or seven in a bold, boxy footprint.
+
+**Volvo EX90** — measuring 198.3 inches long, the EX90 is Volvo's flagship three-row electric family hauler.
+
+Sizing one up against what you drive now? Run the numbers in the **[EV vs Gas Cost Calculator](/electricity-vs-gasoline)** and check what you qualify for under **[Incentives](/rebates-incentives)**.`;
+
 const CANNED_ANSWERS: Record<string, string> = {
   [normalizeQ(SUGGESTED_QUESTIONS[0])]: TOP_5_AFFORDABLE_EVS,
   [normalizeQ(SUGGESTED_QUESTIONS[1])]: EV_RANGE_ANSWER,
@@ -211,6 +238,15 @@ const cannedAnswerFor = (text: string, firstName?: string): string | null => {
   // Looser matches so typed variants still hit the curated answers.
   if (key.includes("ev") && (key.includes("affordable") || key.includes("cheapest"))) {
     return personalize(TOP_5_AFFORDABLE_EVS);
+  }
+  // Size questions ("largest / biggest electric SUV") must be checked before the
+  // range answers below, so "largest" paired with SUV/seating never falls into
+  // the longest-range branch.
+  if (
+    (key.includes("largest") || key.includes("biggest") || key.includes("roomiest")) &&
+    (key.includes("suv") || key.includes("seat") || key.includes("row") || key.includes("family"))
+  ) {
+    return personalize(LARGEST_ELECTRIC_SUVS_ANSWER);
   }
   // "Longest range" is its own curated answer — check before the general range one.
   if (key.includes("longest") || key.includes("mostrange") || key.includes("highestrange") || key.includes("farthest") || key.includes("furthest")) {

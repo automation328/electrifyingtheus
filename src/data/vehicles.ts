@@ -238,6 +238,14 @@ export const vehicles: VehicleData[] = [
     bodyStyle: "truck", sizeClass: 4, seats: 5, drivetrain: "4WD", rangeMi: 390,
   },
   {
+    // Denali trim of the Sierra EV — technical figures carried from the base
+    // Sierra EV row above; MSRP is the published Denali starting price.
+    id: "gmc-sierra-ev-denali", name: "GMC Sierra EV Denali", type: "ev", msrp: 84400,
+    mpge: 64, kwhPer100mi: 53, maintenanceCostPerMile: 0.073, insuranceAnnual: 2600,
+    depreciationRate: 0.21, category: "Truck",
+    bodyStyle: "truck", sizeClass: 4, seats: 5, drivetrain: "4WD", rangeMi: 390, luxury: true,
+  },
+  {
     id: "honda-prologue", name: "Honda Prologue", type: "ev", msrp: 48000,
     mpge: 92, kwhPer100mi: 37, maintenanceCostPerMile: 0.062, insuranceAnnual: 1950,
     depreciationRate: 0.19, category: "SUV",
@@ -809,6 +817,42 @@ export const vehicles: VehicleData[] = [
     mpg: 23, maintenanceCostPerMile: 0.096, insuranceAnnual: 1850,
     depreciationRate: 0.15, category: "SUV",
     bodyStyle: "suv-large", sizeClass: 4, seats: 7, drivetrain: "AWD",
+  },
+  // GMC Denali trims — priced separately from the base nameplates above, which
+  // stay at their base-trim MSRP. Efficiency, maintenance, insurance and
+  // depreciation are derived from the base model and adjusted for the Denali
+  // powertrain and content level; only MSRP is a published figure.
+  {
+    id: "gmc-sierra-1500-denali", name: "GMC Sierra 1500 Denali", type: "gas", msrp: 66100,
+    mpg: 19, maintenanceCostPerMile: 0.104, insuranceAnnual: 2150,
+    depreciationRate: 0.16, category: "Truck",
+    bodyStyle: "truck", sizeClass: 4, seats: 5, drivetrain: "4WD", luxury: true,
+  },
+  {
+    id: "gmc-sierra-1500-denali-ultimate", name: "GMC Sierra 1500 Denali Ultimate", type: "gas", msrp: 84400,
+    mpg: 19, maintenanceCostPerMile: 0.104, insuranceAnnual: 2300,
+    depreciationRate: 0.16, category: "Truck",
+    bodyStyle: "truck", sizeClass: 4, seats: 5, drivetrain: "4WD", luxury: true,
+  },
+  {
+    // Heavy-duty pickups are exempt from EPA fuel-economy labelling; the mpg
+    // here is a real-world estimate for the gas 6.6L V8, not a published rating.
+    id: "gmc-sierra-hd-denali", name: "GMC Sierra HD Denali", type: "gas", msrp: 72000,
+    mpg: 14, maintenanceCostPerMile: 0.115, insuranceAnnual: 2400,
+    depreciationRate: 0.15, category: "Truck",
+    bodyStyle: "truck", sizeClass: 4, seats: 6, drivetrain: "4WD", luxury: true,
+  },
+  {
+    id: "gmc-yukon-denali", name: "GMC Yukon Denali", type: "gas", msrp: 80400,
+    mpg: 17, maintenanceCostPerMile: 0.112, insuranceAnnual: 2400,
+    depreciationRate: 0.17, category: "SUV",
+    bodyStyle: "suv-large", sizeClass: 4, seats: 8, drivetrain: "4WD", luxury: true,
+  },
+  {
+    id: "gmc-yukon-denali-ultimate", name: "GMC Yukon Denali Ultimate", type: "gas", msrp: 103900,
+    mpg: 17, maintenanceCostPerMile: 0.112, insuranceAnnual: 2650,
+    depreciationRate: 0.17, category: "SUV",
+    bodyStyle: "suv-large", sizeClass: 4, seats: 7, drivetrain: "4WD", luxury: true,
   },
   // Dodge
   {
@@ -1438,6 +1482,7 @@ const VEHICLE_IMAGES: Record<string, string> = {
   "genesis-gv60": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/98/Genesis_GV60_1X7A5760.jpg/330px-Genesis_GV60_1X7A5760.jpg",
   "genesis-gv70-electrified": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Genesis_GV70_IAA_2021_1X7A0228.jpg/330px-Genesis_GV70_IAA_2021_1X7A0228.jpg",
   "gmc-sierra-ev": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/db/2024_GMC_Sierra_EV_Denali_front_view.jpg/330px-2024_GMC_Sierra_EV_Denali_front_view.jpg",
+  "gmc-sierra-ev-denali": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/db/2024_GMC_Sierra_EV_Denali_front_view.jpg/330px-2024_GMC_Sierra_EV_Denali_front_view.jpg",
   "honda-prologue": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d8/2024_Honda_Prologue_Touring%2C_front_7.11.25.jpg/330px-2024_Honda_Prologue_Touring%2C_front_7.11.25.jpg",
   "kia-niro-ev": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cb/Kia_Niro_EV_%28SG2%29_1X7A7188.jpg/330px-Kia_Niro_EV_%28SG2%29_1X7A7188.jpg",
   "mercedes-eqe-suv": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/Mercedes-Benz_X294_IMG_8682.jpg/330px-Mercedes-Benz_X294_IMG_8682.jpg",
@@ -1518,7 +1563,12 @@ const VEHICLE_IMAGES: Record<string, string> = {
   "jeep-compass": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/2019_Jeep_Compass_Limited_2.4L%2C_front_7.6.19.jpg/330px-2019_Jeep_Compass_Limited_2.4L%2C_front_7.6.19.jpg",
   "ram-1500": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/2019_Ram_Truck_1500_Laramie.jpg/330px-2019_Ram_Truck_1500_Laramie.jpg",
   "gmc-sierra-1500": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/GMC_Sierra_1500_Denali_%282018%29_%2853652073038%29.jpg/330px-GMC_Sierra_1500_Denali_%282018%29_%2853652073038%29.jpg",
+  "gmc-sierra-1500-denali": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/GMC_Sierra_1500_Denali_%282018%29_%2853652073038%29.jpg/330px-GMC_Sierra_1500_Denali_%282018%29_%2853652073038%29.jpg",
+  "gmc-sierra-1500-denali-ultimate": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/GMC_Sierra_1500_Denali_%282018%29_%2853652073038%29.jpg/330px-GMC_Sierra_1500_Denali_%282018%29_%2853652073038%29.jpg",
   "gmc-yukon": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/2003_GMC_Yukon_XL%2C_front_6.14.21.jpg/330px-2003_GMC_Yukon_XL%2C_front_6.14.21.jpg",
+  "gmc-yukon-denali": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/83/GMC_Yukon_Denali_%28GMTT1XX%29_Washington_DC_Metro_Area%2C_USA.jpg/330px-GMC_Yukon_Denali_%28GMTT1XX%29_Washington_DC_Metro_Area%2C_USA.jpg",
+  "gmc-yukon-denali-ultimate": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/2025GMCYukonDenaliUltimate.jpg/330px-2025GMCYukonDenaliUltimate.jpg",
+  "gmc-sierra-hd-denali": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/2024_GMC_Sierra_2500HD_Denali_front_view.jpg/330px-2024_GMC_Sierra_2500HD_Denali_front_view.jpg",
   "gmc-acadia": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/2024_GMC_Acadia_Denali_front_view.jpg/330px-2024_GMC_Acadia_Denali_front_view.jpg",
   "dodge-durango": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/70/2021_Dodge_Durango_GT_%28facelift%29%2C_front_6.21.22.jpg/330px-2021_Dodge_Durango_GT_%28facelift%29%2C_front_6.21.22.jpg",
   "dodge-hornet": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/2023_Dodge_Hornet_GT_in_Blu_Bayou%2C_Front_Left%2C_05-14-2023.jpg/330px-2023_Dodge_Hornet_GT_in_Blu_Bayou%2C_Front_Left%2C_05-14-2023.jpg",

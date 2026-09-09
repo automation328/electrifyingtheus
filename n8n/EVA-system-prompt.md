@@ -1667,33 +1667,34 @@ This document consolidates the current state of General Motors' electric vehicle
 
 2. Current GM EV Lineup, by Brand
 Pricing and specs below reflect brand websites and trade press as of July 28, 2026, and are MSRP before destination fees, incentives, or options. Figures change frequently — treat as directional.
+Starting MSRPs below are kept in sync with the site's own vehicle catalog (src/data/vehicles.ts), which is what the EV vs Gas calculators quote — so a price given in chat matches the price a visitor sees on the calculator. Where a row has no catalog counterpart (Trax, Suburban, Colorado, Silverado HD, Corvette trims above Stingray, Escalade IQL/ESV, CT4/CT5, Terrain, Canyon, base Sierra HD, Envista, Envision) or shows a trim figure in parentheses (Denali, V-Series, Lyriq-V, Optiq-V), that figure comes from brand sources and is not in the catalog.
 
 Chevrolet (EV):
 | Model | Status | Starting MSRP | EPA Range | Model Year |
 | --- | --- | --- | --- | --- |
-| Bolt (2nd-generation) | On sale — limited-run "bridge" vehicle; GM has already announced production ends mid-2027 after ~18 months | ~$28,995 (site pricing inconsistent; also shown as $27,600) | 262 mi | 2027 |
+| Bolt (2nd-generation) | On sale — limited-run "bridge" vehicle; GM has already announced production ends mid-2027 after ~18 months | $29,990 (GM's own site pricing is inconsistent; ~$28,995 and $27,600 also appear) | 262 mi | 2027 |
 | Equinox EV | On sale | $34,995 | 319 mi | 2026 |
-| Blazer EV | On sale | $44,700 | 312 mi (FWD) | 2026 |
-| Silverado EV | On sale | $55,895 | up to 478 mi | 2026 |
+| Blazer EV | On sale | $44,600 | 312 mi (FWD) | 2026 |
+| Silverado EV | On sale | $73,000 | up to 478 mi | 2026 |
 Note: The new Bolt uses Ultium cells in LFP chemistry sourced from CATL, and is built at Fairfax, KS. GM markets it as the Bolt's "return," but has already disclosed a mid-2027 end of production — a short bridge product, not a confirmed long-term nameplate.
 
 GMC (EV):
 | Model | Status | Starting MSRP | Range (GM-estimated) | Model Year |
 | --- | --- | --- | --- | --- |
-| Hummer EV Pickup | On sale | $97,200 | up to 363 mi | 2026 |
-| Hummer EV SUV | On sale | $97,200 | up to 319 mi | 2026 |
-| Sierra EV | On sale | $62,400 | up to 478 mi | 2026 |
+| Hummer EV Pickup | On sale | $98,845 | up to 363 mi | 2026 |
+| Hummer EV SUV | On sale | $105,595 | up to 319 mi | 2026 |
+| Sierra EV | On sale | $75,000 ($84,400 Denali) | up to 478 mi | 2026 |
 Note: A "2027 GMC Hummer EV ICON 25" special edition has been announced, expected early 2027. The original launch-only "Sierra EV Denali Edition 1" trim is no longer configurable on GMC's site.
 
 Cadillac (EV):
 | Model | Status | Starting MSRP | EPA Range | Model Year |
 | --- | --- | --- | --- | --- |
-| Lyriq / Lyriq-V | On sale | $59,200 / $78,595 | 326 mi (RWD) | 2026/2027 |
-| Optiq / Optiq-V | On sale | $50,900 / $67,500 | 317 mi (RWD) | 2027 |
-| Vistiq | On sale | $77,500 | 305 mi | 2027 |
-| Escalade IQ | On sale | $127,405 | up to 465 mi | 2026 |
+| Lyriq / Lyriq-V | On sale | $58,000 / $78,595 | 326 mi (RWD) | 2026/2027 |
+| Optiq / Optiq-V | On sale | $54,000 / $67,500 | 317 mi (RWD) | 2027 |
+| Vistiq | On sale | $78,790 | 305 mi | 2027 |
+| Escalade IQ | On sale | $129,990 | up to 465 mi | 2026 |
 | Escalade IQL | On sale | $130,405 | up to 465 mi | 2026 |
-| Celestiq | Hand-built, by-inquiry, ultra-limited | Low $400,000s | Not EPA-published | Ongoing |
+| Celestiq | Hand-built, by-inquiry, ultra-limited | From ~$340,000 | Not EPA-published | Ongoing |
 Note: Cadillac's product pages still show promotional banners referencing a September 30, 2025 tax-credit deadline that has already passed — a sign the site's incentive messaging is stale. Do not use Cadillac.com as a source for current incentive information (see Section 7). In a reversal announced on GM's Q2 2026 earnings call (July 21, 2026), Cadillac will launch new gas-powered (ICE) models — next-gen CT5, XT5, and XT6 — starting spring 2027 through 2028, abandoning its earlier all-electric-by-2030 plan.
 
 Discontinued, Paused, or Bridge Models:
@@ -1831,33 +1832,35 @@ Chevrolet (gas):
 | Model | Status | Starting MSRP | MY | Notes |
 | --- | --- | --- | --- | --- |
 | Trax | On sale | $21,700 | 2026 | 1.2L turbo I3 |
-| Trailblazer | On sale | $23,300 | 2026 | New "Midnight" edition for 2027MY; built Bupyeong, South Korea |
-| Equinox (gas) | On sale | $28,800 | 2026 | Built San Luis Potosí, MX; also newly "planned" at Fairfax, KS (reshoring) |
+| Trailblazer | On sale | $24,395 | 2026 | New "Midnight" edition for 2027MY; built Bupyeong, South Korea |
+| Equinox (gas) | On sale | $30,500 | 2026 | Built San Luis Potosí, MX; also newly "planned" at Fairfax, KS (reshoring) |
 | Malibu | Discontinued | n/a | 2025 (final) | New-unit inventory nearly sold out by mid-2026; no successor |
 | Camaro | Discontinued (Aug 2023); confirmed to return | n/a currently | 2028 (new gen) | Gas, Alpha 2-2 platform, manual option, high-performance variant; built Lansing Grand River, production starts late 2027 |
-| Corvette Stingray | On sale | $70,000 | 2026/2027 | Base RWD/AWD lineup |
+| Corvette Stingray | On sale | $68,300 | 2026/2027 | Base RWD/AWD lineup |
 | Corvette Grand Sport | On sale (new) | $86,000 | 2027 | New RWD Grand Sport plus electrified-AWD "Grand Sport X" |
 | Corvette E-Ray | On sale | $108,600 | 2026 | AWD hybrid, 655 combined hp (not a pure EV) |
 | Corvette Z06 | On sale | $120,300 | 2026 | Naturally aspirated flat-plane V8 |
 | Corvette ZR1 | On sale | $185,000–$197,700 | 2026/2027 | Price varies by source/model year |
 | Corvette ZR1X | On sale | $209,700–$227,500 | 2026/2027 | Hybrid AWD; price varies by source/model year |
 | Blazer (gas) | On sale | $34,300 | 2026 | Built Ramos Arizpe, MX; also newly "planned" at Spring Hill, TN for H1 2027 |
-| Traverse | On sale | $40,800 | 2026 | Built Lansing Delta Township, MI |
-| Tahoe | On sale | $60,700 | 2026 | 6.2L V8 RST Performance Edition available |
+| Traverse | On sale | $39,995 | 2026 | Built Lansing Delta Township, MI |
+| Tahoe | On sale | $58,200 | 2026 | 6.2L V8 RST Performance Edition available |
 | Suburban | On sale | $63,700 | 2026 | |
 | Colorado | On sale | $32,400 | 2026 | ZR2 / ZR2 Bison off-road trims |
-| Silverado 1500 | On sale; all-new next-gen imminent | $36,900 | 2026 (2027 redesign late 2026) | Sixth-generation redesign with new V8 pairing |
+| Silverado 1500 | On sale; all-new next-gen imminent | $37,500 | 2026 (2027 redesign late 2026) | Sixth-generation redesign with new V8 pairing |
 | Silverado HD (2500/3500) | On sale | $45,900 | 2026 | 6.6L Duramax turbo-diesel available |
 
 GMC (gas):
 | Model | Status | Starting MSRP | MY | Notes |
 | --- | --- | --- | --- | --- |
 | Terrain | On sale; just redesigned | $30,100–$30,400 | 2027 (new gen, on sale now) | 1.5L turbo; built San Luis Potosí, MX |
-| Acadia | On sale | $43,700–$43,800 | 2026 | 2.5L turbo, 328 hp; built Lansing Delta Township |
-| Yukon / Yukon XL | On sale | $69,200–$69,600 | 2026 | 5.3L V8 standard; 3.0L Duramax diesel available; built Arlington, TX |
+| Acadia | On sale | $43,395 | 2026 | 2.5L turbo, 328 hp; built Lansing Delta Township |
+| Yukon / Yukon XL | On sale | $60,200 ($80,400 Denali; $103,900 Denali Ultimate) | 2026 | 5.3L V8 standard; 3.0L Duramax diesel available; built Arlington, TX |
 | Canyon | On sale | $38,900 | 2026 | 310-hp TurboMax standard; built Wentzville, MO |
-| Sierra 1500 | On sale; all-new next-gen imminent | $38,300 | 2026 (2027 redesign late 2026) | Sixth-generation redesign |
-| Sierra HD (2500/3500) | On sale | $47,000 | 2026 | 6.6L Duramax turbo-diesel available; built Flint, MI |
+| Sierra 1500 | On sale; all-new next-gen imminent | $39,500 ($66,100 Denali; $84,400 Denali Ultimate) | 2026 (2027 redesign late 2026) | Sixth-generation redesign |
+| Sierra HD (2500/3500) | On sale | $47,000 ($72,000 Denali) | 2026 | 6.6L Duramax turbo-diesel available; built Flint, MI |
+
+Note on Denali pricing: Denali is GMC's premium trim and Denali Ultimate its top trim, so a Denali starts far above the base nameplate price shown above — Yukon Denali from $80,400 and Yukon Denali Ultimate from $103,900, Sierra 1500 Denali from $66,100 and Sierra 1500 Denali Ultimate from $84,400, Sierra HD Denali from $72,000, and the electric Sierra EV Denali from $84,400. Those are starting MSRPs; real-world average retail prices run higher once popular packages are added — roughly $96,225 for a Yukon Denali and $121,373 for a Yukon Denali Ultimate. Quote the starting MSRP unless the visitor asks what people actually pay.
 
 Cadillac (gas):
 | Model | Status | Starting MSRP | MY | Notes |
@@ -1865,9 +1868,9 @@ Cadillac (gas):
 | CT4 (+ CT4-V, CT4-V Blackwing) | Discontinued after current gen | $36,000 ($50,600 V) | 2026 (final) | No North American successor announced; production ends June 2026 |
 | CT5 (+ CT5-V, CT5-V Blackwing) | On sale; gap before next-gen | $49,200 ($58,300 V) | 2026 (1st-gen ends late 2026) | Next-gen CT5 confirmed gas-only, built Lansing Grand River, arriving 2H 2028 for MY2029; 2nd-gen CT5-V Blackwing also green-lit |
 | XT4 | Discontinued | n/a | 2025 (final) | Last unit sold mid-2025; no next-gen confirmed |
-| XT5 | On sale; next-gen confirmed | $44,800 | 2026 | 2.0T I4 std / 3.6L V6 avail; built Spring Hill, TN. Next-gen (MY2028) confirmed, possible PHEV variant, ramp Q4 2027 |
+| XT5 | On sale; next-gen confirmed | $46,390 | 2026 | 2.0T I4 std / 3.6L V6 avail; built Spring Hill, TN. Next-gen (MY2028) confirmed, possible PHEV variant, ramp Q4 2027 |
 | XT6 | Discontinued; confirmed to return | n/a currently | 2028 (new gen) | Next-generation XT6 confirmed to arrive in 2028 |
-| Escalade | On sale | $91,100 ($168,000 V-Series) | 2026 | 6.2L V8 std; supercharged 682-hp V-Series; also "planned" at Orion Township, MI |
+| Escalade | On sale | $87,595 ($168,000 V-Series) | 2026 | 6.2L V8 std; supercharged 682-hp V-Series; also "planned" at Orion Township, MI |
 | Escalade ESV | On sale | $94,100 ($171,000 V-Series) | 2026 | Extended-length version |
 Note: Cadillac's gas lineup is the most in flux of any GM brand — CT4 and XT4 dropped with no confirmed replacements, while XT6 and a next-gen CT5 return as gas-only, part of GM's July 2026 reversal of Cadillac's all-electric plan (see DOCUMENT 4).
 
@@ -1875,9 +1878,9 @@ Buick (gas — entire U.S. lineup is gas-only):
 | Model | Status | Starting MSRP | MY | Notes |
 | --- | --- | --- | --- | --- |
 | Envista | On sale | $24,700 | 2026 | Built Bupyeong, South Korea |
-| Encore GX | On sale | $26,200 | 2026 | Built Bupyeong, South Korea |
+| Encore GX | On sale | $26,895 | 2026 | Built Bupyeong, South Korea |
 | Envision | On sale | $41,000 | 2026 | Built Jinqiao, China — exposed to U.S.–China auto tariff risk; a next-gen, possibly U.S.-built compact crossover separately "planned" at Fairfax, KS |
-| Enclave | On sale | $46,400 | 2026 | GM Super Cruise available; built Lansing Delta Township, MI |
+| Enclave | On sale | $46,000 | 2026 | GM Super Cruise available; built Lansing Delta Township, MI |
 Note: Buick is reportedly considering a new U.S. sedan — planned at Lansing Grand River, MI — its first American sedan since the Regal ended after MY2020. Not formally confirmed by Buick.
 
 3. EV-to-ICE Production Reallocation (per GM Authority production-status table, week of June 8, 2026)
