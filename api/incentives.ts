@@ -15,6 +15,8 @@
 // NREL retired developer.nrel.gov in 2026; its API now lives at developer.nlr.gov
 // (confirmed in NREL's own docs repo, github.com/NREL/developer.nrel.gov).
 
+import { checkRateLimit, tooManyRequests } from "./_rate-limit.js";
+
 const NREL_ENDPOINT =
   "https://developer.nlr.gov/api/transportation-incentives-laws/v1.json";
 
@@ -33,6 +35,11 @@ const pick = (v: unknown, fallback: string) =>
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default async function handler(req: any, res: any) {
   if (req.method !== "GET") { res.status(405).json({ error: "Method not allowed" }); return; }
+
+  // Unauthenticated proxy in front of a quota-limited third-party API. Without a
+  // cap, anyone can spend our quota (and our money) at their own pace.
+  const rl = await checkRateLimit(req, { bucket: "incentives", limit: 120, windowMinutes: 60 });
+  if (!rl.ok) { tooManyRequests(res, rl); return; }
 
   const q = req.query ?? {};
   const jurisdiction = pick(q.jurisdiction, "US").toUpperCase();

@@ -64,6 +64,9 @@ export interface TCOResult {
   monthlyPayment: number;
   annualFuelCost: number;
   co2EmissionsTons: number;
+  /** Carried through so compareVehicles() does not have to re-derive or assume them. */
+  annualMileage: number;
+  ownershipYears: number;
 }
 
 export interface ComparisonResult {
@@ -158,6 +161,8 @@ export function calculateTCO(vehicle: VehicleData, inputs: UserInputs): TCOResul
     monthlyPayment,
     annualFuelCost,
     co2EmissionsTons,
+    annualMileage: inputs.annualMileage,
+    ownershipYears: inputs.ownershipYears,
   };
 }
 
@@ -165,13 +170,31 @@ export function compareVehicles(evResult: TCOResult, gasResult: TCOResult): Comp
   const savings = gasResult.totalCostOfOwnership - evResult.totalCostOfOwnership;
   const co2Savings = gasResult.co2EmissionsTons - evResult.co2EmissionsTons;
 
-  // Break-even calculation
-  const annualEvCost = evResult.annualFuelCost + (evResult.vehicle.maintenanceCostPerMile * evResult.vehicle.insuranceAnnual);
-  const annualGasCost = gasResult.annualFuelCost + (gasResult.vehicle.maintenanceCostPerMile * gasResult.vehicle.insuranceAnnual);
-  const annualSavings = annualGasCost - annualEvCost;
-  const upfrontDifference = evResult.purchaseCost - evResult.totalIncentives - gasResult.purchaseCost;
-  const paybackYears = annualSavings > 0 ? upfrontDifference / annualSavings : Infinity;
-  const breakEvenMiles = paybackYears * (evResult.vehicle.kwhPer100mi ? 12000 : 12000);
+  // Break-even calculation.
+  // Annual running cost = fuel + maintenance + insurance. Maintenance is a $/mile
+  // rate and insurance is a $/year figure, so they cannot be multiplied together;
+  // both are taken from the totals calculateTCO already worked out correctly.
+  const annualRunning = (r: TCOResult) =>
+    r.annualFuelCost +
+    r.totalMaintenanceCost / r.ownershipYears +
+    r.totalInsuranceCost / r.ownershipYears;
+
+  const annualSavings = annualRunning(gasResult) - annualRunning(evResult);
+
+  // purchaseCost is already financed off the incentive-reduced price, so the
+  // incentive must not be taken off a second time.
+  const upfrontDifference = evResult.purchaseCost - gasResult.purchaseCost;
+
+  // An EV that costs no more up front has already paid back; one that never
+  // out-earns its premium never does.
+  const paybackYears =
+    upfrontDifference <= 0 ? 0 : annualSavings > 0 ? upfrontDifference / annualSavings : Infinity;
+
+  // Break-even distance is the payback period driven at the mileage the user
+  // actually entered.
+  const breakEvenMiles = Number.isFinite(paybackYears)
+    ? paybackYears * evResult.annualMileage
+    : Infinity;
 
   let winner: 'ev' | 'gas' | 'tie';
   if (Math.abs(savings) < 500) winner = 'tie';

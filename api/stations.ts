@@ -24,6 +24,7 @@ const STATIONS_ENDPOINT = "https://developer.nlr.gov/api/alt-fuel-stations/v1/ne
 // a state. Every answer is cached by the CDN with the station list, so a given
 // search is looked up once per day no matter how many visitors ask.
 import { resolveQuery, MAX_RADIUS, MAX_RESULTS, type Place } from "./_geocode.js";
+import { checkRateLimit, tooManyRequests } from "./_rate-limit.js";
 
 // The longest search worth honouring. It bounds the upstream URL and, because
 // the response is cached per query string, the number of distinct cache entries
@@ -64,6 +65,11 @@ const trim = (s: any) => ({
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default async function handler(req: any, res: any) {
   if (req.method !== "GET") { res.status(405).json({ error: "Method not allowed" }); return; }
+
+  // Unauthenticated proxy in front of a quota-limited third-party API. Without a
+  // cap, anyone can spend our quota (and our money) at their own pace.
+  const rl = await checkRateLimit(req, { bucket: "stations", limit: 120, windowMinutes: 60 });
+  if (!rl.ok) { tooManyRequests(res, rl); return; }
 
   const query = req.query ?? {};
   // `q` is what the box sends now; `zip` is what links shared before free-text

@@ -15,6 +15,7 @@
 //   SUPABASE_URL                project URL (falls back to VITE_SUPABASE_URL).
 
 import { createClient } from "@supabase/supabase-js";
+import { checkRateLimit } from "./_rate-limit.js";
 
 // Server-only Supabase client (service role → bypasses RLS). null until configured.
 function adminSupabase() {
@@ -56,6 +57,12 @@ export default async function handler(req: any, res: any) {
 
   const ua = String(req.headers["user-agent"] || "");
   if (!ua || CRAWLER.test(ua)) return done(); // skip bots / monitors
+
+  // Unauthenticated, writes a row per call and forwards text into Slack. Drop
+  // silently past the cap rather than erroring: this is a fire-and-forget beacon,
+  // and a visible 429 would surface in the console of ordinary visitors.
+  const rl = await checkRateLimit(req, { bucket: "track", limit: 120, windowMinutes: 60 });
+  if (!rl.ok) return done();
 
   const body = (typeof req.body === "string" ? safeJson(req.body) : req.body) as Record<string, unknown> | null;
   const b = body && typeof body === "object" ? body : {};

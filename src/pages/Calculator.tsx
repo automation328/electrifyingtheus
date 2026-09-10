@@ -417,7 +417,7 @@ const Calculator = () => {
               {/* Key Metrics */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {[
-                  { label: "Break-Even", value: `${formatNumber(comparison.breakEvenMiles)} mi`, icon: MapPin, color: "text-primary" },
+                  { label: "Break-Even", value: Number.isFinite(comparison.breakEvenMiles) ? `${formatNumber(comparison.breakEvenMiles)} mi` : "N/A", icon: MapPin, color: "text-primary" },
                   { label: "Payback Period", value: comparison.paybackYears < 20 ? `${comparison.paybackYears.toFixed(1)} yrs` : "N/A", icon: Clock, color: "text-secondary" },
                   { label: "CO₂ Saved", value: `${comparison.co2SavingsTons.toFixed(1)} tons`, icon: Leaf, color: "text-secondary" },
                   { label: "Monthly Diff", value: formatCurrency(Math.abs(comparison.ev.monthlyPayment - comparison.gas.monthlyPayment)), icon: TrendingDown, color: "text-primary" },

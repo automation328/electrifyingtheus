@@ -10,6 +10,7 @@
 import { timingSafeEqual } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 import { analyticsSummary, visitorJourney } from "./_analytics-core.js";
+import { checkRateLimit, tooManyRequests } from "./_rate-limit.js";
 
 // Server-only Supabase client (service role → bypasses RLS). null until configured.
 function adminSupabase() {
@@ -37,6 +38,16 @@ export default async function handler(req: any, res: any) {
 
   const body = (typeof req.body === "string" ? safeJson(req.body) : req.body) as Record<string, unknown> | null;
   const b = body && typeof body === "object" ? body : {};
+
+  // One shared password is the only thing between the internet and the visitor
+  // table (IPs, names, emails). The comparison below is constant-time, but that
+  // is worthless without a cap on attempts, so bound guesses before checking.
+  // Fails CLOSED, unlike the contact form: if the limiter's database is down we
+  // would rather this dashboard be briefly unavailable than unguarded.
+  const rl = await checkRateLimit(req, {
+    bucket: "analytics-login", limit: 10, windowMinutes: 15, failClosed: true,
+  });
+  if (!rl.ok) { tooManyRequests(res, rl); return; }
 
   if (!passwordOk(String(b.password ?? ""))) {
     res.status(401).json({ error: "unauthorized" });

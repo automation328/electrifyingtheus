@@ -12,6 +12,8 @@
 //             Authorization: Basic base64(client_id:client_secret)
 //   register: POST https://api.zoom.us/v2/webinars/{id}/registrants   (Bearer token)
 
+import { checkRateLimit, tooManyRequests } from "./_rate-limit.js";
+
 let tokenCache: { token: string; exp: number } | null = null;
 
 async function zoomToken(): Promise<string | null> {
@@ -41,6 +43,11 @@ const clean = (v: unknown, max = 128) => String(v ?? "").trim().slice(0, max);
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default async function handler(req: any, res: any) {
   if (req.method !== "POST") { res.status(405).json({ ok: false, error: "method" }); return; }
+
+  // Unauthenticated and writes straight to a real Zoom webinar's registrant list,
+  // which cannot be cleaned up in bulk. Bound it before spending a Zoom API call.
+  const rl = await checkRateLimit(req, { bucket: "register-webinar", limit: 20, windowMinutes: 60 });
+  if (!rl.ok) { tooManyRequests(res, rl); return; }
 
   const webinarId = process.env.ZOOM_WEBINAR_ID;
   const token = await zoomToken();
