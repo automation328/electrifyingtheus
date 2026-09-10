@@ -14,8 +14,25 @@
 //   SLACK_WEBHOOK_URL       Incoming webhook for sign-in alerts (optional).
 //   VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY   For the record_gate_login RPC.
 
+import { createHash, timingSafeEqual } from "node:crypto";
+import { checkRateLimit, tooManyRequests } from "./_rate-limit.js";
+
 const COOKIE = "etu_gate";
 const MAX_AGE = 60 * 60 * 24 * 30; // 30 days
+
+/**
+ * Constant-time secret comparison.
+ *
+ * timingSafeEqual throws on length mismatch, so hash both sides to a fixed width
+ * first: comparing the raw buffers would leak the expected password's length
+ * through the early return, which is exactly what this is meant to hide.
+ */
+function secretEquals(expected: string, supplied: string): boolean {
+  if (!expected || !supplied) return false;
+  const a = createHash("sha256").update(expected).digest();
+  const b = createHash("sha256").update(supplied).digest();
+  return timingSafeEqual(a, b);
+}
 
 function safeJson(s: string): unknown {
   try { return JSON.parse(s); } catch { return null; }
@@ -133,10 +150,19 @@ export default async function handler(req: any, res: any) {
   const email = String(b.email ?? "").trim();
   const password = String(b.password ?? "");
 
-  // Match a reviewer by email (case-insensitive) + exact password.
+  // This is the site's only authentication endpoint, so bound guesses before
+  // checking any credential. Fails CLOSED: if the limiter's database is down,
+  // an unthrottled login endpoint is a worse outcome than a blocked reviewer.
+  const rl = await checkRateLimit(req, {
+    bucket: "gate-login", limit: 10, windowMinutes: 15, failClosed: true,
+  });
+  if (!rl.ok) { tooManyRequests(res, rl); return; }
+
+  // Match a reviewer by email (case-insensitive) + password. The comparison is
+  // constant-time: `===` on a secret leaks its length and matching prefix through
+  // response timing, which narrows a brute-force far faster than guessing blind.
   const user = users.find(
-    (u) => u.email.trim().toLowerCase() === email.toLowerCase()
-      && u.password.length === password.length && u.password === password,
+    (u) => u.email.trim().toLowerCase() === email.toLowerCase() && secretEquals(u.password, password),
   );
   if (!user) {
     res.status(401).json({ error: "Incorrect email or password" });

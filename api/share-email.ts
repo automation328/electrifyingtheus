@@ -9,6 +9,8 @@
 //                    Falls back to Resend's onboarding address (test-only delivery).
 //   RECAPTCHA_SECRET_KEY  Optional — when set, the share token is verified.
 
+import { checkRateLimit, tooManyRequests } from "./_rate-limit.js";
+
 // Blank-line paragraph split for multi-paragraph disclaimers.
 const SPLIT_PARAS = /\n{2,}/;
 const RESEND_ENDPOINT = "https://api.resend.com/emails";
@@ -289,6 +291,14 @@ export function buildText(opts: {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default async function handler(req: any, res: any) {
   if (req.method !== "POST") { res.status(405).json({ error: "Method not allowed" }); return; }
+
+  // This endpoint is unauthenticated and delivers branded HTML mail from our
+  // verified sending domain to any address the caller names. Without a cap it is
+  // a spam and phishing relay, and burning the domain's sending reputation is
+  // not something we can undo. reCAPTCHA alone does not bound volume, and it
+  // fails open when unconfigured, so the cap does not depend on it.
+  const rl = await checkRateLimit(req, { bucket: "share-email", limit: 15, windowMinutes: 60 });
+  if (!rl.ok) { tooManyRequests(res, rl); return; }
 
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) { res.status(500).json({ error: "Email sending is not configured" }); return; }

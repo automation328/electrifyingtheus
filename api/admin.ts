@@ -925,6 +925,19 @@ export default async function handler(req: any, res: any) {
   const b = parsed && typeof parsed === "object" ? parsed : {};
   const op = String(b.op ?? "");
 
+  // Bound the UNAUTHENTICATED surface. requireEditor below verifies the token
+  // with GoTrue and checks the editors allow-list — both of which cost a network
+  // round trip on every call, including every failed one. Without a limit, an
+  // attacker can drive that loop for free while guessing tokens. The budget is
+  // high (300/hour) because a real editor working through a media library or a
+  // long list makes a lot of legitimate calls.
+  //
+  // This MUST stay above every branch that touches getEditor/requireEditor. The
+  // op:"me" branch below used to return before this ran, which left the exact
+  // token-guessing loop described above completely unmetered.
+  const rl = await checkRateLimit(req, { bucket: "admin", limit: 300, windowMinutes: 60 });
+  if (!rl.ok) { tooManyRequests(res, rl); return; }
+
   // "me" reports authorization status (used by the admin UI on load). Return the
   // NORMALIZED role so the client sees the same canonical value the server
   // authorizes with (avoids case-mismatch lockouts / hidden over-grants).
@@ -934,15 +947,6 @@ export default async function handler(req: any, res: any) {
     res.status(200).json({ email: editor.email, role: normalizeRole(editor.role) });
     return;
   }
-
-  // Bound the UNAUTHENTICATED surface. requireEditor below verifies the token
-  // with GoTrue and checks the editors allow-list — both of which cost a network
-  // round trip on every call, including every failed one. Without a limit, an
-  // attacker can drive that loop for free while guessing tokens. The budget is
-  // high (300/hour) because a real editor working through a media library or a
-  // long list makes a lot of legitimate calls.
-  const rl = await checkRateLimit(req, { bucket: "admin", limit: 300, windowMinutes: 60 });
-  if (!rl.ok) { tooManyRequests(res, rl); return; }
 
   const editor = await requireEditor(req, res);
   if (!editor) return; // 401 already sent
