@@ -1,5 +1,7 @@
 // TCO Calculator Core Logic
 
+import { NATIONAL_AVG } from "@/data/state-energy-rates";
+
 /** Coarse body styles used for class matching (spec §6). */
 export type BodyStyle =
   | "sedan" | "hatchback" | "coupe"
@@ -190,7 +192,10 @@ export function compareVehicles(evResult: TCOResult, gasResult: TCOResult): Comp
 export const defaultInputs: UserInputs = {
   annualMileage: 12000,
   ownershipYears: 5,
-  gasPricePerGallon: 4.44,
+  // Pre-fill only. Calculator.tsx replaces this with the live per-state price on
+  // mount and on every state change; it survives only if the feed is unreachable,
+  // so it tracks the fallback table rather than drifting as its own literal.
+  gasPricePerGallon: NATIONAL_AVG.gasPricePerGallon,
   electricityRatePerKwh: 0.14,
   financingRate: 6.5,
   downPaymentPercent: 10,

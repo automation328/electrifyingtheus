@@ -127,7 +127,7 @@ For years, the EV conversation in America was dominated by familiar objections: 
 
 Yes — for most American drivers, the total cost of owning an EV is lower than a comparable gas vehicle in 2026. Here's why:
 
-- **Fuel savings:** Home EV charging costs roughly **60% less per mile** than gasoline. With average U.S. gas prices hovering between $3.50 and $6.50 per gallon — and summer spikes well above that in high-cost states — every fill-up sharpens the comparison. The U.S. Energy Information Administration (EIA) projects fuel prices to remain elevated due to global supply constraints, geopolitical volatility, and rising demand from emerging markets.
+- **Fuel savings:** Home EV charging costs roughly **60% less per mile** than gasoline. With state-average U.S. gas prices spanning roughly $3.55 to $5.90 per gallon — and summer spikes above that in high-cost states — every fill-up sharpens the comparison. The U.S. Energy Information Administration (EIA) projects fuel prices to remain elevated due to global supply constraints, geopolitical volatility, and rising demand from emerging markets.
 - **Lower maintenance:** EVs have far fewer moving parts than combustion vehicles — no oil changes, fewer brake replacements, less wear overall. For a driver putting 60 miles a day on a truck in the Midwest, annual savings on fuel and maintenance can easily reach **$1,500 to $2,500** compared to a gas equivalent.
 - **Battery costs have crossed the parity threshold:** According to BloombergNEF, battery pack costs dropped below **$100 per kWh in 2024** — the milestone analysts have long cited as the proxy for sticker-price parity with combustion vehicles. The result: the Chevrolet Equinox EV now starts under $35,000, the refreshed Tesla Model 3 is competitively priced, and a growing roster of sub-$40,000 crossovers has moved the EV lineup decisively toward the middle of the market.
 - **Total cost of ownership (TCO):** Electricity is cheaper than gasoline on a per-mile basis in virtually every U.S. market. Tools like the [Electrifying The US Gas vs. EV Cost Calculator](/electricity-vs-gasoline) make this personal and concrete — enter your ZIP code, current vehicle, and average mileage to see exactly what switching means for your household budget. For a growing number of Americans, that single number is the deciding factor.
@@ -189,7 +189,7 @@ The case for EVs in 2026 isn't built on a single breakthrough. It's built on sev
 
 | Factor | Status in 2026 |
 | --- | --- |
-| Gas prices | Record highs, projected to stay elevated |
+| Gas prices | Well above pre-2022 norms, projected to stay elevated |
 | Battery costs | Below $100/kWh — mainstream parity threshold crossed |
 | Vehicle selection | Every major U.S. segment covered |
 | Charging network | 250,000+ ports, NACS standardization complete |

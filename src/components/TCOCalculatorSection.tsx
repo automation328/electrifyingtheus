@@ -1,4 +1,3 @@
-import { useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Calculator, Zap, DollarSign, BarChart3, ArrowRight,
@@ -7,32 +6,13 @@ import {
 import { Link } from "react-router-dom";
 import evChargerIcon from "@/assets/ev-charger-icon.png";
 import gasPumpIcon from "@/assets/gas-pump-icon.png";
-import { useGasPrices } from "@/hooks/use-gas-prices";
-import { STATE_ENERGY_RATES } from "@/data/state-energy-rates";
+import { useGasExtremes } from "@/hooks/use-gas-prices";
 
 const usd = (n: number, frac = 0) =>
   new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: frac, minimumFractionDigits: frac }).format(n);
 
-// Lowest + highest regular-gas price across U.S. states. Prefers live AAA data
-// (via the gas-prices hook), falling back to representative statewide averages.
-const useGasExtremes = () => {
-  const { data } = useGasPrices();
-  return useMemo(() => {
-    const live = data?.prices ?? {};
-    const entries = Object.keys(STATE_ENERGY_RATES).map((code) => ({
-      code,
-      name: STATE_ENERGY_RATES[code].name,
-      price: live[code] ?? STATE_ENERGY_RATES[code].gasPricePerGallon,
-    }));
-    let low = entries[0];
-    let high = entries[0];
-    for (const e of entries) {
-      if (e.price < low.price) low = e;
-      if (e.price > high.price) high = e;
-    }
-    return { low, high };
-  }, [data]);
-};
+// Lowest + highest regular-gas price now live in @/hooks/use-gas-prices, so the
+// two EV-vs-gas pages compute their Highest/Lowest line the same way this does.
 
 const features = [
   { icon: Calculator, title: "Side-by-Side", desc: "Compare any EV vs gas vehicle with real cost data" },

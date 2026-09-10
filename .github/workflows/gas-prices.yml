@@ -1,0 +1,114 @@
+name: Refresh gas prices
+
+# The site prefers the live AAA feed, but every calculator falls back to the
+# static table in src/data/state-energy-rates.ts when that feed is unreachable.
+# Hand-maintained, that table drifted ~22% low and quietly understated every
+# savings figure the site quotes. This job watches it and proposes a fix.
+#
+# It only opens a PR when prices have actually moved. A feed outage exits 2 and
+# is reported as a warning, so a flaky webhook never produces a spurious PR or a
+# red run.
+
+on:
+  schedule:
+    # Mondays 14:00 UTC, an hour after the weekly event import in vercel.json.
+    - cron: "0 14 * * 1"
+  workflow_dispatch:
+    inputs:
+      max-drift:
+        description: "Median drift percent that triggers a refresh"
+        required: false
+        default: "5"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: gas-prices
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - run: npm ci
+
+      - name: Check drift
+        id: drift
+        env:
+          MAX_DRIFT: ${{ inputs.max-drift || '5' }}
+        run: |
+          set +e
+          node scripts/refresh-gas-prices.mjs --check --max-drift "$MAX_DRIFT" | tee "$RUNNER_TEMP/gas-check.log"
+          code=${PIPESTATUS[0]}
+          set -e
+          echo "Exit code: $code"
+          {
+            echo 'report<<GAS_REPORT_EOF'
+            cat "$RUNNER_TEMP/gas-check.log"
+            echo 'GAS_REPORT_EOF'
+          } >> "$GITHUB_OUTPUT"
+          case "$code" in
+            0) echo "Fallback table is within $MAX_DRIFT% of live prices." ;;
+            1) echo "drifted=true" >> "$GITHUB_OUTPUT" ;;
+            2) echo "::warning::Gas-price feed unreachable — nothing checked, nothing changed." ;;
+            *) echo "::error::refresh-gas-prices exited $code"; exit "$code" ;;
+          esac
+
+      - name: Re-baseline the table
+        if: steps.drift.outputs.drifted == 'true'
+        run: node scripts/refresh-gas-prices.mjs
+
+      # A bad feed must not reach main behind a green checkmark.
+      - name: Verify
+        if: steps.drift.outputs.drifted == 'true'
+        run: |
+          npm run typecheck
+          npm test
+
+      - name: Open pull request
+        if: steps.drift.outputs.drifted == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: chore/refresh-gas-prices
+          base: main
+          title: "chore(data): re-baseline the static gas-price fallback"
+          commit-message: |
+            chore(data): re-baseline the static gas-price fallback
+
+            Refreshed src/data/state-energy-rates.ts from the live AAA feed via
+            scripts/refresh-gas-prices.mjs. Only gasoline figures and the
+            GAS_PRICES_AS_OF stamp change; electricity rates are untouched.
+          body: |
+            The static gasoline fallback in `src/data/state-energy-rates.ts` has
+            drifted past the configured threshold against the live AAA feed.
+
+            This table is what every calculator falls back to when the live feed
+            is unreachable, so letting it drift means the site understates EV
+            savings whenever the feed is down.
+
+            Drift report from this run:
+
+            ```
+            ${{ steps.drift.outputs.report }}
+            ```
+
+            Only the per-state gasoline figures and the `GAS_PRICES_AS_OF` stamp
+            change. Electricity rates come from EIA, not this feed, and are left
+            alone. `NATIONAL_AVG.gasPricePerGallon` is derived from the table, so
+            it follows automatically.
+
+            Typecheck and the test suite ran against the refreshed values before
+            this PR was opened.
+
+            Opened automatically by `.github/workflows/gas-prices.yml`.
+          labels: data, automated
+          delete-branch: true
