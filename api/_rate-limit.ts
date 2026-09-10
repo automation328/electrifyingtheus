@@ -35,11 +35,23 @@ function db(): SupabaseClient | null {
 }
 
 /** The client address, as Vercel reports it. The first entry of
- *  x-forwarded-for is the real client; the rest are proxies. */
+ *  x-forwarded-for is the real client; the rest are proxies.
+ *
+ *  Tries several headers because an empty result here silently disables the
+ *  limiter for that request (see the `!ip` branch in checkRateLimit), which is
+ *  the worst possible failure mode for a control whose whole job is to say no.
+ *  api/track.ts and api/gate-login.ts already fall back to x-real-ip; this is
+ *  the same chain, plus Vercel's own header. */
+const IP_HEADERS = ["x-forwarded-for", "x-real-ip", "x-vercel-forwarded-for"] as const;
+
 export function clientIp(req: { headers?: Record<string, unknown> }): string {
-  const raw = req.headers?.["x-forwarded-for"];
-  const s = typeof raw === "string" ? raw : Array.isArray(raw) ? String(raw[0] ?? "") : "";
-  return s.split(",")[0].trim();
+  for (const h of IP_HEADERS) {
+    const raw = req.headers?.[h];
+    const s = typeof raw === "string" ? raw : Array.isArray(raw) ? String(raw[0] ?? "") : "";
+    const first = s.split(",")[0].trim();
+    if (first) return first;
+  }
+  return "";
 }
 
 /** Salted so the table cannot be reversed into a record of who visited. The
@@ -94,7 +106,18 @@ export async function checkRateLimit(
     const ip = clientIp(req);
     // No address to key on — a local request, or a proxy that stripped it.
     // Counting every such request together would rate-limit them as one visitor.
-    if (!ip) return allow(0);
+    //
+    // This branch disables the limiter for the request, so it must be loud: a
+    // silent early-allow here is indistinguishable from a working limiter, and
+    // that is exactly how a limit can appear to be enforced while never firing.
+    if (!ip) {
+      console.warn(
+        `[rate-limit] no client IP for bucket "${opts.bucket}" — request NOT limited. Headers seen: ${
+          Object.keys(req.headers ?? {}).filter((k) => k.includes("ip") || k.includes("forward")).join(", ") || "(none matching)"
+        }`,
+      );
+      return allow(0);
+    }
 
     const client = db();
     if (!client) return opts.failClosed
