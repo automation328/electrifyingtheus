@@ -35,8 +35,8 @@ import { CALCULATOR_DISCLAIMER } from "@/lib/disclaimers";
 import Footer from "@/components/Footer";
 import UsElectricityMap from "@/components/UsElectricityMap";
 import { vehicles, getVehiclesByType } from "@/data/vehicles";
-import { useGasPrices } from "@/hooks/use-gas-prices";
-import { STATE_ENERGY_RATES, NATIONAL_AVG } from "@/data/state-energy-rates";
+import { useGasPrices, medianGasPrice, gasExtremes, gasSourceMeta } from "@/hooks/use-gas-prices";
+import { STATE_ENERGY_RATES, NATIONAL_AVG, STATIC_GAS_PRICES } from "@/data/state-energy-rates";
 import { calculate, homeShareFor, DEFAULTS } from "@/lib/ev-cost";
 import { recommendEvs, type MatchLabel } from "@/lib/ev-match";
 import { incentiveHeadline } from "@/data/incentives";
@@ -318,6 +318,19 @@ const ElectricityVsGasoline = () => {
   // back to static state values when unavailable.
   const { data: gasData } = useGasPrices();
 
+  // Median of the per-state prices. Deliberately not the feed's `national`,
+  // which is their unweighted mean and sits about a dime higher.
+  const medianGas = useMemo(
+    () => medianGasPrice(gasData?.prices) ?? medianGasPrice(STATIC_GAS_PRICES) ?? NATIONAL_AVG.gasPricePerGallon,
+    [gasData]
+  );
+
+  // Cheapest/priciest state, computed from the same data the prices come from.
+  const { low: gasLow, high: gasHigh } = useMemo(() => gasExtremes(gasData?.prices), [gasData]);
+
+  // Provenance for the gas figures: the feed's own timestamp when live.
+  const gasSource = useMemo(() => gasSourceMeta(gasData), [gasData]);
+
   // The state the IP lookup auto-selected (for the "detected" confirmation chip).
   const [detectedState, setDetectedState] = useState<string | null>(null);
 
@@ -476,13 +489,14 @@ const ElectricityVsGasoline = () => {
     [],
   );
 
-  // Class comparison (national-average prices) — fuel cost per mile.
+  // Class comparison (national prices) — fuel cost per mile. Priced at the live
+  // median so the savings quoted here match the rest of the page.
   const classComparison = useMemo(() => {
     const pair = CLASS_OPTIONS.find((o) => o.key === compareClass) ?? CLASS_OPTIONS[1];
     const cEv = vehicles.find((v) => v.id === pair.ev)!;
     const cGas = vehicles.find((v) => v.id === pair.gas)!;
     const evPm = calculate({
-      annualMiles: 12000, horizonYears: 5, gasPricePerGallon: NATIONAL_AVG.gasPricePerGallon,
+      annualMiles: 12000, horizonYears: 5, gasPricePerGallon: medianGas,
       homeKwhPrice: NATIONAL_AVG.electricityCentsPerKwh / 100, publicKwhPrice: DEFAULTS.publicKwhPrice,
       homeChargingShare: homeShareFor(true), chargingLoss: DEFAULTS.chargingLoss,
       gas: { mpgCombined: cGas.mpg }, ev: { mpgeCombined: cEv.mpge, kwhPer100mi: cEv.kwhPer100mi },
@@ -499,7 +513,7 @@ const ElectricityVsGasoline = () => {
       pctSaved,
       evBarPct: gasPm > 0 ? Math.max(8, Math.round((cEvPm / gasPm) * 100)) : 100,
     };
-  }, [compareClass]);
+  }, [compareClass, medianGas]);
 
   const Row = ({ label, value, accent }: { label: string; value: string; accent?: "green" }) => (
     <div className="flex justify-between items-center py-1.5 text-sm">
@@ -627,7 +641,7 @@ const ElectricityVsGasoline = () => {
               <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-sm shadow-sm">
                 <Fuel className="w-4 h-4" style={{ color: GAS_COLOR }} />
                 <span className="text-muted-foreground">Median U.S. gas</span>
-                <span className="font-charge text-foreground">{currency(gasData?.national ?? NATIONAL_AVG.gasPricePerGallon, 2)}/gal</span>
+                <span className="font-charge text-foreground">{currency(medianGas, 2)}/gal</span>
               </span>
               <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-sm shadow-sm">
                 <Car className="w-4 h-4 text-foreground" />
@@ -641,11 +655,11 @@ const ElectricityVsGasoline = () => {
               </span>
             </div>
 
-            {/* Spread context — a high-price state vs a low-price state */}
+            {/* Spread context — the actual extremes, computed, never assumed */}
             <p className="evg-rise mt-3 text-sm text-muted-foreground" style={{ animationDelay: "0.42s" }}>
-              Highest: <span className="font-semibold text-foreground">California {currency(gasData?.prices?.CA ?? STATE_ENERGY_RATES.CA.gasPricePerGallon, 2)}/gal</span>
+              Highest: <span className="font-semibold text-foreground">{gasHigh.name} {currency(gasHigh.price, 2)}/gal</span>
               {"  ·  "}
-              Lowest: <span className="font-semibold text-foreground">Texas {currency(gasData?.prices?.TX ?? STATE_ENERGY_RATES.TX.gasPricePerGallon, 2)}/gal</span>
+              Lowest: <span className="font-semibold text-foreground">{gasLow.name} {currency(gasLow.price, 2)}/gal</span>
             </p>
           </div>
         </div>
@@ -1051,7 +1065,7 @@ const ElectricityVsGasoline = () => {
                 <div className="px-6 pb-6 pt-1 grid sm:grid-cols-2 gap-x-8 gap-y-6 border-t border-border evg-rise">
                   <SliderField label="Annual miles" display={annualMiles.toLocaleString()} value={annualMiles} onChange={setAnnualMiles} min={5000} max={30000} step={500} />
                   <SliderField label="Years of ownership" display={`${ownershipYears} yrs`} value={ownershipYears} onChange={setOwnershipYears} min={1} max={10} step={1} />
-                  <SliderField label="Gas price ($/gal)" display={currency(gasPrice, 2)} value={gasPrice} onChange={setGasPrice} min={2} max={6} step={0.05} source={SOURCES.gas} />
+                  <SliderField label="Gas price ($/gal)" display={currency(gasPrice, 2)} value={gasPrice} onChange={setGasPrice} min={2} max={6} step={0.05} source={gasSource} />
                   <SliderField label="Home electricity ($/kWh)" display={currency(electricityRate, 2)} value={electricityRate} onChange={setElectricityRate} min={0.08} max={0.45} step={0.01} source={SOURCES.electricity} />
                   <SliderField label="Public charging ($/kWh)" display={currency(publicRate, 2)} value={publicRate} onChange={setPublicRate} min={0.2} max={0.7} step={0.01} source={SOURCES.publicCharging} />
                 </div>
@@ -1111,7 +1125,7 @@ const ElectricityVsGasoline = () => {
                     <CircleDollarSign className="w-3.5 h-3.5" /> Same money · more miles
                   </span>
                   <span className="text-xs text-muted-foreground flex items-center gap-1">
-                    Energy prices <SourceChip src={SOURCES.gas} />
+                    Energy prices <SourceChip src={gasSource} />
                   </span>
                 </div>
 
@@ -1321,11 +1335,11 @@ const ElectricityVsGasoline = () => {
             {/* Source + freshness strip (§7) */}
             <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-muted-foreground">
               <span className="font-semibold uppercase tracking-wider text-foreground/70">Sources</span>
-              <span className="inline-flex items-center gap-1">Gas <SourceChip src={SOURCES.gas} /></span>
+              <span className="inline-flex items-center gap-1">Gas <SourceChip src={gasSource} /></span>
               <span className="inline-flex items-center gap-1">Electricity <SourceChip src={SOURCES.electricity} /></span>
               <span className="inline-flex items-center gap-1">Public charging <SourceChip src={SOURCES.publicCharging} /></span>
               <span className="inline-flex items-center gap-1">Vehicle data <SourceChip src={SOURCES.vehicle} /></span>
-              <span className="ml-auto">Updated {SOURCES.gas.asOf} · not financial advice</span>
+              <span className="ml-auto">Updated {gasSource.asOf} · not financial advice</span>
             </div>
             </>
             )}

@@ -12,7 +12,9 @@
     "typecheck": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.api.json",
     "typecheck:api": "tsc --noEmit -p tsconfig.api.json",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "gas:refresh": "node scripts/refresh-gas-prices.mjs",
+    "gas:check": "node scripts/refresh-gas-prices.mjs --check"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

@@ -1,5 +1,6 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
+import { useGasPrices, resolveStateGasPrice } from "@/hooks/use-gas-prices";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -54,6 +55,20 @@ const Calculator = () => {
   const [selectedEV, setSelectedEV] = useState<string>("tesla-model-3");
   const [selectedGas, setSelectedGas] = useState<string>("toyota-camry");
   const [inputs, setInputs] = useState<UserInputs>(defaultInputs);
+
+  // Live per-state gas prices. Without this the calculator priced every state at
+  // one hardcoded figure, so picking a state changed nothing it computed.
+  const { data: gasData } = useGasPrices();
+  const gasEdited = useRef(false);
+
+  useEffect(() => {
+    if (gasEdited.current) return; // never overwrite a number the visitor typed
+    const live = resolveStateGasPrice(inputs.state, gasData?.prices);
+    if (typeof live !== "number" || !(live > 0)) return;
+    const price = Math.round(live * 100) / 100; // the feed carries 4dp; this is a $ field
+    setInputs((prev) => (prev.gasPricePerGallon === price ? prev : { ...prev, gasPricePerGallon: price }));
+  }, [inputs.state, gasData]);
+
   const [showResults, setShowResults] = useState(false);
 
   const evVehicles = getVehiclesByType("ev");
@@ -287,7 +302,7 @@ const Calculator = () => {
                       <Input
                         type="number" step="0.01"
                         value={inputs.gasPricePerGallon}
-                        onChange={(e) => updateInput("gasPricePerGallon", parseFloat(e.target.value) || 0)}
+                        onChange={(e) => { gasEdited.current = true; updateInput("gasPricePerGallon", parseFloat(e.target.value) || 0); }}
                         className="mt-2"
                       />
                     </div>
