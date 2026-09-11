@@ -28,6 +28,7 @@ import {
   Info,
 } from "lucide-react";
 import { vehicles, getVehiclesByType, getMatchingGasVehicle } from "@/data/vehicles";
+import { STATE_ENERGY_RATES } from "@/data/state-energy-rates";
 import {
   calculateTCO,
   compareVehicles,
@@ -60,6 +61,7 @@ const Calculator = () => {
   // one hardcoded figure, so picking a state changed nothing it computed.
   const { data: gasData } = useGasPrices();
   const gasEdited = useRef(false);
+  const elecEdited = useRef(false);
 
   useEffect(() => {
     if (gasEdited.current) return; // never overwrite a number the visitor typed
@@ -68,6 +70,20 @@ const Calculator = () => {
     const price = Math.round(live * 100) / 100; // the feed carries 4dp; this is a $ field
     setInputs((prev) => (prev.gasPricePerGallon === price ? prev : { ...prev, gasPricePerGallon: price }));
   }, [inputs.state, gasData]);
+
+  /* The state selector re-priced gasoline and left electricity on a flat $0.14
+     for every state in the country. On the wizard's own default state that is
+     California at 31.0 cents, so the EV's running cost came out 55% under -
+     the largest single error this calculator could make, and it was already
+     wrong before the visitor touched anything. Same edit guard as gas: a
+     number the visitor typed always wins. */
+  useEffect(() => {
+    if (elecEdited.current) return;
+    const r = STATE_ENERGY_RATES[inputs.state];
+    if (!r) return;
+    const rate = Math.round(r.electricityCentsPerKwh) / 100;
+    setInputs((prev) => (prev.electricityRatePerKwh === rate ? prev : { ...prev, electricityRatePerKwh: rate }));
+  }, [inputs.state]);
 
   const [showResults, setShowResults] = useState(false);
 
@@ -311,7 +327,7 @@ const Calculator = () => {
                       <Input
                         type="number" step="0.01"
                         value={inputs.electricityRatePerKwh}
-                        onChange={(e) => updateInput("electricityRatePerKwh", parseFloat(e.target.value) || 0)}
+                        onChange={(e) => { elecEdited.current = true; updateInput("electricityRatePerKwh", parseFloat(e.target.value) || 0); }}
                         className="mt-2"
                       />
                     </div>

@@ -38,7 +38,7 @@ import { getVehiclesByType } from "@/data/vehicles";
 import { GM_EVS } from "@/data/gm-evs";
 import { useGasPrices, medianGasPrice, gasExtremes, gasSourceMeta } from "@/hooks/use-gas-prices";
 import { STATE_ENERGY_RATES, NATIONAL_AVG, STATIC_GAS_PRICES } from "@/data/state-energy-rates";
-import { calculate, homeShareFor, DEFAULTS } from "@/lib/ev-cost";
+import { calculate, homeShareFor, DEFAULTS, ownershipOutcome } from "@/lib/ev-cost";
 import { recommendEvs, type MatchLabel } from "@/lib/ev-match";
 import { incentiveHeadline } from "@/data/incentives";
 import { parseCalcState, serializeCalcState, type CalcState } from "@/lib/evg-url";
@@ -351,8 +351,18 @@ const GmEvVsGas = () => {
   // prices hydrated from the URL aren't clobbered. Prefers the live gas price
   // for the chosen state, falling back to the static representative value.
   const didMountState = useRef(false);
+  const prevState = useRef(stateCode);
   useEffect(() => {
-    if (!didMountState.current) { didMountState.current = true; return; }
+    if (!didMountState.current) { didMountState.current = true; prevState.current = stateCode; return; }
+    /* gasData sits in this effect's dependency list, so it re-ran every time the
+       price feed resolved - once from the localStorage cache and again from the
+       network - and each run overwrote BOTH sliders. A visitor who moved the
+       electricity slider before the fetch landed had the edit reverted with no
+       explanation, and a shared permalink carrying a custom kwh= lost it on
+       open, which is exactly what evg-url.ts promises cannot happen. The presets
+       belong to a state CHANGE, so that is what this now guards on. */
+    if (prevState.current === stateCode) return;
+    prevState.current = stateCode;
     const r = STATE_ENERGY_RATES[stateCode];
     setGasPrice(gasData?.prices?.[stateCode] ?? r.gasPricePerGallon);
     setElectricityRate(r.electricityCentsPerKwh / 100);
@@ -476,16 +486,28 @@ const GmEvVsGas = () => {
     const evCheaper = ownershipSavings >= 0;
     const runDiff = g.annualRunning - e.annualRunning;
     const upfrontDiff = e.upfront - g.upfront;
-    const ownershipBreakEven = runDiff > 0 && upfrontDiff > 0 ? upfrontDiff / runDiff : null;
+    // Four outcomes, not two — see ownershipOutcome() for why each is different.
+    const { verdict: ownershipVerdict, crossing: ownershipCrossing } =
+      ownershipOutcome(upfrontDiff, runDiff);
+    // kept for any caller that only wants the forward crossing
+    const ownershipBreakEven = ownershipVerdict === "breakeven" ? ownershipCrossing : null;
 
     const maxRange = Math.max(res.gasRangeOnDollar, res.evRangeOnDollar);
-    const chart = Array.from({ length: 11 }, (_, t) => ({
+    /* The axis was pinned to ten years while the badge above it could name year
+       13 - the ReferenceLine then fell outside the domain and silently vanished,
+       leaving a chart whose lines appear never to meet beneath a caption saying
+       exactly when they do. Run to the crossing plus a year, and never past 20:
+       beyond that the honest answer is "not inside any sensible ownership
+       period", and the badge now says so on its own. */
+    const chartYears = Math.min(20, Math.max(10, Math.ceil(ownershipCrossing ?? 0) + 1));
+    const chart = Array.from({ length: chartYears + 1 }, (_, t) => ({
       year: t,
       EV: Math.round(e.upfront + e.annualRunning * t),
       Gas: Math.round(g.upfront + g.annualRunning * t),
     }));
 
-    return { res, e, g, ownershipSavings, evCheaper, ownershipBreakEven, chart, maxRange };
+    return { res, e, g, ownershipSavings, evCheaper, ownershipBreakEven,
+             ownershipVerdict, ownershipCrossing, chart, chartYears, maxRange };
   }, [ev, gas, annualMiles, ownershipYears, gasPrice, electricityRate, publicRate, homeCharging, chargingLoss, dollarAmount]);
 
   const animatedAnnual = useCountUp(Math.abs(calc.res.annualSavings));
@@ -717,18 +739,20 @@ const GmEvVsGas = () => {
                     <div className="flex flex-wrap items-end gap-x-6 gap-y-3">
                       <div>
                         <div className="font-charge text-5xl md:text-6xl leading-none">
-                          {evWinsFuel ? "" : "−"}{currency(Math.abs(calc.res.horizonTotalSaved))}
+                          {currency(Math.abs(calc.res.horizonTotalSaved))}
                         </div>
-                        <div className="text-sm opacity-90 mt-1.5">saved over {ownershipYears} years on fuel</div>
+                        <div className="text-sm opacity-90 mt-1.5">{evWinsFuel
+                      ? `saved over ${ownershipYears} years on fuel`
+                      : `more to fuel over ${ownershipYears} years`}</div>
                       </div>
                       <div className="flex gap-6 mb-1">
                         <div>
                           <div className="font-charge text-2xl leading-none">{currency(Math.abs(calc.res.annualSavings))}</div>
-                          <div className="text-xs opacity-80 mt-1">per year</div>
+                          <div className="text-xs opacity-80 mt-1">{evWinsFuel ? "per year" : "more per year"}</div>
                         </div>
                         <div>
                           <div className="font-charge text-2xl leading-none">{currency(Math.abs(calc.res.monthlySavings))}</div>
-                          <div className="text-xs opacity-80 mt-1">per month</div>
+                          <div className="text-xs opacity-80 mt-1">{evWinsFuel ? "per month" : "more per month"}</div>
                         </div>
                       </div>
                     </div>
@@ -974,18 +998,20 @@ const GmEvVsGas = () => {
                 <div className="flex flex-wrap items-end gap-x-6 gap-y-3">
                   <div>
                     <div className="font-charge text-6xl md:text-7xl leading-none">
-                      {evWinsFuel ? "" : "−"}{currency(animatedTotal)}
+                      {currency(animatedTotal)}
                     </div>
-                    <div className="text-sm opacity-90 mt-1.5">saved over {ownershipYears} years on fuel</div>
+                    <div className="text-sm opacity-90 mt-1.5">{evWinsFuel
+                      ? `saved over ${ownershipYears} years on fuel`
+                      : `more to fuel over ${ownershipYears} years`}</div>
                   </div>
                   <div className="flex gap-6 mb-1">
                     <div>
                       <div className="font-charge text-2xl leading-none">{currency(Math.abs(calc.res.annualSavings))}</div>
-                      <div className="text-xs opacity-80 mt-1">per year</div>
+                      <div className="text-xs opacity-80 mt-1">{evWinsFuel ? "per year" : "more per year"}</div>
                     </div>
                     <div>
                       <div className="font-charge text-2xl leading-none">{currency(Math.abs(calc.res.monthlySavings))}</div>
-                      <div className="text-xs opacity-80 mt-1">per month</div>
+                      <div className="text-xs opacity-80 mt-1">{evWinsFuel ? "per month" : "more per month"}</div>
                     </div>
                   </div>
                 </div>
@@ -993,9 +1019,13 @@ const GmEvVsGas = () => {
                 <div className="mt-6 flex flex-wrap items-center justify-center gap-2.5">
                   <span className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-4 py-2 text-sm">
                     <Clock className="w-4 h-4" />
-                    {calc.ownershipBreakEven
-                      ? <>Total cost break-even · <span className="font-semibold">year {calc.ownershipBreakEven.toFixed(1)}</span></>
-                      : <>EV leads on total cost from day one</>}
+                    {calc.ownershipVerdict === "breakeven" && calc.ownershipCrossing != null
+                      ? <>Total cost break-even · <span className="font-semibold">year {calc.ownershipCrossing.toFixed(1)}</span></>
+                      : calc.ownershipVerdict === "always"
+                      ? <>EV leads on total cost from day one</>
+                      : calc.ownershipVerdict === "overtaken" && calc.ownershipCrossing != null
+                      ? <>Gas overtakes on total cost · <span className="font-semibold">year {calc.ownershipCrossing.toFixed(1)}</span></>
+                      : <>EV never catches up on total cost</>}
                   </span>
                   <Popover>
                     <PopoverTrigger asChild>
@@ -1325,7 +1355,9 @@ const GmEvVsGas = () => {
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(214 20% 90%)" vertical={false} />
-                    <XAxis dataKey="year" type="number" domain={[0, 10]} ticks={[0, 2, 4, 6, 8, 10]} fontSize={11} tickLine={false} axisLine={false}
+                    <XAxis dataKey="year" type="number" domain={[0, calc.chartYears]}
+                      ticks={Array.from({ length: Math.floor(calc.chartYears / 2) + 1 }, (_, i) => i * 2)}
+                      fontSize={11} tickLine={false} axisLine={false}
                       label={{ value: "Years", position: "insideBottom", offset: -2, fontSize: 11 }} />
                     <YAxis fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
                     <Tooltip
@@ -1333,9 +1365,9 @@ const GmEvVsGas = () => {
                       labelFormatter={(l) => `Year ${l}`}
                       contentStyle={{ borderRadius: 12, fontSize: 12, border: "1px solid hsl(214 20% 90%)" }}
                     />
-                    {calc.ownershipBreakEven && (
-                      <ReferenceLine x={+calc.ownershipBreakEven.toFixed(2)} stroke="hsl(215 16% 47%)" strokeDasharray="4 4"
-                        label={{ value: `Break-even · yr ${calc.ownershipBreakEven.toFixed(1)}`, position: "top", fontSize: 10, fill: "hsl(215 16% 47%)" }} />
+                    {calc.ownershipCrossing != null && calc.ownershipCrossing <= calc.chartYears && (
+                      <ReferenceLine x={+calc.ownershipCrossing.toFixed(2)} stroke="hsl(215 16% 47%)" strokeDasharray="4 4"
+                        label={{ value: `${calc.ownershipVerdict === "overtaken" ? "Gas overtakes" : "Break-even"} · yr ${calc.ownershipCrossing.toFixed(1)}`, position: "top", fontSize: 10, fill: "hsl(215 16% 47%)" }} />
                     )}
                     <Area type="monotone" dataKey="Gas" stroke="none" fill="url(#gasFill)" />
                     <Area type="monotone" dataKey="EV" stroke="none" fill="url(#evFill)" />
