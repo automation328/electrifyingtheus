@@ -247,7 +247,14 @@ const GmEvVsGas = () => {
   const [compareClass, setCompareClass] = useState<CompareClass>("small-suv");
 
   const rates = STATE_ENERGY_RATES[stateCode];
-  const incentives = useMemo(() => incentiveHeadline(stateCode), [stateCode]);
+  /* A private buyer is comparing two cars, so the panel shows what a private
+     buyer can claim. Without the audience filter the headline was whichever
+     programme in the state carried the biggest number, which in Georgia is a
+     $30,000 cap on commercial charger construction. */
+  const incentives = useMemo(
+    () => incentiveHeadline(stateCode, { audience: "consumer" }),
+    [stateCode],
+  );
   const gasSel = gmVehicles.find((v) => v.id === gasId);
   const evSel = gmVehicles.find((v) => v.id === evId);
   // Fallbacks keep the math from crashing before a selection; the results stay
@@ -350,6 +357,12 @@ const GmEvVsGas = () => {
   // Picking a *new* state presets the price sliders. Skipped on first render so
   // prices hydrated from the URL aren't clobbered. Prefers the live gas price
   // for the chosen state, falling back to the static representative value.
+  // Whether the visitor has replaced a resolved price with one of their own.
+  // A number they typed is the best data this tool will ever have about them,
+  // so it lifts that layer's confidence rather than lowering it.
+  const [gasEdited, setGasEdited] = useState(false);
+  const [elecEdited, setElecEdited] = useState(false);
+
   const didMountState = useRef(false);
   const prevState = useRef(stateCode);
   useEffect(() => {
@@ -366,6 +379,8 @@ const GmEvVsGas = () => {
     const r = STATE_ENERGY_RATES[stateCode];
     setGasPrice(gasData?.prices?.[stateCode] ?? r.gasPricePerGallon);
     setElectricityRate(r.electricityCentsPerKwh / 100);
+    setGasEdited(false);   // both prices were just re-resolved for the new state
+    setElecEdited(false);
   }, [stateCode, gasData]);
 
   // Auto-select the visitor's U.S. state from their IP on first load. Skipped
@@ -517,12 +532,23 @@ const GmEvVsGas = () => {
   const animatedEvRange = useCountUp(calc.res.evRangeOnDollar, 700);
   const evWinsFuel = calc.res.annualSavings >= 0;
 
-  // Confidence — statewide averages give Medium; curated EPA vehicle data is High.
-  // Lowest tier wins (§5).
-  const confidence: Confidence = useMemo(
-    () => overallConfidence(["medium", "medium", "high"]),
-    [],
-  );
+  /* Confidence, actually derived. This was `overallConfidence(["medium","medium",
+     "high"])` over a literal array with an empty dependency list, so it returned
+     "medium" for every visitor on every input forever — while its own popover
+     invited them to "refine with your own utility and fuel prices for a sharper
+     estimate", which could not move it. A badge that never varies is a false
+     signal of rigour.
+
+     Three layers, lowest tier wins (§5):
+       fuel        live feed for this state = high; static fallback table = low
+       electricity a statewide average = medium; a rate the visitor typed = high
+       vehicle     curated EPA figures = high throughout                      */
+  const confidence: Confidence = useMemo(() => {
+    const live = !!gasData?.prices?.[stateCode];
+    const fuelTier: Confidence = gasEdited ? "high" : live ? "high" : "low";
+    const elecTier: Confidence = elecEdited ? "high" : "medium";
+    return overallConfidence([fuelTier, elecTier, "high"]);
+  }, [gasData, stateCode, gasEdited, elecEdited]);
 
   // Class comparison (national prices) — fuel cost per mile. Priced at the live
   // median so the savings quoted here match the rest of the page.
@@ -1109,8 +1135,8 @@ const GmEvVsGas = () => {
                 <div className="px-6 pb-6 pt-1 grid sm:grid-cols-2 gap-x-8 gap-y-6 border-t border-border evg-rise">
                   <SliderField label="Annual miles" display={annualMiles.toLocaleString()} value={annualMiles} onChange={setAnnualMiles} min={5000} max={30000} step={500} />
                   <SliderField label="Years of ownership" display={`${ownershipYears} yrs`} value={ownershipYears} onChange={setOwnershipYears} min={1} max={10} step={1} />
-                  <SliderField label="Gas price ($/gal)" display={currency(gasPrice, 2)} value={gasPrice} onChange={setGasPrice} min={2} max={6} step={0.05} source={gasSource} />
-                  <SliderField label="Home electricity ($/kWh)" display={currency(electricityRate, 2)} value={electricityRate} onChange={setElectricityRate} min={0.08} max={0.45} step={0.01} source={SOURCES.electricity} />
+                  <SliderField label="Gas price ($/gal)" display={currency(gasPrice, 2)} value={gasPrice} onChange={(v) => { setGasEdited(true); setGasPrice(v); }} min={2} max={6} step={0.05} source={gasSource} />
+                  <SliderField label="Home electricity ($/kWh)" display={currency(electricityRate, 2)} value={electricityRate} onChange={(v) => { setElecEdited(true); setElectricityRate(v); }} min={0.08} max={0.45} step={0.01} source={SOURCES.electricity} />
                   <SliderField label="Public charging ($/kWh)" display={currency(publicRate, 2)} value={publicRate} onChange={setPublicRate} min={0.2} max={0.7} step={0.01} source={SOURCES.publicCharging} />
                 </div>
               )}
@@ -1129,7 +1155,8 @@ const GmEvVsGas = () => {
                     </h3>
                     <p className="text-xs text-muted-foreground">
                       {incentives.topAmount && (
-                        <>Up to <span className="font-semibold text-foreground">{currency(incentives.topAmount)}</span> · </>
+                        <>Up to <span className="font-semibold text-foreground">{currency(incentives.topAmount)}</span>
+                          {" "}{incentives.hasVehicleProgram ? "off a vehicle" : "toward home charging"} · </>
                       )}
                       {incentives.count} program{incentives.count === 1 ? "" : "s"} for your area
                     </p>
@@ -1157,7 +1184,9 @@ const GmEvVsGas = () => {
 
               <p className="text-[11px] text-muted-foreground mt-3 flex items-start gap-1.5">
                 <Info className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-                Federal + state/utility programs for {incentives.stateName}. Typical maximums — verify eligibility on each program page.
+                {incentives.hasVehicleProgram
+                  ? <>State and utility programs for {incentives.stateName}. Typical maximums — verify eligibility on each program page.</>
+                  : <>State and utility programs for {incentives.stateName}. <span className="text-foreground font-medium">None of these reduce the price of the car</span> — they cover home charging equipment and rate plans, and the comparison above assumes no purchase incentive on either side. Typical maximums — verify eligibility on each program page.</>}
               </p>
             </div>
 

@@ -24,6 +24,18 @@ export interface Incentive {
   validTo?: string;
   /** Short public banner, e.g. "Waitlist — funds depleted". */
   statusNote?: string;
+  /**
+   * Who can actually claim it. Undefined means a private buyer can — that is
+   * the overwhelming majority, so it stays the default and no existing entry
+   * needs touching.
+   *
+   * This exists because the calculator's panel ranked every programme in a
+   * state by dollar value and put the biggest at the top. In Georgia the
+   * biggest is a $30,000 cap on commercial charger construction, so a private
+   * buyer comparing two sedans was shown "Typical incentives in Georgia — up
+   * to $30,000" above a break-even that assumed none of it.
+   */
+  audience?: "consumer" | "business";
 }
 
 // Federal / nationwide programs — merged into every ZIP's results.
@@ -222,6 +234,7 @@ export const STATE_INCENTIVES: Record<string, Partial<Record<CatKey, Incentive[]
         name: "Business EV Charger Rebate",
         jurisdiction: "Georgia Power Incentive",
         amount: "Up to $500",
+        audience: "business",
         desc: "Commercial and multifamily-property accounts can claim a rebate of up to $500 per Level 2 charger installed for workplace or multifamily use.",
         link: "https://www.georgiapower.com/business/products-programs.html",
       },
@@ -229,6 +242,7 @@ export const STATE_INCENTIVES: Record<string, Partial<Record<CatKey, Incentive[]
         name: "EV Charger Plus Rebate Program",
         jurisdiction: "Georgia Power Incentive",
         amount: "Up to $30,000",
+        audience: "business",
         desc: "For larger commercial projects, Georgia Power covers up to 50% of total installation and equipment costs — capped at $30,000 per project or $60,000 per calendar year per customer.",
         link: "https://www.georgiapower.com/business/products-programs.html",
       },
@@ -369,9 +383,11 @@ export const UTILITY_INCENTIVES: Record<string, Incentive[]> = {
       desc: "A nights-and-weekends time-of-use rate that sharply lowers the cost of charging your EV at home during off-peak hours.",
       link: "https://www.georgiapower.com/residential/save-money-and-energy/products-programs/electric-vehicles.html" },
     { name: "Multifamily Property Charging", jurisdiction: "Georgia Power Incentive", amount: "Up to $50,000",
+      audience: "business",
       desc: "Multifamily property owners and developers can earn up to $50,000 per project — and up to $150,000 per year — toward EV charging installations for their communities.",
       link: "https://www.georgiapower.com/business/products-programs.html" },
     { name: "Make Ready Infrastructure Program", jurisdiction: "Georgia Power Incentive",
+      audience: "business",
       desc: "Georgia Power helps businesses and fleet operators fund the electrical infrastructure — wiring, conduit, panels, and service upgrades — required to support new EV charging stations.",
       link: "https://www.georgiapower.com/business/products-programs.html" },
   ],
@@ -420,6 +436,24 @@ export interface IncentiveHeadline {
   count: number;
   topAmount: number | null;
   items: { name: string; amount?: string }[];
+  /**
+   * Whether any programme in this state actually reduces the price of the car.
+   * Georgia's curated set, for instance, is entirely chargers and rate plans:
+   * a panel that says "up to $X" beside a vehicle comparison without saying so
+   * implies purchase help that does not exist here.
+   */
+  hasVehicleProgram: boolean;
+  /** Largest award among programmes that do reduce the vehicle price. */
+  topVehicleAmount: number | null;
+}
+
+export interface IncentiveHeadlineOptions {
+  /**
+   * Restrict to what this audience can claim. "consumer" drops the commercial
+   * and multifamily construction programmes, which are the largest numbers in
+   * several states and therefore the ones that were winning the headline.
+   */
+  audience?: "consumer" | "business";
 }
 
 /**
@@ -427,18 +461,36 @@ export interface IncentiveHeadline {
  * for the calculator's "typical incentives" panel. Dedupes by name, ranks by
  * dollar amount, and returns the headline figure + top few programs.
  */
-export function incentiveHeadline(state: string): IncentiveHeadline {
-  const all = ALL_CATS.flatMap((k) => incentivesFor(state, k));
+export function incentiveHeadline(
+  state: string,
+  options: IncentiveHeadlineOptions = {},
+): IncentiveHeadline {
+  const { audience } = options;
+  const claimable = (i: Incentive) =>
+    !audience || (i.audience ?? "consumer") === audience;
+
+  // vehicle-category programmes are tracked separately, because "up to $X" means
+  // something entirely different depending on whether X comes off the car
+  const vehicleNames = new Set(
+    incentivesFor(state, "vehicle").filter(claimable).map((i) => i.name),
+  );
+  const all = ALL_CATS.flatMap((k) => incentivesFor(state, k)).filter(claimable);
   const seen = new Set<string>();
   const unique = all.filter((i) => (seen.has(i.name) ? false : (seen.add(i.name), true)));
   const ranked = [...unique].sort((a, b) => maxDollars(b.amount) - maxDollars(a.amount));
   const top = maxDollars(ranked[0]?.amount);
+  const topVehicle = Math.max(
+    0,
+    ...unique.filter((i) => vehicleNames.has(i.name)).map((i) => maxDollars(i.amount)),
+  );
   return {
     state,
     stateName: STATE_NAMES[state] ?? state,
     count: unique.length,
     topAmount: top || null,
     items: ranked.slice(0, 6).map((i) => ({ name: i.name, amount: i.amount })),
+    hasVehicleProgram: vehicleNames.size > 0,
+    topVehicleAmount: topVehicle || null,
   };
 }
 

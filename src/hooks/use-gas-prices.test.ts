@@ -89,14 +89,37 @@ describe("gasSourceMeta", () => {
     expect(meta.label).toContain("AAA");
   });
 
-  it("falls back to the curated date when there is no live figure", () => {
-    expect(gasSourceMeta(null).asOf).toBe(SOURCES.gas.asOf);
-    expect(gasSourceMeta({ prices: {}, national: null, updatedAt: null, source: null }).asOf).toBe(SOURCES.gas.asOf);
+  /* The fallback branch reports the vintage of the table it actually read, not
+     the site-wide DATA_AS_OF. Those are different dates: the gas table is
+     re-baselined on its own cadence, and quoting the site-wide date beside a
+     freshly re-baselined figure understated its freshness by months - in exactly
+     the case, feed unreachable, where provenance matters most. */
+  const tableAsOf = () => {
+    const [y, m, d] = GAS_PRICES_AS_OF.split("-").map(Number);
+    return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString("en-US", {
+      year: "numeric", month: "long", day: "numeric", timeZone: "UTC",
+    });
+  };
+
+  it("dates the fallback figure to the table it came from", () => {
+    expect(gasSourceMeta(null).asOf).toBe(tableAsOf());
+    expect(gasSourceMeta({ prices: {}, national: null, updatedAt: null, source: null }).asOf)
+      .toBe(tableAsOf());
   });
 
   it("does not claim freshness from an unparseable timestamp", () => {
-    expect(gasSourceMeta({ prices: { CA: 5.9 }, national: 4.3, updatedAt: "not-a-date", source: "AAA" }).asOf)
-      .toBe(SOURCES.gas.asOf);
+    const meta = gasSourceMeta({ prices: { CA: 5.9 }, national: 4.3, updatedAt: "not-a-date", source: "AAA" });
+    expect(meta.asOf).toBe(tableAsOf());
+    // and it must not describe itself as live
+    expect(meta.label).toBe(SOURCES.gas.label);
+    expect(meta.label).not.toContain("live");
+  });
+
+  it("keeps the site-wide curated date out of the gas chip entirely", () => {
+    // the regression: SOURCES.gas.asOf is DATA_AS_OF, which describes the other
+    // curated layers, not this table
+    expect(tableAsOf()).not.toBe(SOURCES.gas.asOf);
+    expect(gasSourceMeta(null).asOf).not.toBe(SOURCES.gas.asOf);
   });
 });
 

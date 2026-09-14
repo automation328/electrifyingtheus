@@ -12,7 +12,11 @@
 
 export type Confidence = "high" | "medium" | "low";
 
-/** When the curated figures were last reviewed. Stand-in for per-row fetched_at. */
+/** When the curated figures were last reviewed. Stand-in for per-row fetched_at.
+ *  Gasoline is the exception: its fallback table is re-baselined on its own
+ *  cadence and carries GAS_PRICES_AS_OF, so gasSourceMeta() reports that date
+ *  rather than this one. Quoting this date beside a re-baselined figure
+ *  understated the data's freshness by three and a half months. */
 export const DATA_AS_OF = "May 23, 2026";
 
 export interface SourceMeta {
