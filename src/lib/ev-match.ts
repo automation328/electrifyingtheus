@@ -27,7 +27,12 @@ export interface EvMatch {
   caveat?: string;
 }
 
-const FEDERAL_INCENTIVE = 7500;
+/* The federal purchase credit is not modelled anywhere in this app: it ended,
+   and ElectricityVsGasoline.tsx and GmEvVsGas.tsx both pass federalCredit: 0 for
+   the comparison they display. fiveYearTotal() used to subtract $7,500 from
+   every candidate, which cancelled out of the ranking - a uniform shift leaves
+   normalize() untouched - but left EvMatch.fiveYearTotal $7,500 below the real
+   figure, waiting for the first surface that renders it. */
 
 // Which body styles read as "the same kind of car" for matching purposes.
 const ADJACENCY: Record<BodyStyle, BodyStyle[]> = {
@@ -61,12 +66,12 @@ function fiveYearTotal(v: VehicleData): number {
     chargingLoss: DEFAULTS.chargingLoss,
     gas: { mpgCombined: v.type === "gas" ? v.mpg : 99 },
     ev: { mpgeCombined: v.mpge, kwhPer100mi: v.kwhPer100mi ?? 30 },
-    federalCredit: FEDERAL_INCENTIVE, stateRebate: 0, utilityRebate: 0,
+    federalCredit: 0, stateRebate: 0, utilityRebate: 0,
   });
   const fuel5 = res.annualEvCost * 5; // v is always an EV here
   const maint5 = v.maintenanceCostPerMile * DEFAULTS.annualMiles * 5;
   const ins5 = v.insuranceAnnual * 5;
-  const upfront = v.msrp - FEDERAL_INCENTIVE;
+  const upfront = v.msrp;
   return upfront + fuel5 + maint5 + ins5;
 }
 
@@ -102,6 +107,22 @@ function classMatchScore(user: VehicleData, ev: VehicleData): number {
   return Math.max(0, Math.min(100, score));
 }
 
+/* How many of the shopper's own positioning flags this EV carries.
+
+   classMatchScore already awards +22 for a performance match and +18 for a
+   luxury one, but it clamps at 100 - and a mainstream EV matching body style,
+   size class, seat count and drivetrain already reaches 100 on its own. The
+   bonus has nowhere to go, so a Kia EV6 and an Audi Q6 e-tron tie at 100 for an
+   Audi Q5 shopper and the tiebreak decides. That tiebreak used to be the
+   composite, which weights cost, so "Closest match" for a Porsche 911 came back
+   a Mercedes CLA EV.
+
+   Ranking positioning explicitly keeps the clamp (the score is published as a
+   0-100 figure) while making the preference survive a tie. */
+function segmentFit(user: VehicleData, ev: VehicleData): number {
+  return (user.performance && ev.performance ? 1 : 0) + (user.luxury && ev.luxury ? 1 : 0);
+}
+
 function normalize(values: number[], invert = false): number[] {
   const min = Math.min(...values);
   const max = Math.max(...values);
@@ -122,11 +143,22 @@ function rawValue(ev: VehicleData): number {
 function reasonFor(label: MatchLabel, user: VehicleData, ev: VehicleData): string {
   switch (label) {
     case "Closest match":
-      if (user.performance) return `A performance EV to match your ${user.name}`;
-      if (user.luxury) return `A premium EV in the same class as your ${user.name}`;
+      // only claim the segment when the pick actually holds it - where the
+      // catalog has no premium or performance EV in the class, it will not
+      if (user.performance && ev.performance) return `A performance EV to match your ${user.name}`;
+      if (user.luxury && ev.luxury) return `A premium EV in the same class as your ${user.name}`;
       return `Same class as your ${user.name}`;
-    case "Lowest total cost":
-      return "Cheapest to own over five years";
+    case "Lowest total cost": {
+      /* With the pre-filter gone this can legitimately be a car from outside the
+         shopper's segment, and that is the most useful thing on the card when it
+         happens. Say it rather than letting the badge imply the cheapest premium
+         EV is the cheapest EV. */
+      const stepsOut =
+        (!!user.performance && !ev.performance) || (!!user.luxury && !ev.luxury);
+      return stepsOut
+        ? "Cheapest to own over five years \u2014 outside your car\u2019s segment"
+        : "Cheapest to own over five years";
+    }
     case "Best overall value":
       return "Best blend of class fit, cost, and capability";
   }
@@ -185,12 +217,25 @@ export function recommendEvs(
   }
   if (candidates.length === 0) return [];
 
-  // Performance / luxury shoppers: if matching specialist EVs exist, prefer them.
-  if (user.performance && candidates.some((c) => c.performance)) {
-    candidates = candidates.filter((c) => c.performance);
-  } else if (user.luxury && candidates.some((c) => c.luxury)) {
-    candidates = candidates.filter((c) => c.luxury);
-  }
+  /* Positioning is a PREFERENCE, and classMatchScore already encodes it: +22 for
+     a performance match, +18 for a luxury match, and a 25-point penalty for
+     pushing a specialist EV on a mainstream shopper. A hard filter here said the
+     same thing far more bluntly and did real damage, because it ran before
+     scoring and therefore before the cost ranking.
+
+     An Alfa Romeo Giulia is luxury-flagged, so every mainstream EV was dropped
+     from the pool and "Cheapest to own over five years" was awarded to the
+     cheapest LUXURY car - a Mercedes CLA EV at roughly $65k over five years,
+     while a Hyundai IONIQ 6 in the same body style and one size class down came
+     in about $11.5k lower and was never in the running. The badge is an
+     unqualified superlative; it cannot be true of a subset the reader cannot
+     see.
+
+     The score still carries the preference, so the "Closest match" card stays in
+     the shopper's own segment. What changes is that the cost and value cards can
+     now name something cheaper, and reasonFor() says when the cheapest pick
+     steps outside that segment - which is information a buyer wants, not a
+     caveat to hide. */
 
   // Score
   const totals = candidates.map(fiveYearTotal);
@@ -199,7 +244,8 @@ export function recommendEvs(
   const scored = candidates.map((ev, i) => {
     const classMatch = classMatchScore(user, ev);
     const composite = 0.5 * classMatch + 0.3 * costScores[i] + 0.2 * valueScores[i];
-    return { ev, classMatch, costScore: costScores[i], valueScore: valueScores[i], composite, total: totals[i] };
+    return { ev, classMatch, segment: segmentFit(user, ev),
+             costScore: costScores[i], valueScore: valueScores[i], composite, total: totals[i] };
   });
 
   // Pick winners for each label, then dedupe, filling from best composite.
@@ -209,7 +255,11 @@ export function recommendEvs(
   // five years, the tiebreak takes the better composite, which keeps class fit
   // in play. Sorting on the raw total instead answers a Highlander with an EQB
   // that happens to be $127 cheaper and seats the family far worse.
-  const byClass = [...scored].sort((a, b) => b.classMatch - a.classMatch || b.composite - a.composite);
+  // classMatch, then the shopper's own segment, then the composite. Without the
+  // middle key every perfect-fitting mainstream EV ties a premium one at 100 and
+  // the cost-weighted composite breaks it the wrong way.
+  const byClass = [...scored].sort((a, b) =>
+    b.classMatch - a.classMatch || b.segment - a.segment || b.composite - a.composite);
   const byCost = [...scored].sort((a, b) => b.costScore - a.costScore || b.composite - a.composite);
   const byComposite = [...scored].sort((a, b) => b.composite - a.composite);
 
@@ -243,7 +293,8 @@ export function recommendEvs(
   // putting a visibly cheaper car next to the one claiming to be cheapest.
   const cheapest = [...picked].sort((a, b) => a.pick.total - b.pick.total)[0];
   const rest = picked.filter((p) => p !== cheapest);
-  const closest = [...rest].sort((a, b) => b.pick.classMatch - a.pick.classMatch)[0];
+  const closest = [...rest].sort((a, b) =>
+    b.pick.classMatch - a.pick.classMatch || b.pick.segment - a.pick.segment)[0];
   const labelled: { pick: typeof scored[number]; label: MatchLabel }[] = [];
   if (closest) labelled.push({ pick: closest.pick, label: "Closest match" });
   if (cheapest) labelled.push({ pick: cheapest.pick, label: "Lowest total cost" });
