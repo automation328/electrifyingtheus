@@ -226,8 +226,14 @@ export const defaultInputs: UserInputs = {
   financingRate: 6.5,
   downPaymentPercent: 10,
   loanTermMonths: 60,
-  federalIncentive: 7500,
-  stateIncentive: 2000,
+  /* Both were flat literals: $7,500 for a federal credit that has ended, and
+     $2,000 of state money for whichever state you happened to pick. Every other
+     price on this form is resolved from the selected state; these two claimed
+     $9,500 off the EV before the visitor touched anything. Calculator.tsx now
+     derives them from the incentive registry on every state change, the same
+     way it does gasoline and electricity. */
+  federalIncentive: 0,
+  stateIncentive: 0,
   chargingLocation: 'home',
   state: 'CA',
 };

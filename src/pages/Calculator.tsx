@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 import { vehicles, getVehiclesByType, getMatchingGasVehicle } from "@/data/vehicles";
 import { STATE_ENERGY_RATES } from "@/data/state-energy-rates";
+import { incentiveHeadline } from "@/data/incentives";
 import {
   calculateTCO,
   compareVehicles,
@@ -62,6 +63,7 @@ const Calculator = () => {
   const { data: gasData } = useGasPrices();
   const gasEdited = useRef(false);
   const elecEdited = useRef(false);
+  const incEdited = useRef(false);
 
   useEffect(() => {
     if (gasEdited.current) return; // never overwrite a number the visitor typed
@@ -83,6 +85,21 @@ const Calculator = () => {
     if (!r) return;
     const rate = Math.round(r.electricityCentsPerKwh) / 100;
     setInputs((prev) => (prev.electricityRatePerKwh === rate ? prev : { ...prev, electricityRatePerKwh: rate }));
+  }, [inputs.state]);
+
+  /* Incentives follow the state too. The federal figure is zero because the
+     curated federal registry is empty — 30D and 30C were removed when they
+     sunset, and the two comparison pages already pass federalCredit: 0 — and
+     the state figure is the largest award in that state that actually comes off
+     the price of a vehicle. Georgia, for instance, has none: every programme it
+     carries is charger equipment or a rate plan. */
+  useEffect(() => {
+    if (incEdited.current) return;
+    const state = incentiveHeadline(inputs.state, { audience: "consumer" }).topVehicleAmount ?? 0;
+    setInputs((prev) =>
+      prev.federalIncentive === 0 && prev.stateIncentive === state
+        ? prev
+        : { ...prev, federalIncentive: 0, stateIncentive: state });
   }, [inputs.state]);
 
   const [showResults, setShowResults] = useState(false);
@@ -370,7 +387,7 @@ const Calculator = () => {
                       <Input
                         type="number"
                         value={inputs.federalIncentive}
-                        onChange={(e) => updateInput("federalIncentive", parseInt(e.target.value) || 0)}
+                        onChange={(e) => { incEdited.current = true; updateInput("federalIncentive", parseInt(e.target.value) || 0); }}
                         className="mt-2"
                       />
                     </div>
@@ -379,7 +396,7 @@ const Calculator = () => {
                       <Input
                         type="number"
                         value={inputs.stateIncentive}
-                        onChange={(e) => updateInput("stateIncentive", parseInt(e.target.value) || 0)}
+                        onChange={(e) => { incEdited.current = true; updateInput("stateIncentive", parseInt(e.target.value) || 0); }}
                         className="mt-2"
                       />
                     </div>

@@ -3,6 +3,8 @@
 // electricforall.org and public program data; amounts are typical maximums,
 // always verify on the official program page.
 
+import { incentiveWindow, todayIso } from "@/lib/incentive-window";
+
 export type CatKey = "vehicle" | "charging" | "electricity" | "perks";
 
 export interface Incentive {
@@ -454,6 +456,12 @@ export interface IncentiveHeadlineOptions {
    * several states and therefore the ones that were winning the headline.
    */
   audience?: "consumer" | "business";
+  /**
+   * The reader's local calendar date, for the open/ended check. Injected rather
+   * than read from the clock so the behaviour is testable without freezing time
+   * — same contract as lib/incentive-window.
+   */
+  today?: string;
 }
 
 /**
@@ -465,9 +473,15 @@ export function incentiveHeadline(
   state: string,
   options: IncentiveHeadlineOptions = {},
 ): IncentiveHeadline {
-  const { audience } = options;
+  const { audience, today = todayIso() } = options;
+  /* The Rebates page runs every programme through incentiveWindow() and marks
+     the closed ones. This panel did not, so a CMS-authored end date took a
+     programme off one surface and left it on the other — and since the panel
+     ranks by dollar value, an expired programme could still be the headline.
+     A blank window still means "no claim either way", which reads as open. */
   const claimable = (i: Incentive) =>
-    !audience || (i.audience ?? "consumer") === audience;
+    (!audience || (i.audience ?? "consumer") === audience) &&
+    incentiveWindow(i, today).state === "open";
 
   // vehicle-category programmes are tracked separately, because "up to $X" means
   // something entirely different depending on whether X comes off the car

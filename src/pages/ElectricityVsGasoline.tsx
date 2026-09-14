@@ -671,7 +671,12 @@ const ElectricityVsGasoline = () => {
                 <Fuel className="w-8 h-8 md:w-9 md:h-9" style={{ color: GAS_COLOR }} />
                 <div className="text-left">
                   <div className="font-charge text-4xl md:text-5xl text-foreground leading-none">{currency(gasData?.national ?? NATIONAL_AVG.gasPricePerGallon, 2)}</div>
-                  <div className="text-xs uppercase tracking-wider text-muted-foreground mt-1.5">per gallon · U.S. avg</div>
+                  {/* These two figures sat side by side captioned identically while
+                      one tracked a daily feed and the other was a curated annual
+                      average. Each now says which it is. */}
+                  <div className="text-xs uppercase tracking-wider text-muted-foreground mt-1.5">
+                    per gallon · {gasData?.national != null ? "live today" : "U.S. avg"}
+                  </div>
                 </div>
               </div>
               <div className="w-px bg-border" />
@@ -679,7 +684,9 @@ const ElectricityVsGasoline = () => {
                 <Zap className="w-8 h-8 md:w-9 md:h-9" style={{ color: EV_COLOR }} />
                 <div className="text-left">
                   <div className="font-charge text-4xl md:text-5xl text-foreground leading-none">{NATIONAL_AVG.electricityCentsPerKwh.toFixed(1)}¢</div>
-                  <div className="text-xs uppercase tracking-wider text-muted-foreground mt-1.5">per kWh · U.S. avg</div>
+                  <div className="text-xs uppercase tracking-wider text-muted-foreground mt-1.5">
+                    per kWh · EIA avg
+                  </div>
                 </div>
               </div>
             </div>

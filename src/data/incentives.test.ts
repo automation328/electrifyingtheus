@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   incentiveHeadline,
   incentivesFor,
+  applyIncentiveOverrides,
   STATE_INCENTIVES,
   UTILITY_INCENTIVES,
   type Incentive,
@@ -111,5 +112,85 @@ describe("the business audience flag", () => {
       if (i.audience !== "business") continue;
       expect(commercialWords.test(i.desc + " " + i.name), i.name).toBe(true);
     }
+  });
+});
+
+/* The Rebates page runs every programme through incentiveWindow() and marks the
+   closed ones; this panel did not. A CMS-authored end date therefore took a
+   programme off one surface and left it on the other — and because the panel
+   ranks by dollar value, an expired programme could still be the headline.
+
+   The curated entries carry no window, so these tests inject one through the
+   same CMS overlay the site uses. TX is used throughout because it has no
+   curated programmes of its own, so the overlay is the only thing in the bucket
+   and the assertions cannot be confused by real data. */
+describe("a closed programme leaves the panel", () => {
+  const windowed = (name: string, extra: Partial<Incentive>): Incentive => ({
+    name,
+    jurisdiction: "Test",
+    amount: "Up to $9,000",
+    desc: "Injected by a test through the CMS overlay.",
+    link: "https://example.invalid/",
+    ...extra,
+  });
+
+  it("drops a programme whose published window has ended", () => {
+    applyIncentiveOverrides([
+      { scope: "state", state: "TX", category: "vehicle",
+        incentive: windowed("TX Ended Programme", { validTo: "2026-01-31" }) },
+    ]);
+    const after = incentiveHeadline("TX", { audience: "consumer", today: "2026-09-15" });
+    expect(after.items.map((i) => i.name)).not.toContain("TX Ended Programme");
+    expect(after.topAmount).toBeNull();
+
+    // and it was genuinely open before that date — the filter is the window,
+    // not the overlay failing to apply
+    const before = incentiveHeadline("TX", { audience: "consumer", today: "2026-01-15" });
+    expect(before.items.map((i) => i.name)).toContain("TX Ended Programme");
+    expect(before.topAmount).toBe(9_000);
+  });
+
+  it("drops a programme that has not opened yet", () => {
+    applyIncentiveOverrides([
+      { scope: "state", state: "TX", category: "vehicle",
+        incentive: windowed("TX Future Programme", { validFrom: "2027-01-01" }) },
+    ]);
+    expect(
+      incentiveHeadline("TX", { audience: "consumer", today: "2026-09-15" })
+        .items.map((i) => i.name),
+    ).not.toContain("TX Future Programme");
+    expect(
+      incentiveHeadline("TX", { audience: "consumer", today: "2027-06-01" })
+        .items.map((i) => i.name),
+    ).toContain("TX Future Programme");
+  });
+
+  it("treats a blank window as open, not expired", () => {
+    // a NULL valid_to is the common case and means open-ended. Reading it as
+    // expired would empty most of the country's panels.
+    applyIncentiveOverrides([
+      { scope: "state", state: "TX", category: "vehicle",
+        incentive: windowed("TX Open-Ended Programme", {}) },
+    ]);
+    expect(
+      incentiveHeadline("TX", { audience: "consumer", today: "2099-12-31" })
+        .items.map((i) => i.name),
+    ).toContain("TX Open-Ended Programme");
+  });
+
+  it("keeps an expired programme out of the vehicle-programme claim too", () => {
+    applyIncentiveOverrides([
+      { scope: "state", state: "TX", category: "vehicle", hidden: true,
+        incentive: windowed("TX Open-Ended Programme", {}) },
+      { scope: "state", state: "TX", category: "vehicle", hidden: true,
+        incentive: windowed("TX Future Programme", {}) },
+      { scope: "state", state: "TX", category: "vehicle", hidden: true,
+        incentive: windowed("TX Ended Programme", {}) },
+      { scope: "state", state: "TX", category: "vehicle",
+        incentive: windowed("TX Closed Vehicle Rebate", { validTo: "2025-12-31" }) },
+    ]);
+    const h = incentiveHeadline("TX", { audience: "consumer", today: "2026-09-15" });
+    expect(h.hasVehicleProgram).toBe(false);
+    expect(h.topVehicleAmount).toBeNull();
   });
 });
