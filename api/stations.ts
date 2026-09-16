@@ -25,6 +25,7 @@ const STATIONS_ENDPOINT = "https://developer.nlr.gov/api/alt-fuel-stations/v1/ne
 // search is looked up once per day no matter how many visitors ask.
 import { resolveQuery, MAX_RADIUS, MAX_RESULTS, type Place } from "./_geocode.js";
 import { checkRateLimit, tooManyRequests } from "./_rate-limit.js";
+import { geoFromHeaders } from "./_geo-headers.js";
 
 // The longest search worth honouring. It bounds the upstream URL and, because
 // the response is cached per query string, the number of distinct cache entries
@@ -65,6 +66,15 @@ const trim = (s: any) => ({
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default async function handler(req: any, res: any) {
   if (req.method !== "GET") { res.status(405).json({ error: "Method not allowed" }); return; }
+
+  // /api/geo is rewritten here (see vercel.json) because the Hobby plan caps a
+  // deployment at 12 Serverless Functions and the marketplace was the 13th.
+  //
+  // It answers purely from request headers and calls nothing, so it returns
+  // BEFORE the rate limit below: five surfaces ask for it on page load, and
+  // metering that would break ordinary browsing for no benefit.
+  const op = Array.isArray(req.query?.op) ? req.query.op[0] : req.query?.op;
+  if (op === "geo") { geoFromHeaders(req, res); return; }
 
   // Unauthenticated proxy in front of a quota-limited third-party API. Without a
   // cap, anyone can spend our quota (and our money) at their own pace.
