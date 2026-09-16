@@ -1,5 +1,8 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { buildAutoDevQuery, normalizeAutoDevListing, haversineMiles, autoDevProvider } from "./_marketplace-provider.js";
+import {
+  buildAutoDevQuery, normalizeAutoDevListing, haversineMiles, autoDevProvider,
+  listingPowertrain, autoDevCoords,
+} from "./_marketplace-provider.js";
 
 afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
 
@@ -55,16 +58,17 @@ describe("buildAutoDevQuery", () => {
 });
 
 describe("normalizeAutoDevListing", () => {
+  // Shape taken from a real api.auto.dev response, not the docs.
   const raw = {
-    id: "abc123",
+    "@id": "https://api.auto.dev/listings/5YJ3E1EA7KF000000",
     vin: "5YJ3E1EA7KF000000",
-    vehicle: { year: 2022, make: "Tesla", model: "Model 3", trim: "Long Range" },
+    location: [-84.388, 33.749],
+    vehicle: { year: 2022, make: "Tesla", model: "Model 3", trim: "Long Range", fuel: "Electric" },
     retailListing: {
-      price: 28995, miles: 31000, condition: "used",
-      dealerName: "Atlanta Motors", city: "Atlanta", state: "GA",
-      latitude: 33.749, longitude: -84.388,
-      photoUrls: ["https://img.example/1.jpg"],
-      vdpUrl: "https://dealer.example/listing/abc123",
+      price: 28995, miles: 31000, used: true,
+      dealer: "Atlanta Motors", city: "Atlanta", state: "GA",
+      primaryImage: "https://img.example/1.jpg",
+      vdp: "https://dealer.example/listing/abc123",
     },
   };
 
@@ -79,14 +83,19 @@ describe("normalizeAutoDevListing", () => {
     expect(l?.listingUrl).toBe("https://dealer.example/listing/abc123");
   });
 
-  it("prefers the VIN as the id, falling back to the provider id", () => {
+  it("prefers the VIN as the id, falling back to the record @id", () => {
     expect(normalizeAutoDevListing(raw)?.id).toBe(raw.vin);
     const noVin = { ...raw, vin: undefined };
-    expect(normalizeAutoDevListing(noVin)?.id).toBe("abc123");
+    expect(normalizeAutoDevListing(noVin)?.id).toBe(raw["@id"]);
   });
 
   it("returns null when there is no usable identity", () => {
     expect(normalizeAutoDevListing({ vehicle: { year: 2022, make: "Tesla", model: "Model 3" } })).toBeNull();
+  });
+
+  it("reads condition from the used boolean, not a condition string", () => {
+    expect(normalizeAutoDevListing(raw)?.condition).toBe("used");
+    expect(normalizeAutoDevListing({ ...raw, retailListing: { ...raw.retailListing, used: false } })?.condition).toBe("new");
   });
 
   it("returns null without a year, make or model — we cannot match it to a catalog EV", () => {
@@ -119,7 +128,9 @@ describe("autoDevProvider", () => {
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 
-  it("sends the key as a header, never in the query string", async () => {
+  it("sends the key as a Bearer header, never in the query string", async () => {
+    // The provider also accepts ?apiKey=, which must never be used: query
+    // strings are recorded in access logs, proxies and error reports.
     vi.stubEnv("MARKETPLACE_API_KEY", "secret-key-value");
     const fetchSpy = vi.fn().mockResolvedValue({
       ok: true, status: 200, json: async () => ({ records: [] }),
@@ -130,7 +141,8 @@ describe("autoDevProvider", () => {
 
     const [url, init] = fetchSpy.mock.calls[0];
     expect(String(url)).not.toContain("secret-key-value");
-    expect((init.headers as Record<string, string>)["X-API-Key"]).toBe("secret-key-value");
+    expect(String(url).toLowerCase()).not.toContain("apikey");
+    expect((init.headers as Record<string, string>).Authorization).toBe("Bearer secret-key-value");
   });
 
   it("returns an empty list rather than throwing when the provider errors", async () => {
@@ -143,5 +155,54 @@ describe("autoDevProvider", () => {
     vi.stubEnv("MARKETPLACE_API_KEY", "k");
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("ECONNRESET")));
     await expect(autoDevProvider().search({ zip: "30301", radius: 25, models: [] })).resolves.toEqual([]);
+  });
+});
+
+describe("listingPowertrain", () => {
+  const withFuel = (fuel: unknown) => ({ vehicle: { fuel } });
+
+  it("accepts electric", () => {
+    expect(listingPowertrain(withFuel("Electric"))).toBe("ev");
+  });
+
+  it("accepts plug-in hybrid", () => {
+    expect(listingPowertrain(withFuel("Plug-in Hybrid"))).toBe("phev");
+  });
+
+  it("REJECTS petrol and diesel, which is the whole point", () => {
+    // Observed live: the provider returns "Gasoline" for petrol cars. Without
+    // this gate a petrol car whose name resembles an EV would be listed on an
+    // EV marketplace.
+    expect(listingPowertrain(withFuel("Gasoline"))).toBeNull();
+    expect(listingPowertrain(withFuel("Diesel"))).toBeNull();
+  });
+
+  it("rejects a plain hybrid, which is not a plug-in", () => {
+    expect(listingPowertrain(withFuel("Hybrid"))).toBeNull();
+  });
+
+  it("returns null for missing or junk fuel rather than assuming electric", () => {
+    expect(listingPowertrain(withFuel(undefined))).toBeNull();
+    expect(listingPowertrain({})).toBeNull();
+    expect(listingPowertrain(null)).toBeNull();
+  });
+});
+
+describe("autoDevCoords", () => {
+  it("reads location as GeoJSON [longitude, latitude], not [lat, lon]", () => {
+    // Atlanta is 33.7N, 84.4W. Reversing these puts every car in the wrong
+    // place and ranks results by a meaningless distance.
+    expect(autoDevCoords({ location: [-84.388, 33.749] })).toEqual({ lat: 33.749, lon: -84.388 });
+  });
+
+  it("falls back to explicit latitude/longitude fields", () => {
+    expect(autoDevCoords({ retailListing: { latitude: 33.749, longitude: -84.388 } }))
+      .toEqual({ lat: 33.749, lon: -84.388 });
+  });
+
+  it("returns null when there are no coordinates", () => {
+    expect(autoDevCoords({})).toBeNull();
+    expect(autoDevCoords({ location: [1] })).toBeNull();
+    expect(autoDevCoords(null)).toBeNull();
   });
 });

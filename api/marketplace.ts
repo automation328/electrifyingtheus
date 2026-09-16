@@ -15,7 +15,7 @@
 import { resolveQuery, MAX_RADIUS, type Place } from "./_geocode.js";
 import { checkRateLimit, tooManyRequests } from "./_rate-limit.js";
 import {
-  autoDevProvider, autoDevSearchRaw, autoDevCoords,
+  autoDevProvider, autoDevSearchRaw, autoDevCoords, listingPowertrain,
   normalizeAutoDevListing, haversineMiles,
 } from "./_marketplace-provider.js";
 import { matchCatalogVehicle, catalogSearchModels } from "../src/lib/ev-catalog-match.js";
@@ -105,8 +105,16 @@ export default async function handler(req: any, res: any) {
     const base = normalizeAutoDevListing(raw);
     if (!base) continue;
 
-    // The verification step. An unmatched listing is not an electrified car we
-    // know about, so it does not appear — see the provider file for why.
+    // Verification, in two independent steps. Either one rejecting is enough.
+    //
+    // 1. The provider's own fuel field. There is no fuel FILTER upstream, but
+    //    responses carry `vehicle.fuel`, so a car it calls "Gasoline" is dropped
+    //    outright — regardless of what its name looks like.
+    const powertrain = listingPowertrain(raw);
+    if (powertrain === null) continue;
+
+    // 2. Our catalog. Needed anyway for the range figure and the id the detail
+    //    page joins on, and it catches anything the fuel field mislabels.
     const catalog = matchCatalogVehicle(base.make, base.model);
     if (!catalog) continue;
 
@@ -114,7 +122,7 @@ export default async function handler(req: any, res: any) {
     listings.push({
       ...base,
       catalogId: catalog.id,
-      powertrain: "ev",
+      powertrain,
       rangeMi: catalog.rangeMi,
       distanceMi: coords ? haversineMiles(place.lat, place.lon, coords.lat, coords.lon) : undefined,
     });

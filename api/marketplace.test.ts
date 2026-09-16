@@ -42,14 +42,14 @@ function mockRes() {
 }
 
 const listingRow = (over: Record<string, unknown> = {}) => ({
-  id: "row-1",
+  "@id": "row-1",
   vin: "5YJ3E1EA7KF000001",
-  vehicle: { year: 2022, make: "Tesla", model: "Model 3", trim: "Long Range" },
+  location: [-84.39, 33.76],
+  vehicle: { year: 2022, make: "Tesla", model: "Model 3", trim: "Long Range", fuel: "Electric" },
   retailListing: {
-    price: 28995, miles: 31000, condition: "used",
-    dealerName: "Atlanta Motors", city: "Atlanta", state: "GA",
-    latitude: 33.76, longitude: -84.39,
-    photoUrls: ["https://img.example/1.jpg"], vdpUrl: "https://dealer.example/1",
+    price: 28995, miles: 31000, used: true,
+    dealer: "Atlanta Motors", city: "Atlanta", state: "GA",
+    primaryImage: "https://img.example/1.jpg", vdp: "https://dealer.example/1",
     ...(over.retailListing as Record<string, unknown> ?? {}),
   },
   ...over,
@@ -120,7 +120,7 @@ describe("GET /api/marketplace", () => {
     // fuel type, so a petrol car can come back and must never be shown.
     vi.mocked(autoDevSearchRaw).mockResolvedValue([
       listingRow(),
-      listingRow({ id: "row-2", vin: "JT2BF22K1W0000000", vehicle: { year: 2021, make: "Toyota", model: "Corolla" } }),
+      listingRow({ "@id": "row-2", vin: "JT2BF22K1W0000000", vehicle: { year: 2021, make: "Toyota", model: "Corolla", fuel: "Gasoline" } }),
     ] as never);
     const res = mockRes();
     await handler({ method: "GET", query: { q: "30303" } }, res);
@@ -132,9 +132,9 @@ describe("GET /api/marketplace", () => {
 
   it("sorts nearest first and puts listings without coordinates last", async () => {
     vi.mocked(autoDevSearchRaw).mockResolvedValue([
-      listingRow({ id: "far", vin: "VINFAR000000000001", retailListing: { latitude: 34.5, longitude: -84.9 } }),
-      listingRow({ id: "nocoord", vin: "VINNOC000000000001", retailListing: { latitude: undefined, longitude: undefined } }),
-      listingRow({ id: "near", vin: "VINNEA000000000001", retailListing: { latitude: 33.75, longitude: -84.39 } }),
+      listingRow({ vin: "VINFAR000000000001", location: [-84.9, 34.5] }),
+      listingRow({ vin: "VINNOC000000000001", location: undefined }),
+      listingRow({ vin: "VINNEA000000000001", location: [-84.39, 33.75] }),
     ] as never);
     const res = mockRes();
     await handler({ method: "GET", query: { q: "30303" } }, res);
@@ -164,5 +164,38 @@ describe("GET /api/marketplace", () => {
     const res = mockRes();
     await handler({ method: "GET", query: { q: "Atlanta, GA" } }, res);
     expect((res._out.body as { place: { label: string } }).place.label).toBe("Atlanta, GA");
+  });
+});
+
+describe("fuel verification", () => {
+  it("drops a petrol car even when its NAME matches a catalog EV", async () => {
+    // The strongest guard: a mislabelled or oddly-named petrol car must not be
+    // rescued by name matching. Fuel wins.
+    vi.mocked(autoDevSearchRaw).mockResolvedValue([
+      listingRow({ vehicle: { year: 2022, make: "Tesla", model: "Model 3", fuel: "Gasoline" } }),
+    ] as never);
+    const res = mockRes();
+    await handler({ method: "GET", query: { q: "30303" } }, res);
+    expect((res._out.body as { listings: unknown[] }).listings).toEqual([]);
+  });
+
+  it("keeps a plug-in hybrid and labels it phev", async () => {
+    vi.mocked(autoDevSearchRaw).mockResolvedValue([
+      listingRow({ vehicle: { year: 2022, make: "Tesla", model: "Model 3", fuel: "Plug-in Hybrid" } }),
+    ] as never);
+    const res = mockRes();
+    await handler({ method: "GET", query: { q: "30303" } }, res);
+    const body = res._out.body as { listings: Array<Record<string, unknown>> };
+    expect(body.listings).toHaveLength(1);
+    expect(body.listings[0].powertrain).toBe("phev");
+  });
+
+  it("drops a listing with no fuel field rather than assuming electric", async () => {
+    vi.mocked(autoDevSearchRaw).mockResolvedValue([
+      listingRow({ vehicle: { year: 2022, make: "Tesla", model: "Model 3" } }),
+    ] as never);
+    const res = mockRes();
+    await handler({ method: "GET", query: { q: "30303" } }, res);
+    expect((res._out.body as { listings: unknown[] }).listings).toEqual([]);
   });
 });

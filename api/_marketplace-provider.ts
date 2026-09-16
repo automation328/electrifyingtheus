@@ -94,7 +94,7 @@ export function normalizeAutoDevListing(raw: unknown): Omit<VehicleListing, "cat
   if (!v) return null;
 
   const vin = str(r.vin) ?? str(v.vin);
-  const id = vin ?? str(r.id);
+  const id = vin ?? str(r["@id"]) ?? str(r.id);
   if (!id) return null;
 
   const year = num(v.year);
@@ -102,7 +102,10 @@ export function normalizeAutoDevListing(raw: unknown): Omit<VehicleListing, "cat
   const model = str(v.model);
   if (!year || !make || !model) return null;
 
-  const photos = Array.isArray(rl.photoUrls) ? rl.photoUrls : Array.isArray(r.photoUrls) ? r.photoUrls : [];
+  // Field names below are taken from real responses, not the docs: the array is
+  // `data`, the dealer is `dealer`, condition is a `used` boolean, the photo is
+  // `primaryImage` and the listing link is `vdp`.
+  const photos = Array.isArray(rl.photoUrls) ? rl.photoUrls : [];
 
   return {
     id,
@@ -113,28 +116,54 @@ export function normalizeAutoDevListing(raw: unknown): Omit<VehicleListing, "cat
     trim: str(v.trim),
     price: num(rl.price),
     mileage: num(rl.miles) ?? num(rl.mileage),
-    condition: str(rl.condition)?.toLowerCase() === "new" ? "new" : "used",
-    dealerName: str(rl.dealerName) ?? str(rl.dealer),
+    condition: rl.used === false ? "new" : "used",
+    dealerName: str(rl.dealer) ?? str(rl.dealerName),
     city: str(rl.city),
     state: str(rl.state),
-    photoUrl: str(photos[0]),
-    listingUrl: str(rl.vdpUrl) ?? str(rl.url) ?? str(r.url),
-    distanceMi: (() => {
-      const la = num(rl.latitude), lo = num(rl.longitude);
-      return la != null && lo != null ? undefined : undefined; // filled in by the caller, which knows the origin
-    })(),
+    photoUrl: str(rl.primaryImage) ?? str(photos[0]),
+    listingUrl: str(rl.vdp) ?? str(rl.vdpUrl) ?? str(rl.url),
   };
 }
 
-/** Latitude/longitude of a raw record, when it carries them. The caller needs
- *  these to rank by true distance and cannot get them from the normalised shape. */
+/**
+ * The powertrain a listing claims, from the provider's own `vehicle.fuel`.
+ *
+ * There is no fuel-type FILTER upstream, but responses do carry the field, and
+ * it is far better evidence than matching model names. Returns null when the
+ * fuel is absent or is something we will not list (petrol, diesel).
+ */
+export function listingPowertrain(raw: unknown): "ev" | "phev" | null {
+  if (!raw || typeof raw !== "object") return null;
+  const v = (raw as Record<string, unknown>).vehicle;
+  if (!v || typeof v !== "object") return null;
+  const fuel = String((v as Record<string, unknown>).fuel ?? "").toLowerCase();
+  if (!fuel) return null;
+  if (fuel.includes("plug")) return "phev";        // "Plug-in Hybrid"
+  if (fuel.includes("electric")) return "ev";      // "Electric"
+  return null;                                      // Gasoline, Diesel, Hybrid…
+}
+
+/**
+ * Coordinates of a raw record.
+ *
+ * `location` is GeoJSON order — [longitude, latitude]. Reading it as [lat, lon]
+ * silently places every car in the wrong hemisphere and ranks results by a
+ * nonsense distance, so the order is asserted in the tests.
+ */
 export function autoDevCoords(raw: unknown): { lat: number; lon: number } | null {
   if (!raw || typeof raw !== "object") return null;
+  const loc = (raw as Record<string, unknown>).location;
+  if (Array.isArray(loc) && loc.length >= 2) {
+    const lon = num(loc[0]), lat = num(loc[1]);
+    if (lat != null && lon != null) return { lat, lon };
+  }
   const rl = (raw as Record<string, unknown>).retailListing;
-  if (!rl || typeof rl !== "object") return null;
-  const o = rl as Record<string, unknown>;
-  const lat = num(o.latitude), lon = num(o.longitude);
-  return lat != null && lon != null ? { lat, lon } : null;
+  if (rl && typeof rl === "object") {
+    const o = rl as Record<string, unknown>;
+    const lat = num(o.latitude), lon = num(o.longitude);
+    if (lat != null && lon != null) return { lat, lon };
+  }
+  return null;
 }
 
 /** Raw records from one upstream search, for callers that need coordinates too. */
@@ -149,8 +178,15 @@ export async function autoDevSearchRaw(p: ProviderSearch): Promise<unknown[]> {
     const signal = typeof AbortSignal?.timeout === "function"
       ? AbortSignal.timeout(TIMEOUT_MS)
       : undefined;
+    // Bearer, per Auto.dev's own docs. The provider also accepts the key as an
+    // ?apiKey= query parameter — never use that: query strings end up in access
+    // logs, proxy logs and error reports, which is how keys leak.
     const res = await fetch(`${ENDPOINT}?${buildAutoDevQuery(p)}`, {
-      headers: { "X-API-Key": key, Accept: "application/json" },
+      headers: {
+        Authorization: `Bearer ${key}`,
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
       ...(signal ? { signal } : {}),
     });
     if (!res.ok) {
