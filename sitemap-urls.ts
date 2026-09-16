@@ -52,6 +52,7 @@ export const SITEMAP_PAGES: string[] = [
   "/financial-savings",
   "/from-pump-to-plug-part-2",
   "/find-a-charger",
+  "/marketplace",
   "/gallery",
   "/gm-ev-vs-gas",
   "/heavy-duty-electrification",

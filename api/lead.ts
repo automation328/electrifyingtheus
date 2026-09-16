@@ -92,6 +92,7 @@ const SOURCE_LABEL: Record<string, string> = {
   "eligibility-plan": "Rebate eligibility (email me this plan)",
   "eligibility-coverage": "Rebate eligibility (notify me when covered)",
   "video-access": "Video gate (gallery / homepage video)",
+  "marketplace-enquiry": "Marketplace (contact dealer about a vehicle)",
 };
 
 const safeJson = (s: string) => { try { return JSON.parse(s); } catch { return {}; } };

@@ -15,6 +15,7 @@ export const NAV_DEFAULT: NavItem[] = [
   { label: "Benefits", href: "#benefits", primary: true },
   { label: "Events", href: "/events", primary: true },
   { label: "EV vs Gas Calculator", href: "/electricity-vs-gasoline", primary: true },
+  { label: "EV Marketplace", href: "/marketplace" },
   { label: "Incentives", href: "/rebates-incentives" },
   { label: "News", href: "/news" },
   { label: "Multimodal", href: "#multimodal" },
