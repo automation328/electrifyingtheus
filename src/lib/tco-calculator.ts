@@ -1,6 +1,6 @@
 // TCO Calculator Core Logic
 
-import { NATIONAL_AVG } from "@/data/state-energy-rates";
+import { NATIONAL_AVG, STATE_ENERGY_RATES } from "@/data/state-energy-rates";
 
 /** Coarse body styles used for class matching (spec §6). */
 export type BodyStyle =
@@ -219,12 +219,21 @@ export const defaultInputs: UserInputs = {
   // mount and on every state change; it survives only if the feed is unreachable,
   // so it tracks the fallback table rather than drifting as its own literal.
   gasPricePerGallon: NATIONAL_AVG.gasPricePerGallon,
-  electricityRatePerKwh: 0.14,
+  // Pre-fill only, and it has to agree with `state` below or the first paint
+  // is wrong before any effect runs. Calculator.tsx re-derives this on every
+  // state change now, the same way it already did the gas price.
+  electricityRatePerKwh: STATE_ENERGY_RATES.CA.electricityCentsPerKwh / 100,
   financingRate: 6.5,
   downPaymentPercent: 10,
   loanTermMonths: 60,
-  federalIncentive: 7500,
-  stateIncentive: 2000,
+  /* Both were flat literals: $7,500 for a federal credit that has ended, and
+     $2,000 of state money for whichever state you happened to pick. Every other
+     price on this form is resolved from the selected state; these two claimed
+     $9,500 off the EV before the visitor touched anything. Calculator.tsx now
+     derives them from the incentive registry on every state change, the same
+     way it does gasoline and electricity. */
+  federalIncentive: 0,
+  stateIncentive: 0,
   chargingLocation: 'home',
   state: 'CA',
 };

@@ -20,6 +20,8 @@ import ListYourEvent from "./pages/ListYourEvent.tsx";
 import Careers from "./pages/Careers.tsx";
 import PostAJob from "./pages/PostAJob.tsx";
 import FindACharger from "./pages/FindACharger.tsx";
+import Marketplace from "./pages/Marketplace.tsx";
+import VehicleListing from "./pages/VehicleListing.tsx";
 import RebatesIncentives from "./pages/RebatesIncentives.tsx";
 import RebateEligibility from "./pages/RebateEligibility.tsx";
 import WorkforceEconomicDevelopment from "./pages/WorkforceEconomicDevelopment.tsx";
@@ -108,6 +110,8 @@ const App = () => (
           <Route path="/careers" element={<Careers />} />
           <Route path="/post-a-job" element={<PostAJob />} />
           <Route path="/find-a-charger" element={<FindACharger />} />
+          <Route path="/marketplace" element={<Marketplace />} />
+          <Route path="/marketplace/:id" element={<VehicleListing />} />
           <Route path="/rebates-incentives" element={<RebatesIncentives />} />
           <Route path="/rebate-eligibility" element={<RebateEligibility />} />
           <Route path="/workforce-economic-development" element={<WorkforceEconomicDevelopment />} />

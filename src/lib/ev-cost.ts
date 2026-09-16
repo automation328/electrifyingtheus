@@ -168,6 +168,47 @@ export function calculate(inputs: EvCostInputs): EvCostResult {
   };
 }
 
+/**
+ * Which of the four ownership outcomes two vehicles are in, and the year their
+ * cumulative costs cross.
+ *
+ * `upfrontDiff` is EV upfront minus gas upfront: positive means the EV costs
+ * more to buy. `runDiff` is gas annual running cost minus EV annual running
+ * cost: positive means the EV costs less to run. Running cost here is the full
+ * one — fuel plus maintenance plus insurance — not fuel alone.
+ *
+ * The four cases are genuinely different and a UI that collapses them lies in
+ * at least one of them:
+ *
+ *   always     cheaper to buy AND cheaper to run — leads from day one, no crossing
+ *   breakeven  dearer to buy, cheaper to run — catches up at `crossing`
+ *   overtaken  cheaper to buy, dearer to run — LOSES the lead at `crossing`
+ *   never      dearer to buy AND dearer to run — never catches up, no crossing
+ *
+ * This lived inline in two page components, where nothing could test it, and
+ * three of the four cases rendered as "EV leads on total cost from day one" —
+ * including `never`, which is its exact opposite.
+ */
+export type OwnershipVerdict = "always" | "breakeven" | "overtaken" | "never";
+
+export function ownershipOutcome(
+  upfrontDiff: number,
+  runDiff: number,
+): { verdict: OwnershipVerdict; crossing: number | null } {
+  const verdict: OwnershipVerdict =
+    upfrontDiff <= 0 && runDiff >= 0 ? "always"
+    : upfrontDiff <= 0               ? "overtaken"
+    : runDiff > 0                    ? "breakeven"
+    :                                  "never";
+  // Only the two crossing cases have a year to report, and only when the annual
+  // gap is non-zero — a zero gap never closes whatever the upfront difference is.
+  const crossing =
+    (verdict === "breakeven" || verdict === "overtaken") && runDiff !== 0
+      ? Math.abs(upfrontDiff) / Math.abs(runDiff)
+      : null;
+  return { verdict, crossing };
+}
+
 /** Home-charging share for a Yes/No answer (§5 default mixes). */
 export function homeShareFor(hasHomeCharging: boolean): number {
   return hasHomeCharging ? DEFAULTS.homeShareWithHome : DEFAULTS.homeShareWithoutHome;

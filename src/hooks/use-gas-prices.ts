@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { STATE_ENERGY_RATES } from "@/data/state-energy-rates";
+import { STATE_ENERGY_RATES, GAS_PRICES_AS_OF } from "@/data/state-energy-rates";
 import { SOURCES, type SourceMeta } from "@/data/sources";
 
 // Live per-state regular-gasoline averages, served by the n8n `/gas-prices`
@@ -150,11 +150,26 @@ export function gasExtremes(prices?: Record<string, number> | null): { low: Stat
  * The curated `SOURCES.gas.asOf` date describes the static fallback table, so
  * showing it beside a live figure misreports a number fetched today as months
  * old. A live figure carries the feed's own timestamp instead.
+ *
+ * The fallback branch had the mirror-image problem: SOURCES.gas.asOf is the
+ * site-wide DATA_AS_OF, but the fallback prices themselves are re-baselined on
+ * their own cadence and stamped GAS_PRICES_AS_OF. Reporting the site-wide date
+ * beside a freshly re-baselined number understated its vintage by months, in
+ * exactly the case — feed unreachable — where provenance matters most.
  */
+/** GAS_PRICES_AS_OF is an ISO date; the chips elsewhere read "May 23, 2026". */
+function fallbackGasAsOf(): string {
+  const [y, m, d] = GAS_PRICES_AS_OF.split("-").map(Number);
+  if (!y || !m || !d) return GAS_PRICES_AS_OF;
+  return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString("en-US", {
+    year: "numeric", month: "long", day: "numeric", timeZone: "UTC",
+  });
+}
+
 export function gasSourceMeta(data: GasPrices | null | undefined): SourceMeta {
   const when = data?.updatedAt ? new Date(data.updatedAt) : null;
   if (!when || Number.isNaN(when.getTime()) || Object.keys(data?.prices ?? {}).length === 0) {
-    return SOURCES.gas;
+    return { ...SOURCES.gas, asOf: fallbackGasAsOf() };
   }
   return {
     label: `${data.source ?? "AAA"} daily state average · live`,

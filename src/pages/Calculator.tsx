@@ -28,6 +28,8 @@ import {
   Info,
 } from "lucide-react";
 import { vehicles, getVehiclesByType, getMatchingGasVehicle } from "@/data/vehicles";
+import { STATE_ENERGY_RATES } from "@/data/state-energy-rates";
+import { incentiveHeadline } from "@/data/incentives";
 import {
   calculateTCO,
   compareVehicles,
@@ -60,6 +62,8 @@ const Calculator = () => {
   // one hardcoded figure, so picking a state changed nothing it computed.
   const { data: gasData } = useGasPrices();
   const gasEdited = useRef(false);
+  const elecEdited = useRef(false);
+  const incEdited = useRef(false);
 
   useEffect(() => {
     if (gasEdited.current) return; // never overwrite a number the visitor typed
@@ -68,6 +72,35 @@ const Calculator = () => {
     const price = Math.round(live * 100) / 100; // the feed carries 4dp; this is a $ field
     setInputs((prev) => (prev.gasPricePerGallon === price ? prev : { ...prev, gasPricePerGallon: price }));
   }, [inputs.state, gasData]);
+
+  /* The state selector re-priced gasoline and left electricity on a flat $0.14
+     for every state in the country. On the wizard's own default state that is
+     California at 31.0 cents, so the EV's running cost came out 55% under -
+     the largest single error this calculator could make, and it was already
+     wrong before the visitor touched anything. Same edit guard as gas: a
+     number the visitor typed always wins. */
+  useEffect(() => {
+    if (elecEdited.current) return;
+    const r = STATE_ENERGY_RATES[inputs.state];
+    if (!r) return;
+    const rate = Math.round(r.electricityCentsPerKwh) / 100;
+    setInputs((prev) => (prev.electricityRatePerKwh === rate ? prev : { ...prev, electricityRatePerKwh: rate }));
+  }, [inputs.state]);
+
+  /* Incentives follow the state too. The federal figure is zero because the
+     curated federal registry is empty — 30D and 30C were removed when they
+     sunset, and the two comparison pages already pass federalCredit: 0 — and
+     the state figure is the largest award in that state that actually comes off
+     the price of a vehicle. Georgia, for instance, has none: every programme it
+     carries is charger equipment or a rate plan. */
+  useEffect(() => {
+    if (incEdited.current) return;
+    const state = incentiveHeadline(inputs.state, { audience: "consumer" }).topVehicleAmount ?? 0;
+    setInputs((prev) =>
+      prev.federalIncentive === 0 && prev.stateIncentive === state
+        ? prev
+        : { ...prev, federalIncentive: 0, stateIncentive: state });
+  }, [inputs.state]);
 
   const [showResults, setShowResults] = useState(false);
 
@@ -311,7 +344,7 @@ const Calculator = () => {
                       <Input
                         type="number" step="0.01"
                         value={inputs.electricityRatePerKwh}
-                        onChange={(e) => updateInput("electricityRatePerKwh", parseFloat(e.target.value) || 0)}
+                        onChange={(e) => { elecEdited.current = true; updateInput("electricityRatePerKwh", parseFloat(e.target.value) || 0); }}
                         className="mt-2"
                       />
                     </div>
@@ -354,7 +387,7 @@ const Calculator = () => {
                       <Input
                         type="number"
                         value={inputs.federalIncentive}
-                        onChange={(e) => updateInput("federalIncentive", parseInt(e.target.value) || 0)}
+                        onChange={(e) => { incEdited.current = true; updateInput("federalIncentive", parseInt(e.target.value) || 0); }}
                         className="mt-2"
                       />
                     </div>
@@ -363,7 +396,7 @@ const Calculator = () => {
                       <Input
                         type="number"
                         value={inputs.stateIncentive}
-                        onChange={(e) => updateInput("stateIncentive", parseInt(e.target.value) || 0)}
+                        onChange={(e) => { incEdited.current = true; updateInput("stateIncentive", parseInt(e.target.value) || 0); }}
                         className="mt-2"
                       />
                     </div>

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { calculate, evKwhPerMile, homeShareFor, DEFAULTS, type EvCostInputs } from "./ev-cost";
+import { calculate, evKwhPerMile, homeShareFor, DEFAULTS, type EvCostInputs, ownershipOutcome } from "./ev-cost";
 
 // Golden file — EV Cost Calculator spec, Appendix A "Worked Example".
 //   2020 Honda Civic LX (32 MPG) → Tesla Model 3 RWD (0.244 kWh/mi)
@@ -92,5 +92,63 @@ describe("break-even", () => {
       federalCredit: 7500, stateRebate: 0, utilityRebate: 250, evPricePremium: 5000,
     });
     expect(r.breakEvenYears).toBe(0);
+  });
+});
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   ownershipOutcome — the four cases the badge above the chart has to tell apart.
+
+   This existed inline in ElectricityVsGasoline.tsx and GmEvVsGas.tsx, where no
+   test could reach it, and three of the four rendered as "EV leads on total cost
+   from day one" — including the case where the EV is worse on both counts.
+
+   upfrontDiff: EV upfront − gas upfront  (positive = EV costs more to buy)
+   runDiff:     gas annual − EV annual    (positive = EV costs less to run)
+   ───────────────────────────────────────────────────────────────────────────── */
+describe("ownershipOutcome", () => {
+  it("leads from day one when the EV is cheaper to buy and to run", () => {
+    const r = ownershipOutcome(-4_000, 900);
+    expect(r.verdict).toBe("always");
+    expect(r.crossing).toBeNull();
+  });
+
+  it("breaks even when the EV costs more to buy but less to run", () => {
+    const r = ownershipOutcome(21_800, 1_670);
+    expect(r.verdict).toBe("breakeven");
+    expect(r.crossing).toBeCloseTo(13.05, 2);
+  });
+
+  it("is overtaken when the EV is cheaper to buy but dearer to run", () => {
+    const r = ownershipOutcome(-3_000, -600);
+    expect(r.verdict).toBe("overtaken");
+    expect(r.crossing).toBeCloseTo(5, 5);
+  });
+
+  it("never catches up when the EV costs more to buy AND more to run", () => {
+    const r = ownershipOutcome(12_000, -400);
+    expect(r.verdict).toBe("never");
+    expect(r.crossing).toBeNull();
+  });
+
+  it("does not claim a day-one lead for the never case", () => {
+    // the regression this function exists for
+    expect(ownershipOutcome(12_000, -400).verdict).not.toBe("always");
+  });
+
+  it("treats an equal upfront price with an EV running advantage as a day-one lead", () => {
+    const r = ownershipOutcome(0, 500);
+    expect(r.verdict).toBe("always");
+    expect(r.crossing).toBeNull();
+  });
+
+  it("reports no crossing when the running costs are identical", () => {
+    // the gap never closes, whatever the upfront difference is
+    expect(ownershipOutcome(5_000, 0)).toEqual({ verdict: "never", crossing: null });
+    expect(ownershipOutcome(-5_000, 0)).toEqual({ verdict: "always", crossing: null });
+  });
+
+  it("returns a positive crossing year in both crossing directions", () => {
+    expect(ownershipOutcome(10_000, 1_000).crossing).toBeGreaterThan(0);
+    expect(ownershipOutcome(-10_000, -1_000).crossing).toBeGreaterThan(0);
   });
 });
