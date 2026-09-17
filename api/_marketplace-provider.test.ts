@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import {
   buildAutoDevQuery, normalizeAutoDevListing, haversineMiles, autoDevProvider,
-  listingPowertrain, autoDevCoords,
+  listingPowertrain, autoDevCoords, autoDevSearchRaw, MAX_PAGE,
 } from "./_marketplace-provider.js";
 
 afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
@@ -54,6 +54,63 @@ describe("buildAutoDevQuery", () => {
   it("clamps the page size to the provider cap", () => {
     const q = buildAutoDevQuery({ zip: "30301", radius: 25, models: [], limit: 5000 });
     expect(Number(q.get("limit"))).toBeLessThanOrEqual(100);
+  });
+
+  it("asks for the match count, which is opt-in upstream", () => {
+    const q = buildAutoDevQuery({ zip: "30301", radius: 25, models: [] });
+    expect(q.get("includes")).toBe("total");
+  });
+
+  it("passes a sort through and leaves it off when none is asked for", () => {
+    expect(buildAutoDevQuery({ zip: "30301", radius: 25, models: [], sort: "price.asc" }).get("sort"))
+      .toBe("price.asc");
+    expect(buildAutoDevQuery({ zip: "30301", radius: 25, models: [] }).has("sort")).toBe(false);
+  });
+
+  it("sends a page only past the first, and never past the cursor-free limit", () => {
+    expect(buildAutoDevQuery({ zip: "30301", radius: 25, models: [], page: 1 }).has("page")).toBe(false);
+    expect(buildAutoDevQuery({ zip: "30301", radius: 25, models: [], page: 4 }).get("page")).toBe("4");
+    expect(Number(buildAutoDevQuery({ zip: "30301", radius: 25, models: [], page: 9999 }).get("page")))
+      .toBe(MAX_PAGE);
+  });
+});
+
+describe("autoDevSearchRaw", () => {
+  const search = () => autoDevSearchRaw({ zip: "30301", radius: 25, models: [], limit: 100 });
+
+  it("reads the rows, the match count and the next-page link", async () => {
+    vi.stubEnv("MARKETPLACE_API_KEY", "k");
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ records: [{ a: 1 }], total: 137, links: { next: "https://api/x?page=2" } }),
+    }));
+    await expect(search()).resolves.toEqual({ rows: [{ a: 1 }], total: 137, hasMore: true });
+  });
+
+  it("treats a full page as more to come when the provider offers no next link", async () => {
+    vi.stubEnv("MARKETPLACE_API_KEY", "k");
+    const rows = Array.from({ length: 100 }, (_, i) => ({ i }));
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
+      ok: true, status: 200, json: async () => ({ records: rows }),
+    }));
+    const page = await search();
+    expect(page.hasMore).toBe(true);
+    expect(page.total).toBeUndefined();
+  });
+
+  it("does not claim more pages on a short one", async () => {
+    vi.stubEnv("MARKETPLACE_API_KEY", "k");
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
+      ok: true, status: 200, json: async () => ({ records: [{ a: 1 }], links: {} }),
+    }));
+    await expect(search()).resolves.toEqual({ rows: [{ a: 1 }], total: undefined, hasMore: false });
+  });
+
+  it("degrades to an empty page when the provider fails", async () => {
+    vi.stubEnv("MARKETPLACE_API_KEY", "k");
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false, status: 500, json: async () => ({}) }));
+    await expect(search()).resolves.toEqual({ rows: [], hasMore: false });
   });
 });
 

@@ -19,7 +19,7 @@ vi.mock("./_marketplace-provider.js", async () => {
   return {
     ...actual,
     autoDevProvider: vi.fn(() => ({ configured: true, search: vi.fn() })),
-    autoDevSearchRaw: vi.fn().mockResolvedValue([]),
+    autoDevSearchRaw: vi.fn().mockResolvedValue({ rows: [], hasMore: false }),
   };
 });
 
@@ -55,10 +55,14 @@ const listingRow = (over: Record<string, unknown> = {}) => ({
   ...over,
 });
 
+/** One upstream page, in the shape autoDevSearchRaw now returns. */
+const providerPage = (rows: unknown[], over: Record<string, unknown> = {}) =>
+  ({ rows, hasMore: false, ...over }) as never;
+
 beforeEach(() => {
   vi.mocked(resolveQuery).mockResolvedValue(ATLANTA as never);
   vi.mocked(autoDevProvider).mockReturnValue({ configured: true, search: vi.fn() } as never);
-  vi.mocked(autoDevSearchRaw).mockResolvedValue([]);
+  vi.mocked(autoDevSearchRaw).mockResolvedValue(providerPage([]));
   vi.mocked(checkRateLimit).mockResolvedValue({ ok: true, hits: 1, limit: 120, retryAfter: 60 } as never);
 });
 afterEach(() => vi.clearAllMocks());
@@ -101,7 +105,7 @@ describe("GET /api/marketplace", () => {
   });
 
   it("returns a matched EV listing with its catalog id and distance", async () => {
-    vi.mocked(autoDevSearchRaw).mockResolvedValue([listingRow()] as never);
+    vi.mocked(autoDevSearchRaw).mockResolvedValue(providerPage([listingRow()]));
     const res = mockRes();
     await handler({ method: "GET", query: { q: "30303" } }, res);
 
@@ -118,10 +122,10 @@ describe("GET /api/marketplace", () => {
   it("DROPS a listing that is not a known electrified model", async () => {
     // The whole point of the verification step: the provider cannot filter by
     // fuel type, so a petrol car can come back and must never be shown.
-    vi.mocked(autoDevSearchRaw).mockResolvedValue([
+    vi.mocked(autoDevSearchRaw).mockResolvedValue(providerPage([
       listingRow(),
       listingRow({ "@id": "row-2", vin: "JT2BF22K1W0000000", vehicle: { year: 2021, make: "Toyota", model: "Corolla", fuel: "Gasoline" } }),
-    ] as never);
+    ]));
     const res = mockRes();
     await handler({ method: "GET", query: { q: "30303" } }, res);
 
@@ -131,11 +135,11 @@ describe("GET /api/marketplace", () => {
   });
 
   it("sorts nearest first and puts listings without coordinates last", async () => {
-    vi.mocked(autoDevSearchRaw).mockResolvedValue([
+    vi.mocked(autoDevSearchRaw).mockResolvedValue(providerPage([
       listingRow({ vin: "VINFAR000000000001", location: [-84.9, 34.5] }),
       listingRow({ vin: "VINNOC000000000001", location: undefined }),
       listingRow({ vin: "VINNEA000000000001", location: [-84.39, 33.75] }),
-    ] as never);
+    ]));
     const res = mockRes();
     await handler({ method: "GET", query: { q: "30303" } }, res);
 
@@ -143,8 +147,107 @@ describe("GET /api/marketplace", () => {
     expect(body.listings.map((l) => l.id)).toEqual(["VINNEA000000000001", "VINFAR000000000001", "VINNOC000000000001"]);
   });
 
+  it("hands a sort the provider understands upstream and keeps its order", async () => {
+    vi.mocked(autoDevSearchRaw).mockResolvedValue(providerPage([
+      listingRow({ vin: "VINFAR000000000001", location: [-84.9, 34.5] }),
+      listingRow({ vin: "VINNEA000000000001", location: [-84.39, 33.75] }),
+    ]));
+    const res = mockRes();
+    await handler({ method: "GET", query: { q: "30303", sort: "price-asc" } }, res);
+
+    expect(vi.mocked(autoDevSearchRaw).mock.calls[0][0].sort).toBe("price.asc");
+    // Upstream said these two are the cheapest, in this order. Re-sorting them
+    // by distance here would discard exactly what the sort was for.
+    const body = res._out.body as { listings: Array<Record<string, unknown>> };
+    expect(body.listings.map((l) => l.id))
+      .toEqual(["VINFAR000000000001", "VINNEA000000000001"]);
+  });
+
+  it("sorts by distance itself for an order the provider cannot apply", async () => {
+    vi.mocked(autoDevSearchRaw).mockResolvedValue(providerPage([
+      listingRow({ vin: "VINFAR000000000001", location: [-84.9, 34.5] }),
+      listingRow({ vin: "VINNEA000000000001", location: [-84.39, 33.75] }),
+    ]));
+    const res = mockRes();
+    await handler({ method: "GET", query: { q: "30303", sort: "range-desc" } }, res);
+
+    expect(vi.mocked(autoDevSearchRaw).mock.calls[0][0].sort).toBeUndefined();
+    const body = res._out.body as { listings: Array<Record<string, unknown>> };
+    expect(body.listings.map((l) => l.id))
+      .toEqual(["VINNEA000000000001", "VINFAR000000000001"]);
+  });
+
+  it("ignores a sort nobody offers rather than passing it through", async () => {
+    const res = mockRes();
+    await handler({ method: "GET", query: { q: "30303", sort: "price.asc; DROP" } }, res);
+    expect(vi.mocked(autoDevSearchRaw).mock.calls[0][0].sort).toBeUndefined();
+  });
+
+  it("passes the requested page upstream and reports paging back", async () => {
+    vi.mocked(autoDevSearchRaw).mockResolvedValue(
+      providerPage([listingRow()], { total: 137, hasMore: true }),
+    );
+    const res = mockRes();
+    await handler({ method: "GET", query: { q: "30303", page: "3" } }, res);
+
+    expect(vi.mocked(autoDevSearchRaw).mock.calls[0][0].page).toBe(3);
+    const body = res._out.body as Record<string, unknown>;
+    expect(body.page).toBe(3);
+    expect(body.hasMore).toBe(true);
+    // The provider's count, not ours: it includes cars our fuel check drops.
+    expect(body.total).toBe(137);
+    expect(body.pageSize).toBe(1);
+  });
+
+  it("stops offering more once it reaches the last page it can fetch", async () => {
+    // Past this the provider wants a cursor we do not issue, so another click
+    // would spend a metered call to be handed the same page again.
+    vi.mocked(autoDevSearchRaw).mockResolvedValue(
+      providerPage([listingRow()], { total: 9999, hasMore: true }),
+    );
+    const res = mockRes();
+    await handler({ method: "GET", query: { q: "30303", page: "50" } }, res);
+    expect((res._out.body as Record<string, unknown>).hasMore).toBe(false);
+  });
+
+  it("counts pages from a page the provider says is full", async () => {
+    const rows = Array.from({ length: 20 }, (_, i) => listingRow({ vin: `VIN${String(i).padStart(14, "0")}` }));
+    vi.mocked(autoDevSearchRaw).mockResolvedValue(providerPage(rows, { total: 137, hasMore: true }));
+    const res = mockRes();
+    await handler({ method: "GET", query: { q: "30303" } }, res);
+    expect((res._out.body as Record<string, unknown>).pageCount).toBe(7);
+  });
+
+  it("calls a page the provider says is the last one the last one", async () => {
+    // Counting 137/3 here would promise 46 pages that do not exist.
+    vi.mocked(autoDevSearchRaw).mockResolvedValue(
+      providerPage([listingRow()], { total: 137, hasMore: false }),
+    );
+    const res = mockRes();
+    await handler({ method: "GET", query: { q: "30303", page: "7" } }, res);
+    const body = res._out.body as Record<string, unknown>;
+    expect(body.pageCount).toBe(7);
+    expect(body.hasMore).toBe(false);
+  });
+
+  it("lets the CDN absorb a repeat of the same search", async () => {
+    const res = mockRes();
+    await handler({ method: "GET", query: { q: "30303" } }, res);
+    expect(res._out.headers["Cache-Control"]).toMatch(/s-maxage=\d+/);
+  });
+
+  it("clamps a page number outside what the provider will serve", async () => {
+    const res = mockRes();
+    await handler({ method: "GET", query: { q: "30303", page: "9999" } }, res);
+    expect(vi.mocked(autoDevSearchRaw).mock.calls[0][0].page).toBe(50);
+
+    vi.mocked(autoDevSearchRaw).mockClear();
+    await handler({ method: "GET", query: { q: "30303", page: "-4" } }, mockRes());
+    expect(vi.mocked(autoDevSearchRaw).mock.calls[0][0].page).toBe(1);
+  });
+
   it("clamps an absurd radius instead of rejecting it", async () => {
-    vi.mocked(autoDevSearchRaw).mockResolvedValue([] as never);
+    vi.mocked(autoDevSearchRaw).mockResolvedValue(providerPage([]));
     const res = mockRes();
     await handler({ method: "GET", query: { q: "30303", radius: "99999" } }, res);
     expect(res._out.code).toBe(200);
@@ -153,7 +256,7 @@ describe("GET /api/marketplace", () => {
   });
 
   it("returns an empty list, not an error, when the provider yields nothing", async () => {
-    vi.mocked(autoDevSearchRaw).mockResolvedValue([] as never);
+    vi.mocked(autoDevSearchRaw).mockResolvedValue(providerPage([]));
     const res = mockRes();
     await handler({ method: "GET", query: { q: "30303" } }, res);
     expect(res._out.code).toBe(200);
@@ -171,18 +274,18 @@ describe("fuel verification", () => {
   it("drops a petrol car even when its NAME matches a catalog EV", async () => {
     // The strongest guard: a mislabelled or oddly-named petrol car must not be
     // rescued by name matching. Fuel wins.
-    vi.mocked(autoDevSearchRaw).mockResolvedValue([
+    vi.mocked(autoDevSearchRaw).mockResolvedValue(providerPage([
       listingRow({ vehicle: { year: 2022, make: "Tesla", model: "Model 3", fuel: "Gasoline" } }),
-    ] as never);
+    ]));
     const res = mockRes();
     await handler({ method: "GET", query: { q: "30303" } }, res);
     expect((res._out.body as { listings: unknown[] }).listings).toEqual([]);
   });
 
   it("keeps a plug-in hybrid and labels it phev", async () => {
-    vi.mocked(autoDevSearchRaw).mockResolvedValue([
+    vi.mocked(autoDevSearchRaw).mockResolvedValue(providerPage([
       listingRow({ vehicle: { year: 2022, make: "Tesla", model: "Model 3", fuel: "Plug-in Hybrid" } }),
-    ] as never);
+    ]));
     const res = mockRes();
     await handler({ method: "GET", query: { q: "30303" } }, res);
     const body = res._out.body as { listings: Array<Record<string, unknown>> };
@@ -191,9 +294,9 @@ describe("fuel verification", () => {
   });
 
   it("drops a listing with no fuel field rather than assuming electric", async () => {
-    vi.mocked(autoDevSearchRaw).mockResolvedValue([
+    vi.mocked(autoDevSearchRaw).mockResolvedValue(providerPage([
       listingRow({ vehicle: { year: 2022, make: "Tesla", model: "Model 3" } }),
-    ] as never);
+    ]));
     const res = mockRes();
     await handler({ method: "GET", query: { q: "30303" } }, res);
     expect((res._out.body as { listings: unknown[] }).listings).toEqual([]);

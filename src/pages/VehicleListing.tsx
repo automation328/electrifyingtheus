@@ -5,8 +5,9 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useMarketplace, findListing } from "@/hooks/use-marketplace";
-import { isSortKey } from "@/lib/marketplace-sort";
+import { useMarketplace, findListing, type MarketplaceFilters } from "@/hooks/use-marketplace";
+import { isSortKey, isProviderSorted } from "@/lib/marketplace-sort";
+import { MAX_MARKETPLACE_PAGE } from "@/lib/marketplace-types";
 import { vehicles } from "@/data/vehicles";
 import { calculate, homeShareFor, DEFAULTS } from "@/lib/ev-cost";
 import { NATIONAL_AVG, STATE_ENERGY_RATES, STATIC_GAS_PRICES } from "@/data/state-energy-rates";
@@ -31,20 +32,38 @@ const VehicleListing = () => {
   const [params] = useSearchParams();
   const query = (params.get("q") || "").trim();
 
-  // Going back means going back to the list as it was left — same search, same
-  // order. The sort only travels through the URL, so it has to be handed on.
+  // The card handed over the whole search that found this car. Re-running it
+  // with anything missing — the radius, the price filter, the order, the page —
+  // returns a different set of listings, and this one is then "unavailable"
+  // despite being on screen a second ago.
+  const radius = Number(params.get("radius")) || null;
+  const sortParam = params.get("sort");
+  const sort = isSortKey(sortParam) ? sortParam : undefined;
+  const page = Math.min(Math.max(Number(params.get("page")) || 1, 1), MAX_MARKETPLACE_PAGE);
+
+  const filters = useMemo(() => {
+    const out: MarketplaceFilters = {};
+    for (const key of ["priceMin", "priceMax", "yearMin", "yearMax"] as const) {
+      const value = Number(params.get(key));
+      if (Number.isFinite(value) && value > 0) out[key] = value;
+    }
+    return out;
+  }, [params]);
+
+  // Going back means going back to the list as it was left: same search, same
+  // filters, same order, same page.
   const backSearch = useMemo(() => {
-    const p = new URLSearchParams();
-    if (query) p.set("q", query);
-    const sort = params.get("sort");
-    if (isSortKey(sort)) p.set("sort", sort);
+    const p = new URLSearchParams(params);
+    p.delete("embed");
     const s = p.toString();
     return s ? `?${s}` : "";
-  }, [params, query]);
+  }, [params]);
 
   // No by-id endpoint exists upstream, so the detail page reads the listing out
   // of the search the visitor arrived from.
-  const { data, isFetching } = useMarketplace(query);
+  const { data, isFetching } = useMarketplace(
+    query, radius, filters, sort && isProviderSorted(sort) ? sort : undefined, page,
+  );
   const listing = findListing(data, decodeURIComponent(id));
 
   const { data: gasData } = useGasPrices();

@@ -16,7 +16,7 @@
 // Env (server-only):
 //   MARKETPLACE_API_KEY   provider key. Unset ⇒ configured:false, no upstream call.
 
-import type { VehicleListing } from "../src/lib/marketplace-types.js";
+import { MAX_MARKETPLACE_PAGE, type VehicleListing } from "../src/lib/marketplace-types.js";
 
 const ENDPOINT = "https://api.auto.dev/listings";
 /** Auto.dev caps page size by plan (Free 20, Growth 100, Scale 500). Ask for no
@@ -33,7 +33,28 @@ export interface ProviderSearch {
   yearMin?: number;
   yearMax?: number;
   limit?: number;
+  /** Upstream sort, as "<field>.<direction>" — see providerSortFor(). Omitted,
+   *  the provider returns its own default order (most recently updated). */
+  sort?: string;
+  /** 1-based. The provider's own paging; deep paging past 50 needs a cursor,
+   *  which we do not use, so callers stay inside MAX_PAGE. */
+  page?: number;
 }
+
+/** One upstream page, with what the provider says about the rest of them. */
+export interface ProviderPage {
+  rows: unknown[];
+  /** Listings matching the query, ignoring paging. Undefined when the provider
+   *  did not report one. Counts everything it matched — including cars our own
+   *  electrified check will drop — so it is an upper bound, never our count. */
+  total?: number;
+  /** The provider offered a next page. */
+  hasMore: boolean;
+}
+
+/** Deep paging past this needs cursors, which this adapter does not implement.
+ *  Shared with the client so both stop asking at the same place. */
+export const MAX_PAGE = MAX_MARKETPLACE_PAGE;
 
 export interface MarketplaceProvider {
   configured: boolean;
@@ -66,6 +87,11 @@ export function buildAutoDevQuery(p: ProviderSearch): URLSearchParams {
     q.set("vehicle.year", `${p.yearMin ?? 1990}-${p.yearMax ?? 2100}`);
   }
   q.set("limit", String(Math.min(p.limit ?? MAX_LIMIT, MAX_LIMIT)));
+  if (p.sort) q.set("sort", p.sort);
+  if (p.page && p.page > 1) q.set("page", String(Math.min(Math.floor(p.page), MAX_PAGE)));
+  // The match count is opt-in upstream and is what lets the page say how much
+  // more there is rather than implying one page is everything.
+  q.set("includes", "total");
   return q;
 }
 
@@ -167,9 +193,10 @@ export function autoDevCoords(raw: unknown): { lat: number; lon: number } | null
 }
 
 /** Raw records from one upstream search, for callers that need coordinates too. */
-export async function autoDevSearchRaw(p: ProviderSearch): Promise<unknown[]> {
+export async function autoDevSearchRaw(p: ProviderSearch): Promise<ProviderPage> {
+  const empty: ProviderPage = { rows: [], hasMore: false };
   const key = process.env.MARKETPLACE_API_KEY;
-  if (!key) return [];
+  if (!key) return empty;
 
   try {
     // AbortSignal.timeout is absent in some runtimes (jsdom, older Node). Without
@@ -191,15 +218,26 @@ export async function autoDevSearchRaw(p: ProviderSearch): Promise<unknown[]> {
     });
     if (!res.ok) {
       console.warn(`[marketplace] provider responded ${res.status}`);
-      return [];
+      return empty;
     }
     const body = await res.json() as Record<string, unknown>;
     const rows = body.records ?? body.listings ?? body.data ?? body.results;
-    return Array.isArray(rows) ? rows : [];
+    const list = Array.isArray(rows) ? rows : [];
+
+    const links = body.links && typeof body.links === "object"
+      ? body.links as Record<string, unknown>
+      : {};
+    // A next link is the provider's own word on whether more exist. Without one
+    // (an older response shape), a full page is the only evidence available.
+    const hasMore = typeof links.next === "string" && links.next.length > 0
+      ? true
+      : list.length >= Math.min(p.limit ?? MAX_LIMIT, MAX_LIMIT);
+
+    return { rows: list, total: num(body.total), hasMore };
   } catch (err) {
     // A provider outage must degrade to "no results", never to a 500 on our site.
     console.warn(`[marketplace] provider unreachable: ${(err as Error)?.message ?? err}`);
-    return [];
+    return empty;
   }
 }
 
@@ -207,7 +245,7 @@ export function autoDevProvider(): MarketplaceProvider {
   return {
     configured: Boolean(process.env.MARKETPLACE_API_KEY),
     async search(p) {
-      const rows = await autoDevSearchRaw(p);
+      const { rows } = await autoDevSearchRaw(p);
       return rows
         .map((r) => normalizeAutoDevListing(r))
         .filter(Boolean) as VehicleListing[];

@@ -1,5 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { sortListings, isSortKey, SORT_OPTIONS, DEFAULT_SORT } from "./marketplace-sort";
+import {
+  sortListings, isSortKey, providerSortFor, isProviderSorted,
+  SORT_OPTIONS, DEFAULT_SORT,
+} from "./marketplace-sort";
 import type { VehicleListing } from "./marketplace-types";
 
 const listing = (id: string, over: Partial<VehicleListing> = {}): VehicleListing => ({
@@ -59,6 +62,30 @@ describe("sortListings", () => {
     const original = [...rows];
     sortListings(rows, "price-asc");
     expect(rows).toEqual(original);
+  });
+});
+
+describe("providerSortFor", () => {
+  it("maps the orders the provider can apply to its own parameter", () => {
+    expect(providerSortFor("price-asc")).toBe("price.asc");
+    expect(providerSortFor("price-desc")).toBe("price.desc");
+    expect(providerSortFor("mileage-asc")).toBe("miles.asc");
+    expect(providerSortFor("mileage-desc")).toBe("miles.desc");
+    expect(providerSortFor("year-asc")).toBe("year.asc");
+    expect(providerSortFor("year-desc")).toBe("year.desc");
+  });
+
+  it("has nothing for distance or range, which the provider cannot sort on", () => {
+    expect(providerSortFor("distance")).toBeUndefined();
+    expect(providerSortFor("range-desc")).toBeUndefined();
+    expect(isProviderSorted("distance")).toBe(false);
+    expect(isProviderSorted("price-asc")).toBe(true);
+  });
+
+  it("covers every offered option one way or the other", () => {
+    for (const option of SORT_OPTIONS) {
+      expect(typeof isProviderSorted(option.value)).toBe("boolean");
+    }
   });
 });
 

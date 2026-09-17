@@ -44,6 +44,38 @@ export function isSortKey(value: string | null | undefined): value is SortKey {
   return SORT_OPTIONS.some((o) => o.value === value);
 }
 
+/**
+ * The provider's own sort parameter for an order it can apply itself.
+ *
+ * This is the difference between "the cheapest of the listings we happen to
+ * hold" and "the cheapest in the radius": the endpoint returns one capped page,
+ * so whichever order the PROVIDER applies decides which cars are on it. Sorting
+ * upstream costs no extra request.
+ *
+ * Distance and range are absent on purpose. The provider cannot sort on either
+ * — it has no range figure at all (that comes from our catalog) and does not
+ * offer distance as a sort field — so those two are ordered here, over the page
+ * that came back.
+ */
+const PROVIDER_SORT: Partial<Record<SortKey, string>> = {
+  "price-asc": "price.asc",
+  "price-desc": "price.desc",
+  "mileage-asc": "miles.asc",
+  "mileage-desc": "miles.desc",
+  "year-asc": "year.asc",
+  "year-desc": "year.desc",
+};
+
+export function providerSortFor(key: SortKey): string | undefined {
+  return PROVIDER_SORT[key];
+}
+
+/** Whether the order reaches across every listing in the radius (the provider
+ *  applied it) or only across the page we were given. */
+export function isProviderSorted(key: SortKey): boolean {
+  return providerSortFor(key) != null;
+}
+
 /** A listing missing the field being sorted on goes last, whichever direction
  *  the sort runs: a hidden price is not "cheapest", and a listing without
  *  coordinates is not "nearest". A naive numeric compare would float those to

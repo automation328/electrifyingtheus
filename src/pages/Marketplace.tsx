@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Search, Loader2, Info, SlidersHorizontal, X, CarFront } from "lucide-react";
+import {
+  Search, Loader2, Info, SlidersHorizontal, X, CarFront, ChevronLeft, ChevronRight,
+} from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -16,8 +18,10 @@ import { ListingCard, ListingCardSkeleton } from "@/components/marketplace/Listi
 import { useEmbedFrame } from "@/hooks/useEmbedFrame";
 import { useMarketplace } from "@/hooks/use-marketplace";
 import {
-  sortListings, isSortKey, SORT_OPTIONS, DEFAULT_SORT, type SortKey,
+  sortListings, isSortKey, isProviderSorted,
+  SORT_OPTIONS, DEFAULT_SORT, type SortKey,
 } from "@/lib/marketplace-sort";
+import { MAX_MARKETPLACE_PAGE } from "@/lib/marketplace-types";
 import {
   readFilters, writeFilters, serverFilters, applyFilters, activeFilterCount,
   filterChips, EMPTY_FILTERS, type FilterState,
@@ -40,6 +44,9 @@ const Marketplace = () => {
   const radius = Number(params.get("radius")) || null;
   const sortParam = params.get("sort");
   const sort: SortKey = isSortKey(sortParam) ? sortParam : DEFAULT_SORT;
+  // Clamped to the same ceiling the endpoint enforces, so a hand-typed ?page=900
+  // asks for page 50 once instead of paying for it on every render.
+  const page = Math.min(Math.max(Number(params.get("page")) || 1, 1), MAX_MARKETPLACE_PAGE);
   const filters = useMemo(() => readFilters(params), [params]);
 
   useEffect(() => { setTyped(urlQuery); setQuery(urlQuery); }, [urlQuery]);
@@ -47,11 +54,19 @@ const Marketplace = () => {
   // Price and year are provider parameters, so they change WHICH listings come
   // back. Memoised because the object is part of the query cache key.
   const upstream = useMemo(() => serverFilters(filters), [filters]);
-  const { data, isFetching, error } = useMarketplace(query, radius, upstream);
+  // The endpoint takes our own sort key and does the translation to the
+  // provider's vocabulary itself. Sending the translated value instead would
+  // fail its guard and silently drop the sort — which is the whole request.
+  const { data, isFetching, error } = useMarketplace(
+    query, radius, upstream, isProviderSorted(sort) ? sort : undefined, page,
+  );
 
-  const patchParams = (mutate: (p: URLSearchParams) => void) => {
+  /** Every change except paging invalidates the page number: page 4 of the old
+   *  search is not page 4 of the new one. */
+  const patchParams = (mutate: (p: URLSearchParams) => void, keepPage = false) => {
     const next = new URLSearchParams(params);
     mutate(next);
+    if (!keepPage) next.delete("page");
     setParams(next, { replace: true });
   };
 
@@ -70,8 +85,18 @@ const Marketplace = () => {
   const changeRadius = (next: number | null) =>
     patchParams((p) => { if (next) p.set("radius", String(next)); else p.delete("radius"); });
 
-  const changeFilters = (next: FilterState) =>
-    setParams(writeFilters(params, next), { replace: true });
+  const changeFilters = (next: FilterState) => {
+    const written = writeFilters(params, next);
+    written.delete("page");
+    setParams(written, { replace: true });
+  };
+
+  const changePage = (next: number) => {
+    const target = Math.min(Math.max(next, 1), MAX_MARKETPLACE_PAGE);
+    if (target === page) return;
+    patchParams((p) => { if (target > 1) p.set("page", String(target)); else p.delete("page"); }, true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   const clearFilters = () => changeFilters(EMPTY_FILTERS);
 
@@ -82,30 +107,47 @@ const Marketplace = () => {
   const chips = useMemo(() => filterChips(filters), [filters]);
   const activeCount = activeFilterCount(filters);
 
-  // What a card carries onto the detail page: the search that found it and the
-  // order it was found in, so "Back to results" returns to the list as left.
+  // What a card carries onto the detail page. The detail page has no by-id
+  // endpoint upstream: it re-runs this exact search and finds the listing in the
+  // results. So everything that decides which listings come back has to travel
+  // — the place, the radius, the upstream filters, the order AND the page. Drop
+  // any one of them and a car found on page 3 reads as "no longer available".
   const listingSearch = useMemo(() => {
     const p = new URLSearchParams();
     if (query) p.set("q", query);
+    if (radius) p.set("radius", String(radius));
     if (sort !== DEFAULT_SORT) p.set("sort", sort);
+    if (page > 1) p.set("page", String(page));
+    for (const [key, value] of Object.entries(upstream)) {
+      if (value != null) p.set(key, String(value));
+    }
     const s = p.toString();
     return s ? `?${s}` : "";
-  }, [query, sort]);
+  }, [page, query, radius, sort, upstream]);
+
+  // Pages of provider matches, counted server-side where the real page size is
+  // known. It counts listings the provider matched, not cars we verified as
+  // electrified, so it is shown next to the pager and never next to the count
+  // of vehicles on screen.
+  const pageCount = data?.pageCount;
+  const paged = Boolean(data?.hasMore) || page > 1;
 
   const heading = useMemo(() => {
     if (!query || !data?.configured) return null;
     const where = data.place?.label ? ` near ${data.place.label}` : "";
     if (activeCount > 0) {
-      return `${listings.length} of ${found.length} vehicles${where} match your filters`;
+      return `${listings.length} of ${found.length} on this page match your filters`;
     }
-    if (!listings.length) return `No electrified vehicles found${where}`;
-    const total = data.total ?? listings.length;
-    // The endpoint returns a capped page of the nearest matches, so any order
-    // other than closest-first sorts that page rather than the whole radius.
-    // Say so, instead of implying the cheapest car for 250 miles is on screen.
-    const capped = total > listings.length ? ` · showing the ${listings.length} closest` : "";
-    return `${total} electrified ${total === 1 ? "vehicle" : "vehicles"}${where}${capped}`;
-  }, [activeCount, data, found.length, listings.length, query]);
+    // Verification can empty a page while other pages still hold cars, so an
+    // empty page says "this page", not "nowhere near you".
+    if (!listings.length) {
+      return paged
+        ? "No electrified vehicles on this page"
+        : `No electrified vehicles found${where}`;
+    }
+    const count = `${listings.length} electrified ${listings.length === 1 ? "vehicle" : "vehicles"}`;
+    return paged ? `${count}${where} · page ${page}` : `${count}${where}`;
+  }, [activeCount, data, found.length, listings.length, page, paged, query]);
 
   const panel = (
     <FilterPanel
@@ -249,18 +291,65 @@ const Marketplace = () => {
                   </div>
                 )}
 
+                {/* An order the provider cannot apply is applied here, to the
+                    page it chose — worth saying once there is more than one
+                    page, because it is the difference between "the closest for
+                    50 miles" and "the closest of these". */}
+                {paged && listings.length > 0 && !isProviderSorted(sort) && (
+                  <p className="mt-4 text-xs text-muted-foreground">
+                    {SORT_OPTIONS.find((o) => o.value === sort)?.label} orders this page.
+                    Sorting by price, mileage or year searches the whole area.
+                  </p>
+                )}
+
+                {/* Outside the results block on purpose: our electrified check
+                    can empty a page the provider filled, and that is exactly
+                    when someone needs the way back. */}
+                {paged && (
+                  <nav
+                    className="mt-8 flex items-center justify-center gap-3"
+                    aria-label="Result pages"
+                  >
+                    <Button
+                      variant="outline"
+                      className="rounded-xl"
+                      onClick={() => changePage(page - 1)}
+                      disabled={page <= 1 || isFetching}
+                    >
+                      <ChevronLeft className="mr-1 h-4 w-4" aria-hidden />
+                      Previous
+                    </Button>
+                    <span className="text-sm tabular-nums text-muted-foreground">
+                      Page {page}{pageCount && pageCount > 1 ? ` of ${pageCount}` : ""}
+                    </span>
+                    <Button
+                      variant="outline"
+                      className="rounded-xl"
+                      onClick={() => changePage(page + 1)}
+                      disabled={!data?.hasMore || isFetching}
+                    >
+                      Next
+                      <ChevronRight className="ml-1 h-4 w-4" aria-hidden />
+                    </Button>
+                  </nav>
+                )}
+
                 {noResults && (
                   <div className="rounded-2xl border border-dashed border-border bg-card/50 p-10 text-center">
                     <CarFront className="mx-auto mb-3 h-8 w-8 text-muted-foreground" aria-hidden />
                     <p className="font-semibold text-foreground">
                       {activeCount > 0
                         ? "No vehicles match these filters"
-                        : "Nothing electrified for sale here yet"}
+                        : paged
+                          ? "Nothing electrified on this page"
+                          : "Nothing electrified for sale here yet"}
                     </p>
                     <p className="mx-auto mt-1.5 max-w-sm text-sm text-muted-foreground">
                       {activeCount > 0
-                        ? "Inventory this close changes weekly. Loosen a filter or widen the distance."
-                        : "Try a wider distance, or a larger city nearby."}
+                        ? "Filters apply to the page you are on. Loosen one, widen the distance, or try another page."
+                        : paged
+                          ? "Dealers list petrol cars under these model names too, and we drop those. Try the next page."
+                          : "Try a wider distance, or a larger city nearby."}
                     </p>
                     {activeCount > 0 && (
                       <Button variant="outline" className="mt-5 rounded-xl" onClick={clearFilters}>

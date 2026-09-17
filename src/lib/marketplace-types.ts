@@ -6,6 +6,14 @@
 /** Powertrains this marketplace will surface. Anything else is dropped. */
 export type ListingPowertrain = "ev" | "phev";
 
+/**
+ * Deepest page either side will ask for. The provider switches to cursors past
+ * this, which this adapter does not implement, so the server clamps to it and
+ * the page stops offering Next there — otherwise every further click spends a
+ * metered upstream call to re-receive page 50.
+ */
+export const MAX_MARKETPLACE_PAGE = 50;
+
 export interface VehicleListing {
   /** Stable id for routing. VIN when the provider gives one, else provider id. */
   id: string;
@@ -41,5 +49,24 @@ export interface MarketplaceResponse {
   /** False when no provider key is set. The UI says so rather than showing
    *  "no results", which would imply we looked and found nothing. */
   configured: boolean;
+  /**
+   * Listings the provider matched in the radius, ignoring paging — an upper
+   * bound on what is out there, NOT a count of electrified cars. Our own fuel
+   * and catalog checks run after it, so the verified count is listings.length.
+   * Undefined when the provider reported no count.
+   */
   total?: number;
+  /** 1-based page of provider results this response came from. */
+  page: number;
+  /** Listings the provider put on this page, before our electrified check. */
+  pageSize?: number;
+  /**
+   * How many pages the provider's own results run to. Computed server-side
+   * from a page size we know is real, because the plan silently clamps what we
+   * ask for; undefined when the provider reported no count. Counts pages of
+   * MATCHED listings, not of verified electrified ones.
+   */
+  pageCount?: number;
+  /** The provider has at least one more page after this one, and we can reach it. */
+  hasMore: boolean;
 }
