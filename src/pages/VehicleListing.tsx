@@ -6,6 +6,7 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useMarketplace, findListing } from "@/hooks/use-marketplace";
+import { isSortKey } from "@/lib/marketplace-sort";
 import { vehicles } from "@/data/vehicles";
 import { calculate, homeShareFor, DEFAULTS } from "@/lib/ev-cost";
 import { NATIONAL_AVG, STATE_ENERGY_RATES, STATIC_GAS_PRICES } from "@/data/state-energy-rates";
@@ -29,6 +30,17 @@ const VehicleListing = () => {
   const { id = "" } = useParams();
   const [params] = useSearchParams();
   const query = (params.get("q") || "").trim();
+
+  // Going back means going back to the list as it was left — same search, same
+  // order. The sort only travels through the URL, so it has to be handed on.
+  const backSearch = useMemo(() => {
+    const p = new URLSearchParams();
+    if (query) p.set("q", query);
+    const sort = params.get("sort");
+    if (isSortKey(sort)) p.set("sort", sort);
+    const s = p.toString();
+    return s ? `?${s}` : "";
+  }, [params, query]);
 
   // No by-id endpoint exists upstream, so the detail page reads the listing out
   // of the search the visitor arrived from.
@@ -123,7 +135,9 @@ const VehicleListing = () => {
             <p className="text-muted-foreground mb-6">
               Vehicle listings change constantly — this one may already be sold. Search again to see what's available now.
             </p>
-            <Button asChild className="rounded-xl"><Link to="/marketplace">Back to the marketplace</Link></Button>
+            <Button asChild className="rounded-xl">
+              <Link to={`/marketplace${backSearch}`}>Back to the marketplace</Link>
+            </Button>
           </div>
         </main>
         <Footer />
@@ -139,7 +153,7 @@ const VehicleListing = () => {
       <main className="flex-1 pt-28 pb-16">
         <div className="container px-4 max-w-5xl">
           <Link
-            to={`/marketplace${query ? `?q=${encodeURIComponent(query)}` : ""}`}
+            to={`/marketplace${backSearch}`}
             className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-6"
           >
             <ArrowLeft className="w-4 h-4" /> Back to results
