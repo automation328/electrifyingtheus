@@ -10,18 +10,22 @@ export type SortKey =
   | "price-asc"
   | "price-desc"
   | "mileage-asc"
+  | "mileage-desc"
   | "year-desc"
+  | "year-asc"
   | "range-desc";
 
 export const DEFAULT_SORT: SortKey = "distance";
 
 export const SORT_OPTIONS: ReadonlyArray<{ value: SortKey; label: string }> = [
-  { value: "distance", label: "Nearest first" },
-  { value: "price-asc", label: "Price: low to high" },
-  { value: "price-desc", label: "Price: high to low" },
-  { value: "mileage-asc", label: "Fewest miles" },
-  { value: "year-desc", label: "Newest year" },
-  { value: "range-desc", label: "Longest range" },
+  { value: "distance", label: "Closest first" },
+  { value: "price-asc", label: "Lowest price first" },
+  { value: "price-desc", label: "Highest price first" },
+  { value: "mileage-asc", label: "Lowest mileage first" },
+  { value: "mileage-desc", label: "Highest mileage first" },
+  { value: "year-desc", label: "Newest first (by car year)" },
+  { value: "year-asc", label: "Oldest first (by car year)" },
+  { value: "range-desc", label: "Longest range first" },
 ];
 
 const DIRECTION: Record<SortKey, 1 | -1> = {
@@ -29,7 +33,9 @@ const DIRECTION: Record<SortKey, 1 | -1> = {
   "price-asc": 1,
   "price-desc": -1,
   "mileage-asc": 1,
+  "mileage-desc": -1,
   "year-desc": -1,
+  "year-asc": 1,
   "range-desc": -1,
 };
 
@@ -54,8 +60,10 @@ function field(listing: VehicleListing, key: SortKey): number | undefined {
     case "price-desc":
       return listing.price;
     case "mileage-asc":
+    case "mileage-desc":
       return listing.mileage;
     case "year-desc":
+    case "year-asc":
       return listing.year;
     case "range-desc":
       return listing.rangeMi;
