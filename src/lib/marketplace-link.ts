@@ -34,6 +34,27 @@ export function marketplacePathFor(
   return `/marketplace?${params}`;
 }
 
+/**
+ * Every make the marketplace could ever show, from the catalog rather than from
+ * the listings on screen.
+ *
+ * The provider filters on make now, so a page already narrowed to Nissan holds
+ * no evidence that Tesla exists — options drawn from it would collapse to the
+ * one make chosen and there would be no way back out.
+ */
+export function catalogMakes(): string[] {
+  return [...new Set(EV_CATALOG.map((v) => v.make))].sort((a, b) => a.localeCompare(b));
+}
+
+/** Models for one make, or every model when no make is chosen. */
+export function catalogModelsFor(make?: string): string[] {
+  const wanted = (make ?? "").toLowerCase();
+  const models = EV_CATALOG
+    .filter((v) => !wanted || v.make.toLowerCase() === wanted)
+    .map((v) => v.model);
+  return [...new Set(models)].sort((a, b) => a.localeCompare(b));
+}
+
 /** Whether the marketplace has anything to say about this vehicle at all. */
 export function isInMarketplaceCatalog(catalogId: string): boolean {
   return BY_ID.has(catalogId);

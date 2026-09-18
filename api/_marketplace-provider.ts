@@ -27,7 +27,11 @@ const TIMEOUT_MS = 12_000;
 export interface ProviderSearch {
   zip: string;
   radius: number;
+  /** Models to ask for. Never empty: an unfiltered search returns petrol cars,
+   *  and this list is what keeps the request to vehicles we can verify. */
   models: string[];
+  /** Makes to narrow to, when the visitor picked one. */
+  makes?: string[];
   priceMin?: number;
   priceMax?: number;
   yearMin?: number;
@@ -80,6 +84,11 @@ export function buildAutoDevQuery(p: ProviderSearch): URLSearchParams {
   // Commas are the provider's OR. catalogSearchModels() guarantees no model
   // contains a comma, which would otherwise split one model into two bogus ones.
   if (p.models.length) q.set("vehicle.model", p.models.join(","));
+  // Make is a filter the provider applies across everything it holds, so a
+  // visitor asking for Nissan gets every Leaf in the radius rather than the
+  // Leafs that happened to land on the page in front of them.
+  const makes = (p.makes ?? []).map((m) => m.replace(/,/g, " ").trim()).filter(Boolean);
+  if (makes.length) q.set("vehicle.make", makes.join(","));
   if (p.priceMin != null || p.priceMax != null) {
     q.set("retailListing.price", `${p.priceMin ?? 0}-${p.priceMax ?? 999999}`);
   }

@@ -33,6 +33,26 @@ function modelOf(v: EvCatalogEntry): string {
  * Sorted longest-first is irrelevant here, but uniqueness is not: a duplicated
  * model wastes query length against a provider that caps it.
  */
+/**
+ * The catalog models to ask the provider for, narrowed to what the visitor
+ * picked.
+ *
+ * Their choice is never sent raw: the model list is the only thing stopping the
+ * provider returning petrol cars, so a request for something outside the
+ * catalog falls back to the whole list and is then filtered out locally — an
+ * empty result, rather than a page of Altimas.
+ */
+export function catalogSearchModelsFor(requested: readonly string[]): string[] {
+  const wanted = requested.map(normalizeModelText).filter(Boolean);
+  if (!wanted.length) return catalogSearchModels();
+
+  const matched = catalogSearchModels().filter((model) => {
+    const known = normalizeModelText(model);
+    return wanted.some((want) => known.includes(want) || want.includes(known));
+  });
+  return matched.length ? matched : catalogSearchModels();
+}
+
 export function catalogSearchModels(): string[] {
   const seen = new Set<string>();
   const out: string[] = [];

@@ -10,6 +10,9 @@ export interface MarketplaceFilters {
   priceMax?: number;
   yearMin?: number;
   yearMax?: number;
+  /** Sent as comma-separated lists; the provider ORs them. */
+  makes?: string[];
+  models?: string[];
 }
 
 /**
@@ -27,7 +30,11 @@ export function buildMarketplaceQuery(
   const params = new URLSearchParams({ q: query });
   if (radius != null) params.set("radius", String(radius));
   for (const [k, v] of Object.entries(filters)) {
-    if (v != null && Number.isFinite(v)) params.set(k, String(v));
+    if (Array.isArray(v)) {
+      if (v.length) params.set(k, v.join(","));
+    } else if (v != null && Number.isFinite(v)) {
+      params.set(k, String(v));
+    }
   }
   // Only an order the provider itself can apply travels with the request; the
   // rest are applied to the page that comes back, so sending them would only

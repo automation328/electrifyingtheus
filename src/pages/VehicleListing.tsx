@@ -5,7 +5,8 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useMarketplace, findListing, type MarketplaceFilters } from "@/hooks/use-marketplace";
+import { useMarketplace, findListing } from "@/hooks/use-marketplace";
+import { readFilters, serverFilters } from "@/lib/marketplace-filters";
 import { isSortKey, isProviderSorted, DEFAULT_SORT } from "@/lib/marketplace-sort";
 import { MAX_MARKETPLACE_PAGE } from "@/lib/marketplace-types";
 import { vehicles } from "@/data/vehicles";
@@ -44,14 +45,13 @@ const VehicleListing = () => {
   const sort = isSortKey(sortParam) ? sortParam : DEFAULT_SORT;
   const page = Math.min(Math.max(Number(params.get("page")) || 1, 1), MAX_MARKETPLACE_PAGE);
 
-  const filters = useMemo(() => {
-    const out: MarketplaceFilters = {};
-    for (const key of ["priceMin", "priceMax", "yearMin", "yearMax"] as const) {
-      const value = Number(params.get(key));
-      if (Number.isFinite(value) && value > 0) out[key] = value;
-    }
-    return out;
-  }, [params]);
+  // Read exactly the way the results page reads it, so the re-run search is the
+  // same search: hand-picking a few keys here silently dropped the make and
+  // model filters when those moved upstream, and a car found under "Nissan"
+  // then failed to resolve because the broader search had pushed it off the
+  // page. It also changes the cache key, paying for a call the list page had
+  // already made.
+  const filters = useMemo(() => serverFilters(readFilters(params)), [params]);
 
   // Going back means going back to the list as it was left: same search, same
   // filters, same order, same page.

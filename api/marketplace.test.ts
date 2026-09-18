@@ -246,6 +246,39 @@ describe("GET /api/marketplace", () => {
     expect(vi.mocked(autoDevSearchRaw).mock.calls[0][0].page).toBe(1);
   });
 
+  it("hands the make filter upstream instead of applying it to the page", async () => {
+    const res = mockRes();
+    await handler({ method: "GET", query: { q: "30303", makes: "Nissan,Tesla" } }, res);
+    expect(vi.mocked(autoDevSearchRaw).mock.calls[0][0].makes).toEqual(["Nissan", "Tesla"]);
+  });
+
+  it("narrows the model list it asks for to the model chosen", async () => {
+    const res = mockRes();
+    await handler({ method: "GET", query: { q: "30303", models: "Leaf" } }, res);
+    // Narrowed to the catalog's own spelling — "LEAF", not what was typed —
+    // because that is the text the provider indexes.
+    const asked = vi.mocked(autoDevSearchRaw).mock.calls[0][0].models;
+    expect(asked).toEqual(["LEAF"]);
+  });
+
+  it("still asks only for catalog models when the model is one we do not list", async () => {
+    // The model list is the only thing stopping a page of petrol cars coming
+    // back, so an unknown model must widen to the catalog, never to everything.
+    const res = mockRes();
+    await handler({ method: "GET", query: { q: "30303", models: "Altima" } }, res);
+    const asked = vi.mocked(autoDevSearchRaw).mock.calls[0][0].models;
+    expect(asked.length).toBeGreaterThan(20);
+    expect(asked).not.toContain("Altima");
+  });
+
+  it("asks for the whole catalog when no make or model is chosen", async () => {
+    const res = mockRes();
+    await handler({ method: "GET", query: { q: "30303" } }, res);
+    const call = vi.mocked(autoDevSearchRaw).mock.calls[0][0];
+    expect(call.makes).toEqual([]);
+    expect(call.models.length).toBeGreaterThan(20);
+  });
+
   it("clamps an absurd radius instead of rejecting it", async () => {
     vi.mocked(autoDevSearchRaw).mockResolvedValue(providerPage([]));
     const res = mockRes();

@@ -24,8 +24,9 @@ import {
 import { MAX_MARKETPLACE_PAGE } from "@/lib/marketplace-types";
 import {
   readFilters, writeFilters, serverFilters, applyFilters, activeFilterCount,
-  filterChips, makeFacets, modelFacets, EMPTY_FILTERS, type FilterState,
+  localFilterCount, filterChips, EMPTY_FILTERS, type FilterState,
 } from "@/lib/marketplace-filters";
+import { catalogMakes, catalogModelsFor } from "@/lib/marketplace-link";
 
 const MAX_QUERY = 120;
 /** Radix selects cannot hold an empty value, so "no filter" needs a token. */
@@ -110,13 +111,20 @@ const Marketplace = () => {
 
   const chips = useMemo(() => filterChips(filters), [filters]);
   const activeCount = activeFilterCount(filters);
+  // Only filters applied here can hide a listing the search returned; make,
+  // model, price and year change what the search returns in the first place.
+  const localCount = localFilterCount(filters);
 
-  // The make and model pickers above the results. They set the same filter
-  // state the rail does, so the two never disagree; the rail keeps multi-select
-  // and these read as "one make, one model", which is how a dropdown reads.
-  const makeOptions = useMemo(() => makeFacets(found, filters), [found, filters]);
-  const modelOptions = useMemo(() => modelFacets(found, filters), [found, filters]);
+  // Options come from the catalog, not from the listings on screen: make and
+  // model are now filters the provider applies, so a page narrowed to Nissan
+  // contains no evidence that Tesla exists and facet-built options would strand
+  // the visitor inside whichever make they picked first.
   const makeValue = filters.makes.length === 1 ? filters.makes[0] : ANY;
+  const makeOptions = useMemo(() => catalogMakes(), []);
+  const modelOptions = useMemo(
+    () => catalogModelsFor(makeValue === ANY ? undefined : makeValue),
+    [makeValue],
+  );
   const modelValue = filters.models.length === 1 ? filters.models[0] : ANY;
 
   const changeMake = (next: string) =>
@@ -157,7 +165,13 @@ const Marketplace = () => {
     if (sort !== DEFAULT_SORT) p.set("sort", sort);
     if (page > 1) p.set("page", String(page));
     for (const [key, value] of Object.entries(upstream)) {
-      if (value != null) p.set(key, String(value));
+      // Arrays are the make and model lists. An empty one is not a filter, and
+      // String([]) would write "makes=" onto every card link ever built.
+      if (Array.isArray(value)) {
+        if (value.length) p.set(key, value.join(","));
+      } else if (value != null) {
+        p.set(key, String(value));
+      }
     }
     const s = p.toString();
     return s ? `?${s}` : "";
@@ -173,7 +187,7 @@ const Marketplace = () => {
   const heading = useMemo(() => {
     if (!query || !data?.configured) return null;
     const where = data.place?.label ? ` near ${data.place.label}` : "";
-    if (activeCount > 0) {
+    if (localCount > 0) {
       return `${listings.length} of ${found.length} on this page match your filters`;
     }
     // Verification can empty a page while other pages still hold cars, so an
@@ -185,7 +199,7 @@ const Marketplace = () => {
     }
     const count = `${listings.length} electrified ${listings.length === 1 ? "vehicle" : "vehicles"}`;
     return paged ? `${count}${where} · page ${page}` : `${count}${where}`;
-  }, [activeCount, data, found.length, listings.length, page, paged, query]);
+  }, [data, found.length, listings.length, localCount, page, paged, query]);
 
   const panel = (
     <FilterPanel
@@ -224,28 +238,20 @@ const Marketplace = () => {
                 </SelectTrigger>
                 <SelectContent className="max-h-72">
                   <SelectItem value={ANY}>All makes</SelectItem>
-                  {makeOptions.map((o) => (
-                    <SelectItem key={o.value} value={o.value}>
-                      {o.label} ({o.count})
-                    </SelectItem>
+                  {makeOptions.map((make) => (
+                    <SelectItem key={make} value={make}>{make}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
 
-              <Select
-                value={modelValue}
-                onValueChange={changeModel}
-                disabled={!modelOptions.length && filters.models.length === 0}
-              >
+              <Select value={modelValue} onValueChange={changeModel}>
                 <SelectTrigger className="h-12 w-full rounded-xl sm:w-52" aria-label="Model">
                   <SelectValue placeholder="All models" />
                 </SelectTrigger>
                 <SelectContent className="max-h-72">
                   <SelectItem value={ANY}>All models</SelectItem>
-                  {modelOptions.map((o) => (
-                    <SelectItem key={o.value} value={o.value}>
-                      {o.label} ({o.count})
-                    </SelectItem>
+                  {modelOptions.map((model) => (
+                    <SelectItem key={model} value={model}>{model}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -434,12 +440,18 @@ const Marketplace = () => {
                           ? "Nothing electrified on this page"
                           : "Nothing electrified for sale here yet"}
                     </p>
+                    {/* Which advice is true depends on WHERE the filter ran.
+                        Make, model, price and year narrowed the search itself,
+                        so another page holds nothing new; the rest were applied
+                        to this page, where another page might. */}
                     <p className="mx-auto mt-1.5 max-w-sm text-sm text-muted-foreground">
-                      {activeCount > 0
-                        ? "Filters apply to the page you are on. Loosen one, widen the distance, or try another page."
-                        : paged
-                          ? "Dealers list petrol cars under these model names too, and we drop those. Try the next page."
-                          : "Try a wider distance, or a larger city nearby."}
+                      {activeCount > localCount
+                        ? "This search came back empty. Loosen a filter or widen the distance — other pages hold the same filters."
+                        : localCount > 0
+                          ? "These filters apply to the page you are on. Loosen one, widen the distance, or try another page."
+                          : paged
+                            ? "Dealers list petrol cars under these model names too, and we drop those. Try the next page."
+                            : "Try a wider distance, or a larger city nearby."}
                     </p>
                     {activeCount > 0 && (
                       <Button variant="outline" className="mt-5 rounded-xl" onClick={clearFilters}>

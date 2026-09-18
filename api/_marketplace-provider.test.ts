@@ -56,6 +56,24 @@ describe("buildAutoDevQuery", () => {
     expect(Number(q.get("limit"))).toBeLessThanOrEqual(100);
   });
 
+  it("narrows to the makes asked for, and leaves the filter off otherwise", () => {
+    const withMake = buildAutoDevQuery({
+      zip: "30301", radius: 25, models: ["Leaf"], makes: ["Nissan", "Tesla"],
+    });
+    expect(withMake.get("vehicle.make")).toBe("Nissan,Tesla");
+    expect(buildAutoDevQuery({ zip: "30301", radius: 25, models: ["Leaf"] }).has("vehicle.make"))
+      .toBe(false);
+    expect(buildAutoDevQuery({ zip: "30301", radius: 25, models: ["Leaf"], makes: [] })
+      .has("vehicle.make")).toBe(false);
+  });
+
+  it("keeps a comma inside a make from splitting it into two", () => {
+    const q = buildAutoDevQuery({
+      zip: "30301", radius: 25, models: ["Leaf"], makes: ["Mercedes, Benz"],
+    });
+    expect(q.get("vehicle.make")).toBe("Mercedes  Benz");
+  });
+
   it("asks for the match count, which is opt-in upstream", () => {
     const q = buildAutoDevQuery({ zip: "30301", radius: 25, models: [] });
     expect(q.get("includes")).toBe("total");

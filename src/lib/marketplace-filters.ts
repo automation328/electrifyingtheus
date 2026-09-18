@@ -6,12 +6,15 @@ import { vehicles } from "@/data/vehicles";
 // The marketplace's filter state, and the pure functions that read it from a
 // URL, write it back, and apply it to a page of listings.
 //
-// Two of these filters travel upstream and the rest do not. Price and year are
-// parameters the provider itself understands, so sending them decides WHICH
-// listings come back — worth doing, because the endpoint returns a capped page
-// and we would rather that page be full of cars the visitor could actually buy.
-// Everything else (make, body, powertrain, mileage, range) is applied here,
-// over what came back.
+// Some of these filters travel upstream and the rest cannot. Price, year, make
+// and model are parameters the provider itself understands, so sending them
+// decides WHICH listings come back: ask for Nissan and every Leaf in the radius
+// is reachable, page by page. Applied here they could only hide cars already on
+// the page while the rest sat on pages nobody would open.
+//
+// Body style, powertrain, condition, mileage and range have no upstream
+// equivalent, so those are applied here, to the page that came back — which is
+// why the results heading says "on this page" whenever one of them is set.
 
 export interface FilterState {
   condition: "all" | "new" | "used";
@@ -119,13 +122,17 @@ export function writeFilters(params: URLSearchParams, state: FilterState): URLSe
   return next;
 }
 
-/** The subset the search endpoint understands. */
+/** The subset the search endpoint understands — the filters the PROVIDER can
+ *  apply, so they decide which listings come back rather than which of the ones
+ *  already on the page get hidden. */
 export function serverFilters(state: FilterState) {
   return {
     priceMin: state.priceMin,
     priceMax: state.priceMax,
     yearMin: state.yearMin,
     yearMax: state.yearMax,
+    makes: state.makes,
+    models: state.models,
   };
 }
 
@@ -144,8 +151,13 @@ function passes(listing: VehicleListing, state: FilterState, dimension: Dimensio
       return state.condition === "all" || listing.condition === state.condition;
     case "powertrain":
       return state.powertrain === "all" || listing.powertrain === state.powertrain;
-    case "makes":
-      return !state.makes.length || state.makes.includes(listing.make);
+    case "makes": {
+      if (!state.makes.length) return true;
+      // Case-insensitive: the provider writes "NISSAN" as readily as "Nissan",
+      // and an exact compare here would empty a page it had already filtered.
+      const listed = listing.make.toLowerCase();
+      return state.makes.some((m) => m.toLowerCase() === listed);
+    }
     case "models": {
       if (!state.models.length) return true;
       // Dealers write the same car as "Mustang Mach-E", "Mach E" and
@@ -189,6 +201,21 @@ export function applyFilters(
   listings: readonly VehicleListing[], state: FilterState,
 ): VehicleListing[] {
   return listings.filter((l) => ALL_DIMENSIONS.every((d) => passes(l, state, d)));
+}
+
+/**
+ * How many filters are applied to the page in front of the visitor rather than
+ * to the search itself. Only these can make the results read "3 of 18" — the
+ * upstream ones change what the 18 are, they do not hide any of them.
+ */
+export function localFilterCount(state: FilterState): number {
+  let n = 0;
+  if (state.condition !== "all") n++;
+  if (state.powertrain !== "all") n++;
+  n += state.bodies.length;
+  if (state.mileageMax != null) n++;
+  if (state.rangeMin != null) n++;
+  return n;
 }
 
 export function activeFilterCount(state: FilterState): number {
@@ -282,61 +309,4 @@ export function filterChips(state: FilterState): FilterChip[] {
     });
   }
   return chips;
-}
-
-export interface Facet<T extends string> {
-  value: T;
-  label: string;
-  count: number;
-}
-
-/** How many listings each choice would leave, counted against the other filters
- *  but NOT against its own dimension — so ticking a second make widens the list
- *  the way it reads like it should, and a choice that would empty the page
- *  shows a zero before it is clicked. */
-function facetCounts<T extends string>(
-  listings: readonly VehicleListing[],
-  state: FilterState,
-  dimension: Dimension,
-  valueOf: (l: VehicleListing) => T | undefined,
-): Map<T, number> {
-  const others = ALL_DIMENSIONS.filter((d) => d !== dimension);
-  const counts = new Map<T, number>();
-  for (const listing of listings) {
-    if (!others.every((d) => passes(listing, state, d))) continue;
-    const value = valueOf(listing);
-    if (value == null) continue;
-    counts.set(value, (counts.get(value) ?? 0) + 1);
-  }
-  return counts;
-}
-
-export function makeFacets(
-  listings: readonly VehicleListing[], state: FilterState,
-): Facet<string>[] {
-  const counts = facetCounts(listings, state, "makes", (l) => l.make);
-  return [...counts.entries()]
-    .map(([value, count]) => ({ value, label: value, count }))
-    .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
-}
-
-/** Models on offer, narrowed by the makes already chosen — picking Nissan and
- *  then being offered "Model 3" would be a list of cars that cannot exist. */
-export function modelFacets(
-  listings: readonly VehicleListing[], state: FilterState,
-): Facet<string>[] {
-  const counts = facetCounts(listings, state, "models", (l) => l.model);
-  return [...counts.entries()]
-    .map(([value, count]) => ({ value, label: value, count }))
-    .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
-}
-
-export function bodyFacets(
-  listings: readonly VehicleListing[], state: FilterState,
-): Facet<BodyStyle>[] {
-  const counts = facetCounts(listings, state, "bodies", bodyStyleOf);
-  const order = Object.keys(BODY_LABELS) as BodyStyle[];
-  return order
-    .filter((body) => counts.has(body) || state.bodies.includes(body))
-    .map((body) => ({ value: body, label: BODY_LABELS[body], count: counts.get(body) ?? 0 }));
 }

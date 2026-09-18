@@ -18,12 +18,20 @@ import {
   autoDevProvider, autoDevSearchRaw, autoDevCoords, listingPowertrain,
   normalizeAutoDevListing, haversineMiles, MAX_PAGE,
 } from "./_marketplace-provider.js";
-import { matchCatalogVehicle, catalogSearchModels } from "../src/lib/ev-catalog-match.js";
+import {
+  matchCatalogVehicle, catalogSearchModelsFor,
+} from "../src/lib/ev-catalog-match.js";
 import { isSortKey, providerSortFor } from "../src/lib/marketplace-sort.js";
 import type { VehicleListing, MarketplaceResponse } from "../src/lib/marketplace-types.js";
 
 const MAX_QUERY = 120;
 const DEFAULT_RADIUS = 50;
+
+/** A repeated or comma-separated query value, e.g. makes=Nissan,Tesla. */
+const list = (v: unknown, max = 12): string[] => {
+  const raw = Array.isArray(v) ? v.join(",") : v == null ? "" : String(v);
+  return raw.split(",").map((s) => s.trim()).filter(Boolean).slice(0, max);
+};
 
 const pick = (v: unknown, fallback = ""): string =>
   (Array.isArray(v) ? v[0] : v) != null ? String(Array.isArray(v) ? v[0] : v) : fallback;
@@ -102,10 +110,18 @@ export default async function handler(req: any, res: any) {
     return;
   }
 
+  // Make and model are filters the provider applies across everything it holds,
+  // so they travel with the request. Applied here instead, they could only ever
+  // hide listings on the page in front of the visitor while the rest of that
+  // make sat unreachable on pages they had no reason to open.
+  const makes = list(query.makes);
+  const models = list(query.models);
+
   const { rows, total: upstreamTotal, hasMore: providerHasMore } = await autoDevSearchRaw({
     zip,
     radius,
-    models: catalogSearchModels(),
+    models: catalogSearchModelsFor(models),
+    makes,
     priceMin: num(query.priceMin) ?? undefined,
     priceMax: num(query.priceMax) ?? undefined,
     yearMin: num(query.yearMin) ?? undefined,

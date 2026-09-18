@@ -46,6 +46,19 @@ describe("buildMarketplaceQuery", () => {
     }
   });
 
+  it("sends make and model as comma-separated lists, and omits empty ones", () => {
+    const q = buildMarketplaceQuery(
+      "30080", null, { makes: ["Nissan", "Tesla"], models: ["LEAF"] }, undefined, 1,
+    );
+    expect(q.get("makes")).toBe("Nissan,Tesla");
+    expect(q.get("models")).toBe("LEAF");
+
+    // An empty list is not a filter. Sending "makes=" would look like one.
+    const empty = buildMarketplaceQuery("30080", null, { makes: [], models: [] }, undefined, 1);
+    expect(empty.has("makes")).toBe(false);
+    expect(empty.has("models")).toBe(false);
+  });
+
   it("omits the first page and sends every later one", () => {
     expect(buildMarketplaceQuery("30080", null, {}, undefined, 1).has("page")).toBe(false);
     expect(buildMarketplaceQuery("30080", null, {}, undefined, 4).get("page")).toBe("4");

@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   readFilters, writeFilters, serverFilters, applyFilters, activeFilterCount,
-  filterChips, makeFacets, bodyFacets, bodyStyleOf, EMPTY_FILTERS, type FilterState,
+  filterChips, localFilterCount, bodyStyleOf, EMPTY_FILTERS, type FilterState,
 } from "./marketplace-filters";
 import type { VehicleListing } from "./marketplace-types";
 
@@ -81,15 +81,41 @@ describe("writeFilters", () => {
 });
 
 describe("serverFilters", () => {
-  it("passes price and year upstream and nothing else", () => {
+  it("passes upstream every filter the provider can apply", () => {
     const full = state({
-      condition: "new", powertrain: "ev", makes: ["Tesla"], bodies: ["sedan"],
-      priceMin: 10000, priceMax: 50000, yearMin: 2021, yearMax: 2025,
+      condition: "new", powertrain: "ev", makes: ["Tesla"], models: ["Model 3"],
+      bodies: ["sedan"], priceMin: 10000, priceMax: 50000, yearMin: 2021, yearMax: 2025,
       mileageMax: 30000, rangeMin: 250,
     });
+    // Make and model belong here: applied locally they could only hide cars on
+    // the page while the rest of that make sat on pages nobody would open.
     expect(serverFilters(full)).toEqual({
       priceMin: 10000, priceMax: 50000, yearMin: 2021, yearMax: 2025,
+      makes: ["Tesla"], models: ["Model 3"],
     });
+  });
+
+  it("leaves out the ones the provider has no filter for", () => {
+    const keys = Object.keys(serverFilters(state({
+      condition: "new", powertrain: "ev", bodies: ["sedan"], mileageMax: 30000, rangeMin: 250,
+    })));
+    for (const local of ["condition", "powertrain", "bodies", "mileageMax", "rangeMin"]) {
+      expect(keys).not.toContain(local);
+    }
+  });
+});
+
+describe("localFilterCount", () => {
+  it("counts only the filters that hide listings the search returned", () => {
+    expect(localFilterCount(EMPTY_FILTERS)).toBe(0);
+    // These change WHICH listings come back, so nothing on screen is hidden.
+    expect(localFilterCount(state({
+      makes: ["Tesla"], models: ["Model 3"], priceMax: 40000, yearMin: 2020,
+    }))).toBe(0);
+    // These are applied to the page, so "3 of 18" is the honest reading.
+    expect(localFilterCount(state({ condition: "new" }))).toBe(1);
+    expect(localFilterCount(state({ bodies: ["sedan", "truck"], rangeMin: 250 }))).toBe(3);
+    expect(localFilterCount(state({ powertrain: "ev", mileageMax: 50000 }))).toBe(2);
   });
 });
 
@@ -183,39 +209,5 @@ describe("filterChips", () => {
 
   it("is empty when nothing is applied", () => {
     expect(filterChips(EMPTY_FILTERS)).toEqual([]);
-  });
-});
-
-describe("facets", () => {
-  const rows = [
-    listing("t1", { make: "Tesla" }),
-    listing("t2", { make: "Tesla" }),
-    listing("k1", { make: "Kia", catalogId: "kia-ev9" }),
-  ];
-
-  it("counts makes by popularity", () => {
-    expect(makeFacets(rows, EMPTY_FILTERS)).toEqual([
-      { value: "Tesla", label: "Tesla", count: 2 },
-      { value: "Kia", label: "Kia", count: 1 },
-    ]);
-  });
-
-  it("counts a dimension against the other filters but not its own", () => {
-    // Ticking Tesla must not drop Kia's count to zero — otherwise adding a
-    // second make looks impossible.
-    const withTesla = state({ makes: ["Tesla"] });
-    expect(makeFacets(rows, withTesla)).toEqual([
-      { value: "Tesla", label: "Tesla", count: 2 },
-      { value: "Kia", label: "Kia", count: 1 },
-    ]);
-    // A filter from another dimension does narrow it.
-    expect(makeFacets(rows, state({ condition: "new" }))).toEqual([]);
-  });
-
-  it("lists body styles in catalog order and keeps a ticked one visible", () => {
-    const facets = bodyFacets(rows, EMPTY_FILTERS);
-    expect(facets.map((f) => f.value)).toEqual(["sedan", "suv-large"]);
-    const ticked = bodyFacets([], state({ bodies: ["truck"] }));
-    expect(ticked).toEqual([{ value: "truck", label: "Truck", count: 0 }]);
   });
 });
