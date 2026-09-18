@@ -10,6 +10,9 @@ import {
 import { type FilterState, activeFilterCount } from "@/lib/marketplace-filters";
 
 const RADII = [25, 50, 100, 250];
+/** Budgets as people state them. Each sets a ceiling and clears any floor:
+ *  "under $20k" is one number, not a range. */
+const PRICE_CAPS = [10_000, 20_000, 35_000, 50_000, 70_000, 90_000];
 
 /** A number field that commits on blur or Enter rather than on every keystroke.
  *  Price and year go upstream, and the provider is metered — a re-search per
@@ -138,6 +141,31 @@ export function FilterPanel({
         <AccordionItem value="price">
           <AccordionTrigger className="text-sm font-semibold">Price</AccordionTrigger>
           <AccordionContent>
+            {/* The way people say a budget out loud, before they say a range. */}
+            <div className="flex flex-wrap gap-2 pb-3">
+              {PRICE_CAPS.map((cap) => {
+                const active = state.priceMax === cap && state.priceMin == null;
+                return (
+                  <button
+                    key={cap}
+                    type="button"
+                    aria-pressed={active}
+                    onClick={() => set({
+                      priceMin: undefined,
+                      priceMax: active ? undefined : cap,
+                    })}
+                    className={`rounded-full border px-3 py-1 text-sm tabular-nums transition-colors ${
+                      active
+                        ? "border-primary bg-primary/10 font-semibold text-primary"
+                        : "border-border text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    Under ${cap / 1000}k
+                  </button>
+                );
+              })}
+            </div>
+
             <div className="flex gap-2 pb-1">
               <NumberField
                 id="filter-price-min" label="Min" placeholder="$0"
