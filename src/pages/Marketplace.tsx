@@ -30,6 +30,8 @@ import {
 const MAX_QUERY = 120;
 /** Radix selects cannot hold an empty value, so "no filter" needs a token. */
 const ANY = "__any__";
+/** The Leaf and the i-MiEV, the first EVs anyone was selling in numbers. */
+const FIRST_EV_YEAR = 2011;
 
 const Marketplace = () => {
   const [params, setParams] = useSearchParams();
@@ -125,6 +127,24 @@ const Marketplace = () => {
   const changeModel = (next: string) =>
     changeFilters({ ...filters, models: next === ANY ? [] : [next] });
 
+  // Years run from the first mass-market EV to next year's plate, newest first.
+  // Not facets: year goes upstream, so offering only the years on this page
+  // would hide the ones a new search would actually find.
+  const yearOptions = useMemo(() => {
+    const newest = new Date().getFullYear() + 1;
+    return Array.from({ length: newest - FIRST_EV_YEAR + 1 }, (_, i) => newest - i);
+  }, []);
+  const yearValue = filters.yearMin != null && filters.yearMin === filters.yearMax
+    ? String(filters.yearMin)
+    : ANY;
+
+  const changeYear = (next: string) =>
+    changeFilters({
+      ...filters,
+      yearMin: next === ANY ? undefined : Number(next),
+      yearMax: next === ANY ? undefined : Number(next),
+    });
+
   // What a card carries onto the detail page. The detail page has no by-id
   // endpoint upstream: it re-runs this exact search and finds the listing in the
   // results. So everything that decides which listings come back has to travel
@@ -172,7 +192,6 @@ const Marketplace = () => {
       state={filters}
       onChange={changeFilters}
       onClear={clearFilters}
-      listings={found}
       radius={radius}
       onRadiusChange={changeRadius}
       placeLabel={data?.place?.label}
@@ -230,6 +249,18 @@ const Marketplace = () => {
                   ))}
                 </SelectContent>
               </Select>
+
+              <Select value={yearValue} onValueChange={changeYear}>
+                <SelectTrigger className="h-12 w-full rounded-xl sm:w-36" aria-label="Year">
+                  <SelectValue placeholder="All years" />
+                </SelectTrigger>
+                <SelectContent className="max-h-72">
+                  <SelectItem value={ANY}>All years</SelectItem>
+                  {yearOptions.map((year) => (
+                    <SelectItem key={year} value={String(year)}>{year}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <form
@@ -248,7 +279,7 @@ const Marketplace = () => {
                 />
               </div>
               <Button type="submit" className="h-12 rounded-xl px-6" disabled={!typed.trim()}>
-                {isFetching ? <Loader2 className="h-4 w-4 animate-spin" aria-label="Searching" /> : "Search"}
+                {isFetching ? <Loader2 className="h-4 w-4 animate-spin" aria-label="Searching" /> : "Zip Code"}
               </Button>
             </form>
           </div>

@@ -95,6 +95,26 @@ export function buildAutoDevQuery(p: ProviderSearch): URLSearchParams {
   return q;
 }
 
+/**
+ * Below this, a "price" is not an asking price.
+ *
+ * Real listings hit live: five 2022–2023 Mach-Es and a Model Y from one dealer,
+ * all at $695 — a deposit, or a number typed to win the sort on whatever site
+ * consumes this feed. Genuine cheap EVs in the same search start at $3,549, and
+ * even salvage Leafs sit above $2,000.
+ *
+ * So the car is kept and the number is dropped: the vehicle is real, the price
+ * is not, and a listing with no price already sorts last and reads "Call for
+ * price". Dropping the listing instead would hide inventory over a bad field,
+ * and trusting the number would open every cheapest-first search with bait.
+ */
+const MIN_PLAUSIBLE_PRICE = 2000;
+
+/** A price we are willing to repeat to a visitor, or nothing. */
+export function plausiblePrice(price: number | undefined): number | undefined {
+  return price != null && price >= MIN_PLAUSIBLE_PRICE ? price : undefined;
+}
+
 const str = (v: unknown): string | undefined => {
   const s = typeof v === "string" ? v.trim() : typeof v === "number" ? String(v) : "";
   return s || undefined;
@@ -140,7 +160,7 @@ export function normalizeAutoDevListing(raw: unknown): Omit<VehicleListing, "cat
     make,
     model,
     trim: str(v.trim),
-    price: num(rl.price),
+    price: plausiblePrice(num(rl.price)),
     mileage: num(rl.miles) ?? num(rl.mileage),
     condition: rl.used === false ? "new" : "used",
     dealerName: str(rl.dealer) ?? str(rl.dealerName),

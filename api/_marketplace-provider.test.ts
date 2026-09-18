@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import {
   buildAutoDevQuery, normalizeAutoDevListing, haversineMiles, autoDevProvider,
-  listingPowertrain, autoDevCoords, autoDevSearchRaw, MAX_PAGE,
+  listingPowertrain, autoDevCoords, autoDevSearchRaw, plausiblePrice, MAX_PAGE,
 } from "./_marketplace-provider.js";
 
 afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
@@ -72,6 +72,34 @@ describe("buildAutoDevQuery", () => {
     expect(buildAutoDevQuery({ zip: "30301", radius: 25, models: [], page: 4 }).get("page")).toBe("4");
     expect(Number(buildAutoDevQuery({ zip: "30301", radius: 25, models: [], page: 9999 }).get("page")))
       .toBe(MAX_PAGE);
+  });
+});
+
+describe("plausiblePrice", () => {
+  it("keeps a price a dealer could mean", () => {
+    expect(plausiblePrice(3549)).toBe(3549);
+    expect(plausiblePrice(2000)).toBe(2000);
+    expect(plausiblePrice(48999)).toBe(48999);
+  });
+
+  it("drops a number no used EV is actually sold for", () => {
+    // Observed live: five 2022-2023 Mach-Es and a Model Y at $695 from one
+    // dealer. Trusting that opens every cheapest-first search with bait.
+    for (const bait of [695, 1, 99, 500, 1999, 0]) {
+      expect(plausiblePrice(bait), String(bait)).toBeUndefined();
+    }
+    expect(plausiblePrice(undefined)).toBeUndefined();
+  });
+
+  it("drops the price and keeps the car", () => {
+    const listing = normalizeAutoDevListing({
+      vin: "3FMTK3R70TMA09108",
+      vehicle: { year: 2023, make: "Ford", model: "Mustang Mach-E", fuel: "Electric" },
+      retailListing: { price: 695, miles: 31208, used: true, city: "Buford", state: "GA" },
+    });
+    expect(listing).not.toBeNull();
+    expect(listing!.price).toBeUndefined();
+    expect(listing!.mileage).toBe(31208);
   });
 });
 

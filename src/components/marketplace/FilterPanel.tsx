@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -8,11 +7,7 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import {
-  type FilterState, type Facet, makeFacets, bodyFacets, activeFilterCount,
-} from "@/lib/marketplace-filters";
-import type { VehicleListing } from "@/lib/marketplace-types";
-import type { BodyStyle } from "@/lib/tco-calculator";
+import { type FilterState, activeFilterCount } from "@/lib/marketplace-filters";
 
 const RADII = [25, 50, 100, 250];
 
@@ -55,69 +50,21 @@ function NumberField({
   );
 }
 
-function FacetList<T extends string>({
-  facets, selected, onToggle, idPrefix,
-}: {
-  facets: Facet<T>[];
-  selected: T[];
-  onToggle: (value: T, checked: boolean) => void;
-  idPrefix: string;
-}) {
-  if (!facets.length) {
-    return <p className="text-sm text-muted-foreground">Search a location to see what is available.</p>;
-  }
-  return (
-    <ul className="max-h-64 space-y-1 overflow-y-auto pr-1">
-      {facets.map((facet) => {
-        const id = `${idPrefix}-${facet.value}`;
-        const checked = selected.includes(facet.value);
-        return (
-          <li key={facet.value}>
-            <label
-              htmlFor={id}
-              className="flex cursor-pointer items-center gap-2.5 rounded-md px-1.5 py-1.5 text-sm transition-colors hover:bg-muted"
-            >
-              <Checkbox
-                id={id}
-                checked={checked}
-                onCheckedChange={(state) => onToggle(facet.value, state === true)}
-              />
-              <span className="flex-1 truncate text-foreground">{facet.label}</span>
-              <span className="tabular-nums text-xs text-muted-foreground">{facet.count}</span>
-            </label>
-          </li>
-        );
-      })}
-    </ul>
-  );
-}
-
 export interface FilterPanelProps {
   state: FilterState;
   onChange: (next: FilterState) => void;
   onClear: () => void;
-  /** Listings the facet counts are drawn from: everything the search returned,
-   *  before filtering, so a count never depends on its own checkbox. */
-  listings: readonly VehicleListing[];
   radius: number | null;
   onRadiusChange: (radius: number | null) => void;
   placeLabel?: string;
 }
 
 export function FilterPanel({
-  state, onChange, onClear, listings, radius, onRadiusChange, placeLabel,
+  state, onChange, onClear, radius, onRadiusChange, placeLabel,
 }: FilterPanelProps) {
-  const makes = makeFacets(listings, state);
-  const bodies = bodyFacets(listings, state);
   const active = activeFilterCount(state);
 
   const set = (patch: Partial<FilterState>) => onChange({ ...state, ...patch });
-
-  const toggleMake = (make: string, checked: boolean) =>
-    set({ makes: checked ? [...state.makes, make] : state.makes.filter((m) => m !== make) });
-
-  const toggleBody = (body: BodyStyle, checked: boolean) =>
-    set({ bodies: checked ? [...state.bodies, body] : state.bodies.filter((b) => b !== body) });
 
   return (
     <div className="space-y-5">
@@ -185,7 +132,7 @@ export function FilterPanel({
 
       <Accordion
         type="multiple"
-        defaultValue={["price", "make", "body"]}
+        defaultValue={["price", "year", "mileage"]}
         className="border-t border-border"
       >
         <AccordionItem value="price">
@@ -205,26 +152,6 @@ export function FilterPanel({
               Price and year re-run the search, so they bring back different
               cars rather than hiding the ones already listed.
             </p>
-          </AccordionContent>
-        </AccordionItem>
-
-        <AccordionItem value="make">
-          <AccordionTrigger className="text-sm font-semibold">Make</AccordionTrigger>
-          <AccordionContent>
-            <FacetList
-              facets={makes} selected={state.makes}
-              onToggle={toggleMake} idPrefix="make"
-            />
-          </AccordionContent>
-        </AccordionItem>
-
-        <AccordionItem value="body">
-          <AccordionTrigger className="text-sm font-semibold">Body style</AccordionTrigger>
-          <AccordionContent>
-            <FacetList
-              facets={bodies} selected={state.bodies}
-              onToggle={toggleBody} idPrefix="body"
-            />
           </AccordionContent>
         </AccordionItem>
 
