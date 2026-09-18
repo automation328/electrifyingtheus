@@ -6,7 +6,7 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useMarketplace, findListing, type MarketplaceFilters } from "@/hooks/use-marketplace";
-import { isSortKey, isProviderSorted } from "@/lib/marketplace-sort";
+import { isSortKey, isProviderSorted, DEFAULT_SORT } from "@/lib/marketplace-sort";
 import { MAX_MARKETPLACE_PAGE } from "@/lib/marketplace-types";
 import { vehicles } from "@/data/vehicles";
 import { calculate, homeShareFor, DEFAULTS } from "@/lib/ev-cost";
@@ -37,8 +37,11 @@ const VehicleListing = () => {
   // returns a different set of listings, and this one is then "unavailable"
   // despite being on screen a second ago.
   const radius = Number(params.get("radius")) || null;
+  // Falls back the way the results page does. The default order is left out of
+  // the URL, so reading "no sort" as "no sort" would re-run the search in a
+  // different order from the one the visitor was looking at.
   const sortParam = params.get("sort");
-  const sort = isSortKey(sortParam) ? sortParam : undefined;
+  const sort = isSortKey(sortParam) ? sortParam : DEFAULT_SORT;
   const page = Math.min(Math.max(Number(params.get("page")) || 1, 1), MAX_MARKETPLACE_PAGE);
 
   const filters = useMemo(() => {
@@ -62,7 +65,7 @@ const VehicleListing = () => {
   // No by-id endpoint exists upstream, so the detail page reads the listing out
   // of the search the visitor arrived from.
   const { data, isFetching } = useMarketplace(
-    query, radius, filters, sort && isProviderSorted(sort) ? sort : undefined, page,
+    query, radius, filters, isProviderSorted(sort) ? sort : undefined, page,
   );
   const listing = findListing(data, decodeURIComponent(id));
 

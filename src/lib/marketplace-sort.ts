@@ -15,7 +15,15 @@ export type SortKey =
   | "year-asc"
   | "range-desc";
 
-export const DEFAULT_SORT: SortKey = "distance";
+/**
+ * Cheapest first.
+ *
+ * Price is the question someone opens a used-car search with, and this is also
+ * an order the provider applies itself — so the first page is the cheapest
+ * electrified cars in the radius, not the cheapest of an arbitrary twenty.
+ * Closest-first can only ever reorder the page it was handed.
+ */
+export const DEFAULT_SORT: SortKey = "price-asc";
 
 export const SORT_OPTIONS: ReadonlyArray<{ value: SortKey; label: string }> = [
   { value: "distance", label: "Closest first" },

@@ -320,6 +320,17 @@ export function makeFacets(
     .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
 }
 
+/** Models on offer, narrowed by the makes already chosen — picking Nissan and
+ *  then being offered "Model 3" would be a list of cars that cannot exist. */
+export function modelFacets(
+  listings: readonly VehicleListing[], state: FilterState,
+): Facet<string>[] {
+  const counts = facetCounts(listings, state, "models", (l) => l.model);
+  return [...counts.entries()]
+    .map(([value, count]) => ({ value, label: value, count }))
+    .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
+}
+
 export function bodyFacets(
   listings: readonly VehicleListing[], state: FilterState,
 ): Facet<BodyStyle>[] {

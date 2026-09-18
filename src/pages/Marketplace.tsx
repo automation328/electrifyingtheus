@@ -24,10 +24,12 @@ import {
 import { MAX_MARKETPLACE_PAGE } from "@/lib/marketplace-types";
 import {
   readFilters, writeFilters, serverFilters, applyFilters, activeFilterCount,
-  filterChips, EMPTY_FILTERS, type FilterState,
+  filterChips, makeFacets, modelFacets, EMPTY_FILTERS, type FilterState,
 } from "@/lib/marketplace-filters";
 
 const MAX_QUERY = 120;
+/** Radix selects cannot hold an empty value, so "no filter" needs a token. */
+const ANY = "__any__";
 
 const Marketplace = () => {
   const [params, setParams] = useSearchParams();
@@ -107,6 +109,22 @@ const Marketplace = () => {
   const chips = useMemo(() => filterChips(filters), [filters]);
   const activeCount = activeFilterCount(filters);
 
+  // The make and model pickers above the results. They set the same filter
+  // state the rail does, so the two never disagree; the rail keeps multi-select
+  // and these read as "one make, one model", which is how a dropdown reads.
+  const makeOptions = useMemo(() => makeFacets(found, filters), [found, filters]);
+  const modelOptions = useMemo(() => modelFacets(found, filters), [found, filters]);
+  const makeValue = filters.makes.length === 1 ? filters.makes[0] : ANY;
+  const modelValue = filters.models.length === 1 ? filters.models[0] : ANY;
+
+  const changeMake = (next: string) =>
+    // A model belongs to a make, so changing the make drops a model chosen
+    // under the old one rather than leaving a pair that matches nothing.
+    changeFilters({ ...filters, makes: next === ANY ? [] : [next], models: [] });
+
+  const changeModel = (next: string) =>
+    changeFilters({ ...filters, models: next === ANY ? [] : [next] });
+
   // What a card carries onto the detail page. The detail page has no by-id
   // endpoint upstream: it re-runs this exact search and finds the listing in the
   // results. So everything that decides which listings come back has to travel
@@ -169,7 +187,7 @@ const Marketplace = () => {
       {!embed && <Navbar />}
       <main className={`flex-1 pb-16 ${embed ? "pt-6" : "pt-24"}`}>
         <div className="container max-w-7xl px-4">
-          <header className="mb-6 max-w-3xl">
+          <header className="mb-6 max-w-2xl">
             <h1 className="font-charge text-3xl text-foreground md:text-4xl">EV Marketplace</h1>
             <p className="mt-2 text-muted-foreground">
               Electric and plug-in hybrid vehicles for sale near you — with what each one
@@ -177,22 +195,63 @@ const Marketplace = () => {
             </p>
           </header>
 
-          <form onSubmit={submit} className="mb-6 flex flex-col gap-3 sm:flex-row sm:max-w-2xl">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
-              <Input
-                value={typed}
-                onChange={(e) => setTyped(e.target.value)}
-                placeholder="ZIP code, city, state or address"
-                aria-label="Search location"
-                maxLength={MAX_QUERY}
-                className="h-12 rounded-xl pl-9"
-              />
+          {/* What car, on the left; where, on the right. The two questions a
+              shopper actually arrives with, in the order they ask them. */}
+          <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex flex-wrap items-center gap-3">
+              <Select value={makeValue} onValueChange={changeMake}>
+                <SelectTrigger className="h-12 w-full rounded-xl sm:w-48" aria-label="Make">
+                  <SelectValue placeholder="All makes" />
+                </SelectTrigger>
+                <SelectContent className="max-h-72">
+                  <SelectItem value={ANY}>All makes</SelectItem>
+                  {makeOptions.map((o) => (
+                    <SelectItem key={o.value} value={o.value}>
+                      {o.label} ({o.count})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select
+                value={modelValue}
+                onValueChange={changeModel}
+                disabled={!modelOptions.length && filters.models.length === 0}
+              >
+                <SelectTrigger className="h-12 w-full rounded-xl sm:w-52" aria-label="Model">
+                  <SelectValue placeholder="All models" />
+                </SelectTrigger>
+                <SelectContent className="max-h-72">
+                  <SelectItem value={ANY}>All models</SelectItem>
+                  {modelOptions.map((o) => (
+                    <SelectItem key={o.value} value={o.value}>
+                      {o.label} ({o.count})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-            <Button type="submit" className="h-12 rounded-xl px-6" disabled={!typed.trim()}>
-              {isFetching ? <Loader2 className="h-4 w-4 animate-spin" aria-label="Searching" /> : "Search"}
-            </Button>
-          </form>
+
+            <form
+              onSubmit={submit}
+              className="flex w-full flex-col gap-3 sm:flex-row lg:w-auto lg:shrink-0"
+            >
+              <div className="relative flex-1 lg:w-80">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
+                <Input
+                  value={typed}
+                  onChange={(e) => setTyped(e.target.value)}
+                  placeholder="ZIP code, city, state or address"
+                  aria-label="Search location"
+                  maxLength={MAX_QUERY}
+                  className="h-12 rounded-xl pl-9"
+                />
+              </div>
+              <Button type="submit" className="h-12 rounded-xl px-6" disabled={!typed.trim()}>
+                {isFetching ? <Loader2 className="h-4 w-4 animate-spin" aria-label="Searching" /> : "Search"}
+              </Button>
+            </form>
+          </div>
 
           {error && (
             <p className="mb-6 text-sm text-destructive">{(error as Error).message}</p>

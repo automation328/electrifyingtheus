@@ -65,6 +65,15 @@ describe("sortListings", () => {
   });
 });
 
+describe("DEFAULT_SORT", () => {
+  it("is cheapest first, and is an order the provider applies across the radius", () => {
+    expect(DEFAULT_SORT).toBe("price-asc");
+    // If the default were one only we can apply, the first page a visitor sees
+    // would be ordered from an arbitrary page of the provider's own choosing.
+    expect(isProviderSorted(DEFAULT_SORT)).toBe(true);
+  });
+});
+
 describe("providerSortFor", () => {
   it("maps the orders the provider can apply to its own parameter", () => {
     expect(providerSortFor("price-asc")).toBe("price.asc");
