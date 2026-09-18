@@ -92,3 +92,57 @@ describe("catalogSearchModels", () => {
     }
   });
 });
+
+describe("the electric-specific nameplates never claim a petrol car", () => {
+  // Every one of these pairs is a real trap: the same word sells two different
+  // cars, one of which burns petrol. The catalog carries the electric name, and
+  // the matcher must refuse the other. If one of these ever flips, a petrol car
+  // reaches an EV marketplace and only the provider's fuel field stands in the
+  // way — and that field is not always populated.
+  const traps: Array<[string, string, string, string]> = [
+    ["Hyundai", "Kona Electric", "Hyundai", "Kona"],
+    ["Kia", "Soul EV", "Kia", "Soul"],
+    ["Toyota", "RAV4 EV", "Toyota", "RAV4"],
+    ["Toyota", "C-HR EV", "Toyota", "C-HR"],
+    ["Chevrolet", "Spark EV", "Chevrolet", "Spark"],
+    ["Ford", "Focus Electric", "Ford", "Focus"],
+    ["Honda", "Fit EV", "Honda", "Fit"],
+    ["Mini", "Cooper SE", "Mini", "Cooper S"],
+    ["Volkswagen", "e-Golf", "Volkswagen", "Golf"],
+    ["Lexus", "ES 350e", "Lexus", "ES 350"],
+    ["Ford", "F-150 Lightning", "Ford", "F-150"],
+    ["smart", "Fortwo Electric Drive", "smart", "Fortwo"],
+  ];
+
+  it.each(traps)("%s %s is found, and %s %s is not", (make, electric, petrolMake, petrol) => {
+    expect(matchCatalogVehicle(make, electric), `${make} ${electric}`).not.toBeNull();
+    expect(matchCatalogVehicle(petrolMake, petrol), `${petrolMake} ${petrol}`).toBeNull();
+  });
+
+  it("reads the trim text dealers actually write", () => {
+    expect(matchCatalogVehicle("Hyundai", "KONA ELECTRIC SEL")?.id).toBe("hyundai-kona-electric");
+    expect(matchCatalogVehicle("Ford", "F-150 Lightning Lariat")?.id).toBe("ford-f150-lightning");
+    expect(matchCatalogVehicle("Chevrolet", "Bolt EUV Premier")?.id).toBe("chevy-bolt-euv");
+    expect(matchCatalogVehicle("Tesla", "Model S Plaid")?.id).toBe("tesla-model-s");
+    expect(matchCatalogVehicle("Jaguar", "I-PACE HSE")?.id).toBe("jaguar-i-pace");
+  });
+
+  it("prefers the more specific nameplate when two could match", () => {
+    // "Bolt" and "Bolt EUV" are different cars with different range figures.
+    expect(matchCatalogVehicle("Chevrolet", "Bolt EV")?.id).toBe("chevy-bolt-ev");
+    expect(matchCatalogVehicle("Chevrolet", "Bolt EUV")?.id).toBe("chevy-bolt-euv");
+    expect(matchCatalogVehicle("BMW", "iX xDrive40")?.id).toBe("bmw-ix-xdrive40");
+    expect(matchCatalogVehicle("BMW", "iX")?.id).toBe("bmw-ix");
+  });
+
+  it("finds the cars whose spelling the catalog used to miss", () => {
+    // Dealers write these the other way round from how the catalog names them.
+    expect(matchCatalogVehicle("Genesis", "Electrified G80")?.id).toBe("genesis-g80-electrified");
+    expect(matchCatalogVehicle("Genesis", "Electrified GV70")?.id).toBe("genesis-gv70-electrified");
+    expect(matchCatalogVehicle("Audi", "A6 Sportback e-tron")?.id).toBe("audi-a6-etron");
+    expect(matchCatalogVehicle("Audi", "Q4 Sportback e-tron")?.id).toBe("audi-q4-etron");
+    expect(matchCatalogVehicle("Volvo", "XC40 Recharge")?.id).toBe("volvo-ex40");
+    expect(matchCatalogVehicle("Volvo", "C40 Recharge")?.id).toBe("volvo-c40");
+    expect(matchCatalogVehicle("Lexus", "RZ 300e")?.id).toBe("lexus-rz-450e");
+  });
+});
