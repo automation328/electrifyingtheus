@@ -17,7 +17,7 @@ import {
   TrendingDown, Gauge, MapPin, BarChart3, Zap, Fuel, Clock, Trophy,
   Info, SlidersHorizontal, ChevronDown, ShieldCheck, House, Sparkles, Award, CircleDollarSign,
   Share2, Code2, Car, Tag, Facebook, Linkedin, MessageCircle, Mail, Copy, Send,
-  Gift, BadgeCheck, ArrowRight, type LucideIcon,
+  Gift, BadgeCheck, ArrowRight, Store, type LucideIcon,
 } from "lucide-react";
 import iconCompactSedan from "@/assets/vehicle-icons/compact-sedan.png";
 import iconMidsizeSedan from "@/assets/vehicle-icons/midsize-sedan.png";
@@ -42,6 +42,7 @@ import { recommendEvs, type MatchLabel } from "@/lib/ev-match";
 import { incentiveHeadline } from "@/data/incentives";
 import { parseCalcState, serializeCalcState, type CalcState } from "@/lib/evg-url";
 import { zipToState } from "@/lib/zip-to-state";
+import { marketplacePathFor } from "@/lib/marketplace-link";
 import { getLeadIdentity, hasLeadIdentity } from "@/lib/leadIdentity";
 import {
   SOURCES, CONFIDENCE_COPY, overallConfidence, type SourceMeta, type Confidence,
@@ -963,14 +964,18 @@ const ElectricityVsGasoline = () => {
                 {matches.map((m) => {
                   const active = m.ev.id === evId;
                   const meta = MATCH_META[m.label];
+                  const forSale = marketplacePathFor(m.ev.id, { zip });
                   return (
-                    <button
+                    <div
                       key={m.ev.id}
+                      className={`flex flex-col rounded-2xl border bg-card p-4 transition-all ${active ? "ring-2 shadow-elevated border-transparent" : "border-border hover:border-primary/40"}`}
+                      style={active ? ({ ["--tw-ring-color" as never]: "hsl(214 100% 36% / 0.5)" }) : undefined}
+                    >
+                    <button
                       type="button"
                       onClick={() => setEvId(m.ev.id)}
                       aria-pressed={active}
-                      className={`text-left rounded-2xl border bg-card p-4 transition-all ${active ? "ring-2 shadow-elevated border-transparent" : "border-border hover:border-primary/40"}`}
-                      style={active ? ({ ["--tw-ring-color" as never]: "hsl(214 100% 36% / 0.5)" }) : undefined}
+                      className="text-left rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
                       {m.ev.image && (
                         <div className="aspect-[16/10] mb-3 rounded-xl overflow-hidden bg-muted">
@@ -1002,6 +1007,19 @@ const ElectricityVsGasoline = () => {
                         <span className="font-charge text-base text-foreground tabular-nums">{currency(m.ev.msrp, 0)}</span>
                       </div>
                     </button>
+
+                    {/* The MSRP above is a new-car sticker. This is the way to
+                        what the car actually costs on a forecourt nearby. */}
+                    {forSale && (
+                      <Link
+                        to={forSale}
+                        className="mt-3 inline-flex items-center justify-center gap-1.5 rounded-xl border border-primary/30 bg-primary/5 px-3 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/10"
+                      >
+                        <Store className="w-3.5 h-3.5" aria-hidden />
+                        Find one for sale
+                      </Link>
+                    )}
+                    </div>
                   );
                 })}
               </div>

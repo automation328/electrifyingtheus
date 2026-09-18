@@ -22,13 +22,14 @@ const state = (over: Partial<FilterState> = {}): FilterState => ({ ...EMPTY_FILT
 describe("readFilters", () => {
   it("reads every filter off the URL", () => {
     const params = new URLSearchParams(
-      "condition=new&powertrain=phev&makes=Tesla,Kia&bodies=sedan,truck"
+      "condition=new&powertrain=phev&makes=Tesla,Kia&models=Model 3&bodies=sedan,truck"
       + "&priceMin=10000&priceMax=45000&yearMin=2020&yearMax=2024&mileageMax=40000&rangeMin=250",
     );
     expect(readFilters(params)).toEqual({
       condition: "new",
       powertrain: "phev",
       makes: ["Tesla", "Kia"],
+      models: ["Model 3"],
       bodies: ["sedan", "truck"],
       priceMin: 10000,
       priceMax: 45000,
@@ -130,6 +131,28 @@ describe("applyFilters", () => {
   it("combines dimensions as AND", () => {
     expect(ids(applyFilters(rows, state({ makes: ["Tesla"], condition: "used", priceMax: 35000 }))))
       .toEqual(["tesla-used"]);
+  });
+
+  it("matches a model the loose way dealer text demands", () => {
+    const written = [
+      listing("exact", { model: "Mustang Mach-E", catalogId: "ford-mustang-mach-e" }),
+      listing("shortened", { model: "Mach E", catalogId: "ford-mustang-mach-e" }),
+      listing("shouted", { model: "MUSTANG MACH-E Premium AWD", catalogId: "ford-mustang-mach-e" }),
+      listing("other", { model: "Model 3" }),
+    ];
+    expect(ids(applyFilters(written, state({ models: ["Mustang Mach-E"] }))))
+      .toEqual(["exact", "shortened", "shouted"]);
+    expect(ids(applyFilters(written, state({ models: ["Model 3"] })))).toEqual(["other"]);
+  });
+
+  it("treats several models as OR and ignores an empty one", () => {
+    const written = [
+      listing("a", { model: "EV6" }),
+      listing("b", { model: "Model Y" }),
+      listing("c", { model: "i4" }),
+    ];
+    expect(ids(applyFilters(written, state({ models: ["EV6", "Model Y"] })))).toEqual(["a", "b"]);
+    expect(applyFilters(written, state({ models: ["  "] }))).toHaveLength(0);
   });
 
   it("filters on body style through the catalog join", () => {

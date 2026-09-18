@@ -1,4 +1,5 @@
 import type { VehicleListing } from "./marketplace-types";
+import { normalizeModelText } from "./ev-catalog-match";
 import type { BodyStyle } from "./tco-calculator";
 import { vehicles } from "@/data/vehicles";
 
@@ -16,6 +17,10 @@ export interface FilterState {
   condition: "all" | "new" | "used";
   powertrain: "all" | "ev" | "phev";
   makes: string[];
+  /** Model names, as loosely matched as dealer listings demand. No panel
+   *  exposes this — it is how a link from elsewhere on the site asks for one
+   *  particular car, e.g. the EV matches on the comparison pages. */
+  models: string[];
   bodies: BodyStyle[];
   priceMin?: number;
   priceMax?: number;
@@ -29,6 +34,7 @@ export const EMPTY_FILTERS: FilterState = {
   condition: "all",
   powertrain: "all",
   makes: [],
+  models: [],
   bodies: [],
 };
 
@@ -70,7 +76,7 @@ const csv = (raw: string | null): string[] =>
 /** Every URL key this module owns. Listed once so writing state back can clear
  *  the keys it is not setting without disturbing q, radius, sort or embed. */
 const KEYS = [
-  "condition", "powertrain", "makes", "bodies",
+  "condition", "powertrain", "makes", "models", "bodies",
   "priceMin", "priceMax", "yearMin", "yearMax", "mileageMax", "rangeMin",
 ] as const;
 
@@ -84,6 +90,7 @@ export function readFilters(params: URLSearchParams): FilterState {
     condition: condition === "new" || condition === "used" ? condition : "all",
     powertrain: powertrain === "ev" || powertrain === "phev" ? powertrain : "all",
     makes: csv(params.get("makes")),
+    models: csv(params.get("models")),
     bodies,
     priceMin: posInt(params.get("priceMin")),
     priceMax: posInt(params.get("priceMax")),
@@ -103,6 +110,7 @@ export function writeFilters(params: URLSearchParams, state: FilterState): URLSe
   if (state.condition !== "all") next.set("condition", state.condition);
   if (state.powertrain !== "all") next.set("powertrain", state.powertrain);
   if (state.makes.length) next.set("makes", state.makes.join(","));
+  if (state.models.length) next.set("models", state.models.join(","));
   if (state.bodies.length) next.set("bodies", state.bodies.join(","));
   for (const key of ["priceMin", "priceMax", "yearMin", "yearMax", "mileageMax", "rangeMin"] as const) {
     const value = state[key];
@@ -121,7 +129,9 @@ export function serverFilters(state: FilterState) {
   };
 }
 
-type Dimension = "condition" | "powertrain" | "makes" | "bodies" | "price" | "year" | "mileage" | "range";
+type Dimension =
+  | "condition" | "powertrain" | "makes" | "models" | "bodies"
+  | "price" | "year" | "mileage" | "range";
 
 /** One dimension's verdict on one listing.
  *
@@ -136,6 +146,17 @@ function passes(listing: VehicleListing, state: FilterState, dimension: Dimensio
       return state.powertrain === "all" || listing.powertrain === state.powertrain;
     case "makes":
       return !state.makes.length || state.makes.includes(listing.make);
+    case "models": {
+      if (!state.models.length) return true;
+      // Dealers write the same car as "Mustang Mach-E", "Mach E" and
+      // "MUSTANG MACH-E Premium AWD", so match the way the catalog matcher
+      // does: normalised, and either string may contain the other.
+      const listed = normalizeModelText(listing.model);
+      return state.models.some((wanted) => {
+        const want = normalizeModelText(wanted);
+        return want.length > 0 && (listed.includes(want) || want.includes(listed));
+      });
+    }
     case "bodies": {
       if (!state.bodies.length) return true;
       const body = bodyStyleOf(listing);
@@ -160,7 +181,8 @@ function passes(listing: VehicleListing, state: FilterState, dimension: Dimensio
 }
 
 const ALL_DIMENSIONS: Dimension[] = [
-  "condition", "powertrain", "makes", "bodies", "price", "year", "mileage", "range",
+  "condition", "powertrain", "makes", "models", "bodies",
+  "price", "year", "mileage", "range",
 ];
 
 export function applyFilters(
@@ -174,6 +196,7 @@ export function activeFilterCount(state: FilterState): number {
   if (state.condition !== "all") n++;
   if (state.powertrain !== "all") n++;
   n += state.makes.length;
+  n += state.models.length;
   n += state.bodies.length;
   if (state.priceMin != null || state.priceMax != null) n++;
   if (state.yearMin != null || state.yearMax != null) n++;
@@ -216,6 +239,13 @@ export function filterChips(state: FilterState): FilterChip[] {
       id: `make:${make}`,
       label: make,
       next: { ...state, makes: state.makes.filter((m) => m !== make) },
+    });
+  }
+  for (const model of state.models) {
+    chips.push({
+      id: `model:${model}`,
+      label: model,
+      next: { ...state, models: state.models.filter((m) => m !== model) },
     });
   }
   for (const body of state.bodies) {
