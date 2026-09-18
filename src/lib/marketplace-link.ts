@@ -35,6 +35,28 @@ export function marketplacePathFor(
 }
 
 /**
+ * One link covering several catalog vehicles at once — the three EV matches a
+ * comparison page offers, say.
+ *
+ * Make and model both go as lists, which the provider ORs, so the search comes
+ * back as "any of these three cars" rather than three separate errands. Ids it
+ * does not know are skipped, and nothing but unknown ids gives null.
+ */
+export function marketplacePathForMany(
+  catalogIds: readonly string[], { zip }: MarketplaceLinkOptions = {},
+): string | null {
+  const vehicles = catalogIds.map((id) => BY_ID.get(id)).filter(Boolean);
+  if (!vehicles.length) return null;
+
+  const params = new URLSearchParams();
+  const clean = (zip ?? "").trim();
+  if (/^\d{5}$/.test(clean)) params.set("q", clean);
+  params.set("makes", [...new Set(vehicles.map((v) => v!.make))].join(","));
+  params.set("models", [...new Set(vehicles.map((v) => v!.model))].join(","));
+  return `/marketplace?${params}`;
+}
+
+/**
  * Every make the marketplace could ever show, from the catalog rather than from
  * the listings on screen.
  *

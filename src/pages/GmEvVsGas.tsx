@@ -43,7 +43,7 @@ import { recommendEvs, type MatchLabel } from "@/lib/ev-match";
 import { incentiveHeadline } from "@/data/incentives";
 import { parseCalcState, serializeCalcState, type CalcState } from "@/lib/evg-url";
 import { zipToState } from "@/lib/zip-to-state";
-import { marketplacePathFor } from "@/lib/marketplace-link";
+import { marketplacePathFor, marketplacePathForMany } from "@/lib/marketplace-link";
 import { getLeadIdentity, hasLeadIdentity } from "@/lib/leadIdentity";
 import {
   SOURCES, CONFIDENCE_COPY, overallConfidence, type SourceMeta, type Confidence,
@@ -280,6 +280,14 @@ const GmEvVsGas = () => {
   // Class-matched EV recommendations for the chosen gas car (§6) — only once a
   // gas car is picked, so nothing is suggested on an empty form.
   const matches = useMemo(() => (gasSel ? recommendEvs(gas, gmVehicles) : []), [gasSel, gas]);
+  /** The EV currently loaded into the comparison, searched on its own. */
+  const evForSale = useMemo(() => marketplacePathFor(ev.id, { zip }), [ev.id, zip]);
+
+  /** One marketplace search covering all three matches at once. */
+  const matchesForSale = useMemo(
+    () => marketplacePathForMany(matches.map((m) => m.ev.id), { zip }),
+    [matches, zip],
+  );
   const [showResults, setShowResults] = useState(false);
 
   // After the lead form is submitted (or the numbers re-run), smoothly bring the
@@ -971,7 +979,6 @@ const GmEvVsGas = () => {
                 {matches.map((m) => {
                   const active = m.ev.id === evId;
                   const meta = MATCH_META[m.label];
-                  const forSale = marketplacePathFor(m.ev.id, { zip });
                   return (
                     <div
                       key={m.ev.id}
@@ -1014,22 +1021,24 @@ const GmEvVsGas = () => {
                         <span className="font-charge text-base text-foreground tabular-nums">{currency(m.ev.msrp, 0)}</span>
                       </div>
                     </button>
-
-                    {/* The MSRP above is a new-car sticker. This is the way to
-                        what the car actually costs on a forecourt nearby. */}
-                    {forSale && (
-                      <Link
-                        to={forSale}
-                        className="mt-3 inline-flex items-center justify-center gap-1.5 rounded-xl border border-primary/30 bg-primary/5 px-3 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/10"
-                      >
-                        <Store className="w-3.5 h-3.5" aria-hidden />
-                        Find one for sale
-                      </Link>
-                    )}
                     </div>
                   );
                 })}
               </div>
+
+              {/* One errand, not three: the marketplace takes a list of makes
+                  and models, so all three matches are searched at once. The
+                  MSRPs above are new-car stickers; this is what they cost on a
+                  forecourt nearby. */}
+              {matchesForSale && (
+                <Link
+                  to={matchesForSale}
+                  className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-primary/30 bg-primary/5 px-4 py-3 text-sm font-medium text-primary transition-colors hover:bg-primary/10"
+                >
+                  <Store className="w-4 h-4" aria-hidden />
+                  Find these for sale near you
+                </Link>
+              )}
             </div>
 
             {/* Fuel-savings verdict scoreboard — moved above the range bars */}
@@ -1376,6 +1385,19 @@ const GmEvVsGas = () => {
                   <span className="font-bold text-foreground">Total</span>
                   <span className="font-charge text-2xl text-foreground tabular-nums">{currency(calc.e.total)}</span>
                 </div>
+
+                {/* Whichever EV is loaded into the comparison, not just the
+                    three matches below it: every car this page can price is a
+                    car the marketplace can look for. */}
+                {evForSale && (
+                  <Link
+                    to={evForSale}
+                    className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-primary/30 bg-primary/5 px-4 py-2.5 text-sm font-medium text-primary transition-colors hover:bg-primary/10"
+                  >
+                    <Store className="w-4 h-4" aria-hidden />
+                    Find a {ev.name} for sale
+                  </Link>
+                )}
               </div>
             </div>
 
