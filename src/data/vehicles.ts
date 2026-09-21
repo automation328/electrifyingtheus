@@ -625,6 +625,16 @@ export const vehicles: VehicleData[] = [
     bodyStyle: "sedan", sizeClass: 3, seats: 5, drivetrain: "FWD",
   },
   {
+    // 2027 Prius LE, front-wheel drive: $28,755 from toyota.com/prius, and the
+    // EPA's own 59 city / 50 highway / 55 combined. The most-asked-for petrol
+    // car on this site and the hardest one for an EV to beat on fuel — which is
+    // the point of listing it honestly.
+    id: "toyota-prius", name: "Toyota Prius", type: "gas", msrp: 28755,
+    mpg: 55, maintenanceCostPerMile: 0.078, insuranceAnnual: 1580,
+    depreciationRate: 0.11, category: "Sedan",
+    bodyStyle: "hatchback", sizeClass: 2, seats: 5, drivetrain: "FWD",
+  },
+  {
     id: "toyota-camry-hybrid", name: "Toyota Camry Hybrid", type: "gas", msrp: 29500,
     mpg: 51, maintenanceCostPerMile: 0.085, insuranceAnnual: 1650,
     depreciationRate: 0.12, category: "Sedan",
@@ -1768,6 +1778,7 @@ const VEHICLE_IMAGES: Record<string, string> = {
   "bmw-x7": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/BMW_G07_1X7A1696.jpg/330px-BMW_G07_1X7A1696.jpg",
   "ford-f150-hybrid": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/2018_Ford_F-150_XLT_Crew_Cab%2C_front_11.10.19.jpg/330px-2018_Ford_F-150_XLT_Crew_Cab%2C_front_11.10.19.jpg",
   "toyota-camry-hybrid": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/2018_Toyota_Camry_%28ASV70R%29_Ascent_sedan_%282018-08-27%29_01.jpg/330px-2018_Toyota_Camry_%28ASV70R%29_Ascent_sedan_%282018-08-27%29_01.jpg",
+  "toyota-prius": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/2023_Denver_Auto_Show_Toyota_Prius_front_quarter.jpg/330px-2023_Denver_Auto_Show_Toyota_Prius_front_quarter.jpg",
   "honda-accord-hybrid": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/2023_Honda_Accord_LX%2C_front_left%2C_07-13-2023.jpg/330px-2023_Honda_Accord_LX%2C_front_left%2C_07-13-2023.jpg",
   "toyota-rav4-hybrid": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2d/2024_Toyota_RAV4_Prime_XSE_Premium_in_Silver_Sky_with_Midnight_Black_roof%2C_front_left.jpg/330px-2024_Toyota_RAV4_Prime_XSE_Premium_in_Silver_Sky_with_Midnight_Black_roof%2C_front_left.jpg",
   "vw-jetta": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/aa/2019_Volkswagen_Jetta_1.4T_R-Line_in_Haba%C3%B1ero_Orange_Metallic%2C_front_right.jpg/330px-2019_Volkswagen_Jetta_1.4T_R-Line_in_Haba%C3%B1ero_Orange_Metallic%2C_front_right.jpg",

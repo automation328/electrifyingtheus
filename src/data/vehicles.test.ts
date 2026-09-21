@@ -71,3 +71,27 @@ describe("every vehicle has its own photograph", () => {
     expect(wrong).toEqual([]);
   });
 });
+
+describe("the petrol cars people actually drive", () => {
+  it("carries the Prius, with the EPA's figures", () => {
+    // The best-selling hybrid in the country and the hardest petrol car for an
+    // EV to beat on fuel. Leaving it out made the comparison look like it only
+    // faced cars that drink.
+    const prius = vehicles.find((v) => v.id === "toyota-prius");
+    expect(prius, "Toyota Prius missing from the catalog").toBeDefined();
+    // 2027 Prius LE FWD: $28,755 on toyota.com, 59 city / 50 highway / 55
+    // combined at the EPA. A figure that drifts from those is a bug, not a taste.
+    expect(prius!.mpg).toBe(55);
+    expect(prius!.msrp).toBe(28755);
+    expect(prius!.type).toBe("gas");
+  });
+
+  it("gives every popular petrol nameplate an entry", () => {
+    const wanted = [
+      "toyota-corolla", "toyota-camry", "toyota-rav4", "toyota-prius",
+      "honda-civic", "honda-accord", "honda-crv", "ford-f150",
+    ];
+    const missing = wanted.filter((id) => !vehicles.some((v) => v.id === id));
+    expect(missing).toEqual([]);
+  });
+});
