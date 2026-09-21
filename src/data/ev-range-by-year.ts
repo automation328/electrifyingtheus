@@ -782,7 +782,11 @@ function narrow(variants: readonly EpaVariant[], hint?: ListingVariantHint): rea
     if (byDrive.length) kept = byDrive;
   }
 
-  const wanted = words(hint?.trim).filter((w) => !NOISE.has(w));
+  const spoken = words(hint?.trim).filter((w) => !NOISE.has(w));
+  // A one-letter word only counts when it is the whole trim. Hyundai sells both
+  // an IONIQ 5 N (221 miles) and an IONIQ 5 SEL with the N Line package (290),
+  // and matching on that lone "n" handed the SEL the N's rating.
+  const wanted = spoken.filter((w) => w.length > 1 || spoken.length === 1);
   if (wanted.length) {
     let best = 0;
     const scores = kept.map((v) => {

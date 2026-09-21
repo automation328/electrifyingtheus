@@ -99,6 +99,16 @@ describe("epaRangeFor, given what the listing says it is", () => {
     expect(epaRangeFor("nissan-leaf", 2025, {})).toEqual(bare);
   });
 
+  it("does not read a one-letter trim word as a badge", () => {
+    // Hyundai sells an IONIQ 5 N (221 miles) and an IONIQ 5 SEL with the N Line
+    // package (259-290). The lone "n" was handing the SEL the N's rating.
+    const sel = epaRangeFor("hyundai-ioniq-5", 2025, { trim: "SEL", drivetrain: "AWD" });
+    expect(epaRangeFor("hyundai-ioniq-5", 2025, { trim: "SEL N Package", drivetrain: "AWD" })).toEqual(sel);
+    expect(epaRangeFor("hyundai-ioniq-5", 2025, { trim: "N Line", drivetrain: "AWD" })).toEqual(sel);
+    // On its own it is the car.
+    expect(epaRangeFor("hyundai-ioniq-5", 2025, { trim: "N", drivetrain: "AWD" })).toEqual({ rangeMi: 221 });
+  });
+
   it("still says nothing when it knows nothing", () => {
     expect(epaRangeFor("not-a-car", 2020, { trim: "Long Range" })).toEqual({});
     expect(epaRangeFor("nissan-leaf", undefined, { trim: "SV" })).toEqual({});
