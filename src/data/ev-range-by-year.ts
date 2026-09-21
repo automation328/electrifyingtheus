@@ -741,18 +741,25 @@ const NOISE = new Set([
 ]);
 
 /**
- * Performance trims a dealer always names, because they are the reason for the
- * price. A listing that does NOT say "V-Series" is not a V-Series, so those
- * ratings are dropped rather than left to drag the band down.
+ * Words in an EPA label that describe EQUIPMENT rather than which trim the car
+ * is: the battery, the wheels, the on-board charger.
  *
- * Only trims with their own badge belong here. Battery and wheel options —
- * extended range, 75 kWh, 19-inch — are NOT trims: dealers leave them out of
- * the trim field all the time, so their ratings have to stay in the band.
+ * The distinction decides what a vague trim is allowed to mean. A dealer will
+ * happily leave "extended range" or "20-inch wheels" out of the trim field, so
+ * those ratings have to stay in the band; a dealer does not leave out
+ * "V-Series", so a listing that does not claim one is not one.
+ *
+ * A label made only of these words — or of nothing — is the ordinary car.
  */
-const BADGED_TRIMS = new Set([
-  "gt", "performance", "plaid", "denali", "rally", "quadrifoglio",
-  "n", "m50", "m60", "m70", "580", "xdrive40", "series", "amg",
+const EQUIPMENT_WORDS = new Set([
+  "kw", "kwh", "charger", "inch", "in", "wheel", "wheels", "alloy", "steel",
+  "battery", "pack", "range", "extended", "standard", "long", "short",
+  "er", "sr", "lr", "lfp", "nmc", "dual", "single", "motor", "tires",
 ]);
+
+/** Whether this variant is the plain car rather than a named trim. */
+const isPlainVariant = (variant: EpaVariant): boolean =>
+  words(variant[2]).every((w) => EQUIPMENT_WORDS.has(w) || /^\d+$/.test(w));
 
 const words = (text?: string): string[] =>
   (text ?? "").toLowerCase().match(/[a-z0-9]+/g) ?? [];
@@ -783,23 +790,40 @@ function narrow(variants: readonly EpaVariant[], hint?: ListingVariantHint): rea
   }
 
   const spoken = words(hint?.trim).filter((w) => !NOISE.has(w));
-  // A one-letter word only counts when it is the whole trim. Hyundai sells both
-  // an IONIQ 5 N (221 miles) and an IONIQ 5 SEL with the N Line package (290),
-  // and matching on that lone "n" handed the SEL the N's rating.
-  const wanted = spoken.filter((w) => w.length > 1 || spoken.length === 1);
+  const wanted = spoken.filter((w, i) => (
+    // A one-letter word only counts when it is the whole trim. Hyundai sells
+    // both an IONIQ 5 N (221 miles) and an IONIQ 5 SEL with the N Line package
+    // (290), and matching on that lone "n" handed the SEL the N's rating.
+    (w.length > 1 || spoken.length === 1)
+    // "GT-Line", "N Line" and "Sport Package" are decor sold on the ordinary
+    // car and named after the fast one, so the word before "line" or "package"
+    // is not a claim to be it. A Kia EV9 GT-Line does 280 miles; the GT, 260.
+    && spoken[i + 1] !== "line" && spoken[i + 1] !== "package"
+  ));
   if (wanted.length) {
-    let best = 0;
-    const scores = kept.map((v) => {
-      const have = new Set(words(v[2]));
-      const score = wanted.filter((w) => have.has(w)).length;
-      if (score > best) best = score;
-      return score;
+    const scored = kept.map((v) => {
+      const have = words(v[2]);
+      const hit = new Set(have.filter((w) => wanted.includes(w)));
+      // Ties break towards the label with least left over, so a car that says
+      // "GT" takes the EV9 GT rather than the GT-Line, whose label also
+      // contains "gt" but three words we were told nothing about.
+      return { v, score: hit.size, spare: have.length - hit.size };
     });
-    if (best > 0) return kept.filter((_, i) => scores[i] === best);
+    const best = Math.max(...scored.map((s) => s.score));
+    if (best > 0) {
+      const tightest = Math.min(...scored.filter((s) => s.score === best).map((s) => s.spare));
+      return scored.filter((s) => s.score === best && s.spare === tightest).map((s) => s.v);
+    }
 
-    // Nothing matched, so this car is none of the badged trims — a LYRIQ
-    // Luxury is not the V-Series whose 285 miles was setting the low end.
-    const plain = kept.filter((v) => !words(v[2]).some((w) => BADGED_TRIMS.has(w)));
+    // Nothing matched, so this car is none of the named trims: a LYRIQ Luxury
+    // is not the V-Series whose 285 miles was setting the low end.
+    //
+    // Only where an ordinary car exists to fall back to, though. Every BMW iX
+    // the EPA rates carries a trim word — xDrive40, xDrive50, M60 — so dropping
+    // the named ones once left the xDrive50 alone and quoted a 217-mile
+    // xDrive40 at 307. When every variant is a named trim, the trim text told
+    // us nothing and the year's whole band is the honest answer.
+    const plain = kept.filter(isPlainVariant);
     if (plain.length) kept = plain;
   }
 

@@ -14,6 +14,12 @@ export interface Incentive {
   amount?: string;
   income?: boolean;
   used?: boolean;
+  /**
+   * The programme pays for a SECOND-HAND car only, so it is not on offer to
+   * someone buying new. `used` alone does not say that — MyFirstEV pays $3,500
+   * on a new ZEV and $1,750 on a used one, and is marked `used` too.
+   */
+  usedOnly?: boolean;
   desc: string;
   link: string;
   // Program window + status, from the site_incentives columns added in 0014.
@@ -104,7 +110,7 @@ export const STATE_INCENTIVES: Record<string, Partial<Record<CatKey, Incentive[]
         jurisdiction: "LADWP Incentive", utility: "ladwp",
         amount: "$1,500 - $4,000",
         income: true,
-        used: true,
+        used: true, usedOnly: true,
         desc: "LADWP customers can claim $1,500 toward a qualified used electric vehicle, rising to $4,000 for customers enrolled in the EZ-SAVE or Lifeline low-income programs. Both all-electric and plug-in hybrid used vehicles qualify.",
         link: "https://www.ladwp.com/residential-services/programs-and-rebates-residential/electric-vehicles-evs",
       },
@@ -112,7 +118,7 @@ export const STATE_INCENTIVES: Record<string, Partial<Record<CatKey, Incentive[]
         name: "Pre-Owned Electric Vehicle Rebate Program",
         jurisdiction: "PG&E Incentive", utility: "pge",
         amount: "$1,000 - $4,000",
-        used: true,
+        used: true, usedOnly: true,
         desc: "PG&E offers a $1,000 rebate for the purchase or lease of a pre-owned (used) EV. Income-qualified customers can receive up to $4,000. Dealer registration is not required to be eligible for the incentive.",
         link: "https://evrebates.pge.com/",
       },
@@ -373,7 +379,7 @@ export const UTILITY_INCENTIVES: Record<string, Incentive[]> = {
     { name: "PG&E Empower EV", jurisdiction: "Pacific Gas & Electric Incentive", utility: "pge", amount: "Up to $4,000", income: true,
       desc: "Income-eligible PG&E customers can receive up to $2,500 for a Level 2 charger and up to $2,000 toward a panel upgrade to support home charging.",
       link: "https://www.pge.com/en/clean-energy/electric-vehicles.html" },
-    { name: "SCE Pre-Owned EV Rebate", jurisdiction: "Southern California Edison Incentive", utility: "sce", amount: "$1,000 – $4,000", used: true, income: true,
+    { name: "SCE Pre-Owned EV Rebate", jurisdiction: "Southern California Edison Incentive", utility: "sce", amount: "$1,000 – $4,000", used: true, usedOnly: true, income: true,
       desc: "Rebate for buying or leasing a used EV — $1,000 for most customers, up to $4,000 for income-qualified households in SCE territory.",
       link: "https://www.sce.com/rebates-and-savings/electric-vehicles" },
     { name: "SDG&E EV-TOU Charging Rates", jurisdiction: "San Diego Gas & Electric Incentive", utility: "sdge",
@@ -516,7 +522,11 @@ export function consumerIncentivesFor(
     ...incentivesFor(state, "vehicle", zip).filter((i) => !usedCar || i.used),
     ...ALL_CATS.filter((k) => k !== "vehicle").flatMap((k) => incentivesFor(state, k, zip)),
     ...utilityIncentivesFor(state, zip),
-  ].filter(claimable);
+  ]
+    .filter(claimable)
+    // And the mirror of it: LADWP's Used EV Rebate, PG&E's and SCE's pre-owned
+    // programmes pay for a second-hand car only, wherever they are curated.
+    .filter((i) => usedCar || !i.usedOnly);
 
   const seen = new Set<string>();
   return all.filter((i) => (seen.has(i.name) ? false : (seen.add(i.name), true)));

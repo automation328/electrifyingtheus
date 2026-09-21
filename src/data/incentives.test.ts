@@ -233,9 +233,21 @@ describe("consumerIncentivesFor", () => {
   });
 
   it("respects the ZIP's utility, not just its state", () => {
-    expect(names("CA", "90012")).toContain("Used EV Rebate");            // LADWP
+    expect(names("CA", "90012", { usedCar: true })).toContain("Used EV Rebate"); // LADWP
     expect(names("CA", "90012")).not.toContain("PG&E Empower EV");
     expect(names("CA", "94110")).toContain("PG&E Empower EV");
+  });
+
+  it("does not offer a pre-owned rebate on a new car", () => {
+    // The mirror of the used-car rule, and the one that was missing: LADWP's
+    // Used EV Rebate and PG&E's Pre-Owned programme pay for second-hand cars
+    // only, so a new listing must not list them — while MyFirstEV, which pays
+    // $3,500 new and $1,750 used, belongs on both.
+    const newCar = names("CA", "90012", { usedCar: false });
+    expect(newCar).not.toContain("Used EV Rebate");
+    expect(newCar).toContain("MyFirstEV");
+    expect(names("CA", "94110", { usedCar: false })).not.toContain("Pre-Owned Electric Vehicle Rebate Program");
+    expect(names("CA", "92801", { usedCar: false })).not.toContain("SCE Pre-Owned EV Rebate");
   });
 
   it("never lists the same programme twice", () => {

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useReducer, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import {
   DollarSign, Zap, PlugZap, BadgeCheck, ArrowRight,
   MapPin, ExternalLink, Search, Info, Home, type LucideIcon,
@@ -73,18 +73,40 @@ const RebatesIncentives = () => {
   // `?zip=30082` arrives from anywhere that already knows where the visitor is
   // shopping — a marketplace listing, mostly — so the page opens on their
   // programmes instead of asking again for a ZIP they have already given.
-  const urlZip = typeof window !== "undefined"
-    ? (new URLSearchParams(window.location.search).get("zip") ?? "").replace(/\D/g, "").slice(0, 5)
-    : "";
+  // `?state=GA` is the weaker form, for a listing found by city rather than ZIP:
+  // enough to name the right state's programmes, not enough to pick a utility.
+  //
+  // Read through the router, not window.location, so arriving here from a link
+  // inside the app moves the page — a plain location read is taken once and a
+  // second visit with a different ZIP would show the first one's programmes.
+  const [params, setParams] = useSearchParams();
+  const urlZip = (params.get("zip") ?? "").replace(/\D/g, "").slice(0, 5);
+  const urlState = (params.get("state") ?? "").toUpperCase();
+
+  const locFromUrl = (): { zip: string; state: string; name: string } | null => {
+    if (urlZip.length === 5) {
+      const st = stateFromZip(urlZip);
+      if (st) return { zip: urlZip, state: st, name: STATE_NAMES[st] };
+    }
+    if (STATE_NAMES[urlState]) return { zip: "", state: urlState, name: STATE_NAMES[urlState] };
+    return null;
+  };
+
   const [zip, setZip] = useState(urlZip.length === 5 ? urlZip : "");
-  const [loc, setLoc] = useState<{ zip: string; state: string; name: string } | null>(() => {
-    if (urlZip.length !== 5) return null;
-    const st = stateFromZip(urlZip);
-    return st ? { zip: urlZip, state: st, name: STATE_NAMES[st] } : null;
-  });
+  const [loc, setLoc] = useState<{ zip: string; state: string; name: string } | null>(locFromUrl);
   const [error, setError] = useState("");
   const [vFilter, setVFilter] = useState<VFilter>("all");
   const didDetect = useRef(false);
+
+  // A second arrival with a different ZIP must move the page, not be ignored
+  // because this component happened to stay mounted.
+  useEffect(() => {
+    const next = locFromUrl();
+    if (!next) return;
+    setLoc((prev) => (prev && prev.zip === next.zip && prev.state === next.state ? prev : next));
+    if (next.zip) setZip(next.zip);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [urlZip, urlState]);
 
   // Auto-detect the visitor's ZIP on first load (Vercel edge geo, ipapi fallback)
   // and show their local programs immediately — same pattern as the calculator,
@@ -141,6 +163,12 @@ const RebatesIncentives = () => {
     setError("");
     setVFilter("all");
     setLoc({ zip: z, state: st, name: STATE_NAMES[st] });
+    // The URL carries the search, so this page can be shared, reloaded or
+    // linked back to with the same programmes on it.
+    const next = new URLSearchParams(params);
+    next.set("zip", z);
+    next.delete("state");
+    setParams(next, { replace: true });
   };
 
   const filterVehicle = (items: Incentive[]) =>

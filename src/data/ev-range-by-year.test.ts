@@ -60,23 +60,48 @@ describe("epaRangeFor, given what the listing says it is", () => {
   it("uses the trim when the drivetrain is not enough", () => {
     expect(epaRangeFor("cadillac-lyriq", 2026, { drivetrain: "AWD", trim: "V-Series" }))
       .toEqual({ rangeMi: 285 });
-    // Luxury is not a word the EPA files under, so the AWD cars stay a band —
-    // but a narrow one: 326 is rear-drive, and 285 is the V-Series, which this
-    // car would have said it was.
+    // Luxury is not a word the EPA files under, but the other AWD cars are the
+    // V-Series and the PAWD, which this car would have said it was — so what is
+    // left is the ordinary AWD LYRIQ, on its own.
     expect(epaRangeFor("cadillac-lyriq", 2026, { drivetrain: "AWD", trim: "Luxury" }))
-      .toEqual({ rangeMi: 303, rangeMaxMi: 319 });
+      .toEqual({ rangeMi: 303 });
   });
 
-  it("drops the badged trims a listing would have named", () => {
+  it("drops the named trims a listing would have claimed", () => {
     // A dealer does not leave "GT" out of the trim field, so a Mach-E that says
-    // Premium is not one — but "extended range" is an option, not a badge, and
-    // is left in the band because listings do leave it out.
+    // Premium is not one — but "extended range" is equipment, not a trim, and
+    // stays in the band because listings do leave it out.
     expect(epaRangeFor("ford-mustang-mach-e", 2022, { drivetrain: "AWD", trim: "GT" }))
-      .toEqual({ rangeMi: 260, rangeMaxMi: 270 });
+      .toEqual({ rangeMi: 270 });
     expect(epaRangeFor("ford-mustang-mach-e", 2022, { drivetrain: "AWD", trim: "Premium" }))
-      .toEqual({ rangeMi: 224, rangeMaxMi: 312 });
+      .toEqual({ rangeMi: 224, rangeMaxMi: 277 });
     expect(epaRangeFor("cadillac-optiq", 2026, { drivetrain: "AWD", trim: "Luxury" }))
       .toEqual({ rangeMi: 303 });
+  });
+
+  it("keeps the band when EVERY variant that year is a named trim", () => {
+    // The EPA rates the 2024 iX three ways — xDrive40 at 217, M60 at 296,
+    // xDrive50 at 307 — and none of them is a plain iX. Dropping the two this
+    // code recognised left the xDrive50 alone, so an xDrive40 whose listing
+    // said "Premium Package" was quoted 307: ninety miles it does not have.
+    expect(epaRangeFor("bmw-ix", 2024, { drivetrain: "AWD", trim: "Premium Package" }))
+      .toEqual({ rangeMi: 217, rangeMaxMi: 307 });
+    expect(epaRangeFor("bmw-ix", 2024, { drivetrain: "AWD", trim: "xDrive40" }))
+      .toEqual({ rangeMi: 217 });
+    expect(epaRangeFor("bmw-ix", 2024, { drivetrain: "AWD", trim: "xDrive50" }))
+      .toEqual({ rangeMi: 307 });
+    // "N/A" is what a feed sends when it has no trim, and it must not read as N.
+    expect(epaRangeFor("hyundai-ioniq-5", 2025, { drivetrain: "AWD", trim: "N/A" }))
+      .toEqual(epaRangeFor("hyundai-ioniq-5", 2025, { drivetrain: "AWD" }));
+  });
+
+  it("tells a GT from a GT-Line", () => {
+    // GT-Line is trim on an ordinary EV9; the GT is the 501hp car. Both EPA
+    // labels contain "gt", so the closer fit wins: "gt" over "long range gt line".
+    expect(epaRangeFor("kia-ev9", 2026, { drivetrain: "AWD", trim: "GT" }))
+      .toEqual({ rangeMi: 260 });
+    expect(epaRangeFor("kia-ev9", 2026, { drivetrain: "AWD", trim: "GT-Line" }))
+      .toEqual({ rangeMi: 280 });
   });
 
   it("finds a trim the EPA files under a catalog entry of its own", () => {
@@ -92,7 +117,11 @@ describe("epaRangeFor, given what the listing says it is", () => {
 
   it("keeps the whole band rather than guessing", () => {
     const bare = epaRangeFor("nissan-leaf", 2025);
-    expect(epaRangeFor("nissan-leaf", 2025, { trim: "S" })).toEqual(bare);
+    expect(bare).toEqual({ rangeMi: 149, rangeMaxMi: 212 });
+    // A trim the EPA does not file under means the plain car: the 2025 SV is
+    // the 212-mile one, so an S is the 149-mile one.
+    expect(epaRangeFor("nissan-leaf", 2025, { trim: "S" })).toEqual({ rangeMi: 149 });
+    // Nothing but noise, though, is nothing: no trim was really given.
     expect(epaRangeFor("nissan-leaf", 2025, { trim: "Base 4dr Sedan" })).toEqual(bare);
     // A drivetrain no variant has is evidence about nothing.
     expect(epaRangeFor("nissan-leaf", 2025, { drivetrain: "AWD" })).toEqual(bare);

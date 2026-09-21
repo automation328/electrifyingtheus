@@ -113,6 +113,12 @@ const VehicleListing = () => {
   const zip = /^\d{5}$/.test(query) ? query : undefined;
   const incentiveState = (zip ? stateFromZip(zip) : null) ?? listing?.state;
 
+  // What the incentives page needs to open on the same programmes: the ZIP when
+  // we have one, the state otherwise. Without it that page auto-detects from the
+  // visitor's IP, which is a different state from the car whenever someone is
+  // shopping out of their own area.
+  const incentiveSearch = zip ? `?zip=${zip}` : incentiveState ? `?state=${incentiveState}` : "";
+
   const incentives = useMemo(
     () => (incentiveState
       ? consumerIncentivesFor(incentiveState, zip, { usedCar: listing?.condition === "used" })
@@ -215,19 +221,19 @@ const VehicleListing = () => {
                   said nothing. Same shape as the running-cost figures, so the
                   two read as one column of answers. */}
               <dl className="mt-5 grid grid-cols-3 divide-x divide-border rounded-2xl border border-border bg-card">
-                <div className="px-4 py-3.5 first:pl-5">
+                <div className="min-w-0 px-4 py-3.5 first:pl-5">
                   <dt className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <Gauge className="w-3.5 h-3.5" /> Mileage
+                    <Gauge className="w-3.5 h-3.5 shrink-0" /> Mileage
                   </dt>
-                  <dd className="font-charge text-2xl text-foreground mt-1 tabular-nums">
+                  <dd className="font-charge text-lg sm:text-2xl leading-tight text-foreground mt-1 tabular-nums">
                     {listing.mileage != null ? listing.mileage.toLocaleString() : "—"}
                   </dd>
                 </div>
-                <div className="px-4 py-3.5">
+                <div className="min-w-0 px-4 py-3.5">
                   <dt className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <BatteryCharging className="w-3.5 h-3.5" /> EPA range
+                    <BatteryCharging className="w-3.5 h-3.5 shrink-0" /> EPA range
                   </dt>
-                  <dd className="font-charge text-2xl text-foreground mt-1 tabular-nums">
+                  <dd className="font-charge text-lg sm:text-2xl leading-tight text-foreground mt-1 tabular-nums">
                     {/* The band, when the year sold more than one battery and the
                         listing does not say which. Printing only the low end reads
                         as this car's rating, and understates most of them. */}
@@ -238,11 +244,14 @@ const VehicleListing = () => {
                     {listing.rangeMi != null && <span className="text-base text-muted-foreground"> mi</span>}
                   </dd>
                 </div>
-                <div className="px-4 py-3.5">
+                <div className="min-w-0 px-4 py-3.5">
                   <dt className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <MapPin className="w-3.5 h-3.5" /> Location
+                    <MapPin className="w-3.5 h-3.5 shrink-0" /> Location
                   </dt>
-                  <dd className="font-charge text-2xl text-foreground mt-1 truncate">
+                  {/* A third of a phone's width is not much for "Colorado
+                      Springs", so the name wraps and steps down a size rather
+                      than being cut off with no way to read the rest. */}
+                  <dd className="font-charge text-lg sm:text-2xl leading-tight text-foreground mt-1 break-words">
                     {listing.city || listing.state || "On request"}
                   </dd>
                   {listing.city && listing.state && (
@@ -327,7 +336,7 @@ const VehicleListing = () => {
                       </Button>
                       {incentives.length > INCENTIVES_SHOWN && (
                         <Link
-                          to={`/rebates-incentives${zip ? `?zip=${zip}` : ""}`}
+                          to={`/rebates-incentives${incentiveSearch}`}
                           className="text-sm font-medium text-primary hover:underline"
                         >
                           All {incentives.length} programmes
@@ -345,7 +354,7 @@ const VehicleListing = () => {
                         : "Federal, state and utility incentives can cut thousands off an EV purchase, and eligibility depends on the vehicle, your income and where you live."}
                     </p>
                     <Button asChild variant="outline" className="rounded-xl mt-4">
-                      <Link to={`/rebates-incentives${zip ? `?zip=${zip}` : ""}`}>
+                      <Link to={`/rebates-incentives${incentiveSearch}`}>
                         Search incentives by ZIP
                       </Link>
                     </Button>
