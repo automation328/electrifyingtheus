@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { utilityForZip, utilityServesZip } from "./utility-territory";
-import { incentivesFor, utilityIncentivesFor, forTerritory, type Incentive } from "./incentives";
+import { utilityForZip, utilityServesZip, servingUtilityFor } from "./utility-territory";
+import {
+  incentivesFor, utilityIncentivesFor, forTerritory, ownUtilityFirst, type Incentive,
+} from "./incentives";
 
 // The complaint this answers: entering 90012 — downtown Los Angeles — listed
 // five PG&E rebates and no LADWP ones. PG&E's own territory statement runs
@@ -105,6 +107,66 @@ describe("what a Los Angeles ZIP is offered", () => {
     // Every utility programme is still on offer, because nothing ruled one out.
     expect(bare).toContain("Pre-Owned Electric Vehicle Rebate Program");
     expect(bare).toContain("Used EV Rebate");
+  });
+});
+
+describe("servingUtilityFor", () => {
+  it("names PG&E for a ZIP in its own filing, which utilityForZip leaves open", () => {
+    expect(utilityForZip("94110")).toBeUndefined();
+    expect(servingUtilityFor("94110")).toBe("pge");
+  });
+
+  it("keeps the positively assigned answers", () => {
+    expect(servingUtilityFor("90012")).toBe("ladwp");
+    expect(servingUtilityFor("95814")).toBe("smud");
+    expect(servingUtilityFor("92101")).toBe("sdge");
+  });
+
+  it("stays undefined where nothing places the ZIP", () => {
+    expect(servingUtilityFor("95050")).toBeUndefined(); // Santa Clara — its own utility
+    expect(servingUtilityFor("30080")).toBeUndefined(); // Georgia
+    expect(servingUtilityFor("")).toBeUndefined();
+  });
+});
+
+describe("ownUtilityFirst", () => {
+  // The complaint this answers: a Los Angeles visitor had to scroll past three
+  // statewide schemes to reach the LADWP rebate that is actually theirs to claim.
+
+  it("lifts the visitor's own utility to the top of each section", () => {
+    const vehicle = incentivesFor("CA", "vehicle", "90012").map((i) => i.name);
+    expect(vehicle[0]).toBe("Used EV Rebate");
+
+    const charging = incentivesFor("CA", "charging", "90012").map((i) => i.name);
+    expect(charging.slice(0, 2)).toEqual(["EV Rate Discount", "Home EV Charger Rebate"]);
+  });
+
+  it("does the same for a PG&E ZIP, with PG&E's programmes", () => {
+    expect(incentivesFor("CA", "vehicle", "94110")[0].name)
+      .toBe("Pre-Owned Electric Vehicle Rebate Program");
+    expect(utilityIncentivesFor("CA", "94110")[0].name).toBe("PG&E Empower EV");
+  });
+
+  it("keeps every programme, and keeps the rest in their old order", () => {
+    const bare = incentivesFor("CA", "charging").map((i) => i.name);
+    const la = incentivesFor("CA", "charging", "90012").map((i) => i.name);
+    expect([...la].sort()).toEqual([...bare.filter((n) => la.includes(n))].sort());
+    // Non-LADWP programmes keep the order they had, only pushed down.
+    const others = la.filter((n) => !["EV Rate Discount", "Home EV Charger Rebate"].includes(n));
+    expect(others).toEqual(bare.filter((n) => others.includes(n)));
+  });
+
+  it("changes nothing for a ZIP it cannot place", () => {
+    const named = (zip?: string) => incentivesFor("CA", "vehicle", zip).map((i) => i.name);
+    // Santa Clara: its own utility, so PG&E's and LADWP's programmes are ruled
+    // out — but what survives is still in the order it always had.
+    const kept = named("95050");
+    expect(kept).toEqual(named(undefined).filter((n) => kept.includes(n)));
+    const items = [
+      { name: "a", jurisdiction: "x", desc: "d", link: "l" },
+      { name: "b", jurisdiction: "x", desc: "d", link: "l", utility: "ladwp" as const },
+    ];
+    expect(ownUtilityFirst(items, "30080")).toBe(items); // Georgia — untouched, not a copy
   });
 });
 

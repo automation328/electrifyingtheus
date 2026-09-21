@@ -125,3 +125,16 @@ export function utilityServesZip(utility: UtilityKey, zip?: string | null): bool
   if (utility === "ladwp" || utility === "smud") return false; // both are single-city utilities
   return undefined;
 }
+
+/**
+ * The utility whose name is most likely on this ZIP's bill, or undefined.
+ *
+ * Wider than utilityForZip, which answers only from the ZIPs we have positively
+ * assigned: this also accepts PG&E's own service-area filing as an answer. That
+ * is good enough to decide what to show FIRST — a ranking, where being wrong
+ * costs a scroll — but not to decide what to hide, which is why
+ * utilityServesZip keeps its stricter reading.
+ */
+export function servingUtilityFor(zip?: string | null): UtilityKey | undefined {
+  return utilityForZip(zip) ?? (utilityServesZip("pge", zip) === true ? "pge" : undefined);
+}

@@ -4,7 +4,7 @@
 // always verify on the official program page.
 
 import { incentiveWindow, todayIso } from "@/lib/incentive-window";
-import { utilityServesZip, type UtilityKey } from "@/data/utility-territory";
+import { utilityServesZip, servingUtilityFor, type UtilityKey } from "@/data/utility-territory";
 
 export type CatKey = "vehicle" | "charging" | "electricity" | "perks";
 
@@ -339,12 +339,28 @@ export const stateFromZip = (zip: string): string | null => {
 export const forTerritory = (items: Incentive[], zip?: string | null): Incentive[] =>
   items.filter((i) => !i.utility || utilityServesZip(i.utility, zip) !== false);
 
-// State programs first, then federal — matching electricforall ordering within a category.
+/**
+ * The visitor's own utility first, inside each section.
+ *
+ * A programme run by the utility that bills this address is the one they can
+ * apply for this afternoon, so it should not sit below three statewide schemes
+ * they have to read first. Everything else keeps the order it had — the sort is
+ * stable, so this only lifts the matching programmes rather than reshuffling
+ * the list — and a ZIP we cannot place changes nothing.
+ */
+export const ownUtilityFirst = (items: Incentive[], zip?: string | null): Incentive[] => {
+  const own = servingUtilityFor(zip);
+  if (!own) return items;
+  return [...items].sort((a, b) => Number(b.utility === own) - Number(a.utility === own));
+};
+
+// The visitor's own utility first, then state programs, then federal — otherwise
+// matching electricforall ordering within a category.
 export const incentivesFor = (state: string, key: CatKey, zip?: string | null): Incentive[] =>
-  forTerritory([
+  ownUtilityFirst(forTerritory([
     ...(STATE_INCENTIVES[state]?.[key] ?? []),
     ...(FEDERAL[key] ?? []),
-  ], zip);
+  ], zip), zip);
 
 // ── Utility / Private incentives ─────────────────────────────────────────────
 // The "Utility/Private Incentives" sector (implementing_sector=U) is no longer
@@ -462,7 +478,7 @@ export const UTILITY_INCENTIVES: Record<string, Incentive[]> = {
 /** Curated flagship utility EV programs for a state (empty when none are curated),
  *  narrowed to the utilities that actually serve the ZIP when we know it. */
 export const utilityIncentivesFor = (state: string, zip?: string | null): Incentive[] =>
-  forTerritory(UTILITY_INCENTIVES[state] ?? [], zip);
+  ownUtilityFirst(forTerritory(UTILITY_INCENTIVES[state] ?? [], zip), zip);
 
 /** Deep-link to the live, sector-categorized incentives page for a state. */
 export const utilityProgramsUrl = (state: string): string =>
