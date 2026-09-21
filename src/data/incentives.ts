@@ -4,6 +4,7 @@
 // always verify on the official program page.
 
 import { incentiveWindow, todayIso } from "@/lib/incentive-window";
+import { utilityServesZip, type UtilityKey } from "@/data/utility-territory";
 
 export type CatKey = "vehicle" | "charging" | "electricity" | "perks";
 
@@ -38,6 +39,15 @@ export interface Incentive {
    * to $30,000" above a break-even that assumed none of it.
    */
   audience?: "consumer" | "business";
+  /**
+   * The utility whose customers can claim it, for programmes that are not open
+   * to a whole state.
+   *
+   * Without this the page went by state alone, so a downtown Los Angeles ZIP was
+   * offered five PG&E rebates — PG&E's territory stops at Bakersfield — and none
+   * of the LADWP ones it could actually use.
+   */
+  utility?: UtilityKey;
 }
 
 // Federal / nationwide programs — merged into every ZIP's results.
@@ -67,7 +77,7 @@ export const STATE_INCENTIVES: Record<string, Partial<Record<CatKey, Incentive[]
       },
       {
         name: "Clean Cars for All",
-        jurisdiction: "Bay Area Air District Incentive",
+        jurisdiction: "California Incentive",
         amount: "Up to $12,000",
         income: true,
         used: true,
@@ -85,13 +95,22 @@ export const STATE_INCENTIVES: Record<string, Partial<Record<CatKey, Incentive[]
       },
       {
         name: "Ride and Drive Clean",
-        jurisdiction: "Bay Area Air District Incentive",
+        jurisdiction: "California Incentive",
         desc: "Ride and Drive Clean is here to help you save time, money, and the planet. With Exclusive EV Discounts, take advantage of savings on EVs and a no-hassle car buying experience. All vehicles must be purchased before May 31st, 2026.",
         link: "https://rideanddriveclean.org/ev-discounts-spring-2026/",
       },
       {
+        name: "Used EV Rebate",
+        jurisdiction: "LADWP Incentive", utility: "ladwp",
+        amount: "$1,500 - $4,000",
+        income: true,
+        used: true,
+        desc: "LADWP customers can claim $1,500 toward a qualified used electric vehicle, rising to $4,000 for customers enrolled in the EZ-SAVE or Lifeline low-income programs. Both all-electric and plug-in hybrid used vehicles qualify.",
+        link: "https://www.ladwp.com/residential-services/programs-and-rebates-residential/electric-vehicles-evs",
+      },
+      {
         name: "Pre-Owned Electric Vehicle Rebate Program",
-        jurisdiction: "PG&E Incentive",
+        jurisdiction: "PG&E Incentive", utility: "pge",
         amount: "$1,000 - $4,000",
         used: true,
         desc: "PG&E offers a $1,000 rebate for the purchase or lease of a pre-owned (used) EV. Income-qualified customers can receive up to $4,000. Dealer registration is not required to be eligible for the incentive.",
@@ -106,29 +125,44 @@ export const STATE_INCENTIVES: Record<string, Partial<Record<CatKey, Incentive[]
         link: "https://www.treasurer.ca.gov/caeatfa/pace/index.asp",
       },
       {
+        name: "EV Rate Discount",
+        jurisdiction: "LADWP Incentive", utility: "ladwp",
+        amount: "$0.025/kWh",
+        desc: "A $0.025 per kWh discount on base-period charging for LADWP customers on a Time-of-Use rate. The charger must be separately metered from the main meter. $10/month minimum charge applies, with no service charge and no ESA adjustment factor on the EV rate.",
+        link: "https://www.ladwp.com/residential-services/programs-and-rebates-residential/electric-vehicles-evs",
+      },
+      {
+        name: "Home EV Charger Rebate",
+        jurisdiction: "LADWP Incentive", utility: "ladwp",
+        amount: "Up to $1,750",
+        income: true,
+        desc: "LADWP pays $1,000 toward a qualified Level 2 home charger, plus $500 for customers on the Lifeline or EZ-SAVE assistance programs and $250 for a dedicated EV sub-meter, which can be added to the same application.",
+        link: "https://www.ladwp.com/residential-services/programs-and-rebates-residential/electric-vehicles-evs",
+      },
+      {
         name: "CCFA Charger Rebate",
-        jurisdiction: "Bay Area Air District Incentive",
+        jurisdiction: "California Incentive",
         amount: "Up to $2,000",
         desc: "CCFA offers up to $2,000 for a Level 2 home charger installation and up to $1,000 for a Level 2 portable charger for your new, used, or leased PHEV or BEV. Funding is first come, first served. Approval required before installation.",
         link: "https://www.baaqmd.gov/funding-and-incentives/residents/clean-cars-for-all/resources/charging-your-ev",
       },
       {
         name: "V2X Residential",
-        jurisdiction: "PG&E Incentive",
+        jurisdiction: "PG&E Incentive", utility: "pge",
         amount: "$2,500 - $8,000",
         desc: "Residential PG&E customers with standard split-phase 240v service and a qualifying vehicle/charger. Enrollment in customer group A.5 Vehicle-Grid Integrations of the Emergency Load Reduction Program (ELRP) is required and offers additional incentives.",
         link: "https://www.pge.com/en/clean-energy/electric-vehicles/getting-started-with-electric-vehicles/vehicle-to-everything-v2x-pilot-programs.html",
       },
       {
         name: "Residential Charging Solutions Rebate",
-        jurisdiction: "PG&E Incentive",
+        jurisdiction: "PG&E Incentive", utility: "pge",
         amount: "Up to $1,999",
         desc: "The Residential Charging Solutions program offers eligible customers a rebate on PG&E-approved electric vehicle (EV) charging equipment.",
         link: "https://www.pge.com/en/clean-energy/electric-vehicles/getting-started-with-electric-vehicles/residential-charging-solutions-rebate.html",
       },
       {
         name: "Residential Vehicle-to-Everything (V2X) Pilot",
-        jurisdiction: "PG&E Incentive",
+        jurisdiction: "PG&E Incentive", utility: "pge",
         amount: "Up to $4,500",
         desc: "The V2X Pilot helps PG&E and customers leverage bidirectional charging. In exchange for allowing PG&E to observe the technology during a grid outage, enrollees are compensated with up to $4,500 in incentives.",
         link: "https://www.pge.com/en/clean-energy/electric-vehicles/getting-started-with-electric-vehicles/vehicle-to-everything-v2x-pilot-programs.html",
@@ -137,7 +171,7 @@ export const STATE_INCENTIVES: Record<string, Partial<Record<CatKey, Incentive[]
     perks: [
       {
         name: "Old Car Buy Back Program",
-        jurisdiction: "Bay Area Air District Incentive",
+        jurisdiction: "California Incentive",
         amount: "$1,500",
         desc: "The Bay Area Air Quality Management District Old Car Buy Back and Scrap Program will pay up to $1,500 for a qualified operating and registered 1998-and-older vehicle. A voluntary program that takes older vehicles off the road and dismantles them.",
         link: "https://www.baaqmd.gov/funding-and-incentives/residents/vehicle-buy-back-program",
@@ -296,11 +330,21 @@ export const stateFromZip = (zip: string): string | null => {
   return null;
 };
 
+/**
+ * Drop programmes belonging to a utility that does not serve this ZIP.
+ *
+ * Only a definite "no" removes anything. A ZIP we cannot place leaves the list
+ * exactly as it was, which is how every state outside California still behaves.
+ */
+export const forTerritory = (items: Incentive[], zip?: string | null): Incentive[] =>
+  items.filter((i) => !i.utility || utilityServesZip(i.utility, zip) !== false);
+
 // State programs first, then federal — matching electricforall ordering within a category.
-export const incentivesFor = (state: string, key: CatKey): Incentive[] => [
-  ...(STATE_INCENTIVES[state]?.[key] ?? []),
-  ...(FEDERAL[key] ?? []),
-];
+export const incentivesFor = (state: string, key: CatKey, zip?: string | null): Incentive[] =>
+  forTerritory([
+    ...(STATE_INCENTIVES[state]?.[key] ?? []),
+    ...(FEDERAL[key] ?? []),
+  ], zip);
 
 // ── Utility / Private incentives ─────────────────────────────────────────────
 // The "Utility/Private Incentives" sector (implementing_sector=U) is no longer
@@ -310,13 +354,13 @@ export const incentivesFor = (state: string, key: CatKey): Incentive[] => [
 // the live, sector-categorized state incentives page for the complete list.
 export const UTILITY_INCENTIVES: Record<string, Incentive[]> = {
   CA: [
-    { name: "PG&E Empower EV", jurisdiction: "Pacific Gas & Electric Incentive", amount: "Up to $4,000", income: true,
+    { name: "PG&E Empower EV", jurisdiction: "Pacific Gas & Electric Incentive", utility: "pge", amount: "Up to $4,000", income: true,
       desc: "Income-eligible PG&E customers can receive up to $2,500 for a Level 2 charger and up to $2,000 toward a panel upgrade to support home charging.",
       link: "https://www.pge.com/en/clean-energy/electric-vehicles.html" },
-    { name: "SCE Pre-Owned EV Rebate", jurisdiction: "Southern California Edison Incentive", amount: "$1,000 – $4,000", used: true, income: true,
+    { name: "SCE Pre-Owned EV Rebate", jurisdiction: "Southern California Edison Incentive", utility: "sce", amount: "$1,000 – $4,000", used: true, income: true,
       desc: "Rebate for buying or leasing a used EV — $1,000 for most customers, up to $4,000 for income-qualified households in SCE territory.",
       link: "https://www.sce.com/rebates-and-savings/electric-vehicles" },
-    { name: "SDG&E EV-TOU Charging Rates", jurisdiction: "San Diego Gas & Electric Incentive",
+    { name: "SDG&E EV-TOU Charging Rates", jurisdiction: "San Diego Gas & Electric Incentive", utility: "sdge",
       desc: "Special time-of-use rate plans that lower the cost of charging your EV overnight, plus 'Power Your Drive' make-ready support for home and multifamily charging.",
       link: "https://www.sdge.com/residential/electric-vehicles" },
   ],
@@ -415,9 +459,10 @@ export const UTILITY_INCENTIVES: Record<string, Incentive[]> = {
   ],
 };
 
-/** Curated flagship utility EV programs for a state (empty when none are curated). */
-export const utilityIncentivesFor = (state: string): Incentive[] =>
-  UTILITY_INCENTIVES[state] ?? [];
+/** Curated flagship utility EV programs for a state (empty when none are curated),
+ *  narrowed to the utilities that actually serve the ZIP when we know it. */
+export const utilityIncentivesFor = (state: string, zip?: string | null): Incentive[] =>
+  forTerritory(UTILITY_INCENTIVES[state] ?? [], zip);
 
 /** Deep-link to the live, sector-categorized incentives page for a state. */
 export const utilityProgramsUrl = (state: string): string =>

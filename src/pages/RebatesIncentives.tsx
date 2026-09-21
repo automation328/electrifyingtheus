@@ -248,7 +248,7 @@ const RebatesIncentives = () => {
         {loc ? (
           <div className="container px-4 max-w-5xl mt-10 space-y-10">
             {CATEGORIES.map((cat) => {
-              const all = incentivesFor(loc.state, cat.key);
+              const all = incentivesFor(loc.state, cat.key, loc.zip);
               if (all.length === 0) return null;
               const items = cat.key === "vehicle" ? filterVehicle(all) : all;
 
@@ -316,7 +316,7 @@ const RebatesIncentives = () => {
             {/* Utility Company Incentives — curated flagship programs + a live
                 deep-link to the "Utility/Private Incentives" sector. */}
             {(() => {
-              const utilProgs = utilityIncentivesFor(loc.state);
+              const utilProgs = utilityIncentivesFor(loc.state, loc.zip);
               return (
                 <section className="animate-fade-up">
                   <div className="flex items-center gap-3 mb-5">
