@@ -15,7 +15,9 @@ export const NAV_DEFAULT: NavItem[] = [
   { label: "Benefits", href: "#benefits", primary: true },
   { label: "Events", href: "/events", primary: true },
   { label: "EV vs Gas Calculator", href: "/electricity-vs-gasoline", primary: true },
-  { label: "EV Marketplace", href: "/marketplace" },
+  // Hidden for now, not removed: /marketplace still works for anyone with the
+  // link, and this line is all it takes to put it back in the menu.
+  // { label: "EV Marketplace", href: "/marketplace" },
   { label: "Incentives", href: "/rebates-incentives" },
   { label: "News", href: "/news" },
   { label: "Multimodal", href: "#multimodal" },
