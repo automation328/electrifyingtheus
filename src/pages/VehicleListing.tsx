@@ -197,7 +197,14 @@ const VehicleListing = () => {
                   <span className="inline-flex items-center gap-1.5"><Gauge className="w-4 h-4" />{listing.mileage.toLocaleString()} miles</span>
                 )}
                 {listing.rangeMi != null && (
-                  <span className="inline-flex items-center gap-1.5"><BatteryCharging className="w-4 h-4" />{listing.rangeMi} mi EPA range</span>
+                  // The band, when the year sold more than one battery and the
+                  // listing does not say which. Printing only the low end reads
+                  // as this car's rating, and understates most of them.
+                  <span className="inline-flex items-center gap-1.5"><BatteryCharging className="w-4 h-4" />
+                    {listing.rangeMaxMi && listing.rangeMaxMi !== listing.rangeMi
+                      ? `${listing.rangeMi}–${listing.rangeMaxMi}`
+                      : listing.rangeMi} mi EPA range
+                  </span>
                 )}
                 <span className="inline-flex items-center gap-1.5">
                   <MapPin className="w-4 h-4" />

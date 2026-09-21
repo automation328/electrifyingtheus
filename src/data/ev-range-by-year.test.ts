@@ -44,6 +44,54 @@ describe("epaRangeFor", () => {
   });
 });
 
+describe("epaRangeFor, given what the listing says it is", () => {
+  // The second half of the same complaint: a model year is often four cars. The
+  // EPA rates the 2026 LYRIQ at 326 rear-drive, 319 PAWD, 303 AWD and 285 for
+  // the V-Series, so every LYRIQ card read "285–326 mi" — a spread no LYRIQ on
+  // the lot actually does.
+
+  it("pins one figure when the drivetrain settles it", () => {
+    expect(epaRangeFor("cadillac-lyriq", 2026, { drivetrain: "RWD", trim: "Sport" }))
+      .toEqual({ rangeMi: 326 });
+    expect(epaRangeFor("cadillac-lyriq", 2026))
+      .toEqual({ rangeMi: 285, rangeMaxMi: 326 });
+  });
+
+  it("uses the trim when the drivetrain is not enough", () => {
+    expect(epaRangeFor("cadillac-lyriq", 2026, { drivetrain: "AWD", trim: "V-Series" }))
+      .toEqual({ rangeMi: 285 });
+    // Luxury is not a word the EPA files under, so the AWD cars stay a band —
+    // but a narrower one than the whole nameplate, and 326 is correctly gone.
+    expect(epaRangeFor("cadillac-lyriq", 2026, { drivetrain: "AWD", trim: "Luxury" }))
+      .toEqual({ rangeMi: 285, rangeMaxMi: 319 });
+  });
+
+  it("finds a trim the EPA files under a catalog entry of its own", () => {
+    // "Model 3 Performance" is its own catalog vehicle, but a dealer lists the
+    // car as model "Model 3" with trim "Performance".
+    expect(epaRangeFor("tesla-model-3", 2026, { trim: "Performance" }))
+      .toEqual({ rangeMi: 309, rangeMaxMi: 314 });
+    expect(epaRangeFor("tesla-model-3", 2025, { drivetrain: "AWD", trim: "Long Range AWD" }))
+      .toEqual({ rangeMi: 346 });
+    expect(epaRangeFor("nissan-leaf", 2025, { trim: "SV", drivetrain: "FWD" }))
+      .toEqual({ rangeMi: 212 });
+  });
+
+  it("keeps the whole band rather than guessing", () => {
+    const bare = epaRangeFor("nissan-leaf", 2025);
+    expect(epaRangeFor("nissan-leaf", 2025, { trim: "S" })).toEqual(bare);
+    expect(epaRangeFor("nissan-leaf", 2025, { trim: "Base 4dr Sedan" })).toEqual(bare);
+    // A drivetrain no variant has is evidence about nothing.
+    expect(epaRangeFor("nissan-leaf", 2025, { drivetrain: "AWD" })).toEqual(bare);
+    expect(epaRangeFor("nissan-leaf", 2025, {})).toEqual(bare);
+  });
+
+  it("still says nothing when it knows nothing", () => {
+    expect(epaRangeFor("not-a-car", 2020, { trim: "Long Range" })).toEqual({});
+    expect(epaRangeFor("nissan-leaf", undefined, { trim: "SV" })).toEqual({});
+  });
+});
+
 describe("the generated table", () => {
   it("covers the cars people actually find second-hand", () => {
     for (const id of [

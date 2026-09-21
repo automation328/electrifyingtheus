@@ -316,6 +316,50 @@ describe("GET /api/marketplace", () => {
     expect(listing.rangeMaxMi).toBe(226);
   });
 
+  it("narrows the range to the trim and drivetrain the listing names", async () => {
+    // A 2026 LYRIQ Sport was reading "285–326 mi": the spread from the V-Series
+    // to the rear-drive car. This one is the rear-drive car.
+    vi.mocked(autoDevSearchRaw).mockResolvedValue(providerPage([
+      listingRow({
+        vin: "1GYKPMRK0PZ000001",
+        vehicle: {
+          year: 2026, make: "Cadillac", model: "LYRIQ", trim: "Sport",
+          drivetrain: "RWD", fuel: "Electric",
+        },
+      }),
+      listingRow({
+        vin: "1GYKPMRK0PZ000002",
+        vehicle: {
+          year: 2026, make: "Cadillac", model: "LYRIQ", trim: "V-Series",
+          drivetrain: "AWD", fuel: "Electric",
+        },
+      }),
+    ]));
+    const res = mockRes();
+    await handler({ method: "GET", query: { q: "30303" } }, res);
+
+    const body = res._out.body as { listings: Array<Record<string, unknown>> };
+    const byTrim = new Map(body.listings.map((l) => [l.trim, l]));
+    expect(byTrim.get("Sport")?.rangeMi).toBe(326);
+    expect(byTrim.get("Sport")?.rangeMaxMi).toBeUndefined();
+    expect(byTrim.get("V-Series")?.rangeMi).toBe(285);
+    expect(byTrim.get("V-Series")?.rangeMaxMi).toBeUndefined();
+  });
+
+  it("keeps the year's whole band when the listing says nothing useful", async () => {
+    vi.mocked(autoDevSearchRaw).mockResolvedValue(providerPage([
+      listingRow({
+        vin: "1GYKPMRK0PZ000003",
+        vehicle: { year: 2026, make: "Cadillac", model: "LYRIQ", fuel: "Electric" },
+      }),
+    ]));
+    const res = mockRes();
+    await handler({ method: "GET", query: { q: "30303" } }, res);
+    const listing = (res._out.body as { listings: Array<Record<string, unknown>> }).listings[0];
+    expect(listing.rangeMi).toBe(285);
+    expect(listing.rangeMaxMi).toBe(326);
+  });
+
   it("clamps an absurd radius instead of rejecting it", async () => {
     vi.mocked(autoDevSearchRaw).mockResolvedValue(providerPage([]));
     const res = mockRes();

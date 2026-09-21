@@ -150,11 +150,17 @@ export default async function handler(req: any, res: any) {
     if (!catalog) continue;
 
     const coords = autoDevCoords(raw);
-    // Range belongs to the model year, not the nameplate. The catalog holds one
-    // figure — the current car — so a 2013 LEAF was being sold a 2026 LEAF's 303
-    // miles. Fall back to the catalog figure only for cars the EPA has no
-    // per-year data for, which are the ones that have only just gone on sale.
-    const epa = epaRangeFor(catalog.id, base.year);
+    // Range belongs to the model year and to the variant, not to the nameplate.
+    // The catalog holds one figure — the current car — so a 2013 LEAF was being
+    // sold a 2026 LEAF's 303 miles; and a model year is often several cars, so a
+    // 2026 LYRIQ Sport read "285–326 mi" when rear-drive LYRIQs do 326 and only
+    // the V-Series does 285. The listing's own trim and drivetrain pick the row.
+    // Fall back to the catalog figure only for cars the EPA has no per-year data
+    // for, which are the ones that have only just gone on sale.
+    const epa = epaRangeFor(catalog.id, base.year, {
+      trim: base.trim,
+      drivetrain: base.drivetrain,
+    });
     const hasPerYear = epa.rangeMi != null;
     listings.push({
       ...base,

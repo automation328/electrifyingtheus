@@ -169,6 +169,9 @@ export function normalizeAutoDevListing(raw: unknown): Omit<VehicleListing, "cat
     make,
     model,
     trim: str(v.trim),
+    // Carried for the EPA range lookup: the EPA rates most cars separately by
+    // drive, and this is the field dealers fill in even when the trim is vague.
+    drivetrain: str(v.drivetrain),
     price: plausiblePrice(num(rl.price)),
     mileage: num(rl.miles) ?? num(rl.mileage),
     condition: rl.used === false ? "new" : "used",

@@ -22,6 +22,9 @@ export interface VehicleListing {
   make: string;
   model: string;
   trim?: string;
+  /** "AWD", "RWD", "FWD" as the dealer wrote it. Used to pick the EPA rating
+   *  for this exact car, and worth showing on the card. */
+  drivetrain?: string;
   /** Asking price in whole dollars. Absent when the dealer hides it. */
   price?: number;
   mileage?: number;
