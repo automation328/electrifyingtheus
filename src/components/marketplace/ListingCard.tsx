@@ -82,7 +82,9 @@ export function ListingCard({
             {listing.rangeMi != null && (
               <span className="inline-flex items-center gap-1 rounded-md bg-secondary/10 px-2 py-1 text-xs font-medium tabular-nums text-secondary">
                 <BatteryCharging className="h-3 w-3" aria-hidden />
-                {listing.rangeMi} mi range
+                {listing.rangeMaxMi && listing.rangeMaxMi !== listing.rangeMi
+                  ? `${listing.rangeMi}–${listing.rangeMaxMi}`
+                  : listing.rangeMi} mi range
               </span>
             )}
             <p className="font-charge text-xl text-foreground">{usd(listing.price)}</p>

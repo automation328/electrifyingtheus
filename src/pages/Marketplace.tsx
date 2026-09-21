@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import {
   Search, Loader2, Info, SlidersHorizontal, X, CarFront, ChevronLeft, ChevronRight,
@@ -55,6 +55,54 @@ const Marketplace = () => {
   const filters = useMemo(() => readFilters(params), [params]);
 
   useEffect(() => { setTyped(urlQuery); setQuery(urlQuery); }, [urlQuery]);
+
+  // Auto-detect the visitor's ZIP on first load and search it, so the page opens
+  // on cars near them rather than on an empty box — the same pattern the
+  // calculator, Find a Charger and the incentives page already use.
+  //
+  // Only when the URL carries no location: a shared link, or a ZIP the visitor
+  // typed, always wins. Non-US visitors get no ZIP and keep the empty state,
+  // which is right — every listing here is in the United States.
+  const didDetect = useRef(false);
+  useEffect(() => {
+    if (didDetect.current || urlQuery) return;
+    didDetect.current = true;
+    let cancelled = false;
+
+    (async () => {
+      const read = (value: unknown) => String(value ?? "").replace(/\D/g, "").slice(0, 5);
+      let postal = "";
+      try {
+        // Our own edge-geo endpoint first: no rate limit, no third party.
+        const g = await fetch("/api/geo");
+        if (g.ok) {
+          const data = await g.json();
+          if (data?.country === "US") postal = read(data?.postal);
+        }
+      } catch { /* fall through to the third-party lookup */ }
+
+      if (!postal && !cancelled) {
+        try {
+          const res = await fetch("https://ipapi.co/json/");
+          if (res.ok) {
+            const data = await res.json();
+            if (data?.country_code === "US") postal = read(data?.postal);
+          }
+        } catch { /* offline or blocked — the empty state is a fine landing place */ }
+      }
+
+      // Nothing usable, or the visitor got there first while we were asking.
+      if (cancelled || postal.length !== 5) return;
+      setParams((prev) => {
+        if (prev.get("q")) return prev;
+        const next = new URLSearchParams(prev);
+        next.set("q", postal);
+        return next;
+      }, { replace: true });
+    })();
+
+    return () => { cancelled = true; };
+  }, [setParams, urlQuery]);
 
   // Price and year are provider parameters, so they change WHICH listings come
   // back. Memoised because the object is part of the query cache key.

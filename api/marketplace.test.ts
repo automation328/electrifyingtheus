@@ -279,6 +279,43 @@ describe("GET /api/marketplace", () => {
     expect(call.models.length).toBeGreaterThan(20);
   });
 
+  it("gives a listing the range of ITS model year, not the nameplate's", async () => {
+    // The bug behind this test: every LEAF on the page claimed 303 miles, the
+    // 2026 figure, including a 2013 car that does 75.
+    vi.mocked(autoDevSearchRaw).mockResolvedValue(providerPage([
+      listingRow({
+        vin: "1N4AZ0CP0DC000001",
+        vehicle: { year: 2013, make: "Nissan", model: "LEAF", fuel: "Electric" },
+      }),
+      listingRow({
+        vin: "1N4AZ1CP0PC000002",
+        vehicle: { year: 2026, make: "Nissan", model: "LEAF", fuel: "Electric" },
+      }),
+    ]));
+    const res = mockRes();
+    await handler({ method: "GET", query: { q: "30303" } }, res);
+
+    const body = res._out.body as { listings: Array<Record<string, unknown>> };
+    const byYear = new Map(body.listings.map((l) => [l.year, l]));
+    expect(byYear.get(2013)?.rangeMi).toBe(75);
+    expect(byYear.get(2026)?.rangeMi).toBe(259);
+    expect(byYear.get(2026)?.rangeMaxMi).toBe(303);
+  });
+
+  it("carries the band when a model year sold two batteries", async () => {
+    vi.mocked(autoDevSearchRaw).mockResolvedValue(providerPage([
+      listingRow({
+        vin: "1N4AZ1CP0KC000003",
+        vehicle: { year: 2019, make: "Nissan", model: "LEAF", fuel: "Electric" },
+      }),
+    ]));
+    const res = mockRes();
+    await handler({ method: "GET", query: { q: "30303" } }, res);
+    const listing = (res._out.body as { listings: Array<Record<string, unknown>> }).listings[0];
+    expect(listing.rangeMi).toBe(150);
+    expect(listing.rangeMaxMi).toBe(226);
+  });
+
   it("clamps an absurd radius instead of rejecting it", async () => {
     vi.mocked(autoDevSearchRaw).mockResolvedValue(providerPage([]));
     const res = mockRes();

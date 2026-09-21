@@ -22,6 +22,7 @@ import {
   matchCatalogVehicle, catalogSearchModelsFor,
 } from "../src/lib/ev-catalog-match.js";
 import { isSortKey, providerSortFor } from "../src/lib/marketplace-sort.js";
+import { epaRangeFor } from "../src/data/ev-range-by-year.js";
 import type { VehicleListing, MarketplaceResponse } from "../src/lib/marketplace-types.js";
 
 const MAX_QUERY = 120;
@@ -149,11 +150,18 @@ export default async function handler(req: any, res: any) {
     if (!catalog) continue;
 
     const coords = autoDevCoords(raw);
+    // Range belongs to the model year, not the nameplate. The catalog holds one
+    // figure — the current car — so a 2013 LEAF was being sold a 2026 LEAF's 303
+    // miles. Fall back to the catalog figure only for cars the EPA has no
+    // per-year data for, which are the ones that have only just gone on sale.
+    const epa = epaRangeFor(catalog.id, base.year);
+    const hasPerYear = epa.rangeMi != null;
     listings.push({
       ...base,
       catalogId: catalog.id,
       powertrain,
-      rangeMi: catalog.rangeMi,
+      rangeMi: hasPerYear ? epa.rangeMi : catalog.rangeMi,
+      rangeMaxMi: epa.rangeMaxMi,
       distanceMi: coords ? haversineMiles(place.lat, place.lon, coords.lat, coords.lon) : undefined,
     });
   }

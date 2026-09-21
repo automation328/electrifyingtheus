@@ -30,8 +30,14 @@ export interface VehicleListing {
   /** Catalog vehicle id this listing was matched to, e.g. "tesla-model-3".
    *  Present on every listing we return — an unmatched listing is not returned. */
   catalogId: string;
-  /** EPA range in miles, from our catalog rather than the listing. */
+  /**
+   * EPA range in miles for THIS car's model year, not for the nameplate.
+   * Absent when we hold no figure for a year close to the listing's.
+   */
   rangeMi?: number;
+  /** Set when that model year sold more than one battery or trim, and the two
+   *  ends differ — a 2019 LEAF was sold as both a 150-mile and a 226-mile car. */
+  rangeMaxMi?: number;
   dealerName?: string;
   city?: string;
   state?: string;
