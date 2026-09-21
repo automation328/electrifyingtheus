@@ -1,18 +1,23 @@
 import { useMemo, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
-import { ArrowLeft, MapPin, Gauge, BatteryCharging, Loader2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, MapPin, Gauge, BatteryCharging, Loader2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import ShareGate from "@/components/forms/ShareGate";
 import { useMarketplace, findListing } from "@/hooks/use-marketplace";
 import { readFilters, serverFilters } from "@/lib/marketplace-filters";
 import { isSortKey, isProviderSorted, DEFAULT_SORT } from "@/lib/marketplace-sort";
 import { MAX_MARKETPLACE_PAGE } from "@/lib/marketplace-types";
 import { vehicles } from "@/data/vehicles";
+import { consumerIncentivesFor, stateFromZip, STATE_NAMES } from "@/data/incentives";
 import { calculate, homeShareFor, DEFAULTS } from "@/lib/ev-cost";
 import { NATIONAL_AVG, STATE_ENERGY_RATES, STATIC_GAS_PRICES } from "@/data/state-energy-rates";
 import { useGasPrices, medianGasPrice, resolveStateGasPrice } from "@/hooks/use-gas-prices";
+
+/** Incentives listed on the card before the page hands over to the full list. */
+const INCENTIVES_SHOWN = 5;
 
 const usd = (n?: number, frac = 0) =>
   n == null ? "—"
@@ -103,6 +108,18 @@ const VehicleListing = () => {
     }
   }, [listing, ev, gasData]);
 
+  // Where the visitor is shopping, which is what decides the incentives: the
+  // ZIP they searched when it is one, and otherwise the state the car sits in.
+  const zip = /^\d{5}$/.test(query) ? query : undefined;
+  const incentiveState = (zip ? stateFromZip(zip) : null) ?? listing?.state;
+
+  const incentives = useMemo(
+    () => (incentiveState
+      ? consumerIncentivesFor(incentiveState, zip, { usedCar: listing?.condition === "used" })
+      : []),
+    [incentiveState, zip, listing?.condition],
+  );
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!listing) return;
@@ -192,25 +209,47 @@ const VehicleListing = () => {
               <h1 className="font-charge text-3xl md:text-4xl text-foreground">{title}</h1>
               {listing.trim && <p className="text-muted-foreground mt-1">{listing.trim}</p>}
 
-              <div className="flex flex-wrap gap-x-5 gap-y-2 mt-4 text-sm text-muted-foreground">
-                {listing.mileage != null && (
-                  <span className="inline-flex items-center gap-1.5"><Gauge className="w-4 h-4" />{listing.mileage.toLocaleString()} miles</span>
-                )}
-                {listing.rangeMi != null && (
-                  // The band, when the year sold more than one battery and the
-                  // listing does not say which. Printing only the low end reads
-                  // as this car's rating, and understates most of them.
-                  <span className="inline-flex items-center gap-1.5"><BatteryCharging className="w-4 h-4" />
-                    {listing.rangeMaxMi && listing.rangeMaxMi !== listing.rangeMi
-                      ? `${listing.rangeMi}–${listing.rangeMaxMi}`
-                      : listing.rangeMi} mi EPA range
-                  </span>
-                )}
-                <span className="inline-flex items-center gap-1.5">
-                  <MapPin className="w-4 h-4" />
-                  {[listing.city, listing.state].filter(Boolean).join(", ") || "Location on request"}
-                </span>
-              </div>
+              {/* The three facts someone decides on. They were a line of grey
+                  10px text under the title, the same weight as the caption below
+                  it; at a glance the page looked like it led with the photo and
+                  said nothing. Same shape as the running-cost figures, so the
+                  two read as one column of answers. */}
+              <dl className="mt-5 grid grid-cols-3 divide-x divide-border rounded-2xl border border-border bg-card">
+                <div className="px-4 py-3.5 first:pl-5">
+                  <dt className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <Gauge className="w-3.5 h-3.5" /> Mileage
+                  </dt>
+                  <dd className="font-charge text-2xl text-foreground mt-1 tabular-nums">
+                    {listing.mileage != null ? listing.mileage.toLocaleString() : "—"}
+                  </dd>
+                </div>
+                <div className="px-4 py-3.5">
+                  <dt className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <BatteryCharging className="w-3.5 h-3.5" /> EPA range
+                  </dt>
+                  <dd className="font-charge text-2xl text-foreground mt-1 tabular-nums">
+                    {/* The band, when the year sold more than one battery and the
+                        listing does not say which. Printing only the low end reads
+                        as this car's rating, and understates most of them. */}
+                    {listing.rangeMi == null ? "—"
+                      : listing.rangeMaxMi && listing.rangeMaxMi !== listing.rangeMi
+                        ? `${listing.rangeMi}–${listing.rangeMaxMi}`
+                        : listing.rangeMi}
+                    {listing.rangeMi != null && <span className="text-base text-muted-foreground"> mi</span>}
+                  </dd>
+                </div>
+                <div className="px-4 py-3.5">
+                  <dt className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <MapPin className="w-3.5 h-3.5" /> Location
+                  </dt>
+                  <dd className="font-charge text-2xl text-foreground mt-1 truncate">
+                    {listing.city || listing.state || "On request"}
+                  </dd>
+                  {listing.city && listing.state && (
+                    <div className="text-xs text-muted-foreground">{listing.state}</div>
+                  )}
+                </div>
+              </dl>
 
               {savings && (
                 <section className="mt-8 rounded-2xl border border-border bg-card p-5">
@@ -239,15 +278,79 @@ const VehicleListing = () => {
                 </section>
               )}
 
+              {/* The programmes themselves, not an invitation to go and look
+                  them up: the page already knows the state, the ZIP and that
+                  this is a used car, which is most of what decides the list. */}
               <section className="mt-5 rounded-2xl border border-border bg-card p-5">
-                <h2 className="font-charge text-xl text-foreground mb-1">Incentives</h2>
-                <p className="text-sm text-muted-foreground">
-                  Federal, state and utility incentives can cut thousands off an EV purchase, and
-                  eligibility depends on the vehicle, your income and where you live.
-                </p>
-                <Button asChild variant="outline" className="rounded-xl mt-4">
-                  <Link to="/rebate-eligibility">Check what this vehicle qualifies for</Link>
-                </Button>
+                <h2 className="font-charge text-xl text-foreground mb-1">
+                  Incentives{incentiveState ? ` in ${STATE_NAMES[incentiveState] ?? incentiveState}` : ""}
+                </h2>
+                {incentives.length > 0 ? (
+                  <>
+                    <p className="text-xs text-muted-foreground">
+                      {listing.condition === "used"
+                        ? "Open to a private buyer of a used EV"
+                        : "Open to a private buyer"}
+                      {zip ? ` near ${zip}` : ""}. Amounts are typical maximums — check each
+                      programme's own page for the current rules.
+                    </p>
+                    <ul className="mt-3 divide-y divide-border">
+                      {incentives.slice(0, INCENTIVES_SHOWN).map((item) => (
+                        <li key={item.name}>
+                          <a
+                            href={item.link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="group flex items-baseline justify-between gap-4 py-3"
+                          >
+                            <span className="min-w-0">
+                              <span className="block text-sm font-semibold text-foreground group-hover:underline">
+                                {item.name}
+                              </span>
+                              <span className="block text-xs text-muted-foreground truncate">
+                                {item.jurisdiction}
+                                {item.income ? " · income-qualified" : ""}
+                              </span>
+                            </span>
+                            {item.amount && (
+                              <span className="font-charge text-lg text-primary whitespace-nowrap shrink-0">
+                                {item.amount}
+                              </span>
+                            )}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-4">
+                      <Button asChild variant="outline" className="rounded-xl">
+                        <Link to="/rebate-eligibility">Check what you qualify for</Link>
+                      </Button>
+                      {incentives.length > INCENTIVES_SHOWN && (
+                        <Link
+                          to={`/rebates-incentives${zip ? `?zip=${zip}` : ""}`}
+                          className="text-sm font-medium text-primary hover:underline"
+                        >
+                          All {incentives.length} programmes
+                        </Link>
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-sm text-muted-foreground">
+                      {incentiveState
+                        // Georgia ended its purchase credit in 2015, and the federal
+                        // credits sunset in 2025 — "none here" is a real answer.
+                        ? `We hold no programme a private buyer of this car can claim ${zip ? `near ${zip}` : `in ${STATE_NAMES[incentiveState] ?? incentiveState}`} right now. Utility and city schemes change often, so it is worth checking.`
+                        : "Federal, state and utility incentives can cut thousands off an EV purchase, and eligibility depends on the vehicle, your income and where you live."}
+                    </p>
+                    <Button asChild variant="outline" className="rounded-xl mt-4">
+                      <Link to={`/rebates-incentives${zip ? `?zip=${zip}` : ""}`}>
+                        Search incentives by ZIP
+                      </Link>
+                    </Button>
+                  </>
+                )}
               </section>
             </div>
 
@@ -282,6 +385,41 @@ const VehicleListing = () => {
                     </Button>
                   </form>
                 )}
+              </div>
+
+              {/* Someone shopping for a car is rarely deciding alone, and the
+                  next question after "what does it cost to run" is "against
+                  what?". Both live in the space beside the enquiry form, which
+                  was empty. */}
+              <div className="mt-4 rounded-2xl border border-border bg-card divide-y divide-border">
+                <Link
+                  to={`/electricity-vs-gasoline?${new URLSearchParams({
+                    ...(ev ? { ev: ev.id } : {}),
+                    ...(listing.state ? { state: listing.state } : {}),
+                  })}`}
+                  className="flex items-center justify-between gap-3 px-4 py-3 text-sm font-medium text-foreground hover:bg-muted/40 transition-colors rounded-t-2xl"
+                >
+                  Compare it with a petrol car
+                  <ArrowRight className="w-4 h-4 text-muted-foreground shrink-0" />
+                </Link>
+                <div className="flex items-center justify-between gap-3 px-4 py-3">
+                  <p className="text-sm text-muted-foreground">Send this to someone</p>
+                  <ShareGate
+                    url={`/marketplace/${encodeURIComponent(listing.id)}${backSearch}`}
+                    title={`${title}${listing.price != null ? ` — ${usd(listing.price)}` : ""}`}
+                    formType="vehicle-share"
+                    summary={listing.price != null ? `${usd(listing.price)} at ${listing.dealerName ?? "a dealer"}` : undefined}
+                    description={[
+                      listing.trim,
+                      listing.mileage != null ? `${listing.mileage.toLocaleString("en-US")} miles` : null,
+                      listing.rangeMi != null ? `${listing.rangeMi}${listing.rangeMaxMi && listing.rangeMaxMi !== listing.rangeMi ? `–${listing.rangeMaxMi}` : ""} mi EPA range` : null,
+                    ].filter(Boolean).join(" · ")}
+                    image={listing.photoUrl}
+                    meta={[listing.city, listing.state].filter(Boolean).join(", ")}
+                    variant="label"
+                    label="Share"
+                  />
+                </div>
               </div>
             </aside>
           </div>

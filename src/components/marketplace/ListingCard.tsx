@@ -79,15 +79,21 @@ export function ListingCard({
             {/* Range, not mileage: the odometer is already on the line under
                 the title, and range is the number this site exists to put in
                 front of someone deciding between two electric cars. */}
+            {/* Set at the price's size on purpose. These are the two numbers the
+                choice is made on, and range in a small grey pill next to a large
+                black price reads as a footnote to it. */}
             {listing.rangeMi != null && (
-              <span className="inline-flex items-center gap-1 rounded-md bg-secondary/10 px-2 py-1 text-xs font-medium tabular-nums text-secondary">
-                <BatteryCharging className="h-3 w-3" aria-hidden />
-                {listing.rangeMaxMi && listing.rangeMaxMi !== listing.rangeMi
-                  ? `${listing.rangeMi}–${listing.rangeMaxMi}`
-                  : listing.rangeMi} mi range
-              </span>
+              <p className="inline-flex items-baseline gap-1.5 font-charge text-xl leading-none text-secondary">
+                <BatteryCharging className="h-4 w-4 shrink-0 self-center" aria-hidden />
+                <span className="tabular-nums">
+                  {listing.rangeMaxMi && listing.rangeMaxMi !== listing.rangeMi
+                    ? `${listing.rangeMi}–${listing.rangeMaxMi}`
+                    : listing.rangeMi}
+                </span>
+                <span className="text-sm text-muted-foreground">mi range</span>
+              </p>
             )}
-            <p className="font-charge text-xl text-foreground">{usd(listing.price)}</p>
+            <p className="font-charge text-xl leading-none text-foreground whitespace-nowrap">{usd(listing.price)}</p>
           </div>
         </div>
       </Link>

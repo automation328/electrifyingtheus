@@ -486,6 +486,42 @@ export const utilityProgramsUrl = (state: string): string =>
 
 const ALL_CATS: CatKey[] = ["vehicle", "charging", "electricity", "perks"];
 
+/**
+ * Everything a private buyer at this ZIP could claim, in the order that matters
+ * on a car: what comes off the purchase first, then what makes it cheaper to
+ * run.
+ *
+ * Written for the marketplace listing page, which used to offer only a link to
+ * go and look the programmes up. It already knows the state and the ZIP, and a
+ * used 2012 LEAF cannot claim a new-car rebate, so it can say which ones apply
+ * rather than asking the visitor to find out.
+ *
+ * Business-only programmes are dropped — Georgia's biggest is a $30,000 cap on
+ * commercial charger construction — as are programmes whose published window
+ * has closed. Names are deduped: the same utility programme is curated in both
+ * a category and the utility list.
+ */
+export function consumerIncentivesFor(
+  state: string,
+  zip?: string | null,
+  options: { usedCar?: boolean; today?: string } = {},
+): Incentive[] {
+  const { usedCar = false, today = todayIso() } = options;
+  const claimable = (i: Incentive) =>
+    (i.audience ?? "consumer") === "consumer" && incentiveWindow(i, today).state === "open";
+
+  const all = [
+    // A used car cannot claim a rebate written for a new one. Everything outside
+    // the vehicle category is about charging or running it, and applies either way.
+    ...incentivesFor(state, "vehicle", zip).filter((i) => !usedCar || i.used),
+    ...ALL_CATS.filter((k) => k !== "vehicle").flatMap((k) => incentivesFor(state, k, zip)),
+    ...utilityIncentivesFor(state, zip),
+  ].filter(claimable);
+
+  const seen = new Set<string>();
+  return all.filter((i) => (seen.has(i.name) ? false : (seen.add(i.name), true)));
+}
+
 /** Largest dollar figure referenced in an amount string (e.g. "$1,350 - $2,000" → 2000). */
 const maxDollars = (s?: string): number => {
   if (!s) return 0;

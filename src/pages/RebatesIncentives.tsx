@@ -69,8 +69,19 @@ const RebatesIncentives = () => {
   const embed = typeof window !== "undefined" &&
     new URLSearchParams(window.location.search).get("embed") === "1";
   useEmbedFrame(embed);
-  const [zip, setZip] = useState("");
-  const [loc, setLoc] = useState<{ zip: string; state: string; name: string } | null>(null);
+
+  // `?zip=30082` arrives from anywhere that already knows where the visitor is
+  // shopping — a marketplace listing, mostly — so the page opens on their
+  // programmes instead of asking again for a ZIP they have already given.
+  const urlZip = typeof window !== "undefined"
+    ? (new URLSearchParams(window.location.search).get("zip") ?? "").replace(/\D/g, "").slice(0, 5)
+    : "";
+  const [zip, setZip] = useState(urlZip.length === 5 ? urlZip : "");
+  const [loc, setLoc] = useState<{ zip: string; state: string; name: string } | null>(() => {
+    if (urlZip.length !== 5) return null;
+    const st = stateFromZip(urlZip);
+    return st ? { zip: urlZip, state: st, name: STATE_NAMES[st] } : null;
+  });
   const [error, setError] = useState("");
   const [vFilter, setVFilter] = useState<VFilter>("all");
   const didDetect = useRef(false);

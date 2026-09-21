@@ -23,6 +23,7 @@ const CTA_BY_FORM_TYPE: Partial<Record<LeadFormType, string>> = {
   "job-share": "View Job",
   "incentive-share": "View Incentive",
   "charger-share": "View Charging Map",
+  "vehicle-share": "View Vehicle",
   "calculator-share": "See Full Results",
 };
 

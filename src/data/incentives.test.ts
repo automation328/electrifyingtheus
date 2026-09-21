@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   incentiveHeadline,
   incentivesFor,
+  consumerIncentivesFor,
   applyIncentiveOverrides,
   STATE_INCENTIVES,
   UTILITY_INCENTIVES,
@@ -192,5 +193,73 @@ describe("a closed programme leaves the panel", () => {
     const h = incentiveHeadline("TX", { audience: "consumer", today: "2026-09-15" });
     expect(h.hasVehicleProgram).toBe(false);
     expect(h.topVehicleAmount).toBeNull();
+  });
+});
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   consumerIncentivesFor backs the Incentives panel on a marketplace listing,
+   which used to offer nothing but a link to go and look the programmes up. The
+   page knows the state, the ZIP and whether the car is second-hand, so it can
+   answer instead of asking.
+   ────────────────────────────────────────────────────────────────────────── */
+describe("consumerIncentivesFor", () => {
+  const names = (...args: Parameters<typeof consumerIncentivesFor>) =>
+    consumerIncentivesFor(...args).map((i) => i.name);
+
+  it("puts what comes off the purchase before what makes it cheaper to run", () => {
+    const list = consumerIncentivesFor("CA", "94110");
+    const firstCharging = list.findIndex((i) => i.name === "PACE Loss Reserve Program");
+    const lastVehicle = list.map((i) => i.name).lastIndexOf("Ride and Drive Clean");
+    expect(lastVehicle).toBeGreaterThan(-1);
+    expect(firstCharging).toBeGreaterThan(lastVehicle);
+  });
+
+  it("drops new-car rebates for a used car, and keeps the rest", () => {
+    const newCar = names("NY", "10001", { usedCar: false });
+    const usedCar = names("NY", "10001", { usedCar: true });
+    // New York's Drive Clean Rebate is a new-vehicle programme.
+    expect(newCar).toContain("Drive Clean Rebate");
+    expect(usedCar).not.toContain("Drive Clean Rebate");
+    // Charging and utility programmes apply to a used EV exactly as much.
+    expect(usedCar).toContain("Con Edison SmartCharge New York");
+  });
+
+  it("leaves out programmes a private buyer cannot claim", () => {
+    const list = consumerIncentivesFor("GA", "30082");
+    expect(list.length).toBeGreaterThan(0);
+    expect(list.every((i) => (i.audience ?? "consumer") === "consumer")).toBe(true);
+    // Georgia's biggest is a $30,000 commercial charger programme.
+    expect(list.map((i) => i.name)).not.toContain("EV Charger Plus Rebate Program");
+  });
+
+  it("respects the ZIP's utility, not just its state", () => {
+    expect(names("CA", "90012")).toContain("Used EV Rebate");            // LADWP
+    expect(names("CA", "90012")).not.toContain("PG&E Empower EV");
+    expect(names("CA", "94110")).toContain("PG&E Empower EV");
+  });
+
+  it("never lists the same programme twice", () => {
+    for (const [state, zip] of [["CA", "94110"], ["NY", "10001"], ["GA", "30082"]] as const) {
+      const list = names(state, zip);
+      expect(new Set(list).size, state).toBe(list.length);
+    }
+  });
+
+  it("drops a programme whose window has closed", () => {
+    const closed: Incentive = {
+      name: "Closed programme", jurisdiction: "Test", desc: "d", link: "l",
+      validTo: "2026-01-01",
+    };
+    STATE_INCENTIVES.NY.vehicle!.push(closed);
+    try {
+      expect(names("NY", "10001", { today: "2026-09-22" })).not.toContain("Closed programme");
+      expect(names("NY", "10001", { today: "2025-12-31" })).toContain("Closed programme");
+    } finally {
+      STATE_INCENTIVES.NY.vehicle!.pop();
+    }
+  });
+
+  it("says nothing for a state we hold nothing for", () => {
+    expect(consumerIncentivesFor("WY", "82001")).toEqual([]);
   });
 });

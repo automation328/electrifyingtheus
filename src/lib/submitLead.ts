@@ -27,6 +27,8 @@ export type LeadFormType =
   | "event-calendar"
   | "job-share"
   | "charger-share"
+  | "vehicle-share"
+  | "marketplace-enquiry"
   | "eligibility-plan"
   | "eligibility-coverage"
   | "video-access";

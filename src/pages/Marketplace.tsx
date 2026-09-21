@@ -292,12 +292,23 @@ const Marketplace = () => {
                 </SelectContent>
               </Select>
 
-              <Select value={modelValue} onValueChange={changeModel}>
+              {/* Model follows make. Opening it cold listed every model we
+                  carry, which is 117 names with no maker beside them — "EV6"
+                  and "ID.4" mean nothing until you know whose they are. It
+                  stays shut until a make is picked, unless a link arrived with
+                  a model already on it. */}
+              <Select
+                value={modelValue}
+                onValueChange={changeModel}
+                disabled={makeValue === ANY && modelValue === ANY}
+              >
                 <SelectTrigger className="h-12 w-full rounded-xl sm:w-52" aria-label="Model">
-                  <SelectValue placeholder="All models" />
+                  <SelectValue placeholder={makeValue === ANY ? "Pick a make first" : `All ${makeValue} models`} />
                 </SelectTrigger>
                 <SelectContent className="max-h-72">
-                  <SelectItem value={ANY}>All models</SelectItem>
+                  <SelectItem value={ANY}>
+                    {makeValue === ANY ? "All models" : `All ${makeValue} models`}
+                  </SelectItem>
                   {modelOptions.map((model) => (
                     <SelectItem key={model} value={model}>{model}</SelectItem>
                   ))}
