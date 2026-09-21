@@ -35,6 +35,15 @@ export interface VehicleData {
   /** Positioning flags that steer matching for enthusiast / premium shoppers. */
   performance?: boolean;
   luxury?: boolean;
+  /**
+   * No longer sold new in the US, so `msrp` is the price in its final model
+   * year and says nothing about what one costs today.
+   *
+   * Still offered in the pickers — people drive these and want them compared —
+   * but never RECOMMENDED, because a 2018 price makes a discontinued car look
+   * like the cheapest way to go electric when it is simply an old number.
+   */
+  usedOnly?: boolean;
 }
 
 export interface UserInputs {

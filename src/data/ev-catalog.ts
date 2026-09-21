@@ -132,8 +132,8 @@ export const EV_CATALOG: EvCatalogEntry[] = [
   // and a 2013 Spark EV on a forecourt nearby is still a car someone can buy.
   // Every name below is electric-specific on purpose — see the note on aliases.
   // Audi
-  { id: "audi-e-tron", make: "Audi", model: "e-tron", rangeMi: 222 },
-  { id: "audi-q8-e-tron", make: "Audi", model: "Q8 e-tron", rangeMi: 285 },
+  { id: "audi-e-tron", make: "Audi", model: "e-tron", rangeMi: 226 },
+  { id: "audi-q8-e-tron", make: "Audi", model: "Q8 e-tron", rangeMi: 272 },
   // BMW
   { id: "bmw-i3", make: "BMW", model: "i3", rangeMi: 153 },
   { id: "bmw-ix", make: "BMW", model: "iX", rangeMi: 312 },
@@ -143,7 +143,7 @@ export const EV_CATALOG: EvCatalogEntry[] = [
   // Fisker
   { id: "fisker-ocean", make: "Fisker", model: "Ocean", rangeMi: 231 },
   // Ford
-  { id: "ford-e-transit", make: "Ford", model: "E-Transit", rangeMi: 126 },
+  { id: "ford-e-transit", make: "Ford", model: "E-Transit", rangeMi: 159 },
   { id: "ford-f150-lightning", make: "Ford", model: "F-150 Lightning", rangeMi: 240, aliases: ["Lightning"] },
   { id: "ford-focus-electric", make: "Ford", model: "Focus Electric", rangeMi: 115 },
   // Honda
@@ -166,14 +166,14 @@ export const EV_CATALOG: EvCatalogEntry[] = [
   { id: "mazda-mx-30", make: "Mazda", model: "MX-30", rangeMi: 100 },
   // Mercedes-Benz
   { id: "mercedes-b-class-electric", make: "Mercedes-Benz", model: "B-Class Electric Drive", rangeMi: 87 },
-  { id: "mercedes-eqs", make: "Mercedes-Benz", model: "EQS", rangeMi: 350 },
+  { id: "mercedes-eqs", make: "Mercedes-Benz", model: "EQS", rangeMi: 390 },
   // Mini
   { id: "mini-cooper-se", make: "Mini", model: "Cooper SE", rangeMi: 114 },
   // Mitsubishi
-  { id: "mitsubishi-i-miev", make: "Mitsubishi", model: "i-MiEV", rangeMi: 62 },
+  { id: "mitsubishi-i-miev", make: "Mitsubishi", model: "i-MiEV", rangeMi: 59 },
   // Tesla
   { id: "tesla-model-s", make: "Tesla", model: "Model S", rangeMi: 410 },
-  { id: "tesla-model-x", make: "Tesla", model: "Model X", rangeMi: 329 },
+  { id: "tesla-model-x", make: "Tesla", model: "Model X", rangeMi: 352 },
   { id: "tesla-roadster", make: "Tesla", model: "Roadster", rangeMi: 244 },
   // Toyota
   { id: "toyota-chr-ev", make: "Toyota", model: "C-HR EV", rangeMi: 287, aliases: ["C-HR BEV"] },

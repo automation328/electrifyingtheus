@@ -288,6 +288,224 @@ export const vehicles: VehicleData[] = [
     bodyStyle: "minivan", sizeClass: 4, seats: 7, drivetrain: "RWD", rangeMi: 234,
   },
 
+  // ───────── Also sold used: EVs the marketplace lists ─────────
+  //
+  // These arrived with the marketplace, which searches every EV sold in the US
+  // rather than only the ones this file could price. Their MSRP is the price
+  // when NEW, in the model year named beside each one — for a car that left the
+  // showroom years ago that figure dates the comparison, it does not describe
+  // what one costs today.
+  //
+  // MSRP, MPGe, kWh/100mi, range, seats and drivetrain are published figures,
+  // taken from fueleconomy.gov and manufacturer pricing. Maintenance, insurance
+  // and depreciation are not published anywhere: each is carried over from the
+  // nearest comparable car already in this file, named in the comment, rather
+  // than invented.
+
+  {
+    // 2023 model year · modelled costs from porsche-cayenne-ev
+    id: "audi-e-tron", name: "Audi e-tron", type: "ev", msrp: 71995,
+    mpge: 79, kwhPer100mi: 43, maintenanceCostPerMile: 0.082, insuranceAnnual: 2900,
+    depreciationRate: 0.22, category: "SUV",
+    bodyStyle: "suv-mid", sizeClass: 3, seats: 5, drivetrain: "AWD", rangeMi: 226, usedOnly: true, luxury: true,
+  },
+  {
+    // 2025 model year · modelled costs from porsche-cayenne-ev
+    id: "audi-q8-e-tron", name: "Audi Q8 e-tron", type: "ev", msrp: 74800,
+    mpge: 78, kwhPer100mi: 43, maintenanceCostPerMile: 0.082, insuranceAnnual: 2900,
+    depreciationRate: 0.22, category: "SUV",
+    bodyStyle: "suv-mid", sizeClass: 3, seats: 5, drivetrain: "AWD", rangeMi: 272, luxury: true,
+  },
+  {
+    // 2021 model year · modelled costs from volvo-ex30
+    id: "bmw-i3", name: "BMW i3", type: "ev", msrp: 44450,
+    mpge: 113, kwhPer100mi: 30, maintenanceCostPerMile: 0.064, insuranceAnnual: 1950,
+    depreciationRate: 0.19, category: "SUV",
+    bodyStyle: "hatchback", sizeClass: 1, seats: 4, drivetrain: "RWD", rangeMi: 153, usedOnly: true, luxury: true,
+  },
+  {
+    // 2026 model year · modelled costs from porsche-cayenne-ev
+    id: "bmw-ix", name: "BMW iX", type: "ev", msrp: 75150,
+    mpge: 94, kwhPer100mi: 36, maintenanceCostPerMile: 0.082, insuranceAnnual: 2900,
+    depreciationRate: 0.22, category: "SUV",
+    bodyStyle: "suv-mid", sizeClass: 3, seats: 5, drivetrain: "AWD", rangeMi: 312, luxury: true,
+  },
+  {
+    // 2023 model year · modelled costs from toyota-bz4x
+    id: "chevy-bolt-euv", name: "Chevrolet Bolt EUV", type: "ev", msrp: 28795,
+    mpge: 115, kwhPer100mi: 29, maintenanceCostPerMile: 0.058, insuranceAnnual: 1820,
+    depreciationRate: 0.19, category: "SUV",
+    bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "FWD", rangeMi: 247, usedOnly: true,
+  },
+  {
+    // 2016 model year · modelled costs from chevy-bolt-ev
+    id: "chevy-spark-ev", name: "Chevrolet Spark EV", type: "ev", msrp: 25120,
+    mpge: 119, kwhPer100mi: 28, maintenanceCostPerMile: 0.057, insuranceAnnual: 1700,
+    depreciationRate: 0.18, category: "Sedan",
+    bodyStyle: "hatchback", sizeClass: 1, seats: 4, drivetrain: "FWD", rangeMi: 82, usedOnly: true,
+  },
+  {
+    // 2024 model year · modelled costs from volvo-ex30
+    id: "fisker-ocean", name: "Fisker Ocean", type: "ev", msrp: 38999,
+    mpge: 92, kwhPer100mi: 37, maintenanceCostPerMile: 0.064, insuranceAnnual: 1950,
+    depreciationRate: 0.19, category: "SUV",
+    bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "FWD", rangeMi: 231, usedOnly: true, luxury: true,
+  },
+  {
+    // 2025 model year · modelled costs from rivian-r1t
+    id: "ford-f150-lightning", name: "Ford F-150 Lightning", type: "ev", msrp: 63345,
+    mpge: 68, kwhPer100mi: 49, maintenanceCostPerMile: 0.07, insuranceAnnual: 2500,
+    depreciationRate: 0.2, category: "Truck",
+    bodyStyle: "truck", sizeClass: 4, seats: 5, drivetrain: "AWD", rangeMi: 240,
+  },
+  {
+    // 2018 model year · modelled costs from chevy-bolt-ev
+    id: "ford-focus-electric", name: "Ford Focus Electric", type: "ev", msrp: 29120,
+    mpge: 107, kwhPer100mi: 31, maintenanceCostPerMile: 0.057, insuranceAnnual: 1700,
+    depreciationRate: 0.18, category: "Sedan",
+    bodyStyle: "hatchback", sizeClass: 2, seats: 5, drivetrain: "FWD", rangeMi: 115, usedOnly: true,
+  },
+  {
+    // 2019 model year · modelled costs from kia-ev4
+    id: "honda-clarity-electric", name: "Honda Clarity Electric", type: "ev", msrp: 37575,
+    mpge: 114, kwhPer100mi: 30, maintenanceCostPerMile: 0.057, insuranceAnnual: 1780,
+    depreciationRate: 0.18, category: "Sedan",
+    bodyStyle: "sedan", sizeClass: 3, seats: 5, drivetrain: "FWD", rangeMi: 89, usedOnly: true,
+  },
+  {
+    // 2014 model year · modelled costs from fiat-500e
+    id: "honda-fit-ev", name: "Honda Fit EV", type: "ev", msrp: 36625,
+    mpge: 118, kwhPer100mi: 29, maintenanceCostPerMile: 0.061, insuranceAnnual: 1700,
+    depreciationRate: 0.21, category: "Sedan",
+    bodyStyle: "hatchback", sizeClass: 1, seats: 4, drivetrain: "FWD", rangeMi: 82, usedOnly: true,
+  },
+  {
+    // 2021 model year · modelled costs from fiat-500e
+    id: "hyundai-ioniq-electric", name: "Hyundai Ioniq Electric", type: "ev", msrp: 33245,
+    mpge: 133, kwhPer100mi: 25, maintenanceCostPerMile: 0.061, insuranceAnnual: 1700,
+    depreciationRate: 0.21, category: "Sedan",
+    bodyStyle: "hatchback", sizeClass: 2, seats: 5, drivetrain: "FWD", rangeMi: 170, usedOnly: true,
+  },
+  {
+    // 2025 model year · modelled costs from toyota-bz4x
+    id: "hyundai-kona-electric", name: "Hyundai Kona Electric", type: "ev", msrp: 32975,
+    mpge: 118, kwhPer100mi: 29, maintenanceCostPerMile: 0.058, insuranceAnnual: 1820,
+    depreciationRate: 0.19, category: "SUV",
+    bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "FWD", rangeMi: 200,
+  },
+  {
+    // 2024 model year · modelled costs from porsche-macan-electric
+    id: "jaguar-i-pace", name: "Jaguar I-PACE", type: "ev", msrp: 73275,
+    mpge: 85, kwhPer100mi: 39, maintenanceCostPerMile: 0.076, insuranceAnnual: 2650,
+    depreciationRate: 0.21, category: "SUV",
+    bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "AWD", rangeMi: 246, usedOnly: true, luxury: true,
+  },
+  {
+    // 2019 model year · modelled costs from fiat-500e
+    id: "kia-soul-ev", name: "Kia Soul EV", type: "ev", msrp: 33950,
+    mpge: 108, kwhPer100mi: 31, maintenanceCostPerMile: 0.061, insuranceAnnual: 1700,
+    depreciationRate: 0.21, category: "Sedan",
+    bodyStyle: "hatchback", sizeClass: 1, seats: 5, drivetrain: "FWD", rangeMi: 111, usedOnly: true,
+  },
+  {
+    // 2026 model year · modelled costs from mercedes-cla-ev
+    id: "lexus-es-350e", name: "Lexus ES 350e", type: "ev", msrp: 48895,
+    mpge: 127, kwhPer100mi: 27, maintenanceCostPerMile: 0.06, insuranceAnnual: 2000,
+    depreciationRate: 0.2, category: "Sedan",
+    bodyStyle: "sedan", sizeClass: 3, seats: 5, drivetrain: "FWD", rangeMi: 307, luxury: true,
+  },
+  {
+    // 2026 model year · modelled costs from bmw-i4
+    id: "lexus-es-500e", name: "Lexus ES 500e", type: "ev", msrp: 51795,
+    mpge: 114, kwhPer100mi: 30, maintenanceCostPerMile: 0.07, insuranceAnnual: 2150,
+    depreciationRate: 0.18, category: "Sedan",
+    bodyStyle: "sedan", sizeClass: 3, seats: 5, drivetrain: "AWD", rangeMi: 276, luxury: true,
+  },
+  {
+    // 2026 model year · modelled costs from mercedes-eqe-suv
+    id: "maserati-grecale-folgore", name: "Maserati Grecale Folgore", type: "ev", msrp: 119295,
+    mpge: 81, kwhPer100mi: 42, maintenanceCostPerMile: 0.078, insuranceAnnual: 2500,
+    depreciationRate: 0.22, category: "SUV",
+    bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "AWD", rangeMi: 268, luxury: true,
+  },
+  {
+    // 2023 model year · modelled costs from fiat-500e
+    id: "mazda-mx-30", name: "Mazda MX-30", type: "ev", msrp: 34110,
+    mpge: 92, kwhPer100mi: 37, maintenanceCostPerMile: 0.061, insuranceAnnual: 1700,
+    depreciationRate: 0.21, category: "Sedan",
+    bodyStyle: "hatchback", sizeClass: 1, seats: 5, drivetrain: "FWD", rangeMi: 100, usedOnly: true,
+  },
+  {
+    // 2017 model year · modelled costs from mercedes-cla-ev
+    id: "mercedes-b-class-electric", name: "Mercedes-Benz B-Class Electric Drive", type: "ev", msrp: 39900,
+    mpge: 84, kwhPer100mi: 40, maintenanceCostPerMile: 0.06, insuranceAnnual: 2000,
+    depreciationRate: 0.2, category: "Sedan",
+    bodyStyle: "hatchback", sizeClass: 2, seats: 5, drivetrain: "FWD", rangeMi: 87, usedOnly: true, luxury: true,
+  },
+  {
+    // 2026 model year · modelled costs from lotus-emeya
+    id: "mercedes-eqs", name: "Mercedes-Benz EQS", type: "ev", msrp: 99900,
+    mpge: 98, kwhPer100mi: 34, maintenanceCostPerMile: 0.075, insuranceAnnual: 2800,
+    depreciationRate: 0.21, category: "Sedan",
+    bodyStyle: "sedan", sizeClass: 4, seats: 5, drivetrain: "RWD", rangeMi: 390, luxury: true,
+  },
+  {
+    // 2024 model year · modelled costs from chevy-bolt-ev
+    id: "mini-cooper-se", name: "Mini Cooper SE", type: "ev", msrp: 30900,
+    mpge: 110, kwhPer100mi: 31, maintenanceCostPerMile: 0.057, insuranceAnnual: 1700,
+    depreciationRate: 0.18, category: "Sedan",
+    bodyStyle: "hatchback", sizeClass: 1, seats: 4, drivetrain: "FWD", rangeMi: 114, usedOnly: true,
+  },
+  {
+    // 2017 model year · modelled costs from chevy-bolt-ev
+    id: "mitsubishi-i-miev", name: "Mitsubishi i-MiEV", type: "ev", msrp: 22995,
+    mpge: 112, kwhPer100mi: 30, maintenanceCostPerMile: 0.057, insuranceAnnual: 1700,
+    depreciationRate: 0.18, category: "Sedan",
+    bodyStyle: "hatchback", sizeClass: 1, seats: 4, drivetrain: "RWD", rangeMi: 59, usedOnly: true,
+  },
+  {
+    // 2019 model year · modelled costs from chevy-bolt-ev
+    id: "smart-fortwo-electric", name: "smart Fortwo Electric Drive", type: "ev", msrp: 23900,
+    mpge: 108, kwhPer100mi: 31, maintenanceCostPerMile: 0.057, insuranceAnnual: 1700,
+    depreciationRate: 0.18, category: "Sedan",
+    bodyStyle: "coupe", sizeClass: 1, seats: 2, drivetrain: "RWD", rangeMi: 58, usedOnly: true,
+  },
+  {
+    // 2026 model year · modelled costs from audi-e-tron-gt
+    id: "tesla-model-s", name: "Tesla Model S", type: "ev", msrp: 109990,
+    mpge: 124, kwhPer100mi: 27, maintenanceCostPerMile: 0.078, insuranceAnnual: 2900,
+    depreciationRate: 0.22, category: "Sedan",
+    bodyStyle: "sedan", sizeClass: 4, seats: 5, drivetrain: "AWD", rangeMi: 410, luxury: true,
+  },
+  {
+    // 2026 model year · modelled costs from lotus-eletre
+    id: "tesla-model-x", name: "Tesla Model X", type: "ev", msrp: 114990,
+    mpge: 105, kwhPer100mi: 32, maintenanceCostPerMile: 0.075, insuranceAnnual: 2800,
+    depreciationRate: 0.21, category: "SUV",
+    bodyStyle: "suv-large", sizeClass: 4, seats: 5, drivetrain: "AWD", rangeMi: 352, luxury: true,
+  },
+  {
+    // 2026 model year · modelled costs from kia-ev6
+    id: "toyota-chr-ev", name: "Toyota C-HR EV", type: "ev", msrp: 37000,
+    mpge: 117, kwhPer100mi: 29, maintenanceCostPerMile: 0.059, insuranceAnnual: 1880,
+    depreciationRate: 0.17, category: "SUV",
+    bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "AWD", rangeMi: 287,
+  },
+  {
+    // 2014 model year · modelled costs from honda-prologue
+    id: "toyota-rav4-ev", name: "Toyota RAV4 EV", type: "ev", msrp: 49800,
+    mpge: 76, kwhPer100mi: 44, maintenanceCostPerMile: 0.062, insuranceAnnual: 1950,
+    depreciationRate: 0.19, category: "SUV",
+    bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "FWD", rangeMi: 103, usedOnly: true,
+  },
+  {
+    // 2019 model year · modelled costs from fiat-500e
+    id: "vw-e-golf", name: "Volkswagen e-Golf", type: "ev", msrp: 31895,
+    mpge: 119, kwhPer100mi: 28, maintenanceCostPerMile: 0.061, insuranceAnnual: 1700,
+    depreciationRate: 0.21, category: "Sedan",
+    bodyStyle: "hatchback", sizeClass: 2, seats: 5, drivetrain: "FWD", rangeMi: 125, usedOnly: true,
+  },
+
   // ───────────────────────── Gas ─────────────────────────
   // Compact sedans
   {
@@ -1691,6 +1909,39 @@ const VEHICLE_IMAGES: Record<string, string> = {
   "volvo-es90": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/21/Volvo_ES90_IAA_2025_DSC_1357.jpg/330px-Volvo_ES90_IAA_2025_DSC_1357.jpg",
   "mercedes-glc-ev": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/Mercedes-Benz_GLC_with_EQ_Technology_IAA_2025_DSC_2106.jpg/330px-Mercedes-Benz_GLC_with_EQ_Technology_IAA_2025_DSC_2106.jpg",
   "porsche-cayenne-ev": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/Porsche_Cayenne_Electric_IMG_8088.jpg/330px-Porsche_Cayenne_Electric_IMG_8088.jpg",
+
+  // Photographs for the used EVs the marketplace brought in. Each one was
+  // checked against its Commons file page for the exact car — an "Ioniq" file
+  // can be three different Hyundais, and a "C-HR" can be the petrol one.
+  "audi-e-tron": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Audi_e-tron_001.jpg/330px-Audi_e-tron_001.jpg",
+  "audi-q8-e-tron": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b2/Audi_Q8_e-tron_55_quattro_1X7A6952.jpg/330px-Audi_Q8_e-tron_55_quattro_1X7A6952.jpg",
+  "bmw-i3": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/BMW_i3s_2021.jpg/330px-BMW_i3s_2021.jpg",
+  "bmw-ix": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/2022_BMW_iX_xDrive_40.jpg/330px-2022_BMW_iX_xDrive_40.jpg",
+  "chevy-bolt-euv": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fc/23_Chevrolet_Bolt_EUV_Premier.jpg/330px-23_Chevrolet_Bolt_EUV_Premier.jpg",
+  "chevy-spark-ev": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2d/2015_Chevrolet_Spark_ev%2C_left_front.jpg/330px-2015_Chevrolet_Spark_ev%2C_left_front.jpg",
+  "fisker-ocean": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/2023_Fisker_Ocean_One_in_Marine_Layer_%28rideshare%29%2C_front_left.jpg/330px-2023_Fisker_Ocean_One_in_Marine_Layer_%28rideshare%29%2C_front_left.jpg",
+  "ford-f150-lightning": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/76/2022_Ford_F-150_Lightning_Lariat_in_Atlas_Blue_Metallic%2C_Front_Right%2C_08-06-2022.jpg/330px-2022_Ford_F-150_Lightning_Lariat_in_Atlas_Blue_Metallic%2C_Front_Right%2C_08-06-2022.jpg",
+  "ford-focus-electric": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/2012_Ford_Focus_Electric_in_Black%2C_front_left%2C_03-20-2025.jpg/330px-2012_Ford_Focus_Electric_in_Black%2C_front_left%2C_03-20-2025.jpg",
+  "honda-clarity-electric": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/70/Honda_Clarity_rearview_.jpg/330px-Honda_Clarity_rearview_.jpg",
+  "honda-fit-ev": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/Honda_Fit_EV_blue%2C_Cars_and_Croissants.jpg/330px-Honda_Fit_EV_blue%2C_Cars_and_Croissants.jpg",
+  "hyundai-ioniq-electric": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/56/21_Hyundai_Ioniq_Electric_Limited.jpg/330px-21_Hyundai_Ioniq_Electric_Limited.jpg",
+  "hyundai-kona-electric": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bb/24_Hyundai_Kona_Electric_Limited.jpg/330px-24_Hyundai_Kona_Electric_Limited.jpg",
+  "jaguar-i-pace": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/2020_Jaguar_I-Pace.jpg/330px-2020_Jaguar_I-Pace.jpg",
+  "kia-soul-ev": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/2019_Kia_Soul_EV_Front.jpg/330px-2019_Kia_Soul_EV_Front.jpg",
+  "lexus-es-350e": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/2026_Lexus_ES350e_Version_L.jpg/330px-2026_Lexus_ES350e_Version_L.jpg",
+  "lexus-es-500e": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/Lexus-ES-2026.jpg/330px-Lexus-ES-2026.jpg",
+  "maserati-grecale-folgore": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c0/Maserati_Grecale_Folgore_(2024)_(54094321270).jpg/330px-Maserati_Grecale_Folgore_(2024)_(54094321270).jpg",
+  "mazda-mx-30": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Mazda_MX-30_EV_1X7A0376.jpg/330px-Mazda_MX-30_EV_1X7A0376.jpg",
+  "mercedes-b-class-electric": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/2015_Mercedes-Benz_B_250_e_Electric_Drive.jpg/330px-2015_Mercedes-Benz_B_250_e_Electric_Drive.jpg",
+  "mercedes-eqs": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/27/Mercedes-Benz_EQS_450%2B_(V297,_2024)_(54734161040).jpg/330px-Mercedes-Benz_EQS_450%2B_(V297,_2024)_(54734161040).jpg",
+  "mini-cooper-se": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/2022_Mini_Cooper_SE_in_White_Silver_Metallic,_front_right.jpg/330px-2022_Mini_Cooper_SE_in_White_Silver_Metallic,_front_right.jpg",
+  "mitsubishi-i-miev": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/2010_Mitsubishi_i-MiEV_(GA_MY10)_hatchback_(2015-11-11)_01.jpg/330px-2010_Mitsubishi_i-MiEV_(GA_MY10)_hatchback_(2015-11-11)_01.jpg",
+  "smart-fortwo-electric": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/Smart_fortwo_electric_drive_Generation_III_(front_quarter).jpg/330px-Smart_fortwo_electric_drive_Generation_III_(front_quarter).jpg",
+  "tesla-model-s": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/2018_Tesla_Model_S_100D.jpg/330px-2018_Tesla_Model_S_100D.jpg",
+  "tesla-model-x": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Tesla_Model_X_Plaid_Front_2.jpg/330px-Tesla_Model_X_Plaid_Front_2.jpg",
+  "toyota-chr-ev": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/2026_Toyota_C-HR_SE_AWD%2C_front_right%2C_08-01-2026.jpg/330px-2026_Toyota_C-HR_SE_AWD%2C_front_right%2C_08-01-2026.jpg",
+  "toyota-rav4-ev": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/43/New_Electric_Toyota_RAV4_%288176123129%29.jpg/330px-New_Electric_Toyota_RAV4_%288176123129%29.jpg",
+  "vw-e-golf": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/57/2018_Volkswagen_e-Golf_Comfortline_in_Tungsten_Silver_Metallic%2C_front_left%2C_2022-06-13.jpg/330px-2018_Volkswagen_e-Golf_Comfortline_in_Tungsten_Silver_Metallic%2C_front_left%2C_2022-06-13.jpg",
 };
 
 for (const v of vehicles) {

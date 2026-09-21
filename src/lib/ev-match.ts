@@ -184,7 +184,11 @@ export function recommendEvs(
   const ub = user.bodyStyle ?? "sedan";
   const userTruck = ub === "truck";
 
-  const evs = catalog.filter((v) => v.type === "ev");
+  // Cars no longer sold new are excluded from RECOMMENDATIONS, not from the
+  // catalog: their MSRP is the price in whatever year they stopped being made,
+  // so a 2018 Focus Electric would win "lowest total cost" against every car
+  // actually on sale — on the strength of an eight-year-old sticker.
+  const evs = catalog.filter((v) => v.type === "ev" && !v.usedOnly);
 
   // Hard gate: keep the same broad family (truck / car / SUV-van).
   const sameFamily = evs.filter((ev) => {

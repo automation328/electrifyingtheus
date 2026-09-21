@@ -156,3 +156,32 @@ describe("recommendEvs — class matching (spec §6)", () => {
     expect(violations).toEqual([]);
   });
 });
+
+describe("cars that are no longer sold new", () => {
+  const usedOnly = vehicles.filter((v) => v.usedOnly);
+
+  it("are in the catalog, so people can still compare the one they drive", () => {
+    expect(usedOnly.length).toBeGreaterThan(10);
+    expect(usedOnly.map((v) => v.id)).toContain("ford-focus-electric");
+    expect(usedOnly.map((v) => v.id)).toContain("chevy-spark-ev");
+  });
+
+  it("are never recommended, whatever the gas car", () => {
+    // Their MSRP is the price in the year they stopped being made. Left in the
+    // running, a 2018 Focus Electric wins "lowest total cost" against every car
+    // on sale today — which is how a Camry driver ended up being pointed at a
+    // discontinued hatchback with 115 miles of range.
+    const gasCars = vehicles.filter((v) => v.type === "gas");
+    const recommended = new Set(
+      gasCars.flatMap((g) => recommendEvs(g, vehicles).map((m) => m.ev.id)),
+    );
+    const leaked = usedOnly.filter((v) => recommended.has(v.id)).map((v) => v.name);
+    expect(leaked).toEqual([]);
+  });
+
+  it("still lets a Camry find current electric sedans", () => {
+    const got = recommendEvs(getVehicleById("toyota-camry")!, vehicles);
+    expect(got.every((m) => m.ev.bodyStyle === "sedan")).toBe(true);
+    expect(got.every((m) => !m.ev.usedOnly)).toBe(true);
+  });
+});
