@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
-import { ArrowLeft, MapPin, Gauge, BatteryCharging, ExternalLink, Loader2 } from "lucide-react";
+import { ArrowLeft, MapPin, Gauge, BatteryCharging, Loader2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -280,21 +280,7 @@ const VehicleListing = () => {
                     <Button type="submit" className="w-full rounded-xl h-11" disabled={sending}>
                       {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Enquire about this vehicle"}
                     </Button>
-                    <p className="text-[11px] text-muted-foreground">
-                      We'll share your details with the seller so they can respond.
-                    </p>
                   </form>
-                )}
-
-                {listing.listingUrl && (
-                  <a
-                    href={listing.listingUrl}
-                    target="_blank"
-                    rel="noopener noreferrer nofollow"
-                    className="mt-4 inline-flex items-center gap-1.5 text-sm text-primary font-medium hover:underline"
-                  >
-                    View the original listing <ExternalLink className="w-3.5 h-3.5" />
-                  </a>
                 )}
               </div>
             </aside>

@@ -740,6 +740,20 @@ const NOISE = new Set([
   "rwd", "fwd", "awd", "4wd", "4x4", "2wd", "4matic", "quattro", "xdrive",
 ]);
 
+/**
+ * Performance trims a dealer always names, because they are the reason for the
+ * price. A listing that does NOT say "V-Series" is not a V-Series, so those
+ * ratings are dropped rather than left to drag the band down.
+ *
+ * Only trims with their own badge belong here. Battery and wheel options —
+ * extended range, 75 kWh, 19-inch — are NOT trims: dealers leave them out of
+ * the trim field all the time, so their ratings have to stay in the band.
+ */
+const BADGED_TRIMS = new Set([
+  "gt", "performance", "plaid", "denali", "rally", "quadrifoglio",
+  "n", "m50", "m60", "m70", "580", "xdrive40", "series", "amg",
+]);
+
 const words = (text?: string): string[] =>
   (text ?? "").toLowerCase().match(/[a-z0-9]+/g) ?? [];
 
@@ -777,7 +791,12 @@ function narrow(variants: readonly EpaVariant[], hint?: ListingVariantHint): rea
       if (score > best) best = score;
       return score;
     });
-    if (best > 0) kept = kept.filter((_, i) => scores[i] === best);
+    if (best > 0) return kept.filter((_, i) => scores[i] === best);
+
+    // Nothing matched, so this car is none of the badged trims — a LYRIQ
+    // Luxury is not the V-Series whose 285 miles was setting the low end.
+    const plain = kept.filter((v) => !words(v[2]).some((w) => BADGED_TRIMS.has(w)));
+    if (plain.length) kept = plain;
   }
 
   return kept;

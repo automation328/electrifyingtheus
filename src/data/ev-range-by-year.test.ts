@@ -61,9 +61,22 @@ describe("epaRangeFor, given what the listing says it is", () => {
     expect(epaRangeFor("cadillac-lyriq", 2026, { drivetrain: "AWD", trim: "V-Series" }))
       .toEqual({ rangeMi: 285 });
     // Luxury is not a word the EPA files under, so the AWD cars stay a band —
-    // but a narrower one than the whole nameplate, and 326 is correctly gone.
+    // but a narrow one: 326 is rear-drive, and 285 is the V-Series, which this
+    // car would have said it was.
     expect(epaRangeFor("cadillac-lyriq", 2026, { drivetrain: "AWD", trim: "Luxury" }))
-      .toEqual({ rangeMi: 285, rangeMaxMi: 319 });
+      .toEqual({ rangeMi: 303, rangeMaxMi: 319 });
+  });
+
+  it("drops the badged trims a listing would have named", () => {
+    // A dealer does not leave "GT" out of the trim field, so a Mach-E that says
+    // Premium is not one — but "extended range" is an option, not a badge, and
+    // is left in the band because listings do leave it out.
+    expect(epaRangeFor("ford-mustang-mach-e", 2022, { drivetrain: "AWD", trim: "GT" }))
+      .toEqual({ rangeMi: 260, rangeMaxMi: 270 });
+    expect(epaRangeFor("ford-mustang-mach-e", 2022, { drivetrain: "AWD", trim: "Premium" }))
+      .toEqual({ rangeMi: 224, rangeMaxMi: 312 });
+    expect(epaRangeFor("cadillac-optiq", 2026, { drivetrain: "AWD", trim: "Luxury" }))
+      .toEqual({ rangeMi: 303 });
   });
 
   it("finds a trim the EPA files under a catalog entry of its own", () => {
