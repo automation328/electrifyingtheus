@@ -18,6 +18,12 @@ create table if not exists kb_documents (
   embedding vector(768)                  -- Gemini text-embedding-004
 );
 
+-- Locked with no policy, like every other table here: the anon key is public,
+-- and without RLS it would carry full write access to the assistant's memory.
+-- Ingestion must therefore run with the SERVICE ROLE key, not the anon key.
+alter table public.kb_documents enable row level security;
+revoke insert, update, delete on public.kb_documents from anon, authenticated;
+
 -- Cosine-distance index for fast nearest-neighbour search.
 create index if not exists kb_documents_embedding_idx
   on kb_documents using hnsw (embedding vector_cosine_ops);

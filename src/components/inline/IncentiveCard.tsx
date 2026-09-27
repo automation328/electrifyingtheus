@@ -14,6 +14,7 @@ import ShareGate from "@/components/forms/ShareGate";
 import EditableText from "@/components/inline/EditableText";
 import { useInlineEdit } from "@/components/inline/edit-context";
 import { incentiveKey, locateIncentive } from "@/lib/incentive-edit";
+import { safeHref } from "@/lib/safe-href";
 import type { Incentive } from "@/data/incentives";
 import { INCENTIVES_DISCLAIMER } from "@/lib/disclaimers";
 import { incentiveWindow, formatIsoDate, todayIso } from "@/lib/incentive-window";
@@ -121,7 +122,10 @@ const IncentiveCard = ({ item, edits }: { item: Incentive; edits?: IncentiveEdit
 
       <div className="mt-3 flex items-center justify-between gap-3">
         <a
-          href={link}
+          // An editor types this URL, so it goes through the same scheme
+          // allow-list as every other editor-entered link on the site: a
+          // javascript: href here would run in a visitor's browser on click.
+          href={safeHref(link)}
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:gap-2.5 transition-all"

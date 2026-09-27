@@ -25,7 +25,7 @@
 //
 // Env (server-only): SUPABASE_SERVICE_ROLE_KEY, VITE_SUPABASE_URL/ANON, GEMINI_API_KEY.
 
-import { randomBytes } from "node:crypto";
+import { randomBytes, createHash, timingSafeEqual } from "node:crypto";
 import { getEditor, requireEditor, adminSupabase } from "./_admin-auth.js";
 import { appendActivity, readActivity } from "./_activity-log.js";
 import { checkRateLimit, tooManyRequests } from "./_rate-limit.js";
@@ -82,6 +82,19 @@ const ALLOWED_MIME = new Set([
 const EMBED_MODEL = "gemini-embedding-001"; // 3072-dim, matches vector(3072)
 const EMBED_URL = `https://generativelanguage.googleapis.com/v1beta/models/${EMBED_MODEL}:embedContent`;
 const KB_TABLE = "etus_kb_documents";
+
+/**
+ * Compare a secret without leaking how much of it was right.
+ *
+ * Hashed first because timingSafeEqual throws on a length mismatch — and the
+ * length of a secret is itself something not to hand out. Same helper shape as
+ * api/gate-login.ts.
+ */
+function secretMatches(expected: string, supplied: string): boolean {
+  const a = createHash("sha256").update(expected).digest();
+  const b = createHash("sha256").update(supplied).digest();
+  return timingSafeEqual(a, b);
+}
 const MAX_CHARS = 1600;
 const OVERLAP = 200;
 
@@ -869,9 +882,16 @@ async function handleEventReview(req: any, res: any) {
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function handleWeeklyImport(req: any, res: any) {
+  // Unauthenticated until the secret matches, so it gets a meter first: without
+  // one, the 401 path is free to hammer, which is how a secret gets guessed.
+  const rl = await checkRateLimit(req, { bucket: "weekly-import", limit: 20, windowMinutes: 60 });
+  if (!rl.ok) { tooManyRequests(res, rl); return; }
+
   const secret = process.env.CRON_SECRET;
   const auth = String(req.headers?.authorization ?? req.headers?.Authorization ?? "");
-  if (!secret || auth !== `Bearer ${secret}`) {
+  // Constant-time, like every other secret comparison in this codebase: `===`
+  // returns as soon as two bytes differ, which leaks the matching prefix.
+  if (!secret || !secretMatches(`Bearer ${secret}`, auth)) {
     res.status(401).json({ error: "unauthorized" });
     return;
   }

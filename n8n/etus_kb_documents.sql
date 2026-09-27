@@ -12,6 +12,13 @@ create table if not exists public.etus_kb_documents (
   embedding vector(3072)
 );
 
+-- No RLS means Supabase's default grants apply, and the anon key is public —
+-- anyone could plant rows EVan would later repeat as fact, or delete the lot.
+-- Locked with no policy: n8n and the CMS both write with the service-role key,
+-- which bypasses RLS. See supabase/migrations/0032_kb_rls.sql.
+alter table public.etus_kb_documents enable row level security;
+revoke insert, update, delete on public.etus_kb_documents from anon, authenticated;
+
 -- Similarity-search RPC. The name must match the n8n retrieval node's
 -- queryName (match_etus_kb_documents).
 create or replace function public.match_etus_kb_documents (

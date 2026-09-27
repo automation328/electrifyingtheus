@@ -23,6 +23,28 @@ const DEFAULT_FROM = "Electrifying the US <onboarding@resend.dev>";
 // @electrifyingtheus.com while its links point at a different domain is a
 // textbook spam signal. The apex serves all of these paths.
 const SITE = "https://electrifyingtheus.com";
+
+/** Hosts a share link may point at: this site, and nothing else. */
+const LINK_HOSTS = new Set(["electrifyingtheus.com", "www.electrifyingtheus.com"]);
+/** Plus the hosts our own pages legitimately load images from. */
+const IMAGE_HOSTS = new Set([...LINK_HOSTS, "upload.wikimedia.org", "i.ytimg.com", "retail.photos.vin"]);
+
+const hostOf = (raw: string): string | null => {
+  try {
+    const u = new URL(raw);
+    return u.protocol === "https:" || u.protocol === "http:" ? u.hostname.toLowerCase() : null;
+  } catch { return null; }
+};
+
+export const isOwnLink = (raw: string): boolean => {
+  const host = hostOf(raw);
+  return !!host && LINK_HOSTS.has(host);
+};
+
+export const isOwnImage = (raw: string): boolean => {
+  const host = hostOf(raw);
+  return !!host && (IMAGE_HOSTS.has(host) || host.endsWith(".supabase.co"));
+};
 // Site logo served from /public (static → reachable without the password gate).
 const LOGO_URL = `${SITE}/email-logo.png`;
 
@@ -332,8 +354,17 @@ export default async function handler(req: any, res: any) {
   const safeCta = cap(ctaLabel, 40);
   const safeUrl = cap(url, 2048);
   const safeImage = cap(imageUrl, 2048);
-  if (!/^https?:\/\//i.test(safeUrl)) { res.status(400).json({ error: "Invalid link" }); return; }
-  const img = /^https?:\/\//i.test(safeImage) ? safeImage : "";
+  // The CTA has to point back at this site.
+  //
+  // This endpoint needs no authentication — anyone sharing a page uses it — and
+  // it sends from a verified @electrifyingtheus.com address. Accepting any
+  // http(s) link therefore handed a stranger a phishing rig: our domain, our
+  // branding, our deliverability, their destination. The link is the whole
+  // point of the mail, so it is the thing that must be ours.
+  if (!isOwnLink(safeUrl)) { res.status(400).json({ error: "Invalid link" }); return; }
+  // The image is embedded, so a foreign one is a tracking pixel in a mail the
+  // recipient thinks came from us. Same rule, plus the hosts our own pages use.
+  const img = isOwnImage(safeImage) ? safeImage : "";
 
   const isSelfSend = to.trim().toLowerCase() === senderEmail.trim().toLowerCase();
   const sharedBy = senderLabel(senderName, to, senderEmail);

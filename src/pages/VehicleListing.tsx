@@ -12,6 +12,7 @@ import { isSortKey, isProviderSorted, DEFAULT_SORT } from "@/lib/marketplace-sor
 import { MAX_MARKETPLACE_PAGE } from "@/lib/marketplace-types";
 import { vehicles } from "@/data/vehicles";
 import { consumerIncentivesFor, stateFromZip, STATE_NAMES } from "@/data/incentives";
+import { safeHref } from "@/lib/safe-href";
 import { calculate, homeShareFor, DEFAULTS } from "@/lib/ev-cost";
 import { NATIONAL_AVG, STATE_ENERGY_RATES, STATIC_GAS_PRICES } from "@/data/state-energy-rates";
 import { useGasPrices, medianGasPrice, resolveStateGasPrice } from "@/hooks/use-gas-prices";
@@ -307,7 +308,9 @@ const VehicleListing = () => {
                       {incentives.slice(0, INCENTIVES_SHOWN).map((item) => (
                         <li key={item.name}>
                           <a
-                            href={item.link}
+                            // CMS-authored URL — same scheme allow-list as the
+                            // incentives page, for the same reason.
+                            href={safeHref(item.link)}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="group flex items-baseline justify-between gap-4 py-3"

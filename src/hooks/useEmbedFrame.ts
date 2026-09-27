@@ -28,6 +28,11 @@ export function useEmbedFrame(enabled: boolean) {
       html.style.setProperty("--embed-font", font);
     }
 
+    const parentOrigin = (() => {
+      try { return document.referrer ? new URL(document.referrer).origin : "*"; }
+      catch { return "*"; }
+    })();
+
     const post = () => {
       const height = Math.ceil(
         Math.max(
@@ -36,7 +41,13 @@ export function useEmbedFrame(enabled: boolean) {
           html.offsetHeight,
         ),
       );
-      window.parent?.postMessage({ type: "etu-embed-size", height }, "*");
+      // Address the parent explicitly. "*" broadcasts the message to whatever
+      // page happens to be framing this one, which is fine for a height but
+      // costs nothing to tighten — and keeps the habit right for any richer
+      // message added later. The referrer is the page that framed us; when it
+      // is hidden (Referrer-Policy, sandboxed iframe) we fall back to "*",
+      // because a height that never arrives means a broken embed.
+      window.parent?.postMessage({ type: "etu-embed-size", height }, parentOrigin);
     };
 
     post();

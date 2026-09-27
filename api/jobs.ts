@@ -10,6 +10,8 @@
 // Example:
 //   JOB_BOARDS=greenhouse:rivian,greenhouse:lucidmotors,lever:chargepoint,ashby:wallbox
 
+import { checkRateLimit, tooManyRequests } from "./_rate-limit.js";
+
 interface Job {
   title: string;
   company: string;
@@ -152,6 +154,11 @@ function parseEntry(entry: string): { provider: string; token: string; company: 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default async function handler(req: any, res: any) {
   if (req.method !== "GET") { res.status(405).json({ error: "Method not allowed" }); return; }
+
+  // Same shape as the events feed: one request fans out to every configured
+  // job board, so it gets the same meter.
+  const rl = await checkRateLimit(req, { bucket: "jobs", limit: 60, windowMinutes: 60 });
+  if (!rl.ok) { tooManyRequests(res, rl); return; }
 
   const entries = (process.env.JOB_BOARDS ?? "")
     .split(/[\n,]/).map((s) => s.trim()).filter(Boolean)

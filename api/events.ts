@@ -9,6 +9,8 @@
 // is supported best-effort (uses <pubDate> as the date, which is often the
 // publish date, not the event date) — prefer ICS where possible.
 
+import { checkRateLimit, tooManyRequests } from "./_rate-limit.js";
+
 interface NormEvent {
   title: string;
   startISO: string;
@@ -309,6 +311,12 @@ async function fetchFeed(url: string): Promise<NormEvent[]> {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default async function handler(req: any, res: any) {
   if (req.method !== "GET") { res.status(405).json({ error: "Method not allowed" }); return; }
+
+  // Each call fans out to every configured feed and calendar source, so an
+  // unmetered endpoint is an amplifier: one request in, dozens of outbound
+  // fetches out. Every sibling proxy already carries this guard.
+  const rl = await checkRateLimit(req, { bucket: "events", limit: 60, windowMinutes: 60 });
+  if (!rl.ok) { tooManyRequests(res, rl); return; }
 
   const feeds = (process.env.EVENT_FEEDS ?? "")
     .split(/[\n,]/).map((s) => s.trim()).filter(Boolean);

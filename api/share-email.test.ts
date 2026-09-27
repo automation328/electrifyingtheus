@@ -9,7 +9,7 @@
 // buried in it. Events now get labelled rows instead.
 
 import { describe, it, expect } from "vitest";
-import { buildHtml, buildText, senderLabel } from "./share-email";
+import { buildHtml, buildText, senderLabel, isOwnLink, isOwnImage } from "./share-email";
 
 const EVENT = {
   title: "Montbello Alive EV Ride & Drive - Denver, CO",
@@ -287,5 +287,40 @@ describe("the plain-text part is a whole email", () => {
     const text = buildText(EVENT);
     expect(text).toContain("Privacy Policy: ");
     expect(text).toContain("Terms & Conditions: ");
+  });
+});
+
+// This endpoint needs no authentication — anyone sharing a page calls it — and
+// it sends from a verified @electrifyingtheus.com address. It used to accept
+// any http(s) URL as the CTA, which handed a stranger a phishing rig: our
+// domain, our branding, our deliverability, their destination.
+describe("what a share email is allowed to point at", () => {
+  it("accepts our own pages", () => {
+    expect(isOwnLink("https://electrifyingtheus.com/events/montbello")).toBe(true);
+    expect(isOwnLink("https://www.electrifyingtheus.com/marketplace")).toBe(true);
+  });
+
+  it("refuses anywhere else, however it is dressed up", () => {
+    for (const url of [
+      "https://evil.example/login",
+      "https://electrifyingtheus.com.evil.example/login",   // suffix trick
+      "https://evil.example/?x=electrifyingtheus.com",       // it's only in the query
+      "https://user@evil.example/",                          // userinfo before the host
+      "javascript:alert(1)",
+      "data:text/html,<script>alert(1)</script>",
+      "//electrifyingtheus.com/",                            // protocol-relative
+      "",
+    ]) {
+      expect(isOwnLink(url), url).toBe(false);
+    }
+  });
+
+  it("allows an embedded image only from hosts our own pages use", () => {
+    expect(isOwnImage("https://electrifyingtheus.com/email-logo.png")).toBe(true);
+    expect(isOwnImage("https://upload.wikimedia.org/wikipedia/commons/x.jpg")).toBe(true);
+    expect(isOwnImage("https://wmwjjejrgequyersrjnh.supabase.co/storage/v1/x.png")).toBe(true);
+    // A foreign image is a tracking pixel in a mail the recipient thinks is ours.
+    expect(isOwnImage("https://tracker.example/pixel.gif")).toBe(false);
+    expect(isOwnImage("https://evil.supabase.co.attacker.example/x.png")).toBe(false);
   });
 });
