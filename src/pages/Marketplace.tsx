@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/sheet";
 import { FilterPanel } from "@/components/marketplace/FilterPanel";
 import { ListingCard, ListingCardSkeleton } from "@/components/marketplace/ListingCard";
+import MarketplaceDisclaimer from "@/components/marketplace/MarketplaceDisclaimer";
 import { useEmbedFrame } from "@/hooks/useEmbedFrame";
 import { useMarketplace } from "@/hooks/use-marketplace";
 import {
@@ -394,7 +395,18 @@ const Marketplace = () => {
                       </SheetContent>
                     </Sheet>
 
-                    {heading && <p className="text-sm text-muted-foreground">{heading}</p>}
+                    {heading && (
+                      <div>
+                        <p className="text-sm text-muted-foreground">{heading}</p>
+                        {/* The cars are not ours and we have not seen them. A
+                            visitor deciding whether to drive to a dealer should
+                            meet that fact here, not in small print below the
+                            results they have to scroll past. */}
+                        <p className="text-xs text-muted-foreground/80">
+                          Listed by dealers via a third-party feed — verify details with the seller.
+                        </p>
+                      </div>
+                    )}
                   </div>
 
                   {(listings.length > 1 || activeCount > 0) && (
@@ -530,6 +542,7 @@ const Marketplace = () => {
                     </p>
                   </div>
                 )}
+                <MarketplaceDisclaimer className="mt-8" />
               </section>
             </div>
           )}

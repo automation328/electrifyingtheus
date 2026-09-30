@@ -6,6 +6,7 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import ShareGate from "@/components/forms/ShareGate";
+import MarketplaceDisclaimer from "@/components/marketplace/MarketplaceDisclaimer";
 import { useMarketplace, findListing } from "@/hooks/use-marketplace";
 import { readFilters, serverFilters } from "@/lib/marketplace-filters";
 import { isSortKey, isProviderSorted, DEFAULT_SORT } from "@/lib/marketplace-sort";
@@ -364,6 +365,11 @@ const VehicleListing = () => {
                   </>
                 )}
               </section>
+
+              {/* Same notice the results page carries: this car belongs to a
+                  dealer, the figures are theirs, and the range is a rating for
+                  the model year rather than a measurement of this battery. */}
+              <MarketplaceDisclaimer className="mt-5" />
             </div>
 
             <aside className="lg:sticky lg:top-28 self-start w-full">
