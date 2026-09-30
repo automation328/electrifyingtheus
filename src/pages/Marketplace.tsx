@@ -395,18 +395,7 @@ const Marketplace = () => {
                       </SheetContent>
                     </Sheet>
 
-                    {heading && (
-                      <div>
-                        <p className="text-sm text-muted-foreground">{heading}</p>
-                        {/* The cars are not ours and we have not seen them. A
-                            visitor deciding whether to drive to a dealer should
-                            meet that fact here, not in small print below the
-                            results they have to scroll past. */}
-                        <p className="text-xs text-muted-foreground/80">
-                          Listed by dealers via a third-party feed — verify details with the seller.
-                        </p>
-                      </div>
-                    )}
+                    {heading && <p className="text-sm text-muted-foreground">{heading}</p>}
                   </div>
 
                   {(listings.length > 1 || activeCount > 0) && (
@@ -443,6 +432,11 @@ const Marketplace = () => {
                     ))}
                   </ul>
                 )}
+
+                {/* Above the cars, not under them. Whose listings these are
+                    and what to check is the frame a visitor needs BEFORE they
+                    read a price — at the bottom it arrives after the decision. */}
+                <MarketplaceDisclaimer className="mb-6" />
 
                 {showSkeletons && (
                   <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
@@ -542,7 +536,6 @@ const Marketplace = () => {
                     </p>
                   </div>
                 )}
-                <MarketplaceDisclaimer className="mt-8" />
               </section>
             </div>
           )}
