@@ -58,6 +58,7 @@ export const SITEMAP_PAGES: string[] = [
   "/heavy-duty-electrification",
   "/list-your-event",
   "/micro-mobility",
+  "/slides",
   "/news",
   "/post-a-job",
   "/privacy-policy",

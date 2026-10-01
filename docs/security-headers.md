@@ -61,12 +61,13 @@ Known soft spots in the current policy, all of which are why it starts Report-On
   images.
 - `api.openai.com` is listed because the OpenAI SDK is still shipped in the bundle
   (see below). Remove it when the assistant moves behind a server proxy.
-- `frame-src` has to name every video host the site can embed, and the site can
-  embed more than YouTube: `VideoEmbed.tsx` and the CMS video block both offer
-  Vimeo, and `VideoEmbed` also offers Google Drive. Both were missing until the
-  policy was still Report-Only, so nothing broke — enforcing it as it stood would
-  have blanked every Vimeo and Drive embed on the site. **Adding a provider to
-  those components means adding its host here.**
+- `frame-src` has to name every host the site can embed, and the site can embed
+  more than YouTube: `VideoEmbed.tsx` and the CMS video block both offer Vimeo,
+  `VideoEmbed` also offers Google Drive, and `/slides` (`src/pages/Slides.tsx`)
+  frames the general deck from `online.fliphtml5.com`. The first two were missing
+  while the policy was still Report-Only, so nothing broke — enforcing it as it
+  stood would have blanked every Vimeo and Drive embed on the site. **Adding an
+  embed to any of those surfaces means adding its host here.**
 
 ---
 
