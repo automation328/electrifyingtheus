@@ -13,9 +13,22 @@
 //   GATE_SHARE_THRESHOLD    Distinct-IP count that triggers a ⚠️ (default 4).
 //   SLACK_WEBHOOK_URL       Incoming webhook for sign-in alerts (optional).
 //   VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY   For the record_gate_login RPC.
+//
+// It also answers the /slides deck password ({ scope: "slides", password }),
+// which wants the same three things this endpoint already does well: a limiter
+// in front of the check, a constant-time comparison, and an HttpOnly cookie.
+// Two endpoints would have been tidier, and the plan allows twelve serverless
+// functions — this project already has twelve. A thirteenth file fails the
+// deployment at "Deploying outputs" with the build itself green, which is an
+// unpleasant way to learn the limit. See slides-gate.ts for the shared half.
+//
+//   SLIDES_PASSWORD   one shared password for /slides. Unset = page stays open.
 
 import { createHash, timingSafeEqual } from "node:crypto";
 import { checkRateLimit, tooManyRequests } from "./_rate-limit.js";
+import {
+  SLIDES_COOKIE, SLIDES_COOKIE_PATH, SLIDES_MAX_AGE, slidesToken, timingSafeEqualHex, sha256Hex,
+} from "../slides-gate.js";
 
 const COOKIE = "etu_gate";
 const MAX_AGE = 60 * 60 * 24 * 30; // 30 days
@@ -137,16 +150,54 @@ async function notifySlack(opts: {
   } catch { /* Slack down — don't block sign-in */ }
 }
 
+/**
+ * The /slides password.
+ *
+ * Metered before the password is read — an unmetered check is a free guessing
+ * machine — and failing closed for the same reason the reviewer login does. The
+ * cookie carries a digest, never the password, so changing SLIDES_PASSWORD signs
+ * everyone out and a stolen cookie cannot be typed into a form anywhere else.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function handleSlides(req: any, res: any, b: Record<string, unknown>) {
+  const expected = process.env.SLIDES_PASSWORD || "";
+  if (!expected) { res.status(500).json({ error: "Not configured" }); return; }
+
+  const rl = await checkRateLimit(req, {
+    bucket: "slides-login", limit: 10, windowMinutes: 15, failClosed: true,
+  });
+  if (!rl.ok) { tooManyRequests(res, rl); return; }
+
+  // Hashed first: timingSafeEqual needs equal lengths, and the length of the
+  // real password is itself not something to hand out.
+  const supplied = String(b.password ?? "");
+  if (!timingSafeEqualHex(await sha256Hex(supplied), await sha256Hex(expected))) {
+    res.status(401).json({ error: "Incorrect password" });
+    return;
+  }
+
+  res.setHeader(
+    "Set-Cookie",
+    `${SLIDES_COOKIE}=${await slidesToken(expected)}; Path=${SLIDES_COOKIE_PATH}; `
+    + `Max-Age=${SLIDES_MAX_AGE}; HttpOnly; Secure; SameSite=Lax`,
+  );
+  res.status(200).json({ ok: true });
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default async function handler(req: any, res: any) {
   if (req.method !== "POST") { res.status(405).json({ error: "Method not allowed" }); return; }
 
+  const body = typeof req.body === "string" ? safeJson(req.body) : (req.body ?? {});
+  const b = (body && typeof body === "object" ? body : {}) as Record<string, unknown>;
+
+  // The deck page: one shared password, no identity, its own cookie. Handled
+  // first and returned from, so nothing below it can see a slides request.
+  if (String(b.scope ?? "") === "slides") { await handleSlides(req, res, b); return; }
+
   const token = process.env.GATE_TOKEN;
   const users = gateUsers();
   if (!token || users.length === 0) { res.status(500).json({ error: "Gate not configured" }); return; }
-
-  const body = typeof req.body === "string" ? safeJson(req.body) : (req.body ?? {});
-  const b = (body && typeof body === "object" ? body : {}) as Record<string, unknown>;
   const email = String(b.email ?? "").trim();
   const password = String(b.password ?? "");
 

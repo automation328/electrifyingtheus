@@ -10,7 +10,7 @@ vi.mock("./_rate-limit.js", () => ({
     res.status(429).json({ error: "rate_limited" })),
 }));
 
-import handler from "./slides-login";
+import handler from "./gate-login";
 import { checkRateLimit } from "./_rate-limit.js";
 import { SLIDES_COOKIE, slidesToken } from "../slides-gate.js";
 
@@ -25,10 +25,13 @@ const mockRes = () => {
   return res;
 };
 
+// The deck password rides on the site's one auth endpoint, under its own
+// scope — the plan allows twelve serverless functions and this project has
+// twelve, so a thirteenth file fails the DEPLOY with the build green.
 const post = (password: unknown) =>
-  ({ method: "POST", headers: {}, body: { password } }) as never;
+  ({ method: "POST", headers: {}, body: { scope: "slides", password } }) as never;
 
-describe("the slides password endpoint", () => {
+describe("the slides password branch of the gate endpoint", () => {
   const PASSWORD = "deck-pass-2026";
 
   beforeEach(() => { process.env.SLIDES_PASSWORD = PASSWORD; vi.clearAllMocks(); });
@@ -93,5 +96,14 @@ describe("the slides password endpoint", () => {
     const res = mockRes();
     await handler({ method: "GET", headers: {} } as never, res);
     expect(res._out.status).toBe(405);
+  });
+
+  it("leaves the reviewer login alone — no scope means the old behaviour", async () => {
+    // The two share an endpoint, not a code path: a request without the slides
+    // scope must never be answered by the deck password.
+    const res = mockRes();
+    await handler({ method: "POST", headers: {}, body: { email: "a@b.com", password: PASSWORD } } as never, res);
+    expect(res._out.headers["set-cookie"]).toBeUndefined();
+    expect([401, 500]).toContain(res._out.status);
   });
 });

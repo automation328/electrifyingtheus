@@ -338,7 +338,7 @@ function slidesGateHtml(): string {
     f.addEventListener('submit',async function(ev){
       ev.preventDefault();e.textContent='';b.disabled=true;b.textContent='Checking…';
       try{
-        var r=await fetch('/api/slides-login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:p.value})});
+        var r=await fetch('/api/gate-login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({scope:'slides',password:p.value})});
         if(r.ok){location.reload();return;}
         e.textContent=r.status===429?'Too many attempts. Wait a few minutes.':'Incorrect password. Try again.';
       }catch(_){e.textContent='Something went wrong. Try again.';}
