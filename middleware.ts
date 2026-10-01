@@ -12,6 +12,7 @@
 import { next } from "@vercel/edge";
 import { OG_ENTRIES } from "./og-data.js";
 import { SITEMAP_STATIC, isSitemapExcluded } from "./sitemap-urls.js";
+import { slidesUnlocked } from "./slides-gate.js";
 
 export const config = {
   matcher: [
@@ -297,6 +298,56 @@ function gateHtml(): string {
 </body></html>`;
 }
 
+// Password screen for /slides. Same shape as the site gate above, one field:
+// the deck is shared with people who are not reviewers of the whole site, so it
+// asks for a password rather than an identity.
+function slidesGateHtml(): string {
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Electrifying the US updates</title>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100vh;display:grid;place-items:center;font-family:Segoe UI,system-ui,Arial,sans-serif;
+       background:linear-gradient(135deg,#0b5fd4,#1f9650);color:#fff;padding:24px}
+  .card{width:100%;max-width:380px;background:rgba(255,255,255,.10);backdrop-filter:blur(10px);
+        border:1px solid rgba(255,255,255,.22);border-radius:22px;padding:32px 28px;box-shadow:0 18px 50px rgba(0,0,0,.25)}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:19px;margin-bottom:18px}
+  .bolt{width:38px;height:38px;border-radius:11px;background:#fff;display:grid;place-items:center;color:#0b5fd4;font-size:20px}
+  h1{font-size:20px;margin:0 0 6px}
+  p{margin:0 0 20px;font-size:13px;color:rgba(255,255,255,.82)}
+  input{width:100%;padding:13px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.3);
+        background:rgba(255,255,255,.92);color:#16202c;font-size:15px;outline:none}
+  input:focus{border-color:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.25)}
+  button{width:100%;margin-top:12px;padding:13px;border:0;border-radius:12px;background:#fff;color:#0b5fd4;
+         font-weight:800;font-size:15px;cursor:pointer}
+  button:disabled{opacity:.6;cursor:default}
+  .err{min-height:18px;margin-top:10px;font-size:13px;font-weight:600;color:#ffd7d7}
+</style></head>
+<body>
+  <form class="card" id="f" autocomplete="off">
+    <div class="brand"><span class="bolt">&#9889;</span> Electrifying the US</div>
+    <h1>Electrifying the US updates</h1>
+    <p>This presentation is private. Enter the password you were given to open it.</p>
+    <input id="p" type="password" placeholder="Password" autofocus autocomplete="current-password" aria-label="Password" />
+    <button id="b" type="submit">Open the deck</button>
+    <div class="err" id="e"></div>
+  </form>
+  <script>
+    var f=document.getElementById('f'),p=document.getElementById('p'),b=document.getElementById('b'),e=document.getElementById('e');
+    f.addEventListener('submit',async function(ev){
+      ev.preventDefault();e.textContent='';b.disabled=true;b.textContent='Checking…';
+      try{
+        var r=await fetch('/api/slides-login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:p.value})});
+        if(r.ok){location.reload();return;}
+        e.textContent=r.status===429?'Too many attempts. Wait a few minutes.':'Incorrect password. Try again.';
+      }catch(_){e.textContent='Something went wrong. Try again.';}
+      b.disabled=false;b.textContent='Open the deck';p.value='';p.focus();
+    });
+  </script>
+</body></html>`;
+}
+
 export default async function middleware(request: Request) {
   const ua = request.headers.get("user-agent") || "";
 
@@ -318,6 +369,22 @@ export default async function middleware(request: Request) {
   const reqPath = reqUrl.pathname.replace(/\/+$/, "") || "/";
   const isEmbed =
     reqUrl.searchParams.get("embed") === "1" && EMBED_TOOL_PATHS.has(reqPath);
+
+  // The deck page carries its own password (SLIDES_PASSWORD), independent of the
+  // site-wide gate: the slides go to people who are not reviewers of the site.
+  // Crawlers are NOT waved through here — a private page should not be
+  // previewable either, which is why /slides is excluded from the sitemap.
+  // With SLIDES_PASSWORD unset the page stays open, so nothing breaks before it
+  // is configured.
+  if (reqPath === "/slides") {
+    const slidesPassword = process.env.SLIDES_PASSWORD || "";
+    if (slidesPassword && !(await slidesUnlocked(request.headers.get("cookie"), slidesPassword))) {
+      return new Response(slidesGateHtml(), {
+        status: 401,
+        headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" },
+      });
+    }
+  }
 
   // Password gate — humans (non-crawlers) must carry the gate cookie. Crawlers
   // fall through to the OG logic below so social/link previews still render.

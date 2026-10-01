@@ -20,7 +20,7 @@ import { Button } from "@/components/ui/button";
 
 /** The published deck. Swap this one line when a new edition goes up. */
 const DECK_URL = "https://online.fliphtml5.com/msoig/Electrifying-The-US-General-Slides/";
-const DECK_TITLE = "Electrifying the US — general slides";
+const DECK_TITLE = "Electrifying the US updates";
 
 const Slides = () => {
   const frameWrap = useRef<HTMLDivElement>(null);
@@ -40,7 +40,7 @@ const Slides = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <SeoHead
-        title="Slides | Electrifying the US"
+        title="Electrifying the US updates"
         description="Our general presentation on electric vehicles and e-mobility in the United States — the case for electrifying, what it costs, and where the charging is."
       />
       <Navbar />
@@ -54,11 +54,11 @@ const Slides = () => {
                 Presentation
               </span>
               <h1 className="font-charge text-3xl md:text-4xl text-foreground mt-4">
-                Electrifying the US — the slides
+                Electrifying the US updates
               </h1>
               <p className="text-muted-foreground mt-2 max-w-2xl">
-                Our general deck, in full. Turn the pages below, or open it in its own
-                window if you would rather read it full screen.
+                The current edition of our deck, in full. Turn the pages below, or open
+                it in its own window if you would rather read it full screen.
               </p>
             </div>
 

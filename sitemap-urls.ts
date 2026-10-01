@@ -31,7 +31,9 @@ export const SITEMAP_REDIRECTS: string[] = [
 // Post-conversion confirmation pages and the CMS. None of these should be in a
 // sitemap: a thank-you page has nothing to rank for, and an indexed one can be
 // reached without ever submitting the form it is meant to confirm.
-export const SITEMAP_EXCLUDE: string[] = ["/admin", "/thank-you", "/list-your-event/thank-you"];
+// "/slides" is password-gated (SLIDES_PASSWORD, enforced in middleware.ts), so
+// listing it would invite Google to index a sign-in screen.
+export const SITEMAP_EXCLUDE: string[] = ["/admin", "/thank-you", "/list-your-event/thank-you", "/slides"];
 
 /** Static top-level pages (App.tsx route literals, minus redirects/excluded). */
 export const SITEMAP_PAGES: string[] = [
@@ -58,7 +60,6 @@ export const SITEMAP_PAGES: string[] = [
   "/heavy-duty-electrification",
   "/list-your-event",
   "/micro-mobility",
-  "/slides",
   "/news",
   "/post-a-job",
   "/privacy-policy",
