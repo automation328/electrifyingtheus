@@ -1,4 +1,7 @@
-import type { VehicleListing } from "./marketplace-types";
+// Explicit extension: api/ reaches this file, and Vercel type-checks the
+// serverless functions under node16 resolution, where an extensionless relative
+// import is an error — it failed a production build exactly here.
+import type { VehicleListing } from "./marketplace-types.js";
 
 // How the marketplace orders its results. The search endpoint already returns
 // the nearest listings first and caps the response, so this reorders what came
