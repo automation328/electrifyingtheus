@@ -76,11 +76,17 @@ const Slides = () => {
             </div>
           </div>
 
-          {/* Taller than wide on a phone, because the viewer shows one page at a
-              time there; widescreen from the breakpoint where it shows a spread. */}
+          {/* Landscape at every width, because the slides are.
+              A portrait frame on a phone seemed reasonable — the viewer shows a
+              single page there rather than a spread — but it does not letterbox
+              into one: it ROTATES the page 90 degrees to fill it, and the deck
+              arrives sideways. Better a smaller upright slide than a large one
+              nobody can read without turning their head, with Full screen and
+              the new tab for the proper look.
+              Full-bleed on a phone, where every pixel of width is height. */}
           <div
             ref={frameWrap}
-            className="relative mt-6 aspect-[3/4] w-full overflow-hidden rounded-2xl border border-border bg-muted sm:aspect-[4/3] lg:aspect-[16/10]"
+            className="relative -mx-4 mt-6 aspect-[16/9] w-screen overflow-hidden border-y border-border bg-muted sm:mx-0 sm:w-full sm:rounded-2xl sm:border lg:aspect-[16/10]"
           >
             {!loaded && (
               <div className="absolute inset-0 grid place-items-center px-6 text-center">
