@@ -11,8 +11,8 @@
 // means adding its host). The viewer sets no X-Frame-Options and no
 // frame-ancestors of its own, so it frames cleanly.
 
-import { useRef, useState } from "react";
-import { Presentation, Maximize2, ExternalLink } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Presentation, Maximize2, ExternalLink, ArrowUpRight } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import SeoHead from "@/components/SeoHead";
@@ -21,9 +21,38 @@ import { Button } from "@/components/ui/button";
 /** The published deck. Swap this one line when a new edition goes up. */
 const DECK_URL = "https://online.fliphtml5.com/msoig/Electrifying-The-US-General-Slides/";
 const DECK_TITLE = "Electrifying the US updates";
+/** The deck's own first page, which FlipHTML5 publishes beside it. */
+const DECK_COVER = `${DECK_URL}files/shot.jpg`;
+const DECK_PAGES = 32;
+
+/**
+ * Where the embed stops being worth having.
+ *
+ * Below this the viewer cannot win: give it a landscape frame and its own
+ * title bar, paging arrows, scrubber and button row — which it stacks INSIDE
+ * the frame on a phone — leave a sliver of slide; give it the height to fit
+ * that chrome and the page area turns portrait, whereupon it rotates a
+ * landscape slide onto its side. Both were tried on a real phone. So a phone
+ * gets the cover and a way in, and the viewer gets the whole screen when it
+ * opens, where it works properly and the phone can be turned.
+ */
+const EMBED_FROM = "(min-width: 640px)";
 
 const Slides = () => {
   const frameWrap = useRef<HTMLDivElement>(null);
+  const [canEmbed, setCanEmbed] = useState(
+    () => typeof window === "undefined" || window.matchMedia(EMBED_FROM).matches,
+  );
+
+  // Tracked rather than read once: a tablet rotating from portrait to landscape
+  // crosses this line, and so does a desktop window being dragged narrow.
+  useEffect(() => {
+    const mq = window.matchMedia(EMBED_FROM);
+    const sync = () => setCanEmbed(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
   // A deck that never arrives looks identical to a deck that is slow. The
   // placeholder says which, and leaves the "open it directly" escape visible.
   const [loaded, setLoaded] = useState(false);
@@ -57,16 +86,20 @@ const Slides = () => {
                 Electrifying the US updates
               </h1>
               <p className="text-muted-foreground mt-2 max-w-2xl">
-                The current edition of our deck, in full. Turn the pages below, or open
-                it in its own window if you would rather read it full screen.
+                The current edition of our deck, in full — {DECK_PAGES} pages.
+                {canEmbed
+                  ? " Turn the pages below, or open it in its own window to read it full screen."
+                  : " It opens full screen, where the pages are big enough to read — turn your phone sideways for the best of it."}
               </p>
             </div>
 
             <div className="flex shrink-0 items-center gap-2">
-              <Button variant="outline" className="rounded-xl" onClick={goFullscreen}>
-                <Maximize2 className="mr-1.5 h-4 w-4" aria-hidden />
-                Full screen
-              </Button>
+              {canEmbed && (
+                <Button variant="outline" className="rounded-xl" onClick={goFullscreen}>
+                  <Maximize2 className="mr-1.5 h-4 w-4" aria-hidden />
+                  Full screen
+                </Button>
+              )}
               <Button asChild variant="outline" className="rounded-xl">
                 <a href={DECK_URL} target="_blank" rel="noopener noreferrer">
                   Open in a new tab
@@ -76,44 +109,60 @@ const Slides = () => {
             </div>
           </div>
 
-          {/* Sizing this frame is a negotiation with the viewer inside it.
-              Two things it does, both learned the hard way on a phone:
-
-              It ROTATES rather than letterboxes. Give it a frame taller than it
-              is wide and a landscape slide arrives on its side. So the space the
-              PAGE gets has to stay landscape — 56.25vw, which is 16:9 of the
-              full width.
-
-              And on a phone it stacks its own furniture inside the frame: a
-              title bar above the page, then paging arrows, a scrubber and a
-              button row below. That chrome took the whole 16:9 box and left a
-              sliver of slide. MOBILE_CHROME is the allowance for it, added to
-              the page's own height rather than taken out of it.
-
-              From sm the viewer puts its controls over the page instead, so the
-              plain aspect ratio is enough. */}
-          <div
-            ref={frameWrap}
-            className="relative -mx-4 mt-6 h-[calc(56.25vw+190px)] w-screen overflow-hidden border-y border-border bg-muted sm:mx-0 sm:h-auto sm:w-full sm:rounded-2xl sm:border sm:aspect-[4/3] lg:aspect-[16/10]"
-          >
-            {!loaded && (
-              <div className="absolute inset-0 grid place-items-center px-6 text-center">
-                <div>
-                  <Presentation className="mx-auto mb-3 h-8 w-8 text-muted-foreground" aria-hidden />
-                  <p className="text-sm text-muted-foreground">Loading the deck…</p>
+          {canEmbed ? (
+            /* The frame stays landscape, which is what stops the viewer rotating
+               a landscape slide to fill a taller box. From sm it draws its
+               controls over the page rather than stacking them above and below,
+               so the ratio is all the sizing it needs. */
+            <div
+              ref={frameWrap}
+              className="relative mt-6 aspect-[4/3] w-full overflow-hidden rounded-2xl border border-border bg-muted lg:aspect-[16/10]"
+            >
+              {!loaded && (
+                <div className="absolute inset-0 grid place-items-center px-6 text-center">
+                  <div>
+                    <Presentation className="mx-auto mb-3 h-8 w-8 text-muted-foreground" aria-hidden />
+                    <p className="text-sm text-muted-foreground">Loading the deck…</p>
+                  </div>
                 </div>
-              </div>
-            )}
-            <iframe
-              src={DECK_URL}
-              title={DECK_TITLE}
-              className="absolute inset-0 h-full w-full"
-              allowFullScreen
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-              onLoad={() => setLoaded(true)}
-            />
-          </div>
+              )}
+              <iframe
+                src={DECK_URL}
+                title={DECK_TITLE}
+                className="absolute inset-0 h-full w-full"
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                onLoad={() => setLoaded(true)}
+              />
+            </div>
+          ) : (
+            /* A phone opens the deck instead of containing it: the cover, the
+               page count, and one tap into the viewer with the whole screen to
+               itself — where it reads properly and the phone can be turned. */
+            <a
+              href={DECK_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group mt-6 block overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-shadow hover:shadow-md"
+            >
+              <img
+                src={DECK_COVER}
+                alt={`Cover of ${DECK_TITLE}`}
+                className="aspect-[16/9] w-full object-cover"
+                loading="lazy"
+              />
+              <span className="flex items-center justify-between gap-3 px-4 py-3.5">
+                <span className="min-w-0">
+                  <span className="block font-semibold text-foreground">Open the deck</span>
+                  <span className="block text-xs text-muted-foreground">
+                    {DECK_PAGES} pages · opens full screen
+                  </span>
+                </span>
+                <ArrowUpRight className="h-5 w-5 shrink-0 text-primary transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" aria-hidden />
+              </span>
+            </a>
+          )}
 
           <p className="mt-3 text-xs text-muted-foreground">
             The deck is hosted on FlipHTML5. If your network blocks embedded content,
