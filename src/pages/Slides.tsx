@@ -76,17 +76,25 @@ const Slides = () => {
             </div>
           </div>
 
-          {/* Landscape at every width, because the slides are.
-              A portrait frame on a phone seemed reasonable — the viewer shows a
-              single page there rather than a spread — but it does not letterbox
-              into one: it ROTATES the page 90 degrees to fill it, and the deck
-              arrives sideways. Better a smaller upright slide than a large one
-              nobody can read without turning their head, with Full screen and
-              the new tab for the proper look.
-              Full-bleed on a phone, where every pixel of width is height. */}
+          {/* Sizing this frame is a negotiation with the viewer inside it.
+              Two things it does, both learned the hard way on a phone:
+
+              It ROTATES rather than letterboxes. Give it a frame taller than it
+              is wide and a landscape slide arrives on its side. So the space the
+              PAGE gets has to stay landscape — 56.25vw, which is 16:9 of the
+              full width.
+
+              And on a phone it stacks its own furniture inside the frame: a
+              title bar above the page, then paging arrows, a scrubber and a
+              button row below. That chrome took the whole 16:9 box and left a
+              sliver of slide. MOBILE_CHROME is the allowance for it, added to
+              the page's own height rather than taken out of it.
+
+              From sm the viewer puts its controls over the page instead, so the
+              plain aspect ratio is enough. */}
           <div
             ref={frameWrap}
-            className="relative -mx-4 mt-6 aspect-[16/9] w-screen overflow-hidden border-y border-border bg-muted sm:mx-0 sm:w-full sm:rounded-2xl sm:border lg:aspect-[16/10]"
+            className="relative -mx-4 mt-6 h-[calc(56.25vw+190px)] w-screen overflow-hidden border-y border-border bg-muted sm:mx-0 sm:h-auto sm:w-full sm:rounded-2xl sm:border sm:aspect-[4/3] lg:aspect-[16/10]"
           >
             {!loaded && (
               <div className="absolute inset-0 grid place-items-center px-6 text-center">
