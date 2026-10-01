@@ -7,12 +7,27 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-export const RANGES: Record<string, number> = { "24h": 1, "7d": 7, "30d": 30, "90d": 90 };
+// Nothing prunes site_analytics, so the history goes back as far as the site
+// has been collecting. The dashboard stopped asking at 90 days, which made a
+// six-month question unanswerable from the UI — hence 6m and 12m.
+export const RANGES: Record<string, number> = {
+  "24h": 1, "7d": 7, "30d": 30, "90d": 90, "6m": 182, "12m": 365,
+};
 
-/** Clamp an untrusted range key to a supported one (default 7d). */
+/** Most rows one summary will read. Long ranges can exceed it — see below. */
+const ROW_CAP = 100000;
+
+/**
+ * Clamp an untrusted range key to a supported one (default 7d).
+ *
+ * Own properties only. A plain `RANGES[k]` lookup walks the prototype chain, so
+ * "__proto__", "constructor" and "toString" all came back truthy and were
+ * accepted as ranges — then RANGES[key] was undefined, the date arithmetic
+ * produced an Invalid Date, and .toISOString() threw: a 500 from a query string.
+ */
 export function normalizeRange(r: unknown): string {
   const k = String(r ?? "7d");
-  return RANGES[k] ? k : "7d";
+  return Object.prototype.hasOwnProperty.call(RANGES, k) ? k : "7d";
 }
 
 interface Row {
@@ -127,11 +142,18 @@ export async function analyticsSummary(db: SupabaseClient, rangeInput: unknown):
     .select("created_at,type,path,referrer,label,session_id,visitor_id,first_name,email,is_known,city,region,country")
     .gte("created_at", sinceIso)
     .order("created_at", { ascending: false })
-    .limit(100000);
+    .limit(ROW_CAP);
 
   if (error) return { error: error.message };
 
   const rows = (data || []) as Row[];
+  // The query takes the NEWEST rows up to the cap, so hitting it silently drops
+  // the oldest ones — on a six-month view that is the early months going
+  // missing while the totals still look authoritative. Say so instead.
+  const truncated = rows.length >= ROW_CAP;
+  const coverageFrom = truncated
+    ? rows[rows.length - 1]?.created_at ?? sinceIso
+    : sinceIso;
   const pageviews = rows.filter((r) => r.type === "pageview");
   const clicks = rows.filter((r) => r.type === "click");
 
@@ -240,6 +262,10 @@ export async function analyticsSummary(db: SupabaseClient, rangeInput: unknown):
     data: {
       range: rangeKey,
       since: sinceIso,
+      // True when the row cap cut the range short; coverageFrom is the oldest
+      // event actually counted, so the dashboard can show what it really has.
+      truncated,
+      coverageFrom,
       totals: {
         pageviews: pageviews.length,
         clicks: clicks.length,

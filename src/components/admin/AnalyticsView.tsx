@@ -25,6 +25,8 @@ export const RANGES = [
   { key: "7d", label: "7 days" },
   { key: "30d", label: "30 days" },
   { key: "90d", label: "90 days" },
+  { key: "6m", label: "6 months" },
+  { key: "12m", label: "12 months" },
 ];
 
 const nf = new Intl.NumberFormat("en-US");
@@ -295,6 +297,17 @@ const AnalyticsView = ({ data, loading, error, range, onRange, onRefresh, fetchJ
 
       {data && t && (
         <>
+          {/* A long range can hit the row cap, which drops the OLDEST events —
+              so the early months quietly go missing while the totals still look
+              like the whole period. Say what the numbers actually cover. */}
+          {data.truncated && data.coverageFrom && (
+            <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+              This range holds more events than one read returns. The figures below
+              cover {(() => { try { return format(parseISO(data.coverageFrom), "d MMM yyyy"); } catch { return data.coverageFrom; } })()} onward,
+              not the full period.
+            </p>
+          )}
+
           {/* KPI cards */}
           <section className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 md:gap-4">
             <Kpi icon={Eye} label="Pageviews" value={t.pageviews} />

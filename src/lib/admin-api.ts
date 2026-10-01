@@ -142,6 +142,12 @@ export interface AnalyticsVisitorRow {
 }
 export interface AnalyticsData {
   range: string;
+  /** Start of the window asked for. */
+  since?: string;
+  /** Set when the row cap cut a long range short — the numbers then describe
+   *  from `coverageFrom` onward, not the whole window. */
+  truncated?: boolean;
+  coverageFrom?: string;
   totals: AnalyticsTotals;
   series: { date: string; views: number; sessions: number }[];
   pages: AnalyticsPageRow[];
