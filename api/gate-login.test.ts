@@ -48,7 +48,8 @@ describe("the slides password branch of the gate endpoint", () => {
     expect(cookie).toContain("HttpOnly");
     expect(cookie).toContain("Secure");
     expect(cookie).toContain("SameSite=Lax");
-    expect(cookie).toContain("Path=/slides");
+    // Scoped to the page it unlocks, so renaming the route retires old cookies.
+    expect(cookie).toContain("Path=/updates");
   });
 
   it("never puts the password itself in the cookie", async () => {

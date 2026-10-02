@@ -1,4 +1,4 @@
-// The general slide deck, embedded from FlipHTML5 and routed at /slides.
+// The general slide deck, embedded from FlipHTML5 and routed at /updates.
 //
 // The deck is published on FlipHTML5 and stays there: they host the page-turn
 // viewer, the search, the thumbnails and the mobile layout, and the link in
@@ -38,7 +38,7 @@ const DECK_PAGES = 32;
  */
 const EMBED_FROM = "(min-width: 640px)";
 
-const Slides = () => {
+const Updates = () => {
   const frameWrap = useRef<HTMLDivElement>(null);
   const [canEmbed, setCanEmbed] = useState(
     () => typeof window === "undefined" || window.matchMedia(EMBED_FROM).matches,
@@ -185,4 +185,4 @@ const Slides = () => {
   );
 };
 
-export default Slides;
+export default Updates;

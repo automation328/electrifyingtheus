@@ -63,7 +63,7 @@ Known soft spots in the current policy, all of which are why it starts Report-On
   (see below). Remove it when the assistant moves behind a server proxy.
 - `frame-src` has to name every host the site can embed, and the site can embed
   more than YouTube: `VideoEmbed.tsx` and the CMS video block both offer Vimeo,
-  `VideoEmbed` also offers Google Drive, and `/slides` (`src/pages/Slides.tsx`)
+  `VideoEmbed` also offers Google Drive, and `/updates` (`src/pages/Updates.tsx`)
   frames the general deck from `online.fliphtml5.com`. The first two were missing
   while the policy was still Report-Only, so nothing broke — enforcing it as it
   stood would have blanked every Vimeo and Drive embed on the site. **Adding an

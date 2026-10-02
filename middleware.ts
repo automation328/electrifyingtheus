@@ -298,7 +298,7 @@ function gateHtml(): string {
 </body></html>`;
 }
 
-// Password screen for /slides. Same shape as the site gate above, one field:
+// Password screen for /updates. Same shape as the site gate above, one field:
 // the deck is shared with people who are not reviewers of the whole site, so it
 // asks for a password rather than an identity.
 function slidesGateHtml(): string {
@@ -373,10 +373,10 @@ export default async function middleware(request: Request) {
   // The deck page carries its own password (SLIDES_PASSWORD), independent of the
   // site-wide gate: the slides go to people who are not reviewers of the site.
   // Crawlers are NOT waved through here — a private page should not be
-  // previewable either, which is why /slides is excluded from the sitemap.
+  // previewable either, which is why /updates is excluded from the sitemap.
   // With SLIDES_PASSWORD unset the page stays open, so nothing breaks before it
   // is configured.
-  if (reqPath === "/slides") {
+  if (reqPath === "/updates") {
     const slidesPassword = process.env.SLIDES_PASSWORD || "";
     if (slidesPassword && !(await slidesUnlocked(request.headers.get("cookie"), slidesPassword))) {
       return new Response(slidesGateHtml(), {

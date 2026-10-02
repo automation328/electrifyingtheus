@@ -14,7 +14,7 @@
 //   SLACK_WEBHOOK_URL       Incoming webhook for sign-in alerts (optional).
 //   VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY   For the record_gate_login RPC.
 //
-// It also answers the /slides deck password ({ scope: "slides", password }),
+// It also answers the /updates deck password ({ scope: "slides", password }),
 // which wants the same three things this endpoint already does well: a limiter
 // in front of the check, a constant-time comparison, and an HttpOnly cookie.
 // Two endpoints would have been tidier, and the plan allows twelve serverless
@@ -22,7 +22,7 @@
 // deployment at "Deploying outputs" with the build itself green, which is an
 // unpleasant way to learn the limit. See slides-gate.ts for the shared half.
 //
-//   SLIDES_PASSWORD   one shared password for /slides. Unset = page stays open.
+//   SLIDES_PASSWORD   one shared password for /updates. Unset = page stays open.
 
 import { createHash, timingSafeEqual } from "node:crypto";
 import { checkRateLimit, tooManyRequests } from "./_rate-limit.js";
@@ -151,7 +151,7 @@ async function notifySlack(opts: {
 }
 
 /**
- * The /slides password.
+ * The /updates password.
  *
  * Metered before the password is read — an unmetered check is a free guessing
  * machine — and failing closed for the same reason the reviewer login does. The

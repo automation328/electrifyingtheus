@@ -23,6 +23,8 @@ export const SITEMAP_REDIRECTS: string[] = [
   "/blog/cleaner-air-healthier-neighborhoods",
   "/blog/evs-in-winter-myths-vs-reality",
   "/blog/real-cost-of-going-electric",
+  // The deck page's first address.
+  "/slides",
   // Retired event registration page → its recording.
   "/events/from-pump-to-plug",
 ];
@@ -31,9 +33,9 @@ export const SITEMAP_REDIRECTS: string[] = [
 // Post-conversion confirmation pages and the CMS. None of these should be in a
 // sitemap: a thank-you page has nothing to rank for, and an indexed one can be
 // reached without ever submitting the form it is meant to confirm.
-// "/slides" is password-gated (SLIDES_PASSWORD, enforced in middleware.ts), so
+// "/updates" is password-gated (SLIDES_PASSWORD, enforced in middleware.ts), so
 // listing it would invite Google to index a sign-in screen.
-export const SITEMAP_EXCLUDE: string[] = ["/admin", "/thank-you", "/list-your-event/thank-you", "/slides"];
+export const SITEMAP_EXCLUDE: string[] = ["/admin", "/thank-you", "/list-your-event/thank-you", "/updates"];
 
 /** Static top-level pages (App.tsx route literals, minus redirects/excluded). */
 export const SITEMAP_PAGES: string[] = [

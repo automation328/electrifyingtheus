@@ -14,7 +14,7 @@ import News from "./pages/News.tsx";
 import BlogPost from "./pages/BlogPost.tsx";
 import Events from "./pages/Events.tsx";
 import EvSafetyWebinar from "./pages/EvSafetyWebinar.tsx";
-import Slides from "./pages/Slides.tsx";
+import Updates from "./pages/Updates.tsx";
 import EventDetail from "./pages/EventDetail.tsx";
 import Gallery from "./pages/Gallery.tsx";
 import ListYourEvent from "./pages/ListYourEvent.tsx";
@@ -144,7 +144,9 @@ const App = () => (
           {/* Webinar recap (coded page; replaces the earlier CMS page at this path). */}
           <Route path="/evsafetywebinar" element={<EvSafetyWebinar />} />
           {/* The general deck, embedded from FlipHTML5. */}
-          <Route path="/slides" element={<Slides />} />
+          <Route path="/updates" element={<Updates />} />
+          {/* Its first address. Links to it are already out in the world. */}
+          <Route path="/slides" element={<Navigate to="/updates" replace />} />
           {/* Internal analytics dashboard — password-gated (ANALYTICS_PASSWORD). */}
           <Route path="/admin" element={<AdminDashboard />} />
           {/* CMS content editor — Supabase Auth, invite-only editors. */}

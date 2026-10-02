@@ -1,8 +1,8 @@
-// The shared half of the /slides password gate.
+// The shared half of the /updates password gate.
 //
 // Imported by BOTH sides, so the cookie the endpoint writes and the cookie the
 // edge checks can never drift apart:
-//   • api/slides-login.ts  — Node runtime, checks the password, sets the cookie
+//   • api/gate-login.ts    — Node runtime, checks the password, sets the cookie
 //   • middleware.ts        — Edge runtime, lets the page through or asks for it
 //
 // Web Crypto (not node:crypto) because the edge runtime has no Node modules and
@@ -13,9 +13,13 @@
 // secret, so a stolen cookie cannot be typed into the form on another site, and
 // changing SLIDES_PASSWORD invalidates every cookie already issued.
 
-/** Cookie the page is unlocked with. Scoped to /slides — nothing else needs it. */
+/** Cookie the page is unlocked with. Scoped to /updates — nothing else needs it. */
 export const SLIDES_COOKIE = "etu_slides";
-export const SLIDES_COOKIE_PATH = "/slides";
+// Path-scoped, so renaming the route retires the cookies issued under the old
+// one: anyone holding an /slides cookie signs in once more. The env var keeps
+// its SLIDES_ name on purpose — it is set in Vercel, and churning it would mean
+// re-entering the password for a rename nobody outside this file can see.
+export const SLIDES_COOKIE_PATH = "/updates";
 /** Thirty days: long enough that a reviewer signs in once, short enough to lapse. */
 export const SLIDES_MAX_AGE = 60 * 60 * 24 * 30;
 
