@@ -41,7 +41,17 @@ Key files in this folder:
 - **EVan Agent** — System Message = `EVA-system-prompt-RAG.md`; OpenRouter `google/gemini-2.5-flash`.
 - **ETUS Knowledge Base** — `vectorStoreSupabase` (retrieve-as-tool, tool name `ev_knowledge_base`), table `etus_kb_documents`, RPC `match_etus_kb_documents`.
 - **KB Embeddings** — Google Gemini (`gemini-embedding-001`, 3072-dim). The **same** embedding model must be used for ingestion and retrieval.
-- Brave web-search fallback fires when the agent returns the "Concierges will reach out" message.
+- **Session Memory** — per-tab conversation memory (keyed on the website's `sessionId`), so follow-up questions resolve.
+- **Web / Wikipedia fallback** — when the knowledge base has nothing relevant, the agent replies only with
+  `[[WEB_SEARCH: <standalone query>]]` (rule 4 of the prompt). **Check KB Answer** catches that line (and older
+  "I don't have information…" / "Concierges will reach out" phrasings), then **Brave Web Search** and
+  **Wikipedia Search** run, **Build Context** merges them, and **Web Answer Agent** writes the reply. The answer is
+  logged to Slack (with which source answered and whether a search failed), to `chatbot_kb_gaps`, and back into
+  Session Memory. If both searches come back empty, the visitor gets the concierge hand-off message.
+
+The workflow is generated, not hand-edited: `build-evan-chat-workflow.mjs` turns the JSON pulled from the
+instance into the new version, reading the System Message from `EVA-system-prompt-RAG.md`.
+`evan-chat-slack-leads.workflow.json` is its output with the Brave API key replaced by a placeholder.
 
 Supabase project **"Electrifying the US"** (`wmwjjejrgequyersrjnh`), table `etus_kb_documents`.
 
