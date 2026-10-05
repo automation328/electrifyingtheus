@@ -172,7 +172,11 @@ async function fetchContentMain(path: string): Promise<Partial<Meta> | null> {
 // so social crawlers get the same title/description/share-image an editor set in
 // the CMS. Fully guarded (timeout + try/catch) — any failure leaves the static
 // OG fallback untouched.
-async function fetchPageSeo(path: string): Promise<Partial<Meta> | null> {
+// `explicitOnly`: the page already has a hand-written og-data.ts entry, so only
+// fields an editor deliberately set under SEO may replace it. The guesses below
+// (the page heading, its intro, its hero image) are worse than that entry —
+// /electric-public-transit's heading is just "Electric".
+async function fetchPageSeo(path: string, explicitOnly = false): Promise<Partial<Meta> | null> {
   const base = process.env.VITE_SUPABASE_URL;
   const anon = process.env.VITE_SUPABASE_ANON_KEY;
   if (!base || !anon) return null;
@@ -191,13 +195,13 @@ async function fetchPageSeo(path: string): Promise<Partial<Meta> | null> {
     const seo = row.content?.seo ?? {};
     const out: Partial<Meta> = {};
     if (seo.title) out.title = seo.title;
-    else if (row.content?.title) out.title = `${row.content.title} — Electrifying the US`;
-    else if (row.title) out.title = row.title;
+    else if (!explicitOnly && row.content?.title) out.title = `${row.content.title} — Electrifying the US`;
+    else if (!explicitOnly && row.title) out.title = row.title;
     if (seo.description) out.description = seo.description;
-    else if (typeof row.content?.intro === "string") out.description = row.content.intro.slice(0, 200);
+    else if (!explicitOnly && typeof row.content?.intro === "string") out.description = row.content.intro.slice(0, 200);
     if (seo.image) out.image = seo.image;
     // Else use the page's own hero image (if the editor set one) as the share image.
-    else if (typeof row.content?.heroImage === "string" && /^https?:\/\//.test(row.content.heroImage)) out.image = row.content.heroImage;
+    else if (!explicitOnly && typeof row.content?.heroImage === "string" && /^https?:\/\//.test(row.content.heroImage)) out.image = row.content.heroImage;
     return Object.keys(out).length ? out : null;
   } catch { return null; }
 }
@@ -460,7 +464,7 @@ export default async function middleware(request: Request) {
   // Editor-set SEO wins over the static fallback (skip the calculator, whose
   // cards are computed from the share URL's result params).
   if (path !== "/electricity-vs-gasoline" && path !== "/gm-ev-vs-gas") {
-    const override = await fetchPageSeo(path);
+    const override = await fetchPageSeo(path, OG_ENTRIES.some((e) => e.path === path));
     if (override) {
       if (override.title) meta.title = override.title;
       if (override.description) meta.description = override.description;
