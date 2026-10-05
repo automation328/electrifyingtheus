@@ -1,12 +1,15 @@
 // Builds the "EVan Chat → Slack Leads" n8n workflow (live id Y6kahfizPcdz5MMy)
 // from the version pulled off the instance, so the change is reviewable here.
 //
-//   node n8n/build-evan-chat-workflow.mjs <live-workflow.json> <out.json> [--redact]
+//   node n8n/build-evan-chat-workflow.mjs <live-workflow.json> <out.json>
 //
 // The live JSON comes from GET /api/v1/workflows/Y6kahfizPcdz5MMy. Credentials,
 // node positions and the Slack/Supabase nodes are carried over untouched; the
-// agent's System Message is read from EVA-system-prompt-RAG.md. --redact swaps
-// the Brave API key for a placeholder, which is the form committed to git.
+// agent's System Message is read from EVA-system-prompt-RAG.md. It runs on
+// either the original workflow or one it already built, so re-running it after
+// a prompt edit is safe. The output holds no secrets: the Brave key lives in
+// the n8n credential "Brave Search API", so the same file is both what gets
+// deployed and what is committed.
 //
 // Answer path after this change:
 //   EVan Agent (knowledge base + session memory)
@@ -19,12 +22,11 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const [, , inPath, outPath, ...flags] = process.argv;
+const [, , inPath, outPath] = process.argv;
 if (!inPath || !outPath) {
-  console.error("usage: node n8n/build-evan-chat-workflow.mjs <live.json> <out.json> [--redact]");
+  console.error("usage: node n8n/build-evan-chat-workflow.mjs <live.json> <out.json>");
   process.exit(1);
 }
-const redact = flags.includes("--redact");
 const here = dirname(fileURLToPath(import.meta.url));
 
 const live = JSON.parse(readFileSync(inPath, "utf8"));
@@ -54,10 +56,10 @@ const model = need("OpenRouter Chat Model");
 const embeddings = need("KB Embeddings");
 const kb = need("ETUS Knowledge Base");
 const kbGap = need("Log KB Gap");
-const braveKey = byName["Wikipedia Search"]?.parameters?.headerParameters?.parameters?.find(
-  (p) => p.name === "X-Subscription-Token",
-)?.value;
-if (!braveKey) throw new Error("could not find the Brave X-Subscription-Token on the live search node");
+// The Brave Search key, held as an n8n Header Auth credential (it sends
+// X-Subscription-Token). Created on the instance on 2026-10-06; the id is not a
+// secret. To rotate the key, edit the credential in n8n — nothing here changes.
+const BRAVE_CREDENTIAL = { id: "7VZQaLcixmAobmkC", name: "Brave Search API" };
 
 // A request without an `action` (an older embed, a manual test) used to match
 // neither rule and hang until the proxy timed it out. Treat it as a question.
@@ -167,19 +169,18 @@ const brave = {
         { name: "text_decorations", value: "false" },
       ],
     },
+    authentication: "genericCredentialType",
+    genericAuthType: "httpHeaderAuth",
     sendHeaders: true,
-    headerParameters: {
-      parameters: [
-        { name: "X-Subscription-Token", value: redact ? "<BRAVE_SEARCH_API_KEY>" : braveKey },
-        { name: "Accept", value: "application/json" },
-      ],
-    },
+    headerParameters: { parameters: [{ name: "Accept", value: "application/json" }] },
     options: searchOptions,
   },
+  credentials: { httpHeaderAuth: BRAVE_CREDENTIAL },
   type: "n8n-nodes-base.httpRequest",
   typeVersion: 4.2,
   position: [needsWeb.position[0] + 240, needsWeb.position[1] - 120],
-  id: byName["Wikipedia Search"].id,
+  // The original workflow called its Brave node "Wikipedia Search".
+  id: (byName["Brave Web Search"] ?? byName["Wikipedia Search"]).id,
   name: "Brave Web Search",
   // An outage or spent quota must not kill the reply — Wikipedia and the
   // concierge hand-off still stand behind it.
@@ -282,7 +283,7 @@ const webSystem = `You are EVan, the EV Advisor for Electrifying the US. Our cur
 - If the results list several possibilities (several models, programs or trims), summarize the most relevant ones — a useful partial answer beats none. For "latest/current/newest" questions, name the most recent option the results point to.
 - Prefer official sources (government agencies, utilities, manufacturers) over blogs when they disagree, and say so when figures conflict.
 - For incentives, rebates, rates and prices: say amounts and eligibility change often, and end with one markdown link to the official program page from the results (for example "Details: [LADWP EV rebates](https://...)"), if the results include one.
-- Do not say you searched, and do not mention "results", "snippets", "search", or "Wikipedia".
+- Do not say you searched, and do not mention "results", "snippets", "search", or "Wikipedia". Never write the bracketed labels such as [W1] or [K2] that mark each source.
 - Never mention or reference "EVNoire" or "EVHybridNoire". Never link to or name ElectrifyingTheUS.com, and never refer to "our team".
 - FACT THAT OVERRIDES ANY SOURCE: the federal EV purchase tax credits — the $7,500 new-EV credit and the $4,000 used-EV credit (Section 25E) — have ENDED for vehicles acquired after September 30, 2025. If a source says they are available, it is out of date: say they have ended. State, utility and local programs may still apply. Treat any source dated before today's date as possibly out of date.
 - For tax, legal or financial questions, add one short line that this is general information, not professional advice.
@@ -303,9 +304,28 @@ webAgent.parameters = {
 webAgent.onError = "continueRegularOutput";
 webAgent.position = [build.position[0] + 240, build.position[1]];
 
+// The context labels every source [W1]…[K3] so the agent can tell them apart,
+// and it sometimes cites them back. Strip them before the visitor, Slack, the
+// KB-gap log or the session memory sees the answer.
+const cleanCode = String.raw`const raw = String($input.first().json.output || '');
+const output = raw
+  .replace(/\s*\[(?:[WK]\d+(?:\s*[,;]\s*)?)+\]/g, '')
+  .replace(/[ \t]+\n/g, '\n')
+  .trim();
+return [{ json: { output } }];`;
+
+const cleanWeb = {
+  parameters: { jsCode: cleanCode },
+  type: "n8n-nodes-base.code",
+  typeVersion: 2,
+  position: [webAgent.position[0] + 240, webAgent.position[1]],
+  id: "b7d1e5a3-9c2f-4a6b-8e1d-3f5a7c9e2b46",
+  name: "Clean Web Answer",
+};
+
 const replyWeb = need("Reply to Chat (Web)");
 replyWeb.parameters.responseBody = `={{ $json.output || ${JSON.stringify(CONCIERGE)} }}`;
-replyWeb.position = [webAgent.position[0] + 300, webAgent.position[1]];
+replyWeb.position = [cleanWeb.position[0] + 240, cleanWeb.position[1]];
 
 // Log what the visitor actually saw, not the KB agent's hand-off line.
 // Respond to Webhook passes its input through, so $json.output is the reply.
@@ -350,7 +370,7 @@ const saveWebAnswer = {
 
 const nodes = [
   webhook, route, agent, memory, model, embeddings, kb, check, needsWeb, reply,
-  brave, wikipedia, build, webAgent, replyWeb, slackChat, slackLead, replyOk, kbGap, saveWebAnswer,
+  brave, wikipedia, build, webAgent, cleanWeb, replyWeb, slackChat, slackLead, replyOk, kbGap, saveWebAnswer,
 ];
 
 const main = (to) => ({ main: [to.map((n) => ({ node: n, type: "main", index: 0 }))] });
@@ -373,7 +393,8 @@ const connections = {
   "Brave Web Search": main(["Wikipedia Search"]),
   "Wikipedia Search": main(["Build Context"]),
   "Build Context": main(["Web Answer Agent"]),
-  "Web Answer Agent": main(["Reply to Chat (Web)"]),
+  "Web Answer Agent": main(["Clean Web Answer"]),
+  "Clean Web Answer": main(["Reply to Chat (Web)"]),
   "Reply to Chat": main(["Log Chat to Slack"]),
   "Reply to Chat (Web)": main(["Log Chat to Slack", "Log KB Gap", "Save Web Answer to Memory"]),
   "Log Lead to Slack": main(["Reply OK"]),
@@ -407,7 +428,6 @@ const workflow = {
   connections,
   settings: { executionOrder: live.settings?.executionOrder || "v1" },
 };
-if (!redact) workflow.staticData = live.staticData ?? null;
 
 writeFileSync(outPath, JSON.stringify(workflow, null, 2) + "\n");
-console.log(`wrote ${outPath}: ${nodes.length} nodes${redact ? " (Brave key redacted)" : ""}`);
+console.log(`wrote ${outPath}: ${nodes.length} nodes`);

@@ -51,7 +51,9 @@ Key files in this folder:
 
 The workflow is generated, not hand-edited: `build-evan-chat-workflow.mjs` turns the JSON pulled from the
 instance into the new version, reading the System Message from `EVA-system-prompt-RAG.md`.
-`evan-chat-slack-leads.workflow.json` is its output with the Brave API key replaced by a placeholder.
+`evan-chat-slack-leads.workflow.json` is its output, exactly as deployed. It holds no secrets: the Brave
+Search key lives in the n8n credential **Brave Search API** (Header Auth, `X-Subscription-Token`), so rotate
+the key there. **Clean Web Answer** strips the `[W1]`/`[K2]` source labels the web agent sometimes cites back.
 
 Supabase project **"Electrifying the US"** (`wmwjjejrgequyersrjnh`), table `etus_kb_documents`.
 
