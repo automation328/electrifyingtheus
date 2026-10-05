@@ -315,6 +315,45 @@ export async function runWeeklyImport(
   };
 }
 
+// ── Retiring past drafts ─────────────────────────────────────────────────────
+
+/**
+ * The PostgREST filter for "this event's last day is before `todayISO`": its
+ * end date when it has one, otherwise its start date. end_date can never be
+ * earlier than event_date (constraint in 0012), so no other case exists.
+ */
+export function pastEventFilter(todayISO: string): string {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(todayISO)) throw new Error(`bad date: ${todayISO}`);
+  return `end_date.lt.${todayISO},and(end_date.is.null,event_date.lt.${todayISO})`;
+}
+
+/**
+ * Move every DRAFT event that has already happened to the archive.
+ *
+ * The weekly import adds drafts faster than anyone reviews them, and a draft
+ * whose date has gone will never be published — it only buries the ones that
+ * still matter. Archived rather than deleted, for two reasons: an editor can
+ * restore one, and loadKnown above still sees it, so the import does not
+ * re-add the same event the following Monday.
+ *
+ * Only `status = 'draft'` is touched. Published rows stay as they are: our own
+ * past events are meant to remain on the site, and a published row with
+ * `hidden = true` is a removal marker that must keep matching its built-in.
+ */
+export async function archivePastDrafts(
+  db: SupabaseClient,
+  todayISO: string,
+): Promise<Array<{ id: string; title: string; event_date: string }>> {
+  const { data, error } = await db
+    .from("site_events")
+    .update({ status: "archived" })
+    .eq("status", "draft")
+    .or(pastEventFilter(todayISO))
+    .select("id,title,event_date");
+  if (error) throw new Error(error.message);
+  return (data ?? []) as Array<{ id: string; title: string; event_date: string }>;
+}
+
 // ── The Monday digest ────────────────────────────────────────────────────────
 
 const prettyDate = (iso: string): string => {

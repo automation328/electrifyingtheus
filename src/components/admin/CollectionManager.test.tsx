@@ -44,7 +44,9 @@ import CollectionManager from "@/components/admin/CollectionManager";
 const EVENT = {
   id: "evt-1",
   title: "Ride and Drive",
-  event_date: "2026-09-12",
+  // Far ahead on purpose: a draft whose date has passed is filed under Archive,
+  // so a real-looking date would move this fixture out of Drafts one day.
+  event_date: "2099-09-12",
   location: "Denver, CO",
   region: "Denver, CO",
   time: "All day",
@@ -88,6 +90,18 @@ beforeEach(() => {
 afterEach(cleanup);
 
 const statusOf = (call: unknown[]) => (call[2] as Record<string, unknown>).status;
+
+describe("a draft for an event that already happened", () => {
+  it("is filed under Archive, not Drafts, and marked past", async () => {
+    rows.value = [{ ...EVENT, event_date: "2020-01-01" }];
+    show();
+    // An empty tab is not drawn at all, so no Drafts tab means no drafts.
+    fireEvent.click(await screen.findByText("Archive"));
+    expect(screen.queryByText("Drafts")).toBeNull();
+    expect(await screen.findByTitle("Edit")).toBeTruthy();
+    expect(screen.getByText("past")).toBeTruthy();
+  });
+});
 
 describe("editing a draft", () => {
   it("offers Publish and Save as draft", async () => {

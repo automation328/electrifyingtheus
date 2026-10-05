@@ -53,6 +53,13 @@ export interface CollectionConfig {
    *  row needs no flag. Built-in (static) rows are never passed through it:
    *  they have no DB columns to judge and no row to fix. */
   rowBadge?: (row: Record<string, unknown>) => { label: string; tone: "red" | "amber" } | null;
+  /** True when the row describes something already over — an event whose last
+   *  day has gone. A DRAFT it returns true for is filed under Archive rather
+   *  than Drafts: nobody is going to publish an event that already happened,
+   *  and the weekly import would otherwise bury the real drafts under them.
+   *  Published rows are never moved by it (our own past events stay live on
+   *  purpose). `today` is the editor's local YYYY-MM-DD. */
+  isPast?: (row: Record<string, unknown>, today: string) => boolean;
   /** This collection's live page carries the on-page block builder, so the
    *  editor offers "Edit on page" next to Save. Opt-in: `viewUrl` alone is not
    *  enough — every collection has one, but most of those pages have no

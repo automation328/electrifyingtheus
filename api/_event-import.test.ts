@@ -12,7 +12,7 @@
 import { describe, it, expect } from "vitest";
 import {
   sourceKeyFromUrl, titleDateKey, isoDate, displayTime, importTitle, toDraftRow, pickNew,
-  headerImage,
+  headerImage, pastEventFilter, archivePastDrafts,
   type FeedEvent,
 } from "./_event-import";
 import { sourceEventKey } from "@/hooks/use-external-events";
@@ -225,5 +225,38 @@ describe("picking a header image", () => {
 
   it("handles an empty seed without throwing", () => {
     expect(headerImage("")).toMatch(/headers\/\d+\.jpg$/);
+  });
+});
+
+describe("retiring past drafts", () => {
+  it("matches an event whose end date, or start date when it has none, is before today", () => {
+    expect(pastEventFilter("2026-10-06")).toBe(
+      "end_date.lt.2026-10-06,and(end_date.is.null,event_date.lt.2026-10-06)",
+    );
+  });
+
+  it("refuses anything that is not a plain date, so nothing odd reaches the filter", () => {
+    expect(() => pastEventFilter("2026-10-06),status.eq.published")).toThrow();
+    expect(() => pastEventFilter("")).toThrow();
+  });
+
+  it("archives drafts only, and returns what it archived", async () => {
+    const calls: Array<[string, ...unknown[]]> = [];
+    const chain = {
+      update: (v: unknown) => { calls.push(["update", v]); return chain; },
+      eq: (c: string, v: unknown) => { calls.push(["eq", c, v]); return chain; },
+      or: (f: string) => { calls.push(["or", f]); return chain; },
+      select: (c: string) => {
+        calls.push(["select", c]);
+        return Promise.resolve({ data: [{ id: "a", title: "Old", event_date: "2026-09-26" }], error: null });
+      },
+    };
+    const db = { from: (t: string) => { calls.push(["from", t]); return chain; } };
+    const out = await archivePastDrafts(db as never, "2026-10-06");
+    expect(out).toEqual([{ id: "a", title: "Old", event_date: "2026-09-26" }]);
+    expect(calls).toContainEqual(["from", "site_events"]);
+    expect(calls).toContainEqual(["update", { status: "archived" }]);
+    expect(calls).toContainEqual(["eq", "status", "draft"]);
+    expect(calls).toContainEqual(["or", pastEventFilter("2026-10-06")]);
   });
 });

@@ -43,6 +43,19 @@ export const blogConfig: CollectionConfig = {
   ],
 };
 
+/** Whether an event row's last day is before `today`. Both are YYYY-MM-DD and
+ *  compared as strings, never as Dates — see lib/incentive-window for why. An
+ *  end date earlier than the start is ignored, as eventEndDate does on the site;
+ *  a row with no usable start date is never called past. */
+export const eventRowIsPast = (r: Record<string, unknown>, today: string): boolean => {
+  const iso = /^\d{4}-\d{2}-\d{2}$/;
+  const start = str(r.event_date).slice(0, 10);
+  if (!iso.test(start) || !iso.test(today)) return false;
+  const end = str(r.end_date).slice(0, 10);
+  const last = iso.test(end) && end >= start ? end : start;
+  return last < today;
+};
+
 export const eventsConfig: CollectionConfig = {
   table: "site_events",
   singular: "Event",
@@ -57,6 +70,11 @@ export const eventsConfig: CollectionConfig = {
   // 0016 — lets an editor take a built-in event off the live site. The merge
   // matches the curated entry on title + date, which is exactly keyOf above.
   hiddenField: "hidden",
+  // A draft for an event that has already happened files under Archive. The
+  // daily /api/cron/archive-past-events job then archives it in the database
+  // too; this makes the list right in the meantime.
+  isPast: eventRowIsPast,
+  rowBadge: (r) => (str(r.status) === "draft" && eventRowIsPast(r, todayIso()) ? { label: "past", tone: "amber" } : null),
   // The event's OWN page, via the shared rule (curated events adopt a curated
   // slug, so this cannot be re-derived here without 404ing on them).
   viewUrl: (r) => eventDetailPath(r as unknown as Parameters<typeof eventDetailPath>[0]),

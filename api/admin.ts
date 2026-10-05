@@ -30,7 +30,7 @@ import { getEditor, requireEditor, adminSupabase } from "./_admin-auth.js";
 import { appendActivity, readActivity } from "./_activity-log.js";
 import { checkRateLimit, tooManyRequests } from "./_rate-limit.js";
 import { verifyReview, eventPath } from "./_event-submission.js";
-import { runWeeklyImport, buildImportDigest, postDigest } from "./_event-import.js";
+import { runWeeklyImport, buildImportDigest, postDigest, archivePastDrafts } from "./_event-import.js";
 import { sendEventApprovalEmail } from "./_approval-email.js";
 import { analyticsSummary, visitorJourney } from "./_analytics-core.js";
 // NOTE: mammoth / pdf-parse are imported LAZILY inside handleKbUpload — a top-level
@@ -881,11 +881,11 @@ async function handleEventReview(req: any, res: any) {
  * rows an editor has to delete — never something on the live site.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function handleWeeklyImport(req: any, res: any) {
+async function cronDb(req: any, res: any, bucket: string) {
   // Unauthenticated until the secret matches, so it gets a meter first: without
   // one, the 401 path is free to hammer, which is how a secret gets guessed.
-  const rl = await checkRateLimit(req, { bucket: "weekly-import", limit: 20, windowMinutes: 60 });
-  if (!rl.ok) { tooManyRequests(res, rl); return; }
+  const rl = await checkRateLimit(req, { bucket, limit: 20, windowMinutes: 60 });
+  if (!rl.ok) { tooManyRequests(res, rl); return null; }
 
   const secret = process.env.CRON_SECRET;
   const auth = String(req.headers?.authorization ?? req.headers?.Authorization ?? "");
@@ -893,10 +893,17 @@ async function handleWeeklyImport(req: any, res: any) {
   // returns as soon as two bytes differ, which leaks the matching prefix.
   if (!secret || !secretMatches(`Bearer ${secret}`, auth)) {
     res.status(401).json({ error: "unauthorized" });
-    return;
+    return null;
   }
   const db = adminSupabase();
-  if (!db) { res.status(500).json({ error: "not_configured" }); return; }
+  if (!db) { res.status(500).json({ error: "not_configured" }); return null; }
+  return db;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function handleWeeklyImport(req: any, res: any) {
+  const db = await cronDb(req, res, "weekly-import");
+  if (!db) return;
 
   const site = process.env.PUBLIC_SITE_URL || "https://electrifyingtheus.com";
   const today = new Date().toISOString().slice(0, 10);
@@ -913,6 +920,33 @@ async function handleWeeklyImport(req: any, res: any) {
     res.status(200).json(result);
   } catch (e) {
     res.status(500).json({ error: "import_failed", detail: String((e as Error)?.message ?? e) });
+  }
+}
+
+/**
+ * The daily sweep that archives draft events whose date has passed (see
+ * archivePastDrafts). Same CRON_SECRET guard as the weekly import.
+ *
+ * "Today" is the date in Honolulu, the westernmost US time zone, so an event is
+ * only retired once its last day is over everywhere in the country: a manual
+ * run at 02:00 UTC must not archive an event that is still on in California.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function handleArchivePastEvents(req: any, res: any) {
+  const db = await cronDb(req, res, "archive-past-events");
+  if (!db) return;
+  const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Pacific/Honolulu" }).format(new Date());
+  try {
+    const archived = await archivePastDrafts(db, today);
+    if (archived.length) {
+      await logActivity(
+        db, "cron", "system", "archive-past-events", "site_events",
+        `archived ${archived.length} past draft${archived.length === 1 ? "" : "s"}`,
+      );
+    }
+    res.status(200).json({ today, archived: archived.length, rows: archived });
+  } catch (e) {
+    res.status(500).json({ error: "archive_failed", detail: String((e as Error)?.message ?? e) });
   }
 }
 
@@ -937,6 +971,10 @@ export default async function handler(req: any, res: any) {
   // already spoken for.
   if (req.method === "GET" && String(req.query?.op ?? "") === "weekly-import") {
     await handleWeeklyImport(req, res);
+    return;
+  }
+  if (req.method === "GET" && String(req.query?.op ?? "") === "archive-past-events") {
+    await handleArchivePastEvents(req, res);
     return;
   }
   if (req.method !== "POST") { res.status(405).json({ error: "method_not_allowed" }); return; }

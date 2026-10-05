@@ -22,6 +22,10 @@
     {
       "path": "/api/cron/weekly-events",
       "schedule": "0 13 * * 1"
+    },
+    {
+      "path": "/api/cron/archive-past-events",
+      "schedule": "0 11 * * *"
     }
   ],
   "rewrites": [
@@ -32,6 +36,10 @@
     {
       "source": "/api/cron/weekly-events",
       "destination": "/api/admin?op=weekly-import"
+    },
+    {
+      "source": "/api/cron/archive-past-events",
+      "destination": "/api/admin?op=archive-past-events"
     },
     {
       "source": "/((?!api/).*)",

@@ -14,6 +14,7 @@ import AdminField from "@/components/admin/AdminField";
 import MediaPickerModal from "@/components/admin/MediaPickerModal";
 import { type CollectionConfig, emptyRecord, reorderWrites } from "@/pages/admin/collections/types";
 import { useEditorAuth } from "@/lib/auth";
+import { todayIso } from "@/lib/incentive-window";
 
 type Row = Record<string, unknown> & { id?: string };
 
@@ -113,6 +114,7 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
   // is not live, but calling it archived would be wrong too.
   type Tab = "live" | "draft" | "archive";
   const [tab, setTab] = useState<Tab>("live");
+  const today = todayIso();
 
   const tabOf = (r: Row): Tab => {
     // A built-in is always on the site — it lives in the code, not the database.
@@ -122,7 +124,10 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
     // A published row carrying the hidden flag is a DELETION, not a live item —
     // it exists to take the matching built-in off the site.
     if (config.hiddenField && r[config.hiddenField] === true) return "archive";
-    return s === "published" ? "live" : "draft";
+    if (s === "published") return "live";
+    // A draft for something already over (an event whose date has passed) is
+    // done with, not waiting to be published.
+    return config.isPast?.(r, today) ? "archive" : "draft";
   };
 
   const counts = useMemo(() => {
@@ -135,7 +140,7 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
   const TABS: { id: Tab; label: string; hint: string }[] = [
     { id: "live", label: "Live", hint: `On the site right now` },
     { id: "draft", label: "Drafts", hint: `Not on the site yet` },
-    { id: "archive", label: "Archive", hint: `Removed from the site — restorable` },
+    { id: "archive", label: "Archive", hint: config.isPast ? `Removed from the site, or already over — restorable` : `Removed from the site — restorable` },
   ];
 
   // Kind pills (Photos / Videos). A separate axis from the tabs above: those say
@@ -341,7 +346,11 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
       : "draft";
     try {
       await insertRow(config.table, payload);
-      toast.success(`Copied as a draft — publish it when you're ready`);
+      // A copy of a past event keeps its date, so it files under Archive, not
+      // Drafts. Say where it went rather than let it seem to vanish.
+      toast.success(config.isPast?.(payload, today)
+        ? `Copied — it's under Archive because its date has passed. Open it and change the date to move it to Drafts.`
+        : `Copied as a draft — publish it when you're ready`);
       invalidate();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Couldn't copy it.");
@@ -393,7 +402,11 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
       ?? "draft";
     try {
       await updateRow(config.table, row.id, { [config.statusField]: back });
-      toast.success(`${config.singular} restored as ${back}`);
+      // A past draft is filed under Archive (and the daily sweep archives it
+      // again), so restoring one alone changes nothing the editor can see.
+      toast.success(back !== PUBLISHED_STATUS && config.isPast?.(row, today)
+        ? `${config.singular} restored as ${back}, but it stays under Archive while its date is past. Change the date, or publish it, to bring it back.`
+        : `${config.singular} restored as ${back}`);
       invalidate();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Restore failed.");

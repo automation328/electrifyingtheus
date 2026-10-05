@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 import { listRows, listMedia, listActivity, type AdminTable, type ActivityRow } from "@/lib/admin-api";
 import { useEditorAuth } from "@/lib/auth";
+import { todayIso } from "@/lib/incentive-window";
+import { eventRowIsPast } from "@/pages/admin/collections/configs";
 
 interface Card {
   to: string; label: string; icon: typeof Newspaper; desc: string; table?: AdminTable;
@@ -46,7 +48,12 @@ function useDashboard() {
           try {
             const rows = await listRows<Record<string, unknown>>(t);
             const pub = rows.filter((r) => String(r.status ?? "") === "published").length;
-            const drf = rows.filter((r) => String(r.status ?? "") === "draft").length;
+            // Count drafts the way the Events Drafts tab shows them: a draft for
+            // an event that has already happened is filed under Archive there.
+            const today = todayIso();
+            const drf = rows.filter((r) =>
+              String(r.status ?? "") === "draft" && !(t === "site_events" && eventRowIsPast(r, today)),
+            ).length;
             perTable[t] = { total: rows.length, published: pub, draft: drf };
             total += rows.length; published += pub; draft += drf;
           } catch { perTable[t] = null; }
