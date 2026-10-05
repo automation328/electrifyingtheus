@@ -439,6 +439,14 @@ export default async function middleware(request: Request) {
     }
   }
 
+  // A single listing (/marketplace/:id) comes from a live provider feed and has
+  // no row to read here, so it shares the marketplace card rather than falling
+  // through to the site default, which is the EV-vs-Gas calculator's card.
+  if (!meta && path.startsWith("/marketplace/")) {
+    const market = OG_ENTRIES.find((e) => e.path === "/marketplace");
+    if (market) meta = { title: market.title, description: market.description, image: origin + market.image, url: origin + path };
+  }
+
   // Home page + any other page: branded site default (host-correct image).
   if (!meta) {
     meta = {

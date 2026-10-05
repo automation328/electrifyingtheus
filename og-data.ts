@@ -135,6 +135,13 @@ export const OG_ENTRIES: OgEntry[] = [
     image: "/og/gallery.jpg",
   },
   {
+    path: "/marketplace",
+    title: "EV Marketplace — Find an Affordable EV Near You",
+    description:
+      "Low-cost electric and plug-in hybrid vehicles for sale near you, from every brand. Search by make, model or price, and see what each one costs to run.",
+    image: "/og/marketplace.jpg",
+  },
+  {
     path: "/rebates-incentives",
     title: "EV Rebates & Incentives — Find What You Qualify For",
     description:
