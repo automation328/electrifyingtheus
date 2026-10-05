@@ -1,0 +1,338 @@
+[
+  {
+    "file": "marketplace",
+    "pill": "EV Marketplace",
+    "line1": "Find an EV",
+    "line2": "you can afford",
+    "chips": [
+      "Every brand",
+      "Sorted by price",
+      "Cost to run"
+    ],
+    "subtitle": "Electric and plug-in hybrid vehicles for sale near you."
+  },
+  {
+    "file": "assistant",
+    "pill": "E-MOBILITY ADVISOR",
+    "line1": "Talk to EVan",
+    "line2": "about EVs",
+    "chips": [
+      "Ask anything",
+      "Charging",
+      "Incentives"
+    ],
+    "subtitle": "Ask EVan, our E-Mobility Advisor, about EVs."
+  },
+  {
+    "file": "tco-calculator",
+    "pill": "COST CALCULATOR",
+    "line1": "EV or gas?",
+    "line2": "the true cost",
+    "chips": [
+      "Gas vs EV",
+      "Pick your car",
+      "Ownership cost"
+    ],
+    "subtitle": "True cost of owning an EV versus a gas vehicle."
+  },
+  {
+    "file": "contact-us",
+    "pill": "CONTACT US",
+    "line1": "Get in touch",
+    "line2": "with our team",
+    "chips": [
+      "Partnerships",
+      "List an event",
+      "Post a job"
+    ],
+    "subtitle": "Questions, partnerships, events, jobs and press."
+  },
+  {
+    "file": "find-a-charger",
+    "pill": "CHARGING MAP",
+    "line1": "Find a charger",
+    "line2": "near you",
+    "chips": [
+      "Any ZIP or city",
+      "250,000+ ports",
+      "U.S.-wide"
+    ],
+    "subtitle": "Public EV charging stations across the U.S."
+  },
+  {
+    "file": "rebate-eligibility",
+    "pill": "REBATE CHECK",
+    "line1": "Do you qualify",
+    "line2": "for a rebate?",
+    "chips": [
+      "Deadlines",
+      "Documents",
+      "No SSN needed"
+    ],
+    "subtitle": "Pre-screening for EV rebates. Not an application."
+  },
+  {
+    "file": "list-your-event",
+    "pill": "EVENT LISTING",
+    "line1": "List your",
+    "line2": "EV event",
+    "chips": [
+      "Ride & Drives",
+      "Webinars",
+      "Workshops"
+    ],
+    "subtitle": "Submit your e-mobility event for review."
+  },
+  {
+    "file": "post-a-job",
+    "pill": "JOB BOARD",
+    "line1": "Post a job",
+    "line2": "in e-mobility",
+    "chips": [
+      "Automotive",
+      "Charging",
+      "Utilities"
+    ],
+    "subtitle": "Submit an open role for our e-mobility job board."
+  },
+  {
+    "file": "evsafetywebinar",
+    "pill": "WEBINAR REPLAY",
+    "line1": "EV safety for",
+    "line2": "first responders",
+    "chips": [
+      "Full recording",
+      "4 speakers",
+      "Myths vs facts"
+    ],
+    "subtitle": "Watch the full recording of our expert panel."
+  },
+  {
+    "file": "ev-charging-101",
+    "pill": "EV 101 · CHARGING",
+    "line1": "EV charging",
+    "line2": "explained",
+    "chips": [
+      "3 levels",
+      "Plug types",
+      "Home charging"
+    ],
+    "subtitle": "Levels, plugs, and how to charge at home."
+  },
+  {
+    "file": "evs-in-winter",
+    "pill": "EV 101 · WINTER",
+    "line1": "EVs in",
+    "line2": "winter",
+    "chips": [
+      "Range loss",
+      "Preconditioning",
+      "Safety tips"
+    ],
+    "subtitle": "How to prepare an EV for cold and snow."
+  },
+  {
+    "file": "financial-savings",
+    "pill": "FINANCIAL SAVINGS",
+    "line1": "Spend less",
+    "line2": "per mile",
+    "chips": [
+      "Cheaper fuel",
+      "Less upkeep",
+      "Savings calculator"
+    ],
+    "subtitle": "How an EV can cost less to own than a gas car."
+  },
+  {
+    "file": "us-ev-policies",
+    "pill": "U.S. EV POLICIES",
+    "line1": "U.S. EV policy",
+    "line2": "in plain terms",
+    "chips": [
+      "NEVI charging",
+      "State programs",
+      "Buyer incentives"
+    ],
+    "subtitle": "Federal and state EV policy, and where it is headed."
+  },
+  {
+    "file": "reduced-emissions",
+    "pill": "REDUCED EMISSIONS",
+    "line1": "Emissions go",
+    "line2": "beyond the pipe",
+    "chips": [
+      "Lifecycle view",
+      "Grid mix",
+      "Battery payback"
+    ],
+    "subtitle": "What EVs do to pollution, beyond the tailpipe."
+  },
+  {
+    "file": "ev-road-safety",
+    "pill": "EV ROAD SAFETY",
+    "line1": "How safe",
+    "line2": "is an EV?",
+    "chips": [
+      "Crash ratings",
+      "Fire risk",
+      "Rollovers"
+    ],
+    "subtitle": "Crash tests, fire risk and rollover resistance."
+  },
+  {
+    "file": "steam-education",
+    "pill": "STEAM EDUCATION",
+    "line1": "Skills for the",
+    "line2": "EV workforce",
+    "chips": [
+      "School buses",
+      "Technician paths",
+      "K-12 STEAM"
+    ],
+    "subtitle": "Training paths behind electric buses and chargers."
+  },
+  {
+    "file": "workforce-economic-development",
+    "pill": "CLEAN ENERGY JOBS",
+    "line1": "Clean energy",
+    "line2": "means jobs",
+    "chips": [
+      "3.56M workers",
+      "398K EV jobs",
+      "Every region"
+    ],
+    "subtitle": "Clean energy employed 3.56M Americans in 2024."
+  },
+  {
+    "file": "self-driving-vehicles",
+    "pill": "SELF-DRIVING EVS",
+    "line1": "Self-driving",
+    "line2": "and electric",
+    "chips": [
+      "Robotaxis",
+      "Delivery bots",
+      "Safety"
+    ],
+    "subtitle": "Why autonomous vehicles and EVs arrive together."
+  },
+  {
+    "file": "evtol-drone-delivery",
+    "pill": "ELECTRIC AIRCRAFT",
+    "line1": "Electric air",
+    "line2": "taxis, drones",
+    "chips": [
+      "eVTOLs",
+      "Drone delivery",
+      "Vertiports"
+    ],
+    "subtitle": "How eVTOL air taxis and delivery drones work."
+  },
+  {
+    "file": "sustainable-aviation",
+    "pill": "SUSTAINABLE AVIATION",
+    "line1": "Cutting flight",
+    "line2": "emissions",
+    "chips": [
+      "SAF up to 80%",
+      "Electric eGSE",
+      "Electric planes"
+    ],
+    "subtitle": "SAF, electric ground equipment and regional planes."
+  },
+  {
+    "file": "sustainable-maritime",
+    "pill": "SUSTAINABLE MARITIME",
+    "line1": "Cleaner ports",
+    "line2": "and harbors",
+    "chips": [
+      "Shore power",
+      "Electric ferries",
+      "30–40% savings"
+    ],
+    "subtitle": "Shore power, electric ferries and tugboats."
+  },
+  {
+    "file": "electric-school-buses",
+    "pill": "ELECTRIC SCHOOL BUSES",
+    "line1": "Cleaner air",
+    "line2": "on the bus",
+    "chips": [
+      "$5B EPA program",
+      "8,700+ buses",
+      "Vehicle-to-grid"
+    ],
+    "subtitle": "Replacing diesel buses for the kids who ride them."
+  },
+  {
+    "file": "heavy-duty-electrification",
+    "pill": "HEAVY-DUTY TRUCKS",
+    "line1": "Electrifying",
+    "line2": "freight",
+    "chips": [
+      "Freight hubs",
+      "Fewer parts",
+      "Lower fuel cost"
+    ],
+    "subtitle": "Charging hubs on the busiest interstates."
+  },
+  {
+    "file": "electric-public-transit",
+    "pill": "ELECTRIC TRANSIT",
+    "line1": "Quieter buses",
+    "line2": "on city routes",
+    "chips": [
+      "$2B+ a year",
+      "All 50 states",
+      "Quieter rides"
+    ],
+    "subtitle": "Electric buses on city routes, funded nationwide."
+  },
+  {
+    "file": "rideshare-rental-fleets",
+    "pill": "RIDESHARE & FLEETS",
+    "line1": "Fleets lead",
+    "line2": "the switch",
+    "chips": [
+      "Uber & Lyft",
+      "Rental EVs",
+      "High mileage"
+    ],
+    "subtitle": "Why high-mileage cars are electrifying first."
+  },
+  {
+    "file": "micro-mobility",
+    "pill": "MICROMOBILITY",
+    "line1": "Ride electric",
+    "line2": "for short trips",
+    "chips": [
+      "150M+ trips",
+      "400+ cities",
+      "Rebates to $1,500"
+    ],
+    "subtitle": "E-bikes and scooters for the trips cars do worst."
+  },
+  {
+    "file": "privacy-policy",
+    "pill": "PRIVACY POLICY",
+    "line1": "Privacy",
+    "line2": "Policy",
+    "chips": [
+      "What we collect",
+      "How it's used",
+      "Your choices"
+    ],
+    "subtitle": "How we collect, use, and protect your information."
+  },
+  {
+    "file": "terms",
+    "pill": "TERMS OF USE",
+    "line1": "Terms of",
+    "line2": "Use",
+    "chips": [
+      "Site rules",
+      "SMS terms",
+      "Tool disclaimers"
+    ],
+    "subtitle": "The terms for using this site and its tools."
+  }
+]

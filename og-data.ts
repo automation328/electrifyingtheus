@@ -148,4 +148,203 @@ export const OG_ENTRIES: OgEntry[] = [
       "Federal, state, and utility programs that lower the cost of going electric. See the incentives available in your area.",
     image: "/og/incentives.jpg",
   },
+  // Tool, topic and form pages. Each has its own card, generated from
+  // scripts/og-cards.json by scripts/make-og-cards.ps1.
+  {
+    path: "/assistant",
+    title: "Talk to EVan — Your E-Mobility Advisor",
+    description:
+      "Ask EVan, the E-Mobility Advisor from Electrifying the US, anything about EVs. Website owners can also add EVan and other EV tools to their own site.",
+    image: "/og/assistant.jpg",
+  },
+  {
+    path: "/calculator",
+    title: "EV vs Gas TCO Calculator — True Cost of Owning an EV",
+    description:
+      "Compare the true cost of owning an electric vehicle versus a gas vehicle over time. Pick a gas car and an EV, then see which one costs less to own over your ownership period.",
+    image: "/og/tco-calculator.jpg",
+  },
+  {
+    path: "/contact-us",
+    title: "Contact Us — Electrifying the US",
+    description:
+      "Have questions about EVs, want EVan on your own site, or want to partner with us? Send a message or email info@electrifyingtheus.com.",
+    image: "/og/contact-us.jpg",
+  },
+  {
+    path: "/find-a-charger",
+    title: "Find an EV Charger Near You — Public Charging Map",
+    description:
+      "Search any ZIP code, city, state or address to find public EV charging stations across the U.S. — 250,000+ charging ports, with more coming online every week.",
+    image: "/og/find-a-charger.jpg",
+  },
+  {
+    path: "/rebate-eligibility",
+    title: "EV Rebate Eligibility Check — Deadlines & Documents",
+    description:
+      "Check which EV rebates you may qualify for in Oregon, Delaware and PG&E territory, with the purchase windows, application deadlines and document checklist.",
+    image: "/og/rebate-eligibility.jpg",
+  },
+  {
+    path: "/list-your-event",
+    title: "List Your EV Event — Submit It for Review",
+    description:
+      "Request to list your e-mobility event: Ride & Drives, webinars, charging demos, AV events, and workshops. Tell us the details and we'll review your submission.",
+    image: "/og/list-your-event.jpg",
+  },
+  {
+    path: "/post-a-job",
+    title: "Post a Job — Reach EV-Minded Candidates",
+    description:
+      "Share an open role with EV-minded candidates. Send us the details and we'll review it for the e-mobility job board.",
+    image: "/og/post-a-job.jpg",
+  },
+  {
+    path: "/evsafetywebinar",
+    title: "EV Safety & First Responders Webinar — Watch the Replay",
+    description:
+      "Watch the recording of our EV Safety and First Responders webinar on EV myths and misinformation, with speakers from Ford, NFPA, FSRI and the City of Atlanta.",
+    image: "/og/evsafetywebinar.jpg",
+  },
+  {
+    path: "/ev-charging-101",
+    title: "EV Charging 101 — Levels, Plugs and Home Charging",
+    description:
+      "How EV charging works: Level 1, Level 2 and DC fast charging, plug types including NACS, home and public charging, and what it costs.",
+    image: "/og/ev-charging-101.jpg",
+  },
+  {
+    path: "/evs-in-winter",
+    title: "EVs in Winter — Range, Traction and Cold-Weather Tips",
+    description:
+      "EVs lose some range in deep cold, roughly 10 to 30 percent, but preconditioning, heat pumps and instant traction help. Tips for winter driving and charging.",
+    image: "/og/evs-in-winter.jpg",
+  },
+  {
+    path: "/financial-savings",
+    title: "EV Financial Savings — Cheaper Fuel and Maintenance",
+    description:
+      "See how going electric saves money: lower fuel cost per mile, far fewer moving parts to maintain, and savings that grow the more you drive. Includes a savings calculator.",
+    image: "/og/financial-savings.jpg",
+  },
+  {
+    path: "/us-ev-policies",
+    title: "U.S. EV Policies — NEVI Charging Funding and State Goals",
+    description:
+      "A plain-language brief on U.S. EV policy: the $5 billion NEVI charging program, the 50% zero-emission sales goal for 2030, state programs, and changes to buyer incentives.",
+    image: "/og/us-ev-policies.jpg",
+  },
+  {
+    path: "/reduced-emissions",
+    title: "EVs and Reduced Emissions — Zero Tailpipe, Cleaner Over Time",
+    description:
+      "How electric vehicles cut pollution: zero tailpipe emissions, fewer lifecycle greenhouse gases than gasoline cars, and a cleaner grid that makes every EV greener each year.",
+    image: "/og/reduced-emissions.jpg",
+  },
+  {
+    path: "/ev-road-safety",
+    title: "EVs and Road Safety — Rollovers, Fire Risk and Crash Tests",
+    description:
+      "How EVs hold up on the road: a low center of gravity that resists rollovers, battery-reinforced bodies, fire risk compared with gas cars, and driver-assistance features.",
+    image: "/og/ev-road-safety.jpg",
+  },
+  {
+    path: "/steam-education",
+    title: "STEAM Education — Training the Clean Transportation Workforce",
+    description:
+      "How STEAM education feeds the EV workforce: EPA Clean School Bus training, high-voltage technician skills, community college and apprenticeship paths, and K-12 programs.",
+    image: "/og/steam-education.jpg",
+  },
+  {
+    path: "/workforce-economic-development",
+    title: "Workforce & Economic Development — Clean Energy and EV Jobs",
+    description:
+      "Clean energy employed about 3.56 million Americans in 2024 and grew roughly three times faster than the overall economy. See where EV and clean vehicle jobs are.",
+    image: "/og/workforce-economic-development.jpg",
+  },
+  {
+    path: "/self-driving-vehicles",
+    title: "Self-Driving Vehicles & Delivery Robots — Why They Run Electric",
+    description:
+      "Robotaxis and sidewalk delivery robots are already on American streets. Learn how autonomous vehicles work, what safety looks like, and why autonomy and electrification go together.",
+    image: "/og/self-driving-vehicles.jpg",
+  },
+  {
+    path: "/evtol-drone-delivery",
+    title: "eVTOLs & Drone Delivery — Electric Air Taxis Explained",
+    description:
+      "What eVTOL air taxis are, how delivery drones move prescriptions and parcels in minutes, and what vertiports, certification and noise mean for electric aviation.",
+    image: "/og/evtol-drone-delivery.jpg",
+  },
+  {
+    path: "/sustainable-aviation",
+    title: "Sustainable Aviation & eGSE — Cutting Emissions at Airports",
+    description:
+      "Sustainable aviation fuel can cut lifecycle CO2 by up to 80%. See how airports electrify ground equipment and how electric commuter planes target routes under 250 miles.",
+    image: "/og/sustainable-aviation.jpg",
+  },
+  {
+    path: "/sustainable-maritime",
+    title: "Sustainable Maritime — Shore Power, Electric Ferries and Tugs",
+    description:
+      "How shore power lets docked ships shut off diesel engines, and why operators report electric ferries and tugboats cutting operating costs 30 to 40 percent.",
+    image: "/og/sustainable-maritime.jpg",
+  },
+  {
+    path: "/electric-school-buses",
+    title: "Electric School Buses — Cleaner Rides for Students",
+    description:
+      "The EPA is investing $5 billion to replace diesel school buses. See why electric buses mean cleaner air for students and how parked fleets can power the grid.",
+    image: "/og/electric-school-buses.jpg",
+  },
+  {
+    path: "/heavy-duty-electrification",
+    title: "Heavy-Duty Electrification — Cleaner Freight Trucking",
+    description:
+      "Medium- and heavy-duty trucks produce roughly a quarter of transportation emissions. See the freight charging strategy and the cost case for electric trucks.",
+    image: "/og/heavy-duty-electrification.jpg",
+  },
+  {
+    path: "/electric-public-transit",
+    title: "Electric Public Transit Buses — Cleaner, Quieter Rides",
+    description:
+      "With more than $2 billion a year in federal funding, transit agencies in all 50 states are adding electric buses. See the benefits and the challenges.",
+    image: "/og/electric-public-transit.jpg",
+  },
+  {
+    path: "/rideshare-rental-fleets",
+    title: "Rideshare, Rental & Fleet EVs — Where Electric Saves Most",
+    description:
+      "Uber and Lyft have committed to 100% electric fleets by 2030, and rental companies offer EVs nationwide. See why high-mileage driving saves the most.",
+    image: "/og/rideshare-rental-fleets.jpg",
+  },
+  {
+    path: "/micro-mobility",
+    title: "Micromobility — E-Bikes and Scooters for Short Trips",
+    description:
+      "Shared e-bikes and scooters cover 150M+ trips a year in 400+ cities. See how they replace short car trips, feed transit, and how rebates can help.",
+    image: "/og/micro-mobility.jpg",
+  },
+  {
+    path: "/privacy-policy",
+    title: "Privacy Policy — Electrifying the US",
+    description:
+      "How Electrifying the US collects, uses, shares and protects your information, including the AI chatbot, calculators, SMS messages and forms, plus your rights and choices.",
+    image: "/og/privacy-policy.jpg",
+  },
+  {
+    path: "/terms",
+    title: "Terms of Use — Electrifying the US",
+    description:
+      "The terms for using ElectrifyingTheUS.com, including the AI chatbot, cost calculators, rebate information and SMS messages, plus the disclaimers that apply to these tools.",
+    image: "/og/terms.jpg",
+  },
+  {
+    // /blog redirects to /news inside the app, which a crawler never runs.
+    path: "/blog",
+    title: "E-Mobility News & Guides — Electrifying the US",
+    description:
+      "The latest on electric vehicles, charging, and the clean-transport transition — plus guides and explainers on going electric.",
+    image: "/og/news.jpg",
+  },
 ];
