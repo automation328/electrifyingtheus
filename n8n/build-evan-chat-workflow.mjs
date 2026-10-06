@@ -15,7 +15,9 @@
 //   EVan Agent (knowledge base + session memory)
 //     → Check KB Answer: did EVan answer, or hand off with [[WEB_SEARCH: query]]?
 //     → answered: Reply to Chat
-//     → handed off: Brave Web Search → Wikipedia Search → Build Context
+//     → handed off: Load Conversation → Search Query Writer (standalone query
+//                   from the conversation) → Brave Web Search → Wikipedia Search
+//                   → Build Context
 //                   → Web Answer Agent → Reply to Chat (Web) → Log KB Gap
 //                     and Save Web Answer to Memory (so follow-ups see it)
 import { readFileSync, writeFileSync } from "node:fs";
@@ -103,8 +105,12 @@ const refused =
   !raw ||
   /Concierges? will reach out/i.test(raw) ||
   /\b(?:I|we)\s+(?:don['’]t|do not|couldn['’]t|could not|can['’]t|cannot|am unable to|was unable to|wasn['’]t able to)\s+(?:have|find|locate|provide|answer|give)\b[^.]{0,80}\b(?:information|details|data|answer|knowledge base)/i.test(raw) ||
-  /\b(?:not|isn['’]t)\s+(?:in|covered (?:in|by))\s+my\s+knowledge base\b/i.test(raw) ||
-  /\bmy knowledge base (?:does not|doesn['’]t)\b/i.test(raw);
+  /\b(?:not|isn['’]t)\s+(?:in|covered (?:in|by))\s+(?:my|the|our)\s+knowledge base\b/i.test(raw) ||
+  // Every wording below was seen live from the agent instead of the tag.
+  /\b(?:my|the|our)\s+knowledge base\s+(?:does not|doesn['’]t|did not|didn['’]t|has no|lacks|is limited)\b/i.test(raw) ||
+  /\binformation (?:I have|available|in my knowledge base)\b[^.]{0,80}\b(?:is specific to|pertains to|only covers|is limited to|focuses on)\b/i.test(raw) ||
+  /\bI can only (?:provide|share|offer|give) information\b/i.test(raw) ||
+  /\b(?:could you|can you|please) (?:tell me|clarify|specify) what\b[^.?]{0,40}\brefers? to\b/i.test(raw);
 
 const needsWeb = Boolean(tag) || refused;
 let query = tag ? tag[1].trim() : '';
@@ -152,8 +158,91 @@ const reply = need("Reply to Chat");
 reply.parameters.responseBody = `={{ $json.output || ${JSON.stringify(CONCIERGE)} }}`;
 
 // ── Web path ────────────────────────────────────────────────────────────────
-const QUERY = "$('Check KB Answer').first().json.query";
+const QUERY = "$('Final Query').first().json.query";
 const searchOptions = { timeout: 8000 };
+
+// EVan does not reliably hand off with a resolved [[WEB_SEARCH: query]]: it
+// often writes a plain refusal instead, and then the only query left is the
+// visitor's own words — "How much is it?" searched as-is. So the web path
+// reads the conversation back from Session Memory and has the model write a
+// standalone query from it, whichever way EVan handed off.
+const loadHistory = {
+  parameters: { mode: "load", simplifyOutput: false, options: { groupMessages: true } },
+  type: "@n8n/n8n-nodes-langchain.memoryManager",
+  typeVersion: 1.1,
+  position: [needsWeb.position[0] + 240, needsWeb.position[1] - 120],
+  id: "d3f6a9c2-5b8e-4d1a-9f7c-2e4b6a8d0c13",
+  name: "Load Conversation",
+  onError: "continueRegularOutput",
+  // An empty memory loads nothing; the query must still be written.
+  alwaysOutputData: true,
+};
+
+const historyCode = String.raw`// Turn the stored turns into plain "Visitor:/EVan:" lines. Skipped: the
+// agent's tool-call steps, tool results, [[WEB_SEARCH]] hand-off lines, and the
+// current question, which memory already holds by the time this runs.
+const body = $('EVan Chat Webhook').first().json.body || {};
+const question = String(body.chatInput || body.message || '').trim();
+const raw = ($input.first().json && $input.first().json.messages) || [];
+const lines = [];
+for (const m of raw) {
+  const kind = String((m && m.id && m.id[m.id.length - 1]) || (m && m.type) || '');
+  const k = (m && m.kwargs) || m || {};
+  let text = typeof k.content === 'string' ? k.content : '';
+  if ((k.tool_calls && k.tool_calls.length) || /^Calling \w+ with input/.test(text)) continue;
+  text = text.replace(/\[\[[\s\S]*?\]\]/g, '').replace(/\s+/g, ' ').trim();
+  if (!text) continue;
+  if (/Human/i.test(kind)) lines.push('Visitor: ' + text.slice(0, 400));
+  else if (/AI/i.test(kind)) lines.push('EVan: ' + text.slice(0, 600));
+}
+// Memory already holds this turn (the question and EVan's own reply to it), so
+// cut from the last time the visitor asked it.
+const cut = lines.lastIndexOf('Visitor: ' + question.replace(/\s+/g, ' ').slice(0, 400));
+const earlier = cut >= 0 ? lines.slice(0, cut) : lines;
+return [{ json: { history: earlier.slice(-6).join('\n') } }];`;
+
+const history = {
+  parameters: { jsCode: historyCode },
+  type: "n8n-nodes-base.code",
+  typeVersion: 2,
+  position: [loadHistory.position[0] + 240, loadHistory.position[1]],
+  id: "e8a2c4f6-7d9b-4e3c-a1f5-6b8d0e2a4c57",
+  name: "Recent Conversation",
+};
+
+const queryWriter = {
+  parameters: {
+    promptType: "define",
+    text: "=Conversation so far:\n{{ $json.history || '(none)' }}\n\nVisitor's latest message: {{ $('Check KB Answer').first().json.question }}\nSuggested query: {{ $('Check KB Answer').first().json.query }}",
+    options: {
+      systemMessage:
+        "You write web search queries. Rewrite the visitor's latest message as ONE standalone search query of 3 to 10 words, using the conversation to resolve words like it, that, there, those or the one. Keep the place, utility, vehicle or program it is about. Use the suggested query when it already does that. Output only the query: no quotes, no explanation.",
+    },
+  },
+  type: "@n8n/n8n-nodes-langchain.agent",
+  typeVersion: 3.1,
+  position: [history.position[0] + 240, history.position[1]],
+  id: "f1b3d5e7-9a2c-4b6d-8e0f-3a5c7e9b1d24",
+  name: "Search Query Writer",
+  onError: "continueRegularOutput",
+};
+
+const finalQueryCode = String.raw`// The writer's query when it produced a sensible one, else what EVan suggested.
+const check = $('Check KB Answer').first().json;
+let q = String(($input.first().json && $input.first().json.output) || '').split('\n')[0];
+q = q.replace(/^["'\s]+|["'\s]+$/g, '').replace(/^(search )?query:\s*/i, '').replace(/\s+/g, ' ').trim();
+if (q.length < 3 || q.length > 160) q = check.query;
+const history = (() => { try { return $('Recent Conversation').first().json.history || ''; } catch (e) { return ''; } })();
+return [{ json: { query: q.replace(/["<>]/g, ' ').slice(0, 200), history } }];`;
+
+const finalQuery = {
+  parameters: { jsCode: finalQueryCode },
+  type: "n8n-nodes-base.code",
+  typeVersion: 2,
+  position: [queryWriter.position[0] + 240, queryWriter.position[1]],
+  id: "a9c1e3b5-2d4f-4a6c-8b0e-5f7a9c1e3d68",
+  name: "Final Query",
+};
 
 const brave = {
   parameters: {
@@ -178,7 +267,7 @@ const brave = {
   credentials: { httpHeaderAuth: BRAVE_CREDENTIAL },
   type: "n8n-nodes-base.httpRequest",
   typeVersion: 4.2,
-  position: [needsWeb.position[0] + 240, needsWeb.position[1] - 120],
+  position: [finalQuery.position[0] + 240, finalQuery.position[1]],
   // The original workflow called its Brave node "Wikipedia Search".
   id: (byName["Brave Web Search"] ?? byName["Wikipedia Search"]).id,
   name: "Brave Web Search",
@@ -264,7 +353,8 @@ const searchStatus = [failure(brave, 'Brave'), failure(wiki, 'Wikipedia')].filte
 return [{
   json: {
     question: check.question,
-    query: check.query,
+    query: $('Final Query').first().json.query,
+    history: $('Final Query').first().json.history,
     firstName: String(body.firstName || '').trim(),
     context: sections.length ? sections.join('\n\n=====\n\n') : 'No results found.',
     hasContext: sections.length > 0,
@@ -278,6 +368,7 @@ build.position = [wikipedia.position[0] + 240, wikipedia.position[1]];
 
 const webSystem = `You are EVan, the EV Advisor for Electrifying the US. Our curated knowledge base did not cover this question, so you are given web and Wikipedia search results for it. Write the most helpful answer you can, grounded in those results.
 
+- The visitor's message may be a follow-up ("how much is it?"): read it with the earlier conversation, and answer the meaning given under "What the question means on its own". Never explain the wording of the question itself.
 - Answer the visitor's question directly first, then add detail. Be concise and warm, and use Markdown (short bullets where useful). Address the visitor by first name when one is given; if none is given, do not greet them by name.
 - Use only facts the results support; you may add brief, widely-known, uncontroversial context the results clearly imply. Never invent figures, prices, dates, or incentive amounts.
 - If the results list several possibilities (several models, programs or trims), summarize the most relevant ones — a useful partial answer beats none. For "latest/current/newest" questions, name the most recent option the results point to.
@@ -298,7 +389,7 @@ ${CONCIERGE}`;
 const webAgent = need("Web Answer Agent");
 webAgent.parameters = {
   promptType: "define",
-  text: "=Today's date: {{ $now.toFormat('MMMM d, yyyy') }}\nVisitor first name: {{ $json.firstName }}\nVisitor question: {{ $json.question }}\nSearch query used: {{ $json.query }}\n\n{{ $json.context }}",
+  text: "=Today's date: {{ $now.toFormat('MMMM d, yyyy') }}\nVisitor first name: {{ $json.firstName }}\nEarlier conversation:\n{{ $json.history || '(none)' }}\n\nVisitor question: {{ $json.question }}\nWhat the question means on its own: {{ $json.query }}\n\n{{ $json.context }}",
   options: { systemMessage: webSystem },
 };
 webAgent.onError = "continueRegularOutput";
@@ -370,7 +461,7 @@ const saveWebAnswer = {
 
 const nodes = [
   webhook, route, agent, memory, model, embeddings, kb, check, needsWeb, reply,
-  brave, wikipedia, build, webAgent, cleanWeb, replyWeb, slackChat, slackLead, replyOk, kbGap, saveWebAnswer,
+  loadHistory, history, queryWriter, finalQuery, brave, wikipedia, build, webAgent, cleanWeb, replyWeb, slackChat, slackLead, replyOk, kbGap, saveWebAnswer,
 ];
 
 const main = (to) => ({ main: [to.map((n) => ({ node: n, type: "main", index: 0 }))] });
@@ -386,10 +477,14 @@ const connections = {
   "Check KB Answer": main(["Needs Web?"]),
   "Needs Web?": {
     main: [
-      [{ node: "Brave Web Search", type: "main", index: 0 }],
+      [{ node: "Load Conversation", type: "main", index: 0 }],
       [{ node: "Reply to Chat", type: "main", index: 0 }],
     ],
   },
+  "Load Conversation": main(["Recent Conversation"]),
+  "Recent Conversation": main(["Search Query Writer"]),
+  "Search Query Writer": main(["Final Query"]),
+  "Final Query": main(["Brave Web Search"]),
   "Brave Web Search": main(["Wikipedia Search"]),
   "Wikipedia Search": main(["Build Context"]),
   "Build Context": main(["Web Answer Agent"]),
@@ -402,11 +497,13 @@ const connections = {
     ai_languageModel: [[
       { node: "EVan Agent", type: "ai_languageModel", index: 0 },
       { node: "Web Answer Agent", type: "ai_languageModel", index: 0 },
+      { node: "Search Query Writer", type: "ai_languageModel", index: 0 },
     ]],
   },
   "Session Memory": {
     ai_memory: [[
       { node: "EVan Agent", type: "ai_memory", index: 0 },
+      { node: "Load Conversation", type: "ai_memory", index: 0 },
       { node: "Save Web Answer to Memory", type: "ai_memory", index: 0 },
     ]],
   },
