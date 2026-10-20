@@ -27,6 +27,7 @@ import handler from "./marketplace.js";
 import { resolveQuery } from "./_geocode.js";
 import { autoDevProvider, autoDevSearchRaw } from "./_marketplace-provider.js";
 import { checkRateLimit } from "./_rate-limit.js";
+import { NATIONWIDE_RADIUS } from "../src/lib/marketplace-types.js";
 
 const ATLANTA = { lat: 33.749, lon: -84.388, label: "Atlanta, GA", kind: "city", radius: 30, postcode: "30303" };
 
@@ -360,13 +361,17 @@ describe("GET /api/marketplace", () => {
     expect(listing.rangeMaxMi).toBe(326);
   });
 
-  it("clamps an absurd radius instead of rejecting it", async () => {
+  it("clamps an absurd radius to the whole country instead of rejecting it", async () => {
     vi.mocked(autoDevSearchRaw).mockResolvedValue(providerPage([]));
     const res = mockRes();
     await handler({ method: "GET", query: { q: "30303", radius: "99999" } }, res);
     expect(res._out.code).toBe(200);
+    // Nationwide is asked with no ZIP and no distance, which is how this
+    // provider searches everything it holds.
     const passed = vi.mocked(autoDevSearchRaw).mock.calls[0][0];
-    expect(passed.radius).toBeLessThanOrEqual(500);
+    expect(passed.zip).toBeUndefined();
+    expect(passed.radius).toBeUndefined();
+    expect((res._out.body as { place: { radius: number } }).place.radius).toBe(NATIONWIDE_RADIUS);
   });
 
   it("returns an empty list, not an error, when the provider yields nothing", async () => {
@@ -381,6 +386,120 @@ describe("GET /api/marketplace", () => {
     const res = mockRes();
     await handler({ method: "GET", query: { q: "Atlanta, GA" } }, res);
     expect((res._out.body as { place: { label: string } }).place.label).toBe("Atlanta, GA");
+  });
+});
+
+describe("Any distance", () => {
+  // The bug behind these: a Cadillac LYRIQ searched from Haslet, TX with "Any
+  // distance" said nothing was for sale. "Any distance" sent no radius, so it
+  // searched the ZIP's 15 miles and stopped — with 297 LYRIQs inside 500 miles.
+  const HASLET = { lat: 32.9557, lon: -97.3372, label: "Haslet, TX 76052", kind: "zip", radius: 15, postcode: "76052" };
+  const lyriq = listingRow({
+    vin: "1GYKPMRK8PZ001753",
+    location: [-97.69, 30.39],
+    vehicle: { year: 2023, make: "Cadillac", model: "LYRIQ", fuel: "Electric" },
+  });
+
+  beforeEach(() => {
+    vi.mocked(resolveQuery).mockResolvedValue(HASLET as never);
+  });
+
+  const radii = () => vi.mocked(autoDevSearchRaw).mock.calls.map((c) => c[0].radius ?? "nationwide");
+
+  it("widens ring by ring until it finds a car, and says how far it went", async () => {
+    vi.mocked(autoDevSearchRaw).mockImplementation(async (p) =>
+      providerPage(p.radius === 250 ? [lyriq] : []));
+    const res = mockRes();
+    await handler({ method: "GET", query: { q: "76052", makes: "Cadillac", models: "LYRIQ" } }, res);
+
+    expect(radii()).toEqual([15, 25, 50, 100, 250]);
+    const body = res._out.body as { listings: unknown[]; place: { radius: number }; widenedFrom?: number };
+    expect(body.listings).toHaveLength(1);
+    expect(body.place.radius).toBe(250);
+    expect(body.widenedFrom).toBe(15);
+  });
+
+  it("goes nationwide when nothing is listed within 500 miles", async () => {
+    vi.mocked(autoDevSearchRaw).mockImplementation(async (p) =>
+      providerPage(p.zip == null ? [lyriq] : []));
+    const res = mockRes();
+    await handler({ method: "GET", query: { q: "76052" } }, res);
+
+    expect(radii()).toEqual([15, 25, 50, 100, 250, 500, "nationwide"]);
+    const last = vi.mocked(autoDevSearchRaw).mock.calls.at(-1)![0];
+    expect(last.zip).toBeUndefined();
+    const body = res._out.body as { place: { radius: number }; widenedFrom?: number };
+    expect(body.place.radius).toBe(NATIONWIDE_RADIUS);
+    expect(body.widenedFrom).toBe(15);
+  });
+
+  it("makes one call and reports no widening when the first ring has a car", async () => {
+    vi.mocked(autoDevSearchRaw).mockResolvedValue(providerPage([lyriq]));
+    const res = mockRes();
+    await handler({ method: "GET", query: { q: "76052" } }, res);
+    expect(autoDevSearchRaw).toHaveBeenCalledTimes(1);
+    expect(res._out.body).not.toHaveProperty("widenedFrom");
+  });
+
+  it("keeps widening past a ring whose rows are all petrol", async () => {
+    // The provider's rows are not our listings: a ring full of cars we drop
+    // is still a ring with nothing to show.
+    const petrol = listingRow({ vehicle: { year: 2022, make: "Cadillac", model: "LYRIQ", fuel: "Gasoline" } });
+    vi.mocked(autoDevSearchRaw).mockImplementation(async (p) =>
+      providerPage(p.radius === 15 ? [petrol] : [lyriq]));
+    const res = mockRes();
+    await handler({ method: "GET", query: { q: "76052" } }, res);
+    expect(radii()).toEqual([15, 25]);
+  });
+
+  it("never widens a radius the visitor picked", async () => {
+    const res = mockRes();
+    await handler({ method: "GET", query: { q: "76052", radius: "50" } }, res);
+    expect(radii()).toEqual([50]);
+    expect(res._out.body).not.toHaveProperty("widenedFrom");
+  });
+
+  it("never widens a later page, which stays on the ring it was given", async () => {
+    const res = mockRes();
+    await handler({ method: "GET", query: { q: "76052", page: "2" } }, res);
+    expect(radii()).toEqual([15]);
+  });
+
+  it("stops widening when the provider is not answering, and does not cache that", async () => {
+    // Each ring is a metered call. An outage must not spend six of them, and a
+    // provider that did not answer is not "nothing for sale" for the CDN to
+    // hand every visitor for the next twenty minutes.
+    vi.mocked(autoDevSearchRaw).mockResolvedValue(providerPage([], { failed: true }));
+    const res = mockRes();
+    await handler({ method: "GET", query: { q: "76052" } }, res);
+    expect(autoDevSearchRaw).toHaveBeenCalledTimes(1);
+    expect(res._out.headers["Cache-Control"]).toBe("no-store");
+  });
+
+  it("searches a carried ring directly and still reports it as widened", async () => {
+    // Page 2 of a search that widened to 250 — and the car page opened from
+    // it — must search 250, once, and keep saying it widened.
+    vi.mocked(autoDevSearchRaw).mockResolvedValue(providerPage([lyriq]));
+    const res = mockRes();
+    await handler({ method: "GET", query: { q: "76052", ring: "250", page: "2" } }, res);
+    expect(radii()).toEqual([250]);
+    const body = res._out.body as { place: { radius: number }; widenedFrom?: number };
+    expect(body.place.radius).toBe(250);
+    expect(body.widenedFrom).toBe(15);
+  });
+
+  it("lets a picked radius win over a carried ring", async () => {
+    const res = mockRes();
+    await handler({ method: "GET", query: { q: "76052", radius: "50", ring: "250" } }, res);
+    expect(radii()).toEqual([50]);
+  });
+
+  it("searches nationwide without a ZIP when the place has none", async () => {
+    vi.mocked(resolveQuery).mockResolvedValue({ ...HASLET, postcode: undefined, label: "Texas", kind: "state" } as never);
+    const res = mockRes();
+    await handler({ method: "GET", query: { q: "Texas", radius: String(NATIONWIDE_RADIUS) } }, res);
+    expect(res._out.code).toBe(200);
+    expect(vi.mocked(autoDevSearchRaw).mock.calls[0][0].zip).toBeUndefined();
   });
 });
 

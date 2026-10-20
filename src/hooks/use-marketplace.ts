@@ -25,10 +25,13 @@ export interface MarketplaceFilters {
  */
 export function buildMarketplaceQuery(
   query: string, radius: number | null, filters: MarketplaceFilters,
-  sort: string | undefined, page: number,
+  sort: string | undefined, page: number, ring: number | null = null,
 ): URLSearchParams {
   const params = new URLSearchParams({ q: query });
   if (radius != null) params.set("radius", String(radius));
+  // The ring "Any distance" widened to on page 1, carried so later pages and
+  // the car page search it rather than starting over at the place's own ring.
+  if (radius == null && ring != null) params.set("ring", String(ring));
   for (const [k, v] of Object.entries(filters)) {
     if (Array.isArray(v)) {
       if (v.length) params.set(k, v.join(","));
@@ -46,9 +49,9 @@ export function buildMarketplaceQuery(
 
 async function fetchListings(
   query: string, radius: number | null, filters: MarketplaceFilters,
-  sort: string | undefined, page: number,
+  sort: string | undefined, page: number, ring: number | null,
 ): Promise<MarketplaceResponse> {
-  const params = buildMarketplaceQuery(query, radius, filters, sort, page);
+  const params = buildMarketplaceQuery(query, radius, filters, sort, page, ring);
 
   const res = await fetch(`/api/marketplace?${params}`);
   if (!res.ok) {
@@ -60,11 +63,11 @@ async function fetchListings(
 
 export function useMarketplace(
   query: string, radius: number | null = null, filters: MarketplaceFilters = {},
-  sort?: string, page = 1,
+  sort?: string, page = 1, ring: number | null = null,
 ) {
   return useQuery({
-    queryKey: ["marketplace", query, radius, filters, sort ?? null, page],
-    queryFn: () => fetchListings(query, radius, filters, sort, page),
+    queryKey: ["marketplace", query, radius, filters, sort ?? null, page, ring],
+    queryFn: () => fetchListings(query, radius, filters, sort, page, ring),
     enabled: query.trim().length > 0,
     placeholderData: keepPreviousData,
     staleTime: 5 * 60 * 1000, // listings move slowly; don't re-spend quota on a remount

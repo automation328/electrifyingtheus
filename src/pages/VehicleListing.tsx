@@ -45,6 +45,8 @@ const VehicleListing = () => {
   // returns a different set of listings, and this one is then "unavailable"
   // despite being on screen a second ago.
   const radius = Number(params.get("radius")) || null;
+  // Where "Any distance" had widened to when the car was found.
+  const ring = Number(params.get("ring")) || null;
   // Falls back the way the results page does. The default order is left out of
   // the URL, so reading "no sort" as "no sort" would re-run the search in a
   // different order from the one the visitor was looking at.
@@ -72,7 +74,7 @@ const VehicleListing = () => {
   // No by-id endpoint exists upstream, so the detail page reads the listing out
   // of the search the visitor arrived from.
   const { data, isFetching } = useMarketplace(
-    query, radius, filters, isProviderSorted(sort) ? sort : undefined, page,
+    query, radius, filters, isProviderSorted(sort) ? sort : undefined, page, ring,
   );
   const listing = findListing(data, decodeURIComponent(id));
 

@@ -25,8 +25,10 @@ const MAX_LIMIT = 100;
 const TIMEOUT_MS = 12_000;
 
 export interface ProviderSearch {
-  zip: string;
-  radius: number;
+  /** Both omitted is the whole country: no ZIP and no distance is how this
+   *  provider searches everything it holds. */
+  zip?: string;
+  radius?: number;
   /** Models to ask for. Never empty: an unfiltered search returns petrol cars,
    *  and this list is what keeps the request to vehicles we can verify. */
   models: string[];
@@ -54,6 +56,10 @@ export interface ProviderPage {
   total?: number;
   /** The provider offered a next page. */
   hasMore: boolean;
+  /** No answer at all (no key, an error status, a timeout). Distinct from an
+   *  empty answer so a caller widening its search stops rather than spending
+   *  another metered call on a provider that is down. */
+  failed?: boolean;
 }
 
 /** Deep paging past this needs cursors, which this adapter does not implement.
@@ -79,8 +85,10 @@ export function haversineMiles(lat1: number, lon1: number, lat2: number, lon2: n
 
 export function buildAutoDevQuery(p: ProviderSearch): URLSearchParams {
   const q = new URLSearchParams();
-  q.set("zip", p.zip);
-  q.set("distance", String(p.radius));
+  if (p.zip) {
+    q.set("zip", p.zip);
+    if (p.radius != null) q.set("distance", String(p.radius));
+  }
   // Commas are the provider's OR. catalogSearchModels() guarantees no model
   // contains a comma, which would otherwise split one model into two bogus ones.
   if (p.models.length) q.set("vehicle.model", p.models.join(","));
@@ -226,7 +234,7 @@ export function autoDevCoords(raw: unknown): { lat: number; lon: number } | null
 
 /** Raw records from one upstream search, for callers that need coordinates too. */
 export async function autoDevSearchRaw(p: ProviderSearch): Promise<ProviderPage> {
-  const empty: ProviderPage = { rows: [], hasMore: false };
+  const empty: ProviderPage = { rows: [], hasMore: false, failed: true };
   const key = process.env.MARKETPLACE_API_KEY;
   if (!key) return empty;
 

@@ -25,6 +25,12 @@ describe("haversineMiles", () => {
 });
 
 describe("buildAutoDevQuery", () => {
+  it("sends neither zip nor distance for a nationwide search", () => {
+    const q = buildAutoDevQuery({ models: ["LYRIQ"] });
+    expect(q.has("zip")).toBe(false);
+    expect(q.has("distance")).toBe(false);
+  });
+
   it("sends zip and distance, which is how this provider does geography", () => {
     const q = buildAutoDevQuery({ zip: "30301", radius: 25, models: ["Model 3"] });
     expect(q.get("zip")).toBe("30301");
@@ -153,10 +159,12 @@ describe("autoDevSearchRaw", () => {
     await expect(search()).resolves.toEqual({ rows: [{ a: 1 }], total: undefined, hasMore: false });
   });
 
-  it("degrades to an empty page when the provider fails", async () => {
+  it("degrades to an empty page when the provider fails, and says it failed", async () => {
+    // Flagged so a search widening ring by ring stops instead of spending more
+    // metered calls on a provider that is down.
     vi.stubEnv("MARKETPLACE_API_KEY", "k");
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false, status: 500, json: async () => ({}) }));
-    await expect(search()).resolves.toEqual({ rows: [], hasMore: false });
+    await expect(search()).resolves.toEqual({ rows: [], hasMore: false, failed: true });
   });
 });
 

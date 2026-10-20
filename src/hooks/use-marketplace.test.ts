@@ -17,6 +17,15 @@ describe("buildMarketplaceQuery", () => {
     expect(q.has("page")).toBe(false);
   });
 
+  it("carries a widened ring only when no radius was picked", () => {
+    // ?ring= is where "Any distance" landed; sending it beside a picked radius
+    // would let the endpoint search a distance the visitor never chose.
+    expect(buildMarketplaceQuery("76052", null, {}, undefined, 2, 250).get("ring")).toBe("250");
+    const picked = buildMarketplaceQuery("76052", 50, {}, undefined, 2, 250);
+    expect(picked.get("radius")).toBe("50");
+    expect(picked.has("ring")).toBe(false);
+  });
+
   it("sends the radius and the upstream filters", () => {
     const q = buildMarketplaceQuery(
       "30080", 100, { priceMin: 10000, priceMax: 45000, yearMin: 2020 }, undefined, 1,

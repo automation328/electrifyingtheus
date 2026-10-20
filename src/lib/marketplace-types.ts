@@ -14,6 +14,24 @@ export type ListingPowertrain = "ev" | "phev";
  */
 export const MAX_MARKETPLACE_PAGE = 50;
 
+/**
+ * A radius that means the whole country. The provider is then asked with no
+ * ZIP and no distance at all, which is how it searches everything it holds.
+ * A number rather than a flag so it travels in ?radius= like any other ring,
+ * and sized past any two points in the US so a clamp can never undercut it.
+ */
+export const NATIONWIDE_RADIUS = 5000;
+
+/**
+ * The rings "Any distance" widens through, nearest first, until one of them
+ * holds a car. The provider cannot sort by distance, so asking the whole
+ * country at once returns an arbitrary twenty from anywhere; a Cadillac LYRIQ
+ * searched from Haslet, TX found nothing in its 15 miles while 297 sat within
+ * 500 and Austin was 177 miles away. Widening a ring at a time is what puts
+ * the nearest ones first.
+ */
+export const WIDEN_RADII = [25, 50, 100, 250, 500, NATIONWIDE_RADIUS] as const;
+
 export interface VehicleListing {
   /** Stable id for routing. VIN when the provider gives one, else provider id. */
   id: string;
@@ -55,6 +73,12 @@ export interface MarketplaceResponse {
   listings: VehicleListing[];
   /** Where the search resolved to, echoed back so the UI can say "near Atlanta, GA". */
   place?: { label: string; lat: number; lon: number; radius: number };
+  /**
+   * The ring the search started at, set only when "Any distance" found nothing
+   * there and widened. `place.radius` is then the ring that was searched, and
+   * paging or opening a car has to ask for that ring, not start over.
+   */
+  widenedFrom?: number;
   /** False when no provider key is set. The UI says so rather than showing
    *  "no results", which would imply we looked and found nothing. */
   configured: boolean;

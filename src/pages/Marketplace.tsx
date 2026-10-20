@@ -22,7 +22,7 @@ import {
   sortListings, isSortKey, isProviderSorted,
   SORT_OPTIONS, DEFAULT_SORT, type SortKey,
 } from "@/lib/marketplace-sort";
-import { MAX_MARKETPLACE_PAGE } from "@/lib/marketplace-types";
+import { MAX_MARKETPLACE_PAGE, NATIONWIDE_RADIUS } from "@/lib/marketplace-types";
 import {
   readFilters, writeFilters, serverFilters, applyFilters, activeFilterCount,
   localFilterCount, filterChips, EMPTY_FILTERS, type FilterState,
@@ -48,6 +48,8 @@ const Marketplace = () => {
   // The URL is the source of truth for everything that shapes the results, so a
   // shared or embedded link reopens the search exactly as it was sent.
   const radius = Number(params.get("radius")) || null;
+  /** The ring an "Any distance" search widened to, carried while paging. */
+  const ring = Number(params.get("ring")) || null;
   const sortParam = params.get("sort");
   const sort: SortKey = isSortKey(sortParam) ? sortParam : DEFAULT_SORT;
   // Clamped to the same ceiling the endpoint enforces, so a hand-typed ?page=900
@@ -112,15 +114,24 @@ const Marketplace = () => {
   // provider's vocabulary itself. Sending the translated value instead would
   // fail its guard and silently drop the sort — which is the whole request.
   const { data, isFetching, error } = useMarketplace(
-    query, radius, upstream, isProviderSorted(sort) ? sort : undefined, page,
+    query, radius, upstream, isProviderSorted(sort) ? sort : undefined, page, ring,
   );
+
+  // The ring "Any distance" had to widen to before it found a car. Page 1 is
+  // the only one the server widens, so paging and the car links carry it.
+  const widenedRadius = radius == null && data?.widenedFrom != null
+    ? data.place?.radius
+    : undefined;
+  const searchedEverywhere = (data?.place?.radius ?? 0) >= NATIONWIDE_RADIUS;
 
   /** Every change except paging invalidates the page number: page 4 of the old
    *  search is not page 4 of the new one. */
   const patchParams = (mutate: (p: URLSearchParams) => void, keepPage = false) => {
     const next = new URLSearchParams(params);
     mutate(next);
-    if (!keepPage) next.delete("page");
+    // A new search widens afresh from its own place; only paging keeps the
+    // ring the last one widened to.
+    if (!keepPage) { next.delete("page"); next.delete("ring"); }
     setParams(next, { replace: true });
   };
 
@@ -142,13 +153,19 @@ const Marketplace = () => {
   const changeFilters = (next: FilterState) => {
     const written = writeFilters(params, next);
     written.delete("page");
+    written.delete("ring");
     setParams(written, { replace: true });
   };
 
   const changePage = (next: number) => {
     const target = Math.min(Math.max(next, 1), MAX_MARKETPLACE_PAGE);
     if (target === page) return;
-    patchParams((p) => { if (target > 1) p.set("page", String(target)); else p.delete("page"); }, true);
+    patchParams((p) => {
+      if (target > 1) p.set("page", String(target)); else p.delete("page");
+      // "Any distance" widened to find these, and only page 1 widens: the next
+      // page has to ask for the ring this one came from, not start over at 15.
+      if (widenedRadius != null) p.set("ring", String(widenedRadius));
+    }, true);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -211,6 +228,7 @@ const Marketplace = () => {
     const p = new URLSearchParams();
     if (query) p.set("q", query);
     if (radius) p.set("radius", String(radius));
+    else if (widenedRadius) p.set("ring", String(widenedRadius));
     if (sort !== DEFAULT_SORT) p.set("sort", sort);
     if (page > 1) p.set("page", String(page));
     for (const [key, value] of Object.entries(upstream)) {
@@ -224,7 +242,7 @@ const Marketplace = () => {
     }
     const s = p.toString();
     return s ? `?${s}` : "";
-  }, [page, query, radius, sort, upstream]);
+  }, [page, query, radius, sort, upstream, widenedRadius]);
 
   // Pages of provider matches, counted server-side where the real page size is
   // known. It counts listings the provider matched, not cars we verified as
@@ -235,7 +253,15 @@ const Marketplace = () => {
 
   const heading = useMemo(() => {
     if (!query || !data?.configured) return null;
-    const where = data.place?.label ? ` near ${data.place.label}` : "";
+    const label = data.place?.label;
+    // Once it widened, "near Haslet" would oversell a car 177 miles away.
+    const where = searchedEverywhere
+      ? " nationwide"
+      : !label
+        ? ""
+        : data.widenedFrom != null && data.place
+          ? ` within ${data.place.radius} miles of ${label}`
+          : ` near ${label}`;
     if (localCount > 0) {
       return `${listings.length} of ${found.length} on this page match your filters`;
     }
@@ -248,7 +274,7 @@ const Marketplace = () => {
     }
     const count = `${listings.length} electrified ${listings.length === 1 ? "vehicle" : "vehicles"}`;
     return paged ? `${count}${where} · page ${page}` : `${count}${where}`;
-  }, [data, found.length, listings.length, localCount, page, paged, query]);
+  }, [data, found.length, listings.length, localCount, page, paged, query, searchedEverywhere]);
 
   const panel = (
     <FilterPanel
@@ -436,6 +462,18 @@ const Marketplace = () => {
                 {/* Above the cars, not under them. Whose listings these are
                     and what to check is the frame a visitor needs BEFORE they
                     read a price — at the bottom it arrives after the decision. */}
+                {data?.widenedFrom != null && data.place && listings.length > 0 && (
+                  <p className="mb-4 flex items-start gap-2 text-sm text-muted-foreground">
+                    <Info className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+                    <span>
+                      Nothing within {data.widenedFrom} miles of {data.place.label}, so we
+                      widened the search {searchedEverywhere
+                        ? "to the whole country"
+                        : `to ${data.place.radius} miles`}.
+                    </span>
+                  </p>
+                )}
+
                 <MarketplaceDisclaimer className="mb-6" />
 
                 {showSkeletons && (
@@ -510,7 +548,9 @@ const Marketplace = () => {
                         so another page holds nothing new; the rest were applied
                         to this page, where another page might. */}
                     <p className="mx-auto mt-1.5 max-w-sm text-sm text-muted-foreground">
-                      {activeCount > localCount
+                      {activeCount > localCount && searchedEverywhere && !paged
+                        ? "Nothing matching this search is listed anywhere in the country right now. Loosen a filter to see more."
+                        : activeCount > localCount
                         ? "This search came back empty. Loosen a filter or widen the distance — other pages hold the same filters."
                         : localCount > 0
                           ? "These filters apply to the page you are on. Loosen one, widen the distance, or try another page."

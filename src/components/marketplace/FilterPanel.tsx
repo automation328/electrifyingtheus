@@ -8,8 +8,9 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { type FilterState, activeFilterCount } from "@/lib/marketplace-filters";
+import { NATIONWIDE_RADIUS } from "@/lib/marketplace-types";
 
-const RADII = [25, 50, 100, 250];
+const RADII = [25, 50, 100, 250, 500, NATIONWIDE_RADIUS];
 /** Budgets as people state them. Each sets a ceiling and clears any floor:
  *  "under $20k" is one number, not a range. */
 const PRICE_CAPS = [10_000, 20_000, 35_000, 50_000, 70_000, 90_000];
@@ -126,7 +127,9 @@ export function FilterPanel({
             <SelectContent>
               <SelectItem value="auto">Any distance</SelectItem>
               {RADII.map((r) => (
-                <SelectItem key={r} value={String(r)}>{r} miles</SelectItem>
+                <SelectItem key={r} value={String(r)}>
+                  {r >= NATIONWIDE_RADIUS ? "Nationwide" : `${r} miles`}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
