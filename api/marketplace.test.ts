@@ -419,6 +419,23 @@ describe("Any distance", () => {
     expect(body.widenedFrom).toBe(15);
   });
 
+  it("stops widening, returning what it has, once the upstream budget is spent", async () => {
+    vi.mocked(checkRateLimit).mockImplementation((async (_r: unknown, o: { bucket: string }) => ({
+      ok: o.bucket !== "marketplace-upstream", hits: 1, limit: 1, retryAfter: 60,
+    })) as never);
+    const res = mockRes();
+    await handler({ method: "GET", query: { q: "76052" } }, res);
+    expect(radii()).toEqual([15]);
+    expect(res._out.code).toBe(200);
+  });
+
+  it("drops out-of-range numeric filters instead of forwarding them", async () => {
+    const res = mockRes();
+    await handler({ method: "GET", query: { q: "30303", priceMin: "-5", priceMax: "1e12", yearMin: "20", yearMax: "2024" } }, res);
+    const p = vi.mocked(autoDevSearchRaw).mock.calls[0][0];
+    expect([p.priceMin, p.priceMax, p.yearMin, p.yearMax]).toEqual([undefined, undefined, undefined, 2024]);
+  });
+
   it("goes nationwide when nothing is listed within 500 miles", async () => {
     vi.mocked(autoDevSearchRaw).mockImplementation(async (p) =>
       providerPage(p.zip == null ? [lyriq] : []));

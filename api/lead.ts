@@ -21,6 +21,7 @@
 
 import { recordSubmission } from "./_submissions.js";
 import { checkRateLimit, tooManyRequests } from "./_rate-limit.js";
+import { slackText } from "./_slack-text.js";
 import { createDraftEvent, buildSlackReview, type EventSubmission } from "./_event-submission.js";
 import { buildCustomFields, customFieldIds } from "./_ghl-fields.js";
 import { createClient } from "@supabase/supabase-js";
@@ -123,14 +124,14 @@ async function notifySlack(opts: {
   const link = opts.contactId && loc
     ? `https://app.gohighlevel.com/v2/location/${loc}/contacts/detail/${opts.contactId}`
     : "";
-  const trim = (s: string, n: number) => (s.length > n ? `${s.slice(0, n)}…` : s);
+  const trim = (s: string, n: number) => slackText(s, n);
 
   const lines = [
     isChat ? ":speech_balloon: *New EVan chatbot lead*" : `:inbox_tray: *New lead — ${label}*`,
-    opts.name && `*Name:* ${opts.name}`,
-    opts.email && `*Email:* ${opts.email}`,
-    opts.phone && `*Phone:* ${opts.phone}`,
-    opts.company && `*Company:* ${opts.company}`,
+    opts.name && `*Name:* ${trim(opts.name, 120)}`,
+    opts.email && `*Email:* ${trim(opts.email, 160)}`,
+    opts.phone && `*Phone:* ${trim(opts.phone, 40)}`,
+    opts.company && `*Company:* ${trim(opts.company, 160)}`,
     opts.subject && `*Subject:* ${trim(opts.subject, 200)}`,
     opts.message && `*Message:* ${trim(opts.message, 600)}`,
     `*Source:* ${label}`,

@@ -25,6 +25,7 @@
 // submission: a feed can hand us a hundred events in one run.
 
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { slackText } from "./_slack-text.js";
 
 // ── Shapes ───────────────────────────────────────────────────────────────────
 
@@ -393,8 +394,10 @@ export function buildImportDigest(
 
   const SHOWN = 10;
   const listed = result.rows.slice(0, SHOWN).map((r) => {
-    const label = r.url ? `<${r.url}|${r.title}>` : r.title;
-    return `• ${label}\n   ${prettyDate(r.date)} · ${r.location}  ·  <${site}/admin/content/events?edit=${r.id}|edit>`;
+    // Feed text is untrusted too. "|" would end the link target early.
+    const title = slackText(r.title, 150);
+    const label = r.url ? `<${slackText(r.url.replace(/\|/g, "%7C"))}|${title}>` : title;
+    return `• ${label}\n   ${prettyDate(r.date)} · ${slackText(r.location, 150)}  ·  <${site}/admin/content/events?edit=${r.id}|edit>`;
   }).join("\n");
   const more = result.rows.length > SHOWN ? `\n_…and ${result.rows.length - SHOWN} more._` : "";
 

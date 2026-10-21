@@ -66,7 +66,8 @@ async function fetchFeed(feed: (typeof FEEDS)[number]): Promise<NewsItem[]> {
     const body = it.content || it.description || "";
     return {
       title: it.title ?? "Untitled",
-      link: it.link ?? "#",
+      // Third-party feed: only http(s) links survive; anything else is dropped below.
+      link: /^https?:\/\//i.test(it.link ?? "") ? it.link! : "#",
       pubDate: it.pubDate ?? "",
       source: feed.source,
       excerpt: toExcerpt(it.description || it.content || ""),

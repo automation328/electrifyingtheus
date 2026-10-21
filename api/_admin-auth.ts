@@ -57,7 +57,9 @@ export async function getEditor(req: Req): Promise<Editor | null> {
       headers: { apikey: anon, Authorization: `Bearer ${token}` },
     });
     if (!r.ok) return null;
-    const u = (await r.json()) as { email?: string };
+    const u = (await r.json()) as { email?: string; email_confirmed_at?: string | null; confirmed_at?: string | null };
+    // An unconfirmed signup can claim any address (e.g. an allow-listed editor's).
+    if (!u?.email_confirmed_at && !u?.confirmed_at) return null;
     email = String(u?.email || "").trim().toLowerCase();
   } catch {
     return null;

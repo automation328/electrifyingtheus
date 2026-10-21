@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import logo from "@/assets/logo-white.png";
 import { submitLead } from "@/lib/submitLead";
+import { safeHref } from "@/lib/safe-href";
 import { useFooter } from "@/lib/site-settings";
 import type { FooterLink } from "@/data/footer";
 
@@ -79,12 +80,14 @@ const Footer = () => {
   const navLink = "text-white/65 hover:text-white text-sm transition-colors footer-link";
 
   // Render a footer link: external → new tab, #anchor → plain <a>, route → <Link>.
-  const renderLink = (l: FooterLink, cls: string) =>
-    l.href.startsWith("http")
+  const renderLink = (link: FooterLink, cls: string) => {
+    const l = { ...link, href: safeHref(link.href) }; // CMS-editable: block javascript:/data: hrefs
+    return l.href.startsWith("http")
       ? <a key={l.href + l.label} href={l.href} target="_blank" rel="noopener noreferrer" className={cls}>{l.label}</a>
       : l.href.startsWith("#") || l.href.startsWith("mailto:")
         ? <a key={l.href + l.label} href={l.href} className={cls}>{l.label}</a>
         : <Link key={l.href + l.label} to={l.href} className={cls}>{l.label}</Link>;
+  };
 
   return (
     <footer className="gradient-primary relative overflow-hidden text-white">

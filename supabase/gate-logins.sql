@@ -49,7 +49,7 @@ begin
     into is_new_ip;
 
   insert into gate_logins (email, ip, user_agent)
-  values (p_email, p_ip, p_ua)
+  values (p_email, p_ip, left(p_ua, 512))
   on conflict (email, ip) do update
     set last_seen  = now(),
         hits       = gate_logins.hits + 1,
@@ -61,5 +61,7 @@ begin
 end;
 $$;
 
--- The site's anon role may CALL the function (but still cannot read the table).
-grant execute on function record_gate_login(text, text, text) to anon;
+-- Only the server (service_role, via api/gate-login.ts) may call the function.
+-- Granting it to anon let anyone with the public key forge sign-in records.
+revoke execute on function record_gate_login(text, text, text) from public, anon, authenticated;
+grant execute on function record_gate_login(text, text, text) to service_role;

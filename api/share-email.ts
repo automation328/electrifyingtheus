@@ -9,6 +9,7 @@
 //                    Falls back to Resend's onboarding address (test-only delivery).
 //   RECAPTCHA_SECRET_KEY  Optional — when set, the share token is verified.
 
+import { createHash } from "node:crypto";
 import { checkRateLimit, tooManyRequests } from "./_rate-limit.js";
 
 // Blank-line paragraph split for multi-paragraph disclaimers.
@@ -342,6 +343,14 @@ export default async function handler(req: any, res: any) {
   if (!isEmail(to) || !isEmail(senderEmail)) {
     res.status(400).json({ error: "A valid recipient and sender email are required" }); return;
   }
+  // Per-IP limits do not stop a rotating-IP attacker mailing one victim, so the
+  // recipient is capped too. Keyed on the address (hashed by the limiter), after
+  // validation so junk 'to' values cannot fill the table.
+  const toRl = await checkRateLimit(req, {
+    bucket: "share-email-to", limit: 3, windowMinutes: 24 * 60,
+    key: createHash("sha256").update(to.trim().toLowerCase()).digest("hex"),
+  });
+  if (!toRl.ok) { tooManyRequests(res, toRl); return; }
   if (!title || !url) { res.status(400).json({ error: "Missing share content" }); return; }
 
   // Length caps + scheme checks keep the payload sane.
@@ -415,7 +424,9 @@ export default async function handler(req: any, res: any) {
     });
     if (!r.ok) {
       const detail = await r.text().catch(() => "");
-      res.status(502).json({ error: "Send failed", detail: detail.slice(0, 300) });
+      // Resend's body can name our account, domain and key state: log, don't relay.
+      console.error("share-email: resend", r.status, detail.slice(0, 300));
+      res.status(502).json({ error: "Send failed" });
       return;
     }
     res.status(200).json({ ok: true });

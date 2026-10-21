@@ -27,6 +27,7 @@
 
 import { createHmac, timingSafeEqual } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { slackText } from "./_slack-text.js";
 
 /** How long an Approve/Reject link stays valid. Long enough to survive a
  *  weekend, short enough that a link scrolled far up a channel is inert. */
@@ -289,10 +290,8 @@ export function buildSlackReview(
   const approveSig = signReview(eventId, "approve", exp);
   const rejectSig = signReview(eventId, "reject", exp);
 
-  const trim = (v: string, n: number) => {
-    const t = (v || "").trim();
-    return t.length > n ? `${t.slice(0, n)}…` : t;
-  };
+  // Every submitter-supplied value goes through slackText (truncate, then escape).
+  const trim = (v: string, n: number) => slackText(v, n);
 
   const dates = s.eventEndDate && s.eventEndDate !== s.eventStartDate
     ? `${prettyDate(s.eventStartDate)} – ${prettyDate(s.eventEndDate)}`
@@ -302,7 +301,7 @@ export function buildSlackReview(
     `*Event:* ${trim(s.eventTitle, 200) || "—"}`,
     `*When:* ${dates}${s.eventTime ? ` · ${trim(s.eventTime, 60)}` : ""}`,
     `*Where:* ${trim([s.eventVenue, s.eventLocation].filter(Boolean).join(", "), 200) || "—"}`,
-    s.eventFormat && `*Format:* ${s.eventFormat}`,
+    s.eventFormat && `*Format:* ${slackText(s.eventFormat, 60)}`,
     s.eventWebsite && `*Link:* ${trim(s.eventWebsite, 200)}`,
     `*Submitted by:* ${trim(s.submitterName, 80) || "—"}${s.submitterCompany ? ` (${trim(s.submitterCompany, 80)})` : ""}`,
     s.submitterEmail && `*Email:* ${trim(s.submitterEmail, 120)}`,

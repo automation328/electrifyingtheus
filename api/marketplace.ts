@@ -30,6 +30,7 @@ import {
 
 const MAX_QUERY = 120;
 const DEFAULT_RADIUS = 50;
+const MAX_YEAR = new Date().getFullYear() + 2;
 
 /** A repeated or comma-separated query value, e.g. makes=Nissan,Tesla. */
 const list = (v: unknown, max = 12): string[] => {
@@ -43,6 +44,14 @@ const pick = (v: unknown, fallback = ""): string =>
 const num = (v: unknown): number | null => {
   const n = Number(Array.isArray(v) ? v[0] : v);
   return Number.isFinite(n) ? n : null;
+};
+
+/** A number inside [min, max], else undefined. Junk values are dropped rather
+ *  than forwarded: every distinct value is a distinct upstream call and cache
+ *  key, so unbounded input is unbounded metered spend. */
+const inRange = (v: unknown, min: number, max: number): number | undefined => {
+  const n = num(v);
+  return n != null && n >= min && n <= max ? Math.round(n) : undefined;
 };
 
 /** A ZIP for the provider, which anchors its radius on one. A city/state search
@@ -153,7 +162,7 @@ export default async function handler(req: any, res: any) {
   const sort = isSortKey(sortParam) ? providerSortFor(sortParam) : undefined;
 
   const askedPage = num(query.page);
-  const page = Math.min(Math.max(askedPage ?? 1, 1), MAX_PAGE);
+  const page = Math.min(Math.max(Math.floor(askedPage ?? 1), 1), MAX_PAGE);
 
   if (!autoDevProvider().configured) {
     const body: MarketplaceResponse = {
@@ -185,10 +194,10 @@ export default async function handler(req: any, res: any) {
   const search = {
     models: catalogSearchModelsFor(models),
     makes,
-    priceMin: num(query.priceMin) ?? undefined,
-    priceMax: num(query.priceMax) ?? undefined,
-    yearMin: num(query.yearMin) ?? undefined,
-    yearMax: num(query.yearMax) ?? undefined,
+    priceMin: inRange(query.priceMin, 0, 10_000_000),
+    priceMax: inRange(query.priceMax, 0, 10_000_000),
+    yearMin: inRange(query.yearMin, 1980, MAX_YEAR),
+    yearMax: inRange(query.yearMax, 1980, MAX_YEAR),
     sort,
     page,
   };
@@ -216,6 +225,10 @@ export default async function handler(req: any, res: any) {
     // Stop on a provider failure too: widening would only spend more metered
     // calls on a provider that is not answering.
     if (listings.length || upstream.failed) break;
+    // Each widening is another metered call, so it draws on its own budget; when
+    // that is spent we return what we have instead of widening further. The
+    // first ring is already covered by the per-request bucket above.
+    if (!(await checkRateLimit(req, { bucket: "marketplace-upstream", limit: 300, windowMinutes: 60 })).ok) break;
     searched = ring;
     upstream = await searchRing(ring);
     listings = verifiedListings(upstream.rows, place);

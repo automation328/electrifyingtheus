@@ -7,7 +7,6 @@ import {
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { submitLead } from "@/lib/submitLead";
-import { getRecaptchaToken } from "@/lib/recaptcha";
 import { compressImageForUpload } from "@/lib/image-compress";
 
 // Text fields live in one object; choice/file/consent state is held separately.
@@ -21,13 +20,6 @@ const EMPTY = {
 type Field = keyof typeof EMPTY;
 
 const isValidEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
-
-// Posts the event submission. Prefers a dedicated event webhook, falling back to
-// the shared n8n flow. Sent as multipart/form-data so image files come along.
-const EVENT_WEBHOOK =
-  (import.meta as { env?: Record<string, string> }).env?.VITE_EVENT_WEBHOOK_URL ??
-  (import.meta as { env?: Record<string, string> }).env?.VITE_CONTACT_WEBHOOK_URL ??
-  (import.meta as { env?: Record<string, string> }).env?.VITE_N8N_WEBHOOK_URL;
 
 const FORMATS = [
   { value: "In Person", icon: Users, desc: "Attendees gather at a physical venue." },
@@ -124,23 +116,6 @@ const ListYourEvent = () => {
     setError("");
     setSubmitting(true);
 
-    const fd = new FormData();
-    fd.append("action", "listEvent");
-    (Object.keys(form) as Field[]).forEach((k) => fd.append(k, form[k]));
-    fd.append("eventFormat", eventFormat);
-    fd.append("rightToShare", rightToShare);
-    fd.append("marketingConsent", String(marketingConsent));
-    files.forEach((f, i) => fd.append(`image_${i + 1}`, f, f.name));
-
-    // reCAPTCHA v3 token so the n8n webhook can score this upload too.
-    const recaptchaToken = await getRecaptchaToken("list_event");
-    if (recaptchaToken) fd.append("recaptchaToken", recaptchaToken);
-
-    if (EVENT_WEBHOOK) {
-      try {
-        await fetch(EVENT_WEBHOOK, { method: "POST", body: fd });
-      } catch { /* non-blocking — still confirm to the user */ }
-    }
     // Upsert the organizer as a GHL lead with the event-submission tag.
     //
     // The event fields go too, and they are not decoration: api/lead.ts uses
@@ -157,11 +132,9 @@ const ListYourEvent = () => {
       eventStartDate: form.eventStartDate, eventEndDate: form.eventEndDate,
       eventTime: form.eventTime, eventDescription: form.eventDescription,
       eventWebsite: form.eventWebsite, eventVenue: form.eventVenue,
-      eventFormat,
-      // The flyer. It reaches the n8n webhook above as a real file in the
-      // multipart body, but that body never touches /api/lead — which is JSON —
-      // so without this the draft event was created with no image at all and
-      // fell back to the stock photo.
+      eventFormat, marketingConsent: String(marketingConsent),
+      // The flyer, as a data URL: /api/lead is JSON and is the only place the
+      // submission goes, so without this the draft event has no image.
       eventImage: await firstImageAsDataUrl(files),
     });
     setSubmitting(false);

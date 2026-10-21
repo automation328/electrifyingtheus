@@ -7,7 +7,7 @@
 //   ANALYTICS_PASSWORD          shared dashboard password (required)
 //   SUPABASE_SERVICE_ROLE_KEY   read access
 
-import { timingSafeEqual } from "node:crypto";
+import { createHash, timingSafeEqual } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 import { analyticsSummary, visitorJourney } from "./_analytics-core.js";
 import { checkAuthRateLimit, tooManyRequests } from "./_rate-limit.js";
@@ -22,10 +22,10 @@ function adminSupabase() {
 function passwordOk(supplied: string): boolean {
   const expected = process.env.ANALYTICS_PASSWORD || "";
   if (!expected || !supplied) return false;
-  const a = Buffer.from(supplied);
-  const b = Buffer.from(expected);
-  if (a.length !== b.length) return false;
-  try { return timingSafeEqual(a, b); } catch { return false; }
+  // Hash both sides so the compare is fixed-length and leaks nothing about the secret's length.
+  const a = createHash("sha256").update(supplied).digest();
+  const b = createHash("sha256").update(expected).digest();
+  return timingSafeEqual(a, b);
 }
 
 function safeJson(s: string): unknown {

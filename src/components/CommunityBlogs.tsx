@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import type { Session } from "@supabase/supabase-js";
 import ReactMarkdown from "react-markdown";
+import SafeMarkdownImg from "@/components/SafeMarkdownImg";
 import {
   PenLine, Plus, Pencil, Trash2, Calendar, User, LogIn, LogOut, Loader2,
 } from "lucide-react";
@@ -25,6 +26,7 @@ const fmtDate = (iso: string) => {
 };
 
 const md = {
+  img: SafeMarkdownImg,
   h1: ({ children }: { children?: ReactNode }) => <h1 className="text-2xl font-bold font-display text-foreground mt-4 mb-2">{children}</h1>,
   h2: ({ children }: { children?: ReactNode }) => <h2 className="text-xl font-bold font-display text-foreground mt-4 mb-2">{children}</h2>,
   h3: ({ children }: { children?: ReactNode }) => <h3 className="text-lg font-bold font-display text-foreground mt-3 mb-1.5">{children}</h3>,

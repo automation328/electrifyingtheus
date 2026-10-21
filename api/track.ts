@@ -16,6 +16,7 @@
 
 import { createClient } from "@supabase/supabase-js";
 import { checkRateLimit } from "./_rate-limit.js";
+import { slackText } from "./_slack-text.js";
 
 // Server-only Supabase client (service role → bypasses RLS). null until configured.
 function adminSupabase() {
@@ -111,13 +112,13 @@ export default async function handler(req: any, res: any) {
 
     const lines = [
       known ? "🙋 *Known visitor* — electrifyingtheus.com" : "👀 *New visitor* — electrifyingtheus.com",
-      known ? `👤 ${firstName || "(no name given)"} · ${email}` : "",
-      `📍 IP: \`${ip}\``,
-      `🌎 ${loc}`,
-      path ? `📄 Page: ${path}` : "",
-      referrer ? `↩️ Referrer: ${referrer}` : "↩️ Referrer: direct / unknown",
+      known ? `👤 ${slackText(firstName) || "(no name given)"} · ${slackText(email)}` : "",
+      `📍 IP: \`${slackText(ip)}\``,
+      `🌎 ${slackText(loc)}`,
+      path ? `📄 Page: ${slackText(path)}` : "",
+      referrer ? `↩️ Referrer: ${slackText(referrer)}` : "↩️ Referrer: direct / unknown",
       `🕑 ${when} ET`,
-      ua ? `🖥️ ${ua.slice(0, 180)}` : "",
+      ua ? `🖥️ ${slackText(ua, 180)}` : "",
     ].filter(Boolean);
 
     try {

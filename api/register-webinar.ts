@@ -12,6 +12,7 @@
 //             Authorization: Basic base64(client_id:client_secret)
 //   register: POST https://api.zoom.us/v2/webinars/{id}/registrants   (Bearer token)
 
+import { createHash } from "node:crypto";
 import { checkRateLimit, tooManyRequests } from "./_rate-limit.js";
 
 let tokenCache: { token: string; exp: number } | null = null;
@@ -63,6 +64,12 @@ export default async function handler(req: any, res: any) {
   if (!first_name || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     res.status(400).json({ ok: false, error: "invalid_input" }); return;
   }
+  // Per-IP limits do not stop a rotating-IP attacker registering one victim repeatedly.
+  const emailRl = await checkRateLimit(req, {
+    bucket: "register-webinar-email", limit: 3, windowMinutes: 24 * 60,
+    key: createHash("sha256").update(email.toLowerCase()).digest("hex"),
+  });
+  if (!emailRl.ok) { tooManyRequests(res, emailRl); return; }
 
   // This webinar configures City/Zip/Company/Industry/Title + the 3 EV questions
   // as required CUSTOM questions (not standard fields), so everything except

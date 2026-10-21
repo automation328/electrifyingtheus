@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Send, Zap, Sparkles } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import SafeMarkdownImg from "@/components/SafeMarkdownImg";
 import remarkGfm from "remark-gfm";
 import { Button } from "@/components/ui/button";
 import evanPortrait from "@/assets/evan.jpg";
@@ -262,6 +263,7 @@ const cannedAnswerFor = (text: string, firstName?: string): string | null => {
 };
 
 const markdownComponents = {
+  img: SafeMarkdownImg,
   p: ({ children }: { children?: React.ReactNode }) => <p className="mb-2 last:mb-0">{children}</p>,
   a: ({ href, children }: { href?: string; children?: React.ReactNode }) => (
     <a

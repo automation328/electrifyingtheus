@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/dialog";
 import ContactForm from "@/components/forms/ContactForm";
 import { useEvents, usePosts } from "@/hooks/use-content";
+import { safeHref } from "@/lib/safe-href";
 import { useNavItems } from "@/lib/site-settings";
 import logoColored from "@/assets/logo-colored.png";
 import logoWhite from "@/assets/logo-white.png";
@@ -81,8 +82,11 @@ const Navbar = () => {
 
   // Absolute routes ("/path") link directly. Anchor links ("#id") live on the
   // home page; from other pages, route home first.
-  const linkHref = (href: string) =>
-    href.startsWith("/") ? href : isHome ? href : `/${href}`;
+  // CMS-editable, so scheme-filter first; absolute links must not get "/" prefixed.
+  const linkHref = (raw: string) => {
+    const href = safeHref(raw);
+    return href.startsWith("/") || /^(https?:|mailto:|tel:)/i.test(href) || isHome ? href : `/${href}`;
+  };
 
   const openMenu = () => { setMounted(true); setOpen(true); };
   const closeMenu = () => setOpen(false);

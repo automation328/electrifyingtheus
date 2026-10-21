@@ -54,6 +54,24 @@ export function clientIp(req: { headers?: Record<string, unknown> }): string {
   return "";
 }
 
+/** The key an address is limited under. IPv4 is unchanged. IPv6 is reduced to
+ *  its /64, because a single subscriber is routinely handed a whole /64 and can
+ *  otherwise mint 2^64 "different" addresses to dodge every per-IP limit.
+ *  IPv4-mapped (::ffff:a.b.c.d) is the IPv4 client. Brackets and zone ids go. */
+export function normalizeIp(raw: string): string {
+  const ip = raw.trim().replace(/^\[|\]$/g, "").replace(/%.*$/, "").toLowerCase();
+  if (!ip.includes(":")) return ip;
+  const mapped = ip.match(/^(?:(?:0{1,4}:){1,5}|:):?ffff:(\d{1,3}(?:\.\d{1,3}){3})$/);
+  if (mapped) return mapped[1];
+  const [head, tail, extra] = ip.split("::");
+  if (extra !== undefined) return ip; // malformed; leave it, it still hashes
+  const h = head ? head.split(":") : [];
+  const t = tail ? tail.split(":") : [];
+  const groups = tail === undefined ? h : [...h, ...Array(Math.max(0, 8 - h.length - t.length)).fill("0"), ...t];
+  if (groups.length !== 8) return ip;
+  return groups.slice(0, 4).map((g) => g.replace(/^0+(?=.)/, "")).join(":");
+}
+
 /** Salted so the table cannot be reversed into a record of who visited. The
  *  salt is optional — without it this still works, it is just weaker, and a
  *  missing env var must never disable the limiter itself. */
@@ -76,6 +94,9 @@ export interface RateLimitOptions {
    *  Only worth setting on a path where letting an unbounded request through is
    *  worse than a false rejection. */
   failClosed?: boolean;
+  /** Count against this key (e.g. a recipient address) instead of the client
+   *  IP, so a limit can be per recipient or account. Hashed like an IP. */
+  key?: string;
 }
 
 export interface RateLimitResult {
@@ -103,7 +124,7 @@ export async function checkRateLimit(
   const allow = (hits: number): RateLimitResult => ({ ok: true, hits, limit: opts.limit, retryAfter });
 
   try {
-    const ip = clientIp(req);
+    const ip = opts.key ?? normalizeIp(clientIp(req));
     // No address to key on — a local request, or a proxy that stripped it.
     // Counting every such request together would rate-limit them as one visitor.
     //

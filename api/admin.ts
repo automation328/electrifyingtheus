@@ -207,8 +207,16 @@ async function handleCollection(b: Record<string, unknown>, res: any, role: stri
     }
     const id = String(b.id ?? "");
     if (!id) { res.status(400).json({ error: "missing_id" }); return; }
-    const { data, error } = await db.from(table).update(row).eq("id", id).select().single();
+    // An author may only touch rows that are still drafts: forcing row.status
+    // = "draft" above would otherwise let them unpublish or overwrite live content.
+    let q = db.from(table).update(row).eq("id", id);
+    if (role === "author") q = q.eq("status", "draft");
+    const { data, error } = await q.select().maybeSingle();
     if (error) { res.status(400).json({ error: "update_failed", detail: error.message }); return; }
+    if (!data) {
+      if (role === "author") { forbid(res, "Authors can only edit drafts (this row is not a draft, or does not exist)."); return; }
+      res.status(404).json({ error: "not_found" }); return;
+    }
     const nowPublished = String(data?.status ?? "") === "published";
     await logActivity(db, actor, role, nowPublished && "status" in row ? "publish" : "update", table, id);
     res.status(200).json({ row: data });

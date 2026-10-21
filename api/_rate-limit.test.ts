@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach } from "vitest";
-import { AUTH_PER_MINUTE_DEFAULT, authLimitPerMinute, checkAuthRateLimit } from "./_rate-limit";
+import { AUTH_PER_MINUTE_DEFAULT, authLimitPerMinute, checkAuthRateLimit, normalizeIp } from "./_rate-limit";
 
 const ENV = ["AUTH_RATE_LIMIT_PER_MINUTE", "SUPABASE_URL", "VITE_SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"] as const;
 const saved = Object.fromEntries(ENV.map((k) => [k, process.env[k]]));
@@ -37,5 +37,25 @@ describe("checkAuthRateLimit", () => {
     expect(r.ok).toBe(false);
     expect(r.limit).toBe(7);
     expect(r.retryAfter).toBeLessThanOrEqual(60);
+  });
+});
+
+describe("normalizeIp", () => {
+  it("leaves IPv4 alone", () => expect(normalizeIp("203.0.113.9")).toBe("203.0.113.9"));
+  it("treats IPv4-mapped as the IPv4 client", () => {
+    expect(normalizeIp("::ffff:203.0.113.9")).toBe("203.0.113.9");
+    expect(normalizeIp("0:0:0:0:0:ffff:203.0.113.9")).toBe("203.0.113.9");
+  });
+  it("reduces IPv6 to the /64 whatever the compression", () => {
+    expect(normalizeIp("2001:db8::1")).toBe("2001:db8:0:0");
+    expect(normalizeIp("2001:db8:0:0:1::1")).toBe("2001:db8:0:0");
+    expect(normalizeIp("2001:DB8:0:1:aaaa:bbbb:cccc:dddd")).toBe("2001:db8:0:1");
+    expect(normalizeIp("2001:db8:0:1:2:3:4:5")).toBe(normalizeIp("2001:db8:0:1::9"));
+    expect(normalizeIp("::1")).toBe("0:0:0:0");
+    expect(normalizeIp("::")).toBe("0:0:0:0");
+    expect(normalizeIp("2001:db8:0:0:0:0:0::")).toBe("2001:db8:0:0");
+  });
+  it("strips brackets and zone ids", () => {
+    expect(normalizeIp("[fe80::1%eth0]")).toBe("fe80:0:0:0");
   });
 });

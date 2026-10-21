@@ -54,8 +54,61 @@ function cleanFeedTitle(og: string): string {
   return t.trim();
 }
 
+// Feed-supplied URLs are untrusted: without a guard a feed entry could point this
+// server at localhost, a cloud metadata address or an internal host and have the
+// response parsed into a public event. https only, no localhost / private /
+// link-local IP literals. shortcut: hostnames are not resolved, so DNS that points
+// a public name at a private IP still passes; upgrade if feeds stop being curated.
+export function isSafeFeedUrl(raw: string): boolean {
+  let u: URL;
+  try { u = new URL(raw); } catch { return false; }
+  if (u.protocol !== "https:") return false;
+  const h = u.hostname.toLowerCase();
+  if (h === "localhost" || h.endsWith(".localhost") || h.endsWith(".internal") || h.endsWith(".local")) return false;
+  if (h.startsWith("[")) return false; // IPv6 literal (incl. ::1, fc00::/7, fe80::/10, ::ffff:a.b.c.d)
+  const m = h.match(/^(\d+)\.(\d+)\.(\d+)\.(\d+)$/); // the URL parser already normalizes hex/decimal forms
+  if (m) {
+    const [a, b] = [Number(m[1]), Number(m[2])];
+    if (a === 0 || a === 10 || a === 127 || (a === 169 && b === 254) || (a === 172 && b >= 16 && b <= 31)
+      || (a === 192 && b === 168) || (a === 100 && b >= 64 && b <= 127) || a >= 224) return false;
+  }
+  return true;
+}
+
+const ENRICH_MAX_BYTES = 1_000_000;
+const ENRICH_MAX_HOPS = 3;
+
+// GET a guarded URL: redirects are followed by hand so every hop is re-validated,
+// and the body is read only up to ENRICH_MAX_BYTES. Returns null on any refusal.
+async function fetchCapped(url: string, init: RequestInit): Promise<string | null> {
+  let cur = url;
+  for (let hop = 0; hop <= ENRICH_MAX_HOPS; hop++) {
+    if (!isSafeFeedUrl(cur)) return null;
+    const res = await fetch(cur, { ...init, redirect: "manual" });
+    if (res.status >= 300 && res.status < 400) {
+      const loc = res.headers.get("location");
+      if (!loc) return null;
+      cur = new URL(loc, cur).href;
+      continue;
+    }
+    if (!res.ok || !res.body) return null;
+    const reader = res.body.getReader();
+    const chunks: Uint8Array[] = [];
+    let total = 0;
+    while (total < ENRICH_MAX_BYTES) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      chunks.push(value);
+      total += value.length;
+    }
+    await reader.cancel().catch(() => {});
+    return Buffer.concat(chunks).subarray(0, ENRICH_MAX_BYTES).toString("utf8");
+  }
+  return null;
+}
+
 async function enrich(e: NormEvent): Promise<void> {
-  if (!e.url || !/^https?:\/\//.test(e.url)) return;
+  if (!e.url || !isSafeFeedUrl(e.url)) return;
   // Drive Electric Month/Earth Month block datacenter IPs (403 from serverless),
   // so read them through r.jina.ai (a reader proxy that isn't blocked); its
   // output starts with "Title: <real page title>". Everything else is fetched
@@ -65,9 +118,9 @@ async function enrich(e: NormEvent): Promise<void> {
   const timer = setTimeout(() => ctrl.abort(), isDem ? 12000 : 6000);
   try {
     if (isDem) {
-      const r = await fetch(`https://r.jina.ai/${e.url}`, { signal: ctrl.signal, headers: { Accept: "text/plain" } });
-      if (!r.ok) return;
-      const m = (await r.text()).match(/^Title:\s*(.+)$/m);
+      const txt = await fetchCapped(`https://r.jina.ai/${e.url}`, { signal: ctrl.signal, headers: { Accept: "text/plain" } });
+      if (txt == null) return;
+      const m = txt.match(/^Title:\s*(.+)$/m);
       if (m) {
         // Page title is "Real Title • City, ST • Date".
         const segs = m[1].split(/\s*•\s*/);
@@ -78,9 +131,8 @@ async function enrich(e: NormEvent): Promise<void> {
       }
       return;
     }
-    const res = await fetch(e.url, { signal: ctrl.signal, headers: { "User-Agent": ENRICH_UA, Accept: "text/html" } });
-    if (!res.ok) return;
-    const html = await res.text();
+    const html = await fetchCapped(e.url, { signal: ctrl.signal, headers: { "User-Agent": ENRICH_UA, Accept: "text/html" } });
+    if (html == null) return;
     const ogTitle = metaContent(html, "og:title") || html.match(/<title>([^<]+)<\/title>/i)?.[1];
     if (ogTitle) {
       const real = cleanFeedTitle(ogTitle);

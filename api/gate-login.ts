@@ -12,7 +12,7 @@
 //   GATE_TOKEN              Cookie value the middleware checks.
 //   GATE_SHARE_THRESHOLD    Distinct-IP count that triggers a ⚠️ (default 4).
 //   SLACK_WEBHOOK_URL       Incoming webhook for sign-in alerts (optional).
-//   VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY   For the record_gate_login RPC.
+//   VITE_SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY   For the record_gate_login RPC.
 //
 // It also answers the /updates deck password ({ scope: "slides", password }),
 // which wants the same three things this endpoint already does well: a limiter
@@ -95,11 +95,13 @@ function clientIp(req: { headers: Record<string, string | string[] | undefined> 
 }
 
 // Records (email, ip) via the SECURITY DEFINER RPC. Returns { isNewIp, distinctIps }.
-// Best-effort — never throws into the request path.
+// Best-effort — never throws into the request path. Uses the service-role key:
+// the RPC is revoked from anon (0033), or anyone with the public key could stuff
+// the table with fake sign-ins and skew the shared-login alert.
 async function recordLogin(email: string, ip: string, ua: string):
   Promise<{ isNewIp: boolean | null; distinctIps: number | null }> {
   const url = process.env.VITE_SUPABASE_URL;
-  const key = process.env.VITE_SUPABASE_ANON_KEY;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) return { isNewIp: null, distinctIps: null };
   try {
     const r = await fetch(`${url.replace(/\/$/, "")}/rest/v1/rpc/record_gate_login`, {

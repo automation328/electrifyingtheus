@@ -7,6 +7,7 @@ import { useEmbedFrame } from "@/hooks/useEmbedFrame";
 import evanAdvisor from "@/assets/evan-advisor.jpg";
 import AgentChatSection from "@/components/AgentChatSection";
 import ReactMarkdown from "react-markdown";
+import SafeMarkdownImg from "@/components/SafeMarkdownImg";
 import OpenAI from "openai";
 import { type Lead, EMPTY_LEAD, isValidEmail } from "@/lib/lead";
 import { withChatCta } from "@/lib/chatCta";
@@ -104,6 +105,7 @@ const PRESET_QA: { q: string; a: string }[] = [
 ];
 
 const markdownComponents = {
+  img: SafeMarkdownImg,
   p: ({ children }: { children?: React.ReactNode }) => <p className="mb-2 last:mb-0">{children}</p>,
   a: ({ href, children }: { href?: string; children?: React.ReactNode }) =>
     href?.startsWith("/") ? (
