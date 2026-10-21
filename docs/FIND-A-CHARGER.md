@@ -309,7 +309,7 @@ before.
 
 1. `public/embed.js` — the partner-facing loader's `TOOLS` map.
 2. `middleware.ts` — `EMBED_TOOL_PATHS`; a request with `?embed=1` on one of these exact paths skips the `etu_gate` cookie check that otherwise 401s every visitor.
-3. `vercel.json` — the enforced `X-Frame-Options: DENY` and `frame-ancestors 'none'` pair is scoped to `/admin` only; everywhere else the CSP is report-only with `frame-ancestors *`, which is what makes framing possible at all.
+3. `vercel.json` — the tool list appears twice in `headers` `source` patterns: excluded from the rule that sends `X-Frame-Options: SAMEORIGIN` and `frame-ancestors 'self'`, and matched by the rule whose enforced CSP has `frame-ancestors *`. That is what makes framing possible at all. Both patterns must name the same tools.
 4. The page itself — `new URLSearchParams(window.location.search).get("embed") === "1"`.
 
 In embed mode the page hides the navbar and footer, drops the hero gradient band,

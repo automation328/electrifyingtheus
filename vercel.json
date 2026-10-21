@@ -65,10 +65,6 @@
         {
           "key": "Permissions-Policy",
           "value": "accelerometer=(), autoplay=(), camera=(), display-capture=(), encrypted-media=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), midi=(), payment=(), usb=(), xr-spatial-tracking=()"
-        },
-        {
-          "key": "Content-Security-Policy-Report-Only",
-          "value": "default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; frame-ancestors *; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://www.google.com https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' https:; connect-src 'self' https://*.supabase.co https://*.supabase.in https://www.google-analytics.com https://analytics.google.com https://region1.google-analytics.com https://ipapi.co https://vpic.nhtsa.dot.gov https://api.openai.com https://n8n-9odn.srv1570441.hstgr.cloud; frame-src 'self' https://www.youtube-nocookie.com https://www.youtube.com https://www.google.com https://player.vimeo.com https://drive.google.com https://online.fliphtml5.com; worker-src 'self' blob:; manifest-src 'self'"
         }
       ]
     },
@@ -81,7 +77,16 @@
         },
         {
           "key": "Content-Security-Policy",
-          "value": "frame-ancestors 'self'"
+          "value": "default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; frame-ancestors 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://www.google.com https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' https:; connect-src 'self' https://*.supabase.co https://*.supabase.in https://*.google-analytics.com https://analytics.google.com https://*.analytics.google.com https://www.google.com https://stats.g.doubleclick.net https://api.rss2json.com https://ipapi.co https://vpic.nhtsa.dot.gov https://api.openai.com https://n8n-9odn.srv1570441.hstgr.cloud; frame-src 'self' https://www.youtube-nocookie.com https://www.youtube.com https://www.google.com https://player.vimeo.com https://drive.google.com https://online.fliphtml5.com; worker-src 'self' blob:; manifest-src 'self'"
+        }
+      ]
+    },
+    {
+      "source": "/((?=calculator|electricity-vs-gasoline|gm-ev-vs-gas|find-a-charger|rebates-incentives|rebate-eligibility|assistant).*)",
+      "headers": [
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; frame-ancestors *; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://www.google.com https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' https:; connect-src 'self' https://*.supabase.co https://*.supabase.in https://*.google-analytics.com https://analytics.google.com https://*.analytics.google.com https://www.google.com https://stats.g.doubleclick.net https://api.rss2json.com https://ipapi.co https://vpic.nhtsa.dot.gov https://api.openai.com https://n8n-9odn.srv1570441.hstgr.cloud; frame-src 'self' https://www.youtube-nocookie.com https://www.youtube.com https://www.google.com https://player.vimeo.com https://drive.google.com https://online.fliphtml5.com; worker-src 'self' blob:; manifest-src 'self'"
         }
       ]
     },
@@ -94,7 +99,7 @@
         },
         {
           "key": "Content-Security-Policy",
-          "value": "frame-ancestors 'none'"
+          "value": "default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; frame-ancestors 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://www.google.com https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' https:; connect-src 'self' https://*.supabase.co https://*.supabase.in https://*.google-analytics.com https://analytics.google.com https://*.analytics.google.com https://www.google.com https://stats.g.doubleclick.net https://api.rss2json.com https://ipapi.co https://vpic.nhtsa.dot.gov https://api.openai.com https://n8n-9odn.srv1570441.hstgr.cloud; frame-src 'self' https://www.youtube-nocookie.com https://www.youtube.com https://www.google.com https://player.vimeo.com https://drive.google.com https://online.fliphtml5.com; worker-src 'self' blob:; manifest-src 'self'"
         },
         {
           "key": "Referrer-Policy",
@@ -115,7 +120,7 @@
         },
         {
           "key": "Content-Security-Policy",
-          "value": "frame-ancestors 'none'"
+          "value": "default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; frame-ancestors 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://www.google.com https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' https:; connect-src 'self' https://*.supabase.co https://*.supabase.in https://*.google-analytics.com https://analytics.google.com https://*.analytics.google.com https://www.google.com https://stats.g.doubleclick.net https://api.rss2json.com https://ipapi.co https://vpic.nhtsa.dot.gov https://api.openai.com https://n8n-9odn.srv1570441.hstgr.cloud; frame-src 'self' https://www.youtube-nocookie.com https://www.youtube.com https://www.google.com https://player.vimeo.com https://drive.google.com https://online.fliphtml5.com; worker-src 'self' blob:; manifest-src 'self'"
         },
         {
           "key": "Referrer-Policy",

@@ -18,7 +18,7 @@ same class of service — ships a full nonce-based CSP.
 | `X-Content-Type-Options` | `nosniff` | Stops a browser second-guessing a declared MIME type. No downside; there is no content that relies on sniffing. |
 | `Referrer-Policy` | `strict-origin-when-cross-origin` | Full path stays same-origin, only the origin leaks outward, and nothing leaks HTTPS→HTTP. Matters because tool URLs carry answers as query params (`?zip=…`). |
 | `Permissions-Policy` | everything off | Only APIs the app **verifiably does not call**. `grep -rn "geolocation\|getCurrentPosition" src/` returns nothing, so geolocation is off too. If a feature later needs one of these, remove it from the list — it will fail silently otherwise. |
-| `Content-Security-Policy-Report-Only` | see below | Deliberately not enforced yet. |
+| `Content-Security-Policy` | see below | Enforced. One full copy per path class, differing only in `frame-ancestors`. |
 
 ### HSTS is deliberately left alone
 
@@ -29,25 +29,40 @@ a subdomain nobody remembered. Decide it deliberately, then add it.
 
 ---
 
-## Why the CSP is Report-Only
+## The CSP is enforced
 
-The policy is a *hypothesis* about what the site loads, assembled from the codebase
-rather than from observed traffic. Shipping it enforced risks blanking a page over a
-resource nobody remembered — and a blank page is worse than the risk it prevents.
+It started Report-Only. It was switched to enforced on 22 Oct 2026, after a ZAP
+passive scan flagged that the only enforced CSP was `frame-ancestors`. Before the
+switch, 81 live pages were loaded in Chrome with the policy forced to enforce, and
+the codebase was swept for every origin it loads. That found two gaps, both in
+`connect-src`, which were added:
 
-Report-Only makes violations appear in the browser console while blocking nothing.
+- `api.rss2json.com`, which `src/pages/News.tsx` fetches feeds through. Without it
+  the News page would show no feeds.
+- `www.google.com`, which GA4 posts `/g/collect` beacons to.
+  `stats.g.doubleclick.net` and the `*.google-analytics.com` /
+  `*.analytics.google.com` wildcards were added for the same GA4 code path.
 
-**To enforce it:**
+**Every path gets exactly one `Content-Security-Policy` value.** Vercel does not
+document what happens when two `headers` rules match a path and set the same key,
+so the rules are written so that question never arises:
 
-1. Walk the site with the console open — home, calculator, EV-vs-gas, find-a-charger,
-   rebates, rebate-eligibility, assistant, news, events, gallery, and the CMS.
-   Submit at least one form so reCAPTCHA and the lead path are exercised.
-2. Collect every `[Report Only]` violation and add the origin it names — or fix the
-   code that loads it.
-3. When a full pass is quiet, rename the key from
-   `Content-Security-Policy-Report-Only` to `Content-Security-Policy`.
+| Rule `source` | `frame-ancestors` |
+|---|---|
+| `/((?!calculator\|…\|assistant).*)` (every non-tool path) | `'self'` |
+| `/((?=calculator\|…\|assistant).*)` (the seven embeddable tools) | `*` |
+| `/admin`, `/admin/:path*` | `'none'` |
 
-Known soft spots in the current policy, all of which are why it starts Report-Only:
+The admin rules overlap the non-tool rule. Both carry the full policy, so
+whichever wins, `/admin` is fully covered and cannot be framed. **The four copies
+must stay identical apart from `frame-ancestors`.** An origin added to one has to
+go into all four. Check a tool page, a non-tool page and `/admin` with
+`curl -sI` after any change.
+
+There is no `report-uri`, so a resource the policy blocks fails silently. When
+something stops loading, check the browser console for a CSP violation first.
+
+Known soft spots in the current policy:
 
 - `'unsafe-inline'` and `'unsafe-eval'` in `script-src`. GTM and reCAPTCHA both need
   them today. Removing them needs a nonce, which needs the HTML to be
