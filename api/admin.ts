@@ -28,7 +28,7 @@
 import { randomBytes, createHash, timingSafeEqual } from "node:crypto";
 import { getEditor, requireEditor, adminSupabase } from "./_admin-auth.js";
 import { appendActivity, readActivity } from "./_activity-log.js";
-import { checkRateLimit, tooManyRequests } from "./_rate-limit.js";
+import { checkAuthRateLimit, checkRateLimit, tooManyRequests } from "./_rate-limit.js";
 import { verifyReview, eventPath } from "./_event-submission.js";
 import { runWeeklyImport, buildImportDigest, postDigest, archivePastDrafts } from "./_event-import.js";
 import { sendEventApprovalEmail } from "./_approval-email.js";
@@ -802,7 +802,7 @@ export async function notifyOrganiser(
 async function handleEventReview(req: any, res: any) {
   // Rate limited like every other unauthenticated path here. A signature guess
   // is cheap for an attacker and a database round trip for us.
-  const rl = await checkRateLimit(req, { bucket: "event-review", limit: 60, windowMinutes: 60 });
+  const rl = await checkAuthRateLimit(req, { bucket: "event-review", limit: 60, windowMinutes: 60 });
   if (!rl.ok) { reviewPage(res, 429, "Too many attempts", "Try again in a little while."); return; }
 
   const id = String(req.query?.id ?? "");
@@ -884,7 +884,7 @@ async function handleEventReview(req: any, res: any) {
 async function cronDb(req: any, res: any, bucket: string) {
   // Unauthenticated until the secret matches, so it gets a meter first: without
   // one, the 401 path is free to hammer, which is how a secret gets guessed.
-  const rl = await checkRateLimit(req, { bucket, limit: 20, windowMinutes: 60 });
+  const rl = await checkAuthRateLimit(req, { bucket, limit: 20, windowMinutes: 60 });
   if (!rl.ok) { tooManyRequests(res, rl); return null; }
 
   const secret = process.env.CRON_SECRET;

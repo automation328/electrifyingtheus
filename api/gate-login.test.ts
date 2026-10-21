@@ -5,13 +5,13 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 // these tests exercise the password logic; the "metered before the password is
 // read" property is asserted separately, below.
 vi.mock("./_rate-limit.js", () => ({
-  checkRateLimit: vi.fn().mockResolvedValue({ ok: true, hits: 1, limit: 10, retryAfter: 900 }),
+  checkAuthRateLimit: vi.fn().mockResolvedValue({ ok: true, hits: 1, limit: 10, retryAfter: 900 }),
   tooManyRequests: vi.fn((res: { status: (n: number) => { json: (o: unknown) => void } }) =>
     res.status(429).json({ error: "rate_limited" })),
 }));
 
 import handler from "./gate-login";
-import { checkRateLimit } from "./_rate-limit.js";
+import { checkAuthRateLimit } from "./_rate-limit.js";
 import { SLIDES_COOKIE, slidesToken } from "../slides-gate.js";
 
 const mockRes = () => {
@@ -71,14 +71,14 @@ describe("the slides password branch of the gate endpoint", () => {
     // A login endpoint with no limiter in front of it is a guessing machine.
     const res = mockRes();
     await handler(post("whatever"), res);
-    expect(checkRateLimit).toHaveBeenCalledOnce();
-    expect(vi.mocked(checkRateLimit).mock.calls[0][1]).toMatchObject({
+    expect(checkAuthRateLimit).toHaveBeenCalledOnce();
+    expect(vi.mocked(checkAuthRateLimit).mock.calls[0][1]).toMatchObject({
       bucket: "slides-login", failClosed: true,
     });
   });
 
   it("turns a rate-limited caller away without checking anything", async () => {
-    vi.mocked(checkRateLimit).mockResolvedValueOnce({ ok: false, hits: 11, limit: 10, retryAfter: 900 });
+    vi.mocked(checkAuthRateLimit).mockResolvedValueOnce({ ok: false, hits: 11, limit: 10, retryAfter: 900 });
     const res = mockRes();
     await handler(post(PASSWORD), res);
     expect(res._out.status).toBe(429);

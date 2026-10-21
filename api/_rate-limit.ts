@@ -143,6 +143,38 @@ export async function checkRateLimit(
   }
 }
 
+/** Default for AUTH_RATE_LIMIT_PER_MINUTE: attempts one address may make on
+ *  one authentication endpoint in a minute. */
+export const AUTH_PER_MINUTE_DEFAULT = 5;
+
+/** AUTH_RATE_LIMIT_PER_MINUTE, or the default when it is unset or not a
+ *  positive whole number. A typo must never switch the limit off. */
+export function authLimitPerMinute(): number {
+  const n = Number(process.env.AUTH_RATE_LIMIT_PER_MINUTE);
+  return Number.isInteger(n) && n > 0 ? n : AUTH_PER_MINUTE_DEFAULT;
+}
+
+/**
+ * The limiter for endpoints that check a password, token or signature.
+ *
+ * Two windows, checked in order: AUTH_RATE_LIMIT_PER_MINUTE per IP per minute,
+ * then the endpoint's own longer budget in `opts`. The minute window stops a
+ * burst; the long one is what actually bounds a patient guesser, since five a
+ * minute alone is still 7,200 guesses a day. Both use `opts.failClosed`.
+ */
+export async function checkAuthRateLimit(
+  req: { headers?: Record<string, unknown> },
+  opts: RateLimitOptions,
+): Promise<RateLimitResult> {
+  // Own bucket name: a 1-minute and a 15-minute window can start at the same
+  // instant, and site_rate_limit keys on (ip_hash, bucket, window_start).
+  const minute = await checkRateLimit(req, {
+    bucket: `${opts.bucket}-minute`, limit: authLimitPerMinute(), windowMinutes: 1, failClosed: opts.failClosed,
+  });
+  if (!minute.ok) return minute;
+  return checkRateLimit(req, opts);
+}
+
 /** The 429 body. Written for a person who has hit it by accident — which, on a
  *  shared network, is who will hit it first. */
 export function tooManyRequests(

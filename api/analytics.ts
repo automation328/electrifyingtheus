@@ -10,7 +10,7 @@
 import { timingSafeEqual } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 import { analyticsSummary, visitorJourney } from "./_analytics-core.js";
-import { checkRateLimit, tooManyRequests } from "./_rate-limit.js";
+import { checkAuthRateLimit, tooManyRequests } from "./_rate-limit.js";
 
 // Server-only Supabase client (service role → bypasses RLS). null until configured.
 function adminSupabase() {
@@ -44,7 +44,7 @@ export default async function handler(req: any, res: any) {
   // is worthless without a cap on attempts, so bound guesses before checking.
   // Fails CLOSED, unlike the contact form: if the limiter's database is down we
   // would rather this dashboard be briefly unavailable than unguarded.
-  const rl = await checkRateLimit(req, {
+  const rl = await checkAuthRateLimit(req, {
     bucket: "analytics-login", limit: 10, windowMinutes: 15, failClosed: true,
   });
   if (!rl.ok) { tooManyRequests(res, rl); return; }

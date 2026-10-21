@@ -25,7 +25,7 @@
 //   SLIDES_PASSWORD   one shared password for /updates. Unset = page stays open.
 
 import { createHash, timingSafeEqual } from "node:crypto";
-import { checkRateLimit, tooManyRequests } from "./_rate-limit.js";
+import { checkAuthRateLimit, tooManyRequests } from "./_rate-limit.js";
 import {
   SLIDES_COOKIE, SLIDES_COOKIE_PATH, SLIDES_MAX_AGE, slidesToken, timingSafeEqualHex, sha256Hex,
 } from "../slides-gate.js";
@@ -163,7 +163,7 @@ export async function handleSlides(req: any, res: any, b: Record<string, unknown
   const expected = process.env.SLIDES_PASSWORD || "";
   if (!expected) { res.status(500).json({ error: "Not configured" }); return; }
 
-  const rl = await checkRateLimit(req, {
+  const rl = await checkAuthRateLimit(req, {
     bucket: "slides-login", limit: 10, windowMinutes: 15, failClosed: true,
   });
   if (!rl.ok) { tooManyRequests(res, rl); return; }
@@ -204,7 +204,7 @@ export default async function handler(req: any, res: any) {
   // This is the site's only authentication endpoint, so bound guesses before
   // checking any credential. Fails CLOSED: if the limiter's database is down,
   // an unthrottled login endpoint is a worse outcome than a blocked reviewer.
-  const rl = await checkRateLimit(req, {
+  const rl = await checkAuthRateLimit(req, {
     bucket: "gate-login", limit: 10, windowMinutes: 15, failClosed: true,
   });
   if (!rl.ok) { tooManyRequests(res, rl); return; }
