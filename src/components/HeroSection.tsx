@@ -85,7 +85,9 @@ const HeroSection = () => {
         // reads in full on a tall hero. Every other slide is unchanged.
         const plain =
           slide.kind === "event" &&
-          (slide.data.slug === "from-pump-to-plug" || slide.data.slug === "multi-modal-emobility-summit");
+          (slide.data.slug === "from-pump-to-plug" ||
+            slide.data.slug === "from-pump-to-plug-part-3" ||
+            slide.data.slug === "multi-modal-emobility-summit");
         // "From Pump to Plug" has a dedicated full-flyer asset; other flyer events
         // use their own event image (already the full flyer).
         const flyerSrc =
