@@ -37,8 +37,11 @@ const HeroSection = () => {
   const SLIDES = useMemo<Slide[]>(() => {
     // Show the eMobility Summit as the later event slide (slide 3) — keep it last
     // among the hero events without changing the Featured section's order.
+    // The Part 3 webinar is pinned to the first event slide (slide 2), ahead of
+    // events that fall sooner. Stable sort keeps everything else in date order.
     const heroEvents = events
       .filter((e) => !e.heroHidden)
+      .sort((a, b) => (b.slug === "from-pump-to-plug-part-3" ? 1 : 0) - (a.slug === "from-pump-to-plug-part-3" ? 1 : 0))
       .slice(0, 2)
       .sort(
         (a, b) =>
