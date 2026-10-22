@@ -26,7 +26,6 @@ import octoberCoalition2026 from "@/assets/events/october-coalition-2026.jpg";
 import evadcAskAnEvOwner2026 from "@/assets/events/evadc-ask-an-ev-owner-2026.png";
 import evadcPicnic2026 from "@/assets/events/evadc-picnic-2026.jpg";
 import forthRoadmap2026 from "@/assets/events/forth-roadmap-2026.png";
-import pumpToPlugPart3 from "@/assets/events/pump-to-plug-part-3-2026.jpg";
 import { lookupEventTitle } from "./event-titles";
 
 export interface EventItem {
@@ -560,22 +559,6 @@ export const EVENTS: EventItem[] = [
     // resolve to a live page.
     slug: "from-pump-to-plug",
     registerUrl: "https://us06web.zoom.us/webinar/register/WN_PtzGLoOyQqmDMg8lXpKRlw#/registration",
-  },
-  {
-    month: "NOV", day: "19", year: 2026,
-    title: "Part 3: From The Pump To The Plug - How Pre-Owned EVs Can Save You Thousands",
-    type: "Webinar",
-    location: "Online · Live Webinar",
-    region: "Online",
-    time: "2:00 PM ET / 11:00 AM PT",
-    description:
-      "The third installment of our From the Pump to the Plug webinar series, focused on pre-owned electric vehicles and EV affordability. Dealership representatives and industry experts discuss shopping for a used EV, what to know before you buy, and how to weigh battery health, vehicle condition, charging access, maintenance, and fuel savings — so you can decide whether a pre-owned EV fits your needs and budget.",
-    image: pumpToPlugPart3,
-    featured: true,
-    // Not `ours: true`, for the same reason as Part 2 above: once the date
-    // passes, a listing pointing at a Zoom registration should retire itself.
-    slug: "from-pump-to-plug-part-3",
-    registerUrl: "https://us06web.zoom.us/webinar/register/WN_HQIIDKXJTfSzCTeIvdpvog#/registration",
   },
 
   // ── Major EV / mobility industry events (from EV Magazine's Top 10) ─────────
