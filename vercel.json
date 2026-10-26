@@ -16,6 +16,11 @@
       "source": "/blog/why-2026-is-the-tipping-point",
       "destination": "/blog/2026-ev-tipping-point-electric-vehicle-adoption-america",
       "permanent": true
+    },
+    {
+      "source": "/evaffordabilitywebinar",
+      "destination": "/events/from-pump-to-plug-part-3",
+      "permanent": false
     }
   ],
   "crons": [
