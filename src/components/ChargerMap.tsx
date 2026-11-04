@@ -1,13 +1,13 @@
 import { useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import { TILES, ATTRIBUTION } from "@/lib/map-tiles";
 import { kindOf, connectorLabel, portSummary, KIND_COLORS, KIND_LABELS, type Station, type StationKind } from "@/lib/stations";
 
 // Map of AFDC charging stations, colored by what you can plug into.
 //
-// Lazy-loaded by FindACharger: Leaflet plus its CSS is ~45 kB gzipped and this
-// is the only page that draws a map, so it must not sit in a chunk every other
-// page loads.
+// Lazy-loaded by FindACharger: Leaflet plus its CSS is ~45 kB gzipped and only
+// the map pages use it, so it must not sit in a chunk every other page loads.
 //
 // Leaflet rather than MapLibre: MapLibre renders vector tiles through a WebGL
 // canvas fed by a web worker, and both v5 and v6 left every source unloaded with
@@ -15,14 +15,7 @@ import { kindOf, connectorLabel, portSummary, KIND_COLORS, KIND_LABELS, type Sta
 // works. Leaflet paints raster tiles as ordinary <img> elements: no worker, no
 // GPU path, nothing to fail quietly.
 //
-// Tiles come from the OpenStreetMap standard layer, which needs no API key.
-// Attribution is required by the ODbL and by the OSM tile usage policy and is
-// set below — don't remove it. A keyed provider (MapTiler, Stadia, CARTO — all
-// three now stamp "API KEY REQUIRED" across an unkeyed map) drops in by changing
-// TILES and ATTRIBUTION together.
-const TILES = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
-const ATTRIBUTION =
-  '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors';
+// Tiles and their required attribution live in src/lib/map-tiles.ts.
 
 /** Station names and networks come from an external feed — never inject raw. */
 const escapeHtml = (s: string) =>

@@ -179,6 +179,14 @@ export const OG_ENTRIES: OgEntry[] = [
     image: "/og/find-a-charger.jpg",
   },
   {
+    path: "/range-map",
+    title: "EV Range Map — How Far Can Your EV Go?",
+    description:
+      "Pick your EV by make, model and year, enter a ZIP code, and see your driving range as a radius on the map, in normal weather and in deep cold.",
+    // shortcut: reuses the charger map card until a range-map card is made.
+    image: "/og/find-a-charger.jpg",
+  },
+  {
     path: "/rebate-eligibility",
     title: "EV Rebate Eligibility Check — Deadlines & Documents",
     description:

@@ -14,6 +14,7 @@ const CORE_LINKS: SiteLink[] = [
   { label: "EV vs Gas Calculator", path: "/electricity-vs-gasoline", group: "Main" },
   { label: "GM EV vs Gas", path: "/gm-ev-vs-gas", group: "Main" },
   { label: "Find a Charger", path: "/find-a-charger", group: "Main" },
+  { label: "EV Range Map", path: "/range-map", group: "Main" },
   { label: "Rebates & Incentives", path: "/rebates-incentives", group: "Main" },
   { label: "Rebate Eligibility Check", path: "/rebate-eligibility", group: "Main" },
   { label: "EVan Assistant", path: "/assistant", group: "Main" },

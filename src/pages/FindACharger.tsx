@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
 import { MapPin, Search, ExternalLink, Plug, Zap, Gauge, Locate, Navigation, Loader2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -11,8 +12,8 @@ import {
   KIND_COLORS, KIND_LABELS, type LevelFilter, type Station,
 } from "@/lib/stations";
 
-// Leaflet plus its CSS is ~45 kB gzipped and this is the only page that
-// draws a map, so it loads on its own, after the page has rendered.
+// Leaflet plus its CSS is ~45 kB gzipped and only the map pages use it, so
+// it loads on its own, after the page has rendered.
 const ChargerMap = lazy(() => import("@/components/ChargerMap"));
 
 // The longest search worth carrying. Matches the cap the proxy applies.
@@ -457,6 +458,21 @@ const FindACharger = () => {
                 Open Station Locator <ExternalLink className="w-4 h-4" />
               </Button>
             </a>
+          </div>
+
+          {/* Range map cross-link */}
+          <div className="mt-4 rounded-3xl border border-border bg-card p-6 md:p-7 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div>
+              <h2 className="font-display font-bold text-foreground text-lg">How far can you go between charges?</h2>
+              <p className="text-muted-foreground text-sm mt-1 max-w-xl">
+                Pick your EV and a ZIP code to see its driving range as a radius on the map.
+              </p>
+            </div>
+            <Link to="/range-map" className="shrink-0">
+              <Button variant="outline" className="rounded-xl">
+                Open Range Map <Gauge className="w-4 h-4" />
+              </Button>
+            </Link>
           </div>
 
           {/* Connector primer */}
