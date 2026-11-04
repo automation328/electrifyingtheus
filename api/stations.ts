@@ -85,6 +85,13 @@ export default async function handler(req: any, res: any) {
   // `q` is what the box sends now; `zip` is what links shared before free-text
   // search did, and what the IP auto-detect still hands us.
   const text = pick(query.q, pick(query.zip, "")).trim().slice(0, MAX_QUERY);
+  // Range Map: place to coordinates only, without spending an AFDC call. Lives here for the 12-function cap.
+  if (op === "geocode") {
+    const found = text ? await resolveQuery(text) : null;
+    if (!found) { res.status(404).json({ error: `Couldn't find "${text}".` }); return; }
+    res.status(200).json({ lat: found.lat, lon: found.lon, label: found.label });
+    return;
+  }
   const level = pick(query.level, "all").toLowerCase();
   // A radius arrives only when the VISITOR chose one (the "search 50 miles
   // instead" button). Left off, the geocoder's own answer decides — which is the

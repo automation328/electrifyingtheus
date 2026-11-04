@@ -30,6 +30,7 @@ const RangeCircleMap = ({ center, rings, className = "" }: Props) => {
   useEffect(() => {
     if (!holder.current || map.current) return;
     const m = L.map(holder.current, { scrollWheelZoom: false }).setView(US_CENTER, 4);
+    m.attributionControl.setPrefix(false);
     L.tileLayer(TILES, { attribution: ATTRIBUTION, maxZoom: 19 }).addTo(m);
     layer.current = L.layerGroup().addTo(m);
     map.current = m;
