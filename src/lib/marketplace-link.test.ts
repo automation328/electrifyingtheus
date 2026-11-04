@@ -24,6 +24,18 @@ describe("marketplacePathFor", () => {
     }
   });
 
+  it("searches the whole country for one car, with or without a ZIP", () => {
+    const withZip = paramsOf(marketplacePathFor("kia-ev6", { zip: "30080", nationwide: true })!);
+    expect(withZip.get("q")).toBe("30080");
+    expect(withZip.get("radius")).toBe("5000");
+
+    const noZip = paramsOf(marketplacePathFor("kia-ev6", { nationwide: true })!);
+    expect(noZip.get("q")).toBe("United States");
+    expect(noZip.get("radius")).toBe("5000");
+    expect(noZip.get("makes")).toBe("Kia");
+    expect(noZip.get("models")).toBe("EV6");
+  });
+
   it("produces a path the marketplace reads back as the same filter", () => {
     const filters = readFilters(paramsOf(marketplacePathFor("tesla-model-3")!));
     expect(filters.makes).toEqual(["Tesla"]);

@@ -1,4 +1,5 @@
 import { EV_CATALOG } from "@/data/ev-catalog";
+import { NATIONWIDE_RADIUS } from "@/lib/marketplace-types";
 
 // Links from elsewhere on the site into the marketplace, for one particular car.
 //
@@ -12,6 +13,10 @@ export interface MarketplaceLinkOptions {
   /** The visitor's ZIP, when the page already knows it. Without one the
    *  marketplace opens on its "start with a location" state, filter intact. */
   zip?: string;
+  /** Search the whole country. A ZIP is still sent when known, to order the
+   *  results by distance; without one the search anchors on the U.S. itself,
+   *  so the link works for a visitor whose location we never found. */
+  nationwide?: boolean;
 }
 
 /**
@@ -21,7 +26,7 @@ export interface MarketplaceLinkOptions {
  * make is matched exactly, model loosely, which is what dealer text demands.
  */
 export function marketplacePathFor(
-  catalogId: string, { zip }: MarketplaceLinkOptions = {},
+  catalogId: string, { zip, nationwide }: MarketplaceLinkOptions = {},
 ): string | null {
   const vehicle = BY_ID.get(catalogId);
   if (!vehicle) return null;
@@ -29,6 +34,8 @@ export function marketplacePathFor(
   const params = new URLSearchParams();
   const clean = (zip ?? "").trim();
   if (/^\d{5}$/.test(clean)) params.set("q", clean);
+  else if (nationwide) params.set("q", "United States");
+  if (nationwide) params.set("radius", String(NATIONWIDE_RADIUS));
   params.set("makes", vehicle.make);
   params.set("models", vehicle.model);
   return `/marketplace?${params}`;

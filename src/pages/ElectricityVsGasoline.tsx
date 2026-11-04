@@ -972,6 +972,7 @@ const ElectricityVsGasoline = () => {
                 {matches.map((m) => {
                   const active = m.ev.id === evId;
                   const meta = MATCH_META[m.label];
+                  const forSale = marketplacePathFor(m.ev.id, { zip, nationwide: true });
                   return (
                     <div
                       key={m.ev.id}
@@ -982,7 +983,7 @@ const ElectricityVsGasoline = () => {
                       type="button"
                       onClick={() => setEvId(m.ev.id)}
                       aria-pressed={active}
-                      className="text-left rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      className="mb-3 text-left rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
                       {m.ev.image && (
                         <div className="aspect-[16/10] mb-3 rounded-xl overflow-hidden bg-muted">
@@ -1002,27 +1003,31 @@ const ElectricityVsGasoline = () => {
                         <meta.icon className="w-3 h-3" /> {m.label}
                       </span>
                       <div className="font-charge text-lg text-foreground leading-tight">{m.ev.name}</div>
-                      <div className="text-sm text-muted-foreground mb-2">{currency(m.ev.msrp, 0)} · {m.ev.rangeMi} mi range</div>
+                      <div className="text-sm text-muted-foreground mb-2">{m.ev.rangeMi} mi range</div>
                       <p className="text-xs text-muted-foreground">{m.reason}</p>
                       {m.caveat && (
                         <p className="text-[11px] text-amber-600 mt-1.5 flex items-center gap-1">
                           <Info className="w-3 h-3 shrink-0" /> {m.caveat}
                         </p>
                       )}
-                      <div className="mt-3 pt-3 border-t border-border flex items-center justify-between text-xs">
-                        <span className="text-muted-foreground">MSRP</span>
-                        <span className="font-charge text-base text-foreground tabular-nums">{currency(m.ev.msrp, 0)}</span>
-                      </div>
                     </button>
+                    {forSale && (
+                      <Link
+                        to={forSale}
+                        className="mt-auto inline-flex w-full items-center justify-center gap-2 rounded-xl border border-primary/30 bg-primary/5 px-3 py-2.5 text-sm font-medium text-primary transition-colors hover:bg-primary/10"
+                      >
+                        <Store className="w-4 h-4 shrink-0" aria-hidden />
+                        <span>View all <span className="sr-only">{m.ev.name}</span> for sale in the U.S.</span>
+                      </Link>
+                    )}
                     </div>
                   );
                 })}
               </div>
 
               {/* One errand, not three: the marketplace takes a list of makes
-                  and models, so all three matches are searched at once. The
-                  MSRPs above are new-car stickers; this is what they cost on a
-                  forecourt nearby. */}
+                  and models, so all three matches are searched at once, at what
+                  they cost on a forecourt nearby. */}
               {matchesForSale && (
                 <Link
                   to={matchesForSale}
