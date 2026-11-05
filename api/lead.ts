@@ -303,7 +303,7 @@ export default async function handler(req: any, res: any) {
   const name = [firstName, lastName].filter(Boolean).join(" ").trim();
 
   // Drop empty values so we never overwrite existing GHL data with blanks.
-  const contact: Record<string, unknown> = { locationId, tags, source: SOURCE_LABEL[formType] ?? "Electrifying the US website" };
+  const contact: Record<string, unknown> = { locationId, source: SOURCE_LABEL[formType] ?? "Electrifying the US website" };
   const put = (k: string, v: string) => { if (v && String(v).trim()) contact[k] = String(v).trim(); };
   put("firstName", firstName); put("lastName", lastName); put("name", name);
   put("email", email); put("phone", phone || mobile);
@@ -331,6 +331,13 @@ export default async function handler(req: any, res: any) {
   const customFields = buildCustomFields(cfIds, { title, department, industry });
   if (customFields.length) contact.customFields = customFields;
 
+  // Never in the upsert: it replaces a contact's tags, so each form would wipe
+  // the last one's. Best-effort, because the contact is already saved by now.
+  const addTags = (id: string, list: string[]) =>
+    ghl(`/contacts/${id}/tags`, { method: "POST", body: JSON.stringify({ tags: list }) })
+      .then((r) => { if (!r.ok) console.error("GHL tags failed", r.status); })
+      .catch((e) => console.error("GHL tags failed", e));
+
   try {
     const upsertRes = await ghl("/contacts/upsert", { method: "POST", body: JSON.stringify(contact) });
     const upsert = await upsertRes.json().catch(() => ({}));
@@ -343,6 +350,7 @@ export default async function handler(req: any, res: any) {
       res.status(502).json({ error: "GHL upsert failed" }); return;
     }
     const contactId = upsert?.contact?.id ?? upsert?.id;
+    if (contactId) await addTags(contactId, tags);
 
     // Our own record of the submission (supabase/migrations/0015). Best-effort
     // and unable to throw — see api/_submissions.ts. GoHighLevel stays the CRM;
@@ -394,15 +402,17 @@ export default async function handler(req: any, res: any) {
     if (formType === "calculator-share" && (senderEmail || senderPhone)) {
       const senderContact: Record<string, unknown> = {
         locationId,
-        tags: ["website-lead", "calculator-share-sender", "source:calculator-share-sender"],
         source: "EV Calculator share (sender)",
       };
       const sput = (k: string, v: string) => { if (v && String(v).trim()) senderContact[k] = String(v).trim(); };
       sput("firstName", senderName); sput("name", senderName);
       sput("email", senderEmail); sput("phone", senderPhone);
       sput("website", shareUrl);
-      await ghl("/contacts/upsert", { method: "POST", body: JSON.stringify(senderContact) })
-        .catch(() => { /* non-blocking */ });
+      const senderRes = await ghl("/contacts/upsert", { method: "POST", body: JSON.stringify(senderContact) })
+        .catch(() => null); // non-blocking
+      const sender = await senderRes?.json().catch(() => null);
+      const senderId = sender?.contact?.id ?? sender?.id;
+      if (senderId) await addTags(senderId, ["website-lead", "calculator-share-sender", "source:calculator-share-sender"]);
     }
 
     // An event submission becomes a DRAFT event, so an editor reviews it in

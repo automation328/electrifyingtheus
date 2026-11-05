@@ -151,6 +151,10 @@ Flow per submission:
 > are driven **inside GHL** by workflows triggered on these tags ("tag added →
 > Slack / send email / send SMS"). The site's job is to land the tagged contact;
 > GHL owns what happens next.
+>
+> Tags are added, never replaced, so a contact keeps every tag it has earned. A
+> "tag added" workflow therefore fires the first time only, not on a repeat
+> submission from someone who already carries the tag.
 
 Env: `GHL_API_KEY`, `GHL_LOCATION_ID`, `GHL_USER_ID` (optional, enables notes),
 `GHL_CF_TITLE` / `GHL_CF_DEPARTMENT` / `GHL_CF_INDUSTRY` (optional, only to

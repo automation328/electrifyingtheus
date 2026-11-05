@@ -1,6 +1,10 @@
-import { describe, it, expect } from "vitest";
-import { FORM_TAGS } from "./lead";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import handler, { FORM_TAGS } from "./lead";
 import type { LeadFormType } from "../src/lib/submitLead";
+
+vi.mock("./_submissions.js", () => ({ recordSubmission: vi.fn() }));
+vi.mock("./_rate-limit.js", () => ({ checkRateLimit: async () => ({ ok: true }), tooManyRequests: vi.fn() }));
+vi.mock("./_ghl-fields.js", () => ({ buildCustomFields: () => [], customFieldIds: async () => ({}) }));
 
 // The bug this file exists to stop: the marketplace enquiry form posted
 // formType "marketplace-enquiry", which had a source label in lead.ts but no
@@ -55,5 +59,52 @@ describe("the form types the lead endpoint accepts", () => {
       expect(tags, type).toContain("website-lead");
       expect(tags.some((t) => t.startsWith("source:")), type).toBe(true);
     }
+  });
+});
+
+// GoHighLevel's upsert replaces a contact's tags, so one form used to wipe what
+// an earlier form set: a Part 3 signup lost webinar-part-3 on the next click.
+describe("tagging a contact", () => {
+  const send = async (body: Record<string, unknown>) => {
+    const res = { statusCode: 0, status(c: number) { this.statusCode = c; return this; }, json: vi.fn() };
+    await handler({ method: "POST", headers: {}, body }, res);
+    return res;
+  };
+  const calls = () => vi.mocked(fetch).mock.calls.map(([url, init]) => ({
+    url: String(url), body: JSON.parse(String(init?.body ?? "{}")),
+  }));
+
+  beforeEach(() => {
+    vi.stubEnv("GHL_API_KEY", "test-key");
+    vi.stubEnv("GHL_LOCATION_ID", "loc");
+    vi.stubEnv("GHL_USER_ID", "");
+    vi.stubEnv("SLACK_WEBHOOK_URL", "");
+    let n = 0;
+    vi.stubGlobal("fetch", vi.fn(async () =>
+      new Response(JSON.stringify({ contact: { id: `c${++n}` } }), { status: 200 })));
+  });
+  afterEach(() => { vi.unstubAllEnvs(); vi.unstubAllGlobals(); });
+
+  it("adds tags after the upsert, so a contact keeps the ones it has", async () => {
+    await send({ formType: "webinar-part-3", email: "a@example.com" });
+    const upsert = calls().find((c) => c.url.endsWith("/contacts/upsert"));
+    expect(upsert?.body.tags).toBeUndefined();
+    expect(calls().find((c) => c.url.endsWith("/contacts/c1/tags"))?.body.tags)
+      .toEqual(FORM_TAGS["webinar-part-3"]);
+  });
+
+  it("does the same for a calculator share's sender", async () => {
+    await send({ formType: "calculator-share", email: "a@example.com", senderEmail: "b@example.com" });
+    expect(calls().filter((c) => c.url.endsWith("/contacts/upsert")).every((c) => !c.body.tags)).toBe(true);
+    const tagged = calls().filter((c) => c.url.endsWith("/tags")).flatMap((c) => c.body.tags);
+    expect(tagged).toContain("calculator-share-sender");
+  });
+
+  it("still answers ok when tagging fails, because the lead is already saved", async () => {
+    vi.mocked(fetch).mockImplementation(async (url) => String(url).endsWith("/tags")
+      ? new Response("{}", { status: 500 })
+      : new Response(JSON.stringify({ contact: { id: "c1" } }), { status: 200 }));
+    const res = await send({ formType: "newsletter", email: "a@example.com" });
+    expect(res.statusCode).toBe(200);
   });
 });
