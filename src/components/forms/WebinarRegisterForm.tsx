@@ -1,6 +1,6 @@
 // On-page webinar registration form. Mirrors the official Zoom registration
 // fields so we collect the full registrant profile on our own page, then upsert
-// into GoHighLevel via the shared /api/lead proxy (formType "event-register").
+// into GoHighLevel via the shared /api/lead proxy (formType "webinar-part-3").
 // Remembers the visitor site-wide via leadIdentity and shows a confirmation.
 // The Zoom link stays available as a fallback on the success screen.
 
@@ -25,6 +25,8 @@ interface Props {
 const VEHICLE_OPTIONS = [
   "I drive a gas or hybrid car and want to save money",
   "I already own an electric vehicle (EV)",
+  "I already own a pre-owned EV",
+  "I am looking to switch to a pre-owned EV in the next 6 months",
   "I am looking to switch to an EV in the next 6 months",
   "I don't own a car but interested in purchasing one",
 ];
@@ -33,8 +35,10 @@ const CONCERN_OPTIONS = [
   "Range/charging availability in my area",
   "Not sure if it makes financial sense",
   "I live in a rural area",
-  "I rent my home and can't install a charger",
+  "I rent my home and can’t install a charger",
+  "EV Battery",
   "I already own an EV",
+  "N/A",
 ];
 
 const EMPTY = {
@@ -98,7 +102,7 @@ const WebinarRegisterForm = ({ eventTitle, eventTime, eventSummary, registerUrl,
     // Capture the lead in the CRM, and — if Zoom is wired up — register the person
     // on the webinar for their unique join link. Both run together; neither blocks.
     const [, zoomJoin] = await Promise.all([
-      submitLead("event-register", {
+      submitLead("webinar-part-3", {
         firstName: f.firstName.trim(),
         lastName: f.lastName.trim(),
         email: f.email.trim(),
@@ -222,7 +226,7 @@ const WebinarRegisterForm = ({ eventTitle, eventTime, eventSummary, registerUrl,
         </div>
 
         <div>
-          <label htmlFor="wr-concern" className="block text-sm font-medium text-foreground mb-1.5">What's your biggest concern about switching to an EV? <Req /></label>
+          <label htmlFor="wr-concern" className="block text-sm font-medium text-foreground mb-1.5">What’s your biggest concern about switching to an EV or a pre-owned EV? <Req /></label>
           <select id="wr-concern" value={f.concern} onChange={set("concern")} className={inputCls}>
             <option value="">Select</option>
             {CONCERN_OPTIONS.map((o) => <option key={o} value={o}>{o}</option>)}

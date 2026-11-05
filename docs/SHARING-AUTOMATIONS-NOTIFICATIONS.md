@@ -180,7 +180,7 @@ override the custom-field lookup).
 
 `src/components/forms/WebinarRegisterForm.tsx` + `api/register-webinar.ts`.
 
-- On submit, two calls run together (neither blocks): `submitLead('event-register')`
+- On submit, two calls run together (neither blocks): `submitLead('webinar-part-3')`
   → GHL, and `registerOnZoom` → `/api/register-webinar`.
 - The API registers the person on Zoom via **Server-to-Server OAuth**
   (`ZOOM_ACCOUNT_ID` / `ZOOM_CLIENT_ID` / `ZOOM_CLIENT_SECRET` /

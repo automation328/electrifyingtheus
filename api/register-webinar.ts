@@ -81,7 +81,7 @@ export default async function handler(req: any, res: any) {
     { title: "Industry", value: clean(b.industry, 64) },
     { title: "Title", value: clean(b.title, 64) },
     { title: "What best describes your current vehicle situation?", value: clean(b.vehicle) },
-    { title: "What’s your biggest concern about switching to an EV?", value: clean(b.concern) },
+    { title: "What’s your biggest concern about switching to an EV or a pre-owned EV?", value: clean(b.concern) },
     { title: "What is one question you hope we answer during this webinar?", value: clean(b.question, 500) },
   ].filter((q) => q.value);
 

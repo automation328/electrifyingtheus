@@ -27,6 +27,7 @@ const EVERY_FORM_TYPE: Record<LeadFormType, true> = {
   "incentive-share": true,
   "event-share": true,
   "event-register": true,
+  "webinar-part-3": true,
   "event-calendar": true,
   "job-share": true,
   "charger-share": true,
@@ -38,6 +39,12 @@ const EVERY_FORM_TYPE: Record<LeadFormType, true> = {
 };
 
 describe("the form types the lead endpoint accepts", () => {
+  it("tags Part 3 signups on their own, and keeps the shared event-register tag", () => {
+    expect(FORM_TAGS["webinar-part-3"]).toEqual(
+      expect.arrayContaining(["website-lead", "event-register", "webinar-part-3"]),
+    );
+  });
+
   it("carries tags for every form the site can submit", () => {
     const missing = Object.keys(EVERY_FORM_TYPE).filter((t) => !FORM_TAGS[t]);
     expect(missing).toEqual([]);

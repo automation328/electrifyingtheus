@@ -24,6 +24,7 @@ export type LeadFormType =
   | "incentive-share"
   | "event-share"
   | "event-register"
+  | "webinar-part-3"
   | "event-calendar"
   | "job-share"
   | "charger-share"

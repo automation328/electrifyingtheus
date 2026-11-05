@@ -563,7 +563,7 @@ export const EVENTS: EventItem[] = [
   },
   {
     month: "NOV", day: "19", year: 2026,
-    title: "Part 3: From The Pump To The Plug - How Pre-Owned EVs Can Save You Thousands",
+    title: "National EV Affordability Webinar (Part 3): From Pump to Plug: How Pre-Owned EVs Can Save You Thousands",
     type: "Webinar",
     location: "Online · Live Webinar",
     region: "Online",

@@ -41,6 +41,7 @@ const TYPE_LABEL: Record<string, string> = {
   "incentive-share": "Incentive share",
   "event-share": "Event share",
   "event-register": "Event registration",
+  "webinar-part-3": "Webinar Part 3 registration",
   "event-calendar": "Add to calendar",
   "job-share": "Job share",
   "charger-share": "Charger share",

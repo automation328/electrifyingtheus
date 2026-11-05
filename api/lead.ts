@@ -62,6 +62,8 @@ export const FORM_TAGS: Record<string, string[]> = {
   "incentive-share": ["website-lead", "content-share", "incentive-share", "source:incentive-share"],
   "event-share":     ["website-lead", "content-share", "event-share", "source:event-share"],
   "event-register":  ["website-lead", "event-register", "source:event-register"],
+  // Keeps event-register so GHL workflows on that tag still fire for these signups.
+  "webinar-part-3":  ["website-lead", "event-register", "webinar-part-3", "source:webinar-part-3"],
   "event-calendar":  ["website-lead", "event-calendar", "source:event-calendar"],
   "job-share":       ["website-lead", "content-share", "job-share", "source:job-share"],
   "charger-share":   ["website-lead", "content-share", "charger-share", "source:charger-share"],
@@ -92,6 +94,7 @@ const SOURCE_LABEL: Record<string, string> = {
   "incentive-share": "Incentive share",
   "event-share": "Event share (email)",
   "event-register": "Event Register click",
+  "webinar-part-3": "Webinar Part 3 registration",
   "event-calendar": "Event Add-to-calendar click",
   "job-share": "Job share (email)",
   "charger-share": "Charging map share",

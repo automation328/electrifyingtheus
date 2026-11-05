@@ -12,6 +12,7 @@ import DescriptionEditor from "@/components/inline/DescriptionEditor";
 import LinkPicker from "@/components/inline/LinkPicker";
 import { useInlineEdit } from "@/components/inline/edit-context";
 import EventDescription from "@/components/EventDescription";
+import WebinarRegisterForm from "@/components/forms/WebinarRegisterForm";
 import { eventAdoptRow } from "@/lib/content";
 import { safeHref } from "@/lib/safe-href";
 import ShareGate from "@/components/forms/ShareGate";
@@ -369,6 +370,18 @@ const EventDetail = () => {
                 lower one sits under the register band — so anything added to
                 the description ended up below "Save your spot". */}
             <BlockSlot slot="event-body" blocks={blocks} />
+            {/* shortcut: one webinar at a time, because api/register-webinar reads a single ZOOM_WEBINAR_ID; make the id per-event when two run at once. */}
+            {event.slug === "from-pump-to-plug-part-3" && (
+              <div className="mt-8">
+                <WebinarRegisterForm
+                  eventTitle={event.title}
+                  eventTime={event.time}
+                  eventSummary={event.title}
+                  registerUrl={event.registerUrl ?? ""}
+                  calendarUrl={gcalLink(event)}
+                />
+              </div>
+            )}
           </div>
         </div>
 
