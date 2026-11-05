@@ -107,6 +107,7 @@ const RangeMap = () => {
             </h1>
             <p className="text-muted-foreground max-w-2xl">
               Enter a starting place and pick your vehicle to see your driving range as a radius on the map.
+              Actual range varies with speed, weather, terrain, cargo, battery age, and heating or A/C use.
             </p>
           </div>
         </section>
