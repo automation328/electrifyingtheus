@@ -13,6 +13,7 @@ import LinkPicker from "@/components/inline/LinkPicker";
 import { useInlineEdit } from "@/components/inline/edit-context";
 import EventDescription from "@/components/EventDescription";
 import WebinarRegisterForm from "@/components/forms/WebinarRegisterForm";
+import part3Flyer from "@/assets/events/pump-to-plug-part-3-flyer-full.jpg";
 import { eventAdoptRow } from "@/lib/content";
 import { safeHref } from "@/lib/safe-href";
 import ShareGate from "@/components/forms/ShareGate";
@@ -74,6 +75,8 @@ const Description = ({ path, value, editable }: { path: string; value: string; e
   }
   return <EventDescription text={value} styleKey={path} />;
 };
+
+const PART_3_WEBINAR_SLUG = "from-pump-to-plug-part-3";
 
 /** Built-in wording for the two Register buttons, used when the event sets none. */
 const REGISTER_LABEL = "Register";
@@ -138,6 +141,15 @@ const RegisterCta = ({ event, url, label, labelPath, fallbackLabel, editable, cl
         </div>
       </div>
     );
+  }
+
+  // This event registers on the page itself, so its buttons go to the form.
+  if (event.slug === PART_3_WEBINAR_SLUG) {
+    const toForm = () => {
+      document.getElementById("register")?.scrollIntoView({ behavior: "smooth" });
+      document.getElementById("wr-first")?.focus({ preventScroll: true });
+    };
+    return <button type="button" onClick={toForm} className={className}>{icon}{text}</button>;
   }
 
   // The link came from an editor's keyboard and is handed to window.open, so a
@@ -210,7 +222,7 @@ const EventDetail = () => {
   // editable fields either, so nobody types into a box that discards the text.
   const ownEvent = !event.external;
   // ETUS hosts this one, so the third-party notice would be wrong here.
-  const isPart3Webinar = event.slug === "from-pump-to-plug-part-3";
+  const isPart3Webinar = event.slug === PART_3_WEBINAR_SLUG;
 
   return (
     // Same builder the blog posts have. `event.slug` here is already resolved
@@ -355,6 +367,16 @@ const EventDetail = () => {
                 <CalendarDays className="w-5 h-5" /> View more events
               </Link>
             </div>
+            {isPart3Webinar && (
+              <img
+                src={part3Flyer}
+                alt="From the Pump to the Plug: How Pre-Owned EVs Can Save You Thousands. National EV Affordability Webinar Part 3, Thursday, November 19, 11 AM PT / 2 PM ET, with Terry Travis, Adam Borison, Monique Jones, Jesse Lore, David Vennel and Larry Townsend."
+                width={1800}
+                height={1200}
+                loading="lazy"
+                className="mt-6 w-full h-auto rounded-2xl lg:clear-left"
+              />
+            )}
             {/* clear-left drops the description below the poster instead of
                 letting it start in the half-width channel beside it and then
                 jump to full width partway through a sentence. The badge, title

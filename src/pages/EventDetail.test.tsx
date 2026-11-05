@@ -80,11 +80,11 @@ afterEach(() => {
   draft.value = undefined;
 });
 
-const renderEvent = () => {
+const renderEvent = (slug = "nordic-ev-summit-2027") => {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
     <QueryClientProvider client={qc}>
-      <MemoryRouter initialEntries={["/events/nordic-ev-summit-2027"]}>
+      <MemoryRouter initialEntries={[`/events/${slug}`]}>
         <Routes><Route path="/events/:slug" element={<EventDetail />} /></Routes>
       </MemoryRouter>
     </QueryClientProvider>,
@@ -399,9 +399,22 @@ describe("external feed events", () => {
 // Both send people to one link (an event has one registration page) but carry
 // their own words, because they read differently where they sit.
 const LINK_PLACEHOLDER = "https://… or /page";
+const PART_3 = "from-pump-to-plug-part-3";
 const linkBoxes = () => screen.getAllByPlaceholderText(LINK_PLACEHOLDER) as HTMLInputElement[];
 
 describe("a visitor's Register buttons", () => {
+  it("scroll to the form on the Part 3 webinar instead of leaving the page", () => {
+    ours.value = [{ ...BASE, slug: PART_3, registerUrl: "https://example.org/signup" }];
+    renderEvent(PART_3);
+    expect(screen.queryAllByTestId("gate-event-register")).toHaveLength(0);
+
+    const scroll = vi.fn();
+    document.getElementById("register")!.scrollIntoView = scroll;
+    const buttons = ["Register", "Register now"].map((name) => screen.getByRole("button", { name }));
+    buttons.forEach((b) => fireEvent.click(b));
+    expect(scroll).toHaveBeenCalledTimes(2);
+  });
+
   it("say Register and Register now when the event names nothing else", () => {
     ours.value = [{ ...BASE, registerUrl: "https://example.org/signup" }];
     renderEvent();
