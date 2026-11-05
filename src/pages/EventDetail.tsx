@@ -209,6 +209,8 @@ const EventDetail = () => {
   // Events pulled from an external feed are not ours: no field target, and no
   // editable fields either, so nobody types into a box that discards the text.
   const ownEvent = !event.external;
+  // ETUS hosts this one, so the third-party notice would be wrong here.
+  const isPart3Webinar = event.slug === "from-pump-to-plug-part-3";
 
   return (
     // Same builder the blog posts have. `event.slug` here is already resolved
@@ -371,7 +373,7 @@ const EventDetail = () => {
                 the description ended up below "Save your spot". */}
             <BlockSlot slot="event-body" blocks={blocks} />
             {/* shortcut: one webinar at a time, because api/register-webinar reads a single ZOOM_WEBINAR_ID; make the id per-event when two run at once. */}
-            {event.slug === "from-pump-to-plug-part-3" && (
+            {isPart3Webinar && (
               <div className="mt-8">
                 <WebinarRegisterForm
                   eventTitle={event.title}
@@ -386,7 +388,7 @@ const EventDetail = () => {
         </div>
 
         {/* Event disclaimers — above the register band */}
-        <EventDisclaimer className="mt-10" />
+        {!isPart3Webinar && <EventDisclaimer className="mt-10" />}
 
         {/* Register band */}
         <div className="mt-8 rounded-3xl gradient-hero p-8 md:p-10 text-center text-primary-foreground">
