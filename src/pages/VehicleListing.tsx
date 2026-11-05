@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import ShareGate from "@/components/forms/ShareGate";
 import MarketplaceDisclaimer from "@/components/marketplace/MarketplaceDisclaimer";
 import { useMarketplace, findListing } from "@/hooks/use-marketplace";
-import { readFilters, serverFilters } from "@/lib/marketplace-filters";
+import { readFilters, readRadius, serverFilters } from "@/lib/marketplace-filters";
 import { isSortKey, isProviderSorted, DEFAULT_SORT } from "@/lib/marketplace-sort";
 import { MAX_MARKETPLACE_PAGE } from "@/lib/marketplace-types";
 import { vehicles } from "@/data/vehicles";
@@ -44,7 +44,7 @@ const VehicleListing = () => {
   // with anything missing — the radius, the price filter, the order, the page —
   // returns a different set of listings, and this one is then "unavailable"
   // despite being on screen a second ago.
-  const radius = Number(params.get("radius")) || null;
+  const radius = readRadius(params);
   // Where "Any distance" had widened to when the car was found.
   const ring = Number(params.get("ring")) || null;
   // Falls back the way the results page does. The default order is left out of

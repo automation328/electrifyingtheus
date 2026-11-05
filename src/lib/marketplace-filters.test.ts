@@ -1,9 +1,24 @@
 import { describe, it, expect } from "vitest";
 import {
   readFilters, writeFilters, serverFilters, applyFilters, activeFilterCount,
-  filterChips, localFilterCount, bodyStyleOf, EMPTY_FILTERS, type FilterState,
+  filterChips, localFilterCount, bodyStyleOf, readRadius, EMPTY_FILTERS, type FilterState,
 } from "./marketplace-filters";
 import type { VehicleListing } from "./marketplace-types";
+
+describe("readRadius", () => {
+  const read = (search: string) => readRadius(new URLSearchParams(search));
+
+  it("searches 50 miles until the visitor picks a distance", () => {
+    expect(read("q=30080")).toBe(50);
+    expect(read("radius=nonsense")).toBe(50);
+  });
+
+  it("keeps a picked distance, and any distance as no limit", () => {
+    expect(read("radius=250")).toBe(250);
+    expect(read("radius=5000")).toBe(5000);
+    expect(read("radius=any")).toBeNull();
+  });
+});
 
 const listing = (id: string, over: Partial<VehicleListing> = {}): VehicleListing => ({
   id,

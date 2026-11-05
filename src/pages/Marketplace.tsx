@@ -24,7 +24,8 @@ import {
 } from "@/lib/marketplace-sort";
 import { MAX_MARKETPLACE_PAGE, NATIONWIDE_RADIUS } from "@/lib/marketplace-types";
 import {
-  readFilters, writeFilters, serverFilters, applyFilters, activeFilterCount,
+  readFilters, readRadius, ANY_DISTANCE,
+  writeFilters, serverFilters, applyFilters, activeFilterCount,
   localFilterCount, filterChips, EMPTY_FILTERS, type FilterState,
 } from "@/lib/marketplace-filters";
 import { catalogMakes, catalogModelsFor } from "@/lib/marketplace-link";
@@ -47,7 +48,7 @@ const Marketplace = () => {
 
   // The URL is the source of truth for everything that shapes the results, so a
   // shared or embedded link reopens the search exactly as it was sent.
-  const radius = Number(params.get("radius")) || null;
+  const radius = readRadius(params);
   /** The ring an "Any distance" search widened to, carried while paging. */
   const ring = Number(params.get("ring")) || null;
   const sortParam = params.get("sort");
@@ -148,7 +149,7 @@ const Marketplace = () => {
     });
 
   const changeRadius = (next: number | null) =>
-    patchParams((p) => { if (next) p.set("radius", String(next)); else p.delete("radius"); });
+    patchParams((p) => p.set("radius", next ? String(next) : ANY_DISTANCE));
 
   const changeFilters = (next: FilterState) => {
     const written = writeFilters(params, next);
@@ -227,8 +228,8 @@ const Marketplace = () => {
   const listingSearch = useMemo(() => {
     const p = new URLSearchParams();
     if (query) p.set("q", query);
-    if (radius) p.set("radius", String(radius));
-    else if (widenedRadius) p.set("ring", String(widenedRadius));
+    p.set("radius", radius ? String(radius) : ANY_DISTANCE);
+    if (widenedRadius) p.set("ring", String(widenedRadius));
     if (sort !== DEFAULT_SORT) p.set("sort", sort);
     if (page > 1) p.set("page", String(page));
     for (const [key, value] of Object.entries(upstream)) {

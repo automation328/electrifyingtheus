@@ -83,6 +83,17 @@ const KEYS = [
   "priceMin", "priceMax", "yearMin", "yearMax", "mileageMax", "rangeMin",
 ] as const;
 
+/** Miles searched until the visitor picks a distance. */
+export const DEFAULT_RADIUS = 50;
+/** ?radius= value for "Any distance", which widens until it finds a car. */
+export const ANY_DISTANCE = "any";
+
+/** The distance a URL asks for: miles, or null for "Any distance". */
+export function readRadius(params: URLSearchParams): number | null {
+  const raw = params.get("radius");
+  return raw === ANY_DISTANCE ? null : Number(raw) || DEFAULT_RADIUS;
+}
+
 export function readFilters(params: URLSearchParams): FilterState {
   const condition = params.get("condition");
   const powertrain = params.get("powertrain");
