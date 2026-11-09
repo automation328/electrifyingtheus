@@ -2,9 +2,9 @@
 // panels, breakdown lists, and the per-visitor journey drill-down modal.
 //
 // Purely visual + self-contained journey state; it does NOT fetch. The parent owns
-// data fetching + range state and passes `fetchJourney` for the drill-down. Shared
-// by the password-gated /admin dashboard (AdminDashboard) and the editor-gated
-// Statistics view embedded in the CMS (StatisticsManager) so the two never drift.
+// data fetching + range state and passes `fetchJourney` for the drill-down. Used by
+// the editor-gated Statistics view in the CMS (StatisticsManager); /admin now
+// redirects there.
 
 import { useEffect, useState } from "react";
 import {

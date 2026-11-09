@@ -58,7 +58,6 @@ import SeoEditor from "./pages/admin/SeoEditor.tsx";
 import ContactWidget from "./components/ContactWidget.tsx";
 import AnalyticsTracker from "./components/AnalyticsTracker.tsx";
 import GoogleAnalytics from "./components/GoogleAnalytics.tsx";
-import AdminDashboard from "./pages/AdminDashboard.tsx";
 import RequireEditor from "./components/admin/RequireEditor.tsx";
 import AdminLogin from "./pages/admin/AdminLogin.tsx";
 import AdminLayout from "./pages/admin/AdminLayout.tsx";
@@ -150,7 +149,8 @@ const App = () => (
           {/* Its first address. Links to it are already out in the world. */}
           <Route path="/slides" element={<Navigate to="/updates" replace />} />
           {/* Internal analytics dashboard — password-gated (ANALYTICS_PASSWORD). */}
-          <Route path="/admin" element={<AdminDashboard />} />
+          {/* Editors only: the CMS login guards it. /api/analytics still takes the shared password. */}
+          <Route path="/admin" element={<Navigate to="/admin/content/statistics" replace />} />
           {/* CMS content editor — Supabase Auth, invite-only editors. */}
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin/content" element={<RequireEditor><AdminLayout /></RequireEditor>}>
