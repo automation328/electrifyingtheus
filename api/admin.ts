@@ -30,7 +30,7 @@ import { getEditor, requireEditor, adminSupabase } from "./_admin-auth.js";
 import { appendActivity, readActivity } from "./_activity-log.js";
 import { checkAuthRateLimit, checkRateLimit, tooManyRequests } from "./_rate-limit.js";
 import { verifyReview, eventPath } from "./_event-submission.js";
-import { runWeeklyImport, buildImportDigest, postDigest, archivePastDrafts } from "./_event-import.js";
+import { runWeeklyImport, buildImportDigest, postDigest, archivePastEvents } from "./_event-import.js";
 import { sendEventApprovalEmail } from "./_approval-email.js";
 import { analyticsSummary, visitorJourney } from "./_analytics-core.js";
 // NOTE: mammoth / pdf-parse are imported LAZILY inside handleKbUpload — a top-level
@@ -932,8 +932,8 @@ async function handleWeeklyImport(req: any, res: any) {
 }
 
 /**
- * The daily sweep that archives draft events whose date has passed (see
- * archivePastDrafts). Same CRON_SECRET guard as the weekly import.
+ * The daily sweep that archives draft and published events whose date has passed (see
+ * archivePastEvents). Same CRON_SECRET guard as the weekly import.
  *
  * "Today" is the date in Honolulu, the westernmost US time zone, so an event is
  * only retired once its last day is over everywhere in the country: a manual
@@ -945,11 +945,11 @@ async function handleArchivePastEvents(req: any, res: any) {
   if (!db) return;
   const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Pacific/Honolulu" }).format(new Date());
   try {
-    const archived = await archivePastDrafts(db, today);
+    const archived = await archivePastEvents(db, today);
     if (archived.length) {
       await logActivity(
         db, "cron", "system", "archive-past-events", "site_events",
-        `archived ${archived.length} past draft${archived.length === 1 ? "" : "s"}`,
+        `archived ${archived.length} past event${archived.length === 1 ? "" : "s"}`,
       );
     }
     res.status(200).json({ today, archived: archived.length, rows: archived });

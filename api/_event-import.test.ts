@@ -12,7 +12,7 @@
 import { describe, it, expect } from "vitest";
 import {
   sourceKeyFromUrl, titleDateKey, isoDate, displayTime, importTitle, toDraftRow, pickNew,
-  headerImage, pastEventFilter, archivePastDrafts,
+  headerImage, pastEventFilter, archivePastEvents,
   type FeedEvent,
 } from "./_event-import";
 import { sourceEventKey } from "@/hooks/use-external-events";
@@ -228,7 +228,7 @@ describe("picking a header image", () => {
   });
 });
 
-describe("retiring past drafts", () => {
+describe("retiring past events", () => {
   it("matches an event whose end date, or start date when it has none, is before today", () => {
     expect(pastEventFilter("2026-10-06")).toBe(
       "end_date.lt.2026-10-06,and(end_date.is.null,event_date.lt.2026-10-06)",
@@ -240,11 +240,12 @@ describe("retiring past drafts", () => {
     expect(() => pastEventFilter("")).toThrow();
   });
 
-  it("archives drafts only, and returns what it archived", async () => {
+  it("archives past drafts and published rows but never removal markers, and returns what it archived", async () => {
     const calls: Array<[string, ...unknown[]]> = [];
     const chain = {
       update: (v: unknown) => { calls.push(["update", v]); return chain; },
-      eq: (c: string, v: unknown) => { calls.push(["eq", c, v]); return chain; },
+      in: (c: string, v: unknown) => { calls.push(["in", c, v]); return chain; },
+      not: (c: string, op: string, v: unknown) => { calls.push(["not", c, op, v]); return chain; },
       or: (f: string) => { calls.push(["or", f]); return chain; },
       select: (c: string) => {
         calls.push(["select", c]);
@@ -252,11 +253,12 @@ describe("retiring past drafts", () => {
       },
     };
     const db = { from: (t: string) => { calls.push(["from", t]); return chain; } };
-    const out = await archivePastDrafts(db as never, "2026-10-06");
+    const out = await archivePastEvents(db as never, "2026-10-06");
     expect(out).toEqual([{ id: "a", title: "Old", event_date: "2026-09-26" }]);
     expect(calls).toContainEqual(["from", "site_events"]);
     expect(calls).toContainEqual(["update", { status: "archived" }]);
-    expect(calls).toContainEqual(["eq", "status", "draft"]);
+    expect(calls).toContainEqual(["in", "status", ["draft", "published"]]);
+    expect(calls).toContainEqual(["not", "hidden", "is", true]);
     expect(calls).toContainEqual(["or", pastEventFilter("2026-10-06")]);
   });
 });

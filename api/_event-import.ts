@@ -316,7 +316,7 @@ export async function runWeeklyImport(
   };
 }
 
-// ── Retiring past drafts ─────────────────────────────────────────────────────
+// ── Retiring past events ─────────────────────────────────────────────────────
 
 /**
  * The PostgREST filter for "this event's last day is before `todayISO`": its
@@ -329,26 +329,33 @@ export function pastEventFilter(todayISO: string): string {
 }
 
 /**
- * Move every DRAFT event that has already happened to the archive.
+ * Move every draft or published event that has already happened to the archive.
  *
  * The weekly import adds drafts faster than anyone reviews them, and a draft
  * whose date has gone will never be published — it only buries the ones that
- * still matter. Archived rather than deleted, for two reasons: an editor can
- * restore one, and loadKnown above still sees it, so the import does not
- * re-add the same event the following Monday.
+ * still matter. A published row that is over is already off the live site
+ * (useEvents keeps only isActive events), so leaving it "published" only
+ * clutters the CMS Live tab. Archived rather than deleted, for two reasons: an
+ * editor can restore one, and loadKnown above still sees it, so the import
+ * does not re-add the same event the following Monday.
  *
- * Only `status = 'draft'` is touched. Published rows stay as they are: our own
- * past events are meant to remain on the site, and a published row with
- * `hidden = true` is a removal marker that must keep matching its built-in.
+ * A published row with `hidden = true` is a removal marker that must keep
+ * matching its built-in, so it is never touched (`not.is.true` also keeps rows
+ * where hidden is null).
+ *
+ * shortcut: a row adopting a curated event flagged `ours` would, once archived,
+ * let the original built-in back onto the site. No curated event is `ours`
+ * today; if one becomes so, exclude its slug here.
  */
-export async function archivePastDrafts(
+export async function archivePastEvents(
   db: SupabaseClient,
   todayISO: string,
 ): Promise<Array<{ id: string; title: string; event_date: string }>> {
   const { data, error } = await db
     .from("site_events")
     .update({ status: "archived" })
-    .eq("status", "draft")
+    .in("status", ["draft", "published"])
+    .not("hidden", "is", true)
     .or(pastEventFilter(todayISO))
     .select("id,title,event_date");
   if (error) throw new Error(error.message);

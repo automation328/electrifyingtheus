@@ -124,10 +124,11 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
     // A published row carrying the hidden flag is a DELETION, not a live item —
     // it exists to take the matching built-in off the site.
     if (config.hiddenField && r[config.hiddenField] === true) return "archive";
-    if (s === "published") return "live";
-    // A draft for something already over (an event whose date has passed) is
-    // done with, not waiting to be published.
-    return config.isPast?.(r, today) ? "archive" : "draft";
+    // Something already over (an event whose date has passed) is off the site
+    // and done with, published or not. The daily sweep archives it in the
+    // database too; this files it right in the meantime.
+    if (config.isPast?.(r, today)) return "archive";
+    return s === "published" ? "live" : "draft";
   };
 
   const counts = useMemo(() => {
