@@ -125,7 +125,7 @@ export function buildAutoDevQuery(p: ProviderSearch): URLSearchParams {
  * price". Dropping the listing instead would hide inventory over a bad field,
  * and trusting the number would open every cheapest-first search with bait.
  */
-const MIN_PLAUSIBLE_PRICE = 2000;
+export const MIN_PLAUSIBLE_PRICE = 2000;
 
 /** A price we are willing to repeat to a visitor, or nothing. */
 export function plausiblePrice(price: number | undefined): number | undefined {

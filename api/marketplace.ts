@@ -16,7 +16,7 @@ import { resolveQuery, type Place } from "./_geocode.js";
 import { checkRateLimit, tooManyRequests } from "./_rate-limit.js";
 import {
   autoDevProvider, autoDevSearchRaw, autoDevCoords, listingPowertrain,
-  normalizeAutoDevListing, haversineMiles, MAX_PAGE,
+  normalizeAutoDevListing, haversineMiles, MAX_PAGE, MIN_PLAUSIBLE_PRICE,
 } from "./_marketplace-provider.js";
 import {
   matchCatalogVehicle, catalogSearchModelsFor,
@@ -191,10 +191,14 @@ export default async function handler(req: any, res: any) {
   const makes = list(query.makes);
   const models = list(query.models);
 
+  const priceMin = inRange(query.priceMin, 0, 10_000_000);
   const search = {
     models: catalogSearchModelsFor(models),
     makes,
-    priceMin: inRange(query.priceMin, 0, 10_000_000),
+    // Cheapest-first upstream ranks $0/$1/deposit "bait" prices first. One LA
+    // dealer lists dozens of Ioniq 5s that way and filled page 1 with "Call for
+    // price", so that sort only sees prices we would actually show.
+    priceMin: sort === "price.asc" ? Math.max(priceMin ?? 0, MIN_PLAUSIBLE_PRICE) : priceMin,
     priceMax: inRange(query.priceMax, 0, 10_000_000),
     yearMin: inRange(query.yearMin, 1980, MAX_YEAR),
     yearMax: inRange(query.yearMax, 1980, MAX_YEAR),

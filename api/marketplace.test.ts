@@ -164,6 +164,16 @@ describe("GET /api/marketplace", () => {
       .toEqual(["VINFAR000000000001", "VINNEA000000000001"]);
   });
 
+  it("keeps bait prices out of cheapest-first by flooring the upstream price", async () => {
+    await handler({ method: "GET", query: { q: "30303", radius: "50", sort: "price-asc" } }, mockRes());
+    await handler({ method: "GET", query: { q: "30303", radius: "50", sort: "price-asc", priceMin: "15000" } }, mockRes());
+    await handler({ method: "GET", query: { q: "30303", radius: "50", sort: "price-desc" } }, mockRes());
+    const calls = vi.mocked(autoDevSearchRaw).mock.calls;
+    expect(calls[0][0].priceMin).toBe(2000);
+    expect(calls[1][0].priceMin).toBe(15000);
+    expect(calls[2][0].priceMin).toBeUndefined();
+  });
+
   it("sorts by distance itself for an order the provider cannot apply", async () => {
     vi.mocked(autoDevSearchRaw).mockResolvedValue(providerPage([
       listingRow({ vin: "VINFAR000000000001", location: [-84.9, 34.5] }),
