@@ -14,7 +14,7 @@ nothing is retired while it is still on anywhere in the country.
 | Layer | Behaviour | Where |
 |-------|-----------|-------|
 | Public site | Hidden everywhere (home hero, Events, navbar, detail page) unless the event is `ours: true`. | `useEvents` → `isActive` in `src/data/events.ts` |
-| CMS list | Filed under **Archive**, published or draft, as soon as it is past. | `tabOf` in `src/components/admin/CollectionManager.tsx` |
+| CMS list | Filed under **Archive**, published, draft or built-in, as soon as it is past. | `tabOf` in `src/components/admin/CollectionManager.tsx` |
 | Database | Daily at 11:00 UTC the cron sets `status = 'archived'` on past `draft` **and** `published` rows. | `archivePastEvents` in `api/_event-import.ts`, cron `/api/cron/archive-past-events` → `/api/admin?op=archive-past-events` (`vercel.json`) |
 
 Archived rows are kept, not deleted: an editor can restore one from the

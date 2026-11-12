@@ -117,8 +117,10 @@ const CollectionManager = ({ config }: { config: CollectionConfig }) => {
   const today = todayIso();
 
   const tabOf = (r: Row): Tab => {
-    // A built-in is always on the site — it lives in the code, not the database.
-    if (r.__static) return "live";
+    // A built-in lives in the code, not the database, so it is live until its date passes.
+    // A past one is already off the site (isActive), so it belongs under Archive.
+    // shortcut: ignores `ours` (not on seed rows); no curated event sets it today.
+    if (r.__static) return config.isPast?.(r, today) ? "archive" : "live";
     const s = String(r[config.statusField] ?? "");
     if (s === "archived") return "archive";
     // A published row carrying the hidden flag is a DELETION, not a live item —
