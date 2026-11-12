@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   ChevronDown, ChevronLeft, ChevronRight,
-  MapPin, Clock, CalendarDays, ArrowRight, Newspaper, Briefcase, Building2, Calculator, MessageCircle,
+  MapPin, Clock, CalendarDays, ArrowRight, Newspaper, Briefcase, Building2, Calculator, MessageCircle, Map as MapIcon, Car,
 } from "lucide-react";
 import heroBg from "@/assets/hero-bg.jpg";
 import logo from "@/assets/hero-logo.png";
@@ -209,7 +209,7 @@ const SlideThumb = ({
 );
 
 const BrandSlide = ({ active }: { active: boolean }) => (
-  <div className="max-w-4xl mx-auto">
+  <div className="max-w-6xl mx-auto">
     <img
       src={logo}
       alt="Electrifying the US logo"
@@ -223,21 +223,31 @@ const BrandSlide = ({ active }: { active: boolean }) => (
       multimodal transportation electrification.
     </p>
 
-    <div className={`flex flex-col sm:flex-row gap-4 justify-center ${active ? "animate-fade-up" : ""}`} style={{ animationDelay: "0.4s" }}>
+    <div className={`flex flex-col sm:flex-row sm:flex-wrap gap-4 justify-center ${active ? "animate-fade-up" : ""}`} style={{ animationDelay: "0.4s" }}>
       <a href="#agent-chat">
-        <Button variant="hero" size="lg" className="text-base px-8 py-6 rounded-2xl">
+        <Button variant="hero" size="lg" className="text-base px-6 py-6 rounded-2xl">
           <MessageCircle className="w-5 h-5" /> EV Advisor 24/7
         </Button>
       </a>
       <Link to="/electricity-vs-gasoline">
-        <Button variant="heroOutline" size="lg" className="btn-cta-pulse text-base px-8 py-6 rounded-2xl bg-primary-foreground/5">
+        <Button variant="heroOutline" size="lg" className="btn-cta-pulse text-base px-6 py-6 rounded-2xl bg-primary-foreground/5">
           <Calculator className="cta-icon-bob" />
           EV vs Gas Calculator
         </Button>
       </Link>
       <Link to="/rebates-incentives">
-        <Button variant="green" size="lg" className="text-base px-8 py-6 rounded-2xl">
+        <Button variant="green" size="lg" className="text-base px-6 py-6 rounded-2xl">
           EV Incentives
+        </Button>
+      </Link>
+      <Link to="/range-map">
+        <Button size="lg" className="text-base px-6 py-6 rounded-2xl text-white shadow-lg bg-gradient-to-r from-teal-600 to-cyan-700 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300">
+          <MapIcon className="w-5 h-5" /> EV Range Map
+        </Button>
+      </Link>
+      <Link to="/marketplace">
+        <Button size="lg" className="text-base px-6 py-6 rounded-2xl text-white shadow-lg bg-gradient-to-r from-orange-600 to-orange-700 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300">
+          <Car className="w-5 h-5" /> EV Marketplace
         </Button>
       </Link>
     </div>

@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
 import { Link } from "react-router-dom";
-import { Gauge, Loader2, MapPin, Search } from "lucide-react";
+import { Car, Gauge, Loader2, MapPin, Search } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -20,12 +20,12 @@ const DEFAULT_MAKE = RANGE_MAKES.includes("Chevrolet") ? "Chevrolet" : RANGE_MAK
 
 const MAP_HEIGHT = "h-[480px] lg:h-[620px]";
 
-const TRIGGER = "h-11 rounded-xl border-foreground/15 bg-card text-foreground";
+const TRIGGER = "h-12 rounded-xl border-2 border-primary/20 bg-card text-foreground font-semibold shadow-sm transition hover:border-primary/50 focus:border-primary focus:ring-2 focus:ring-primary/20";
 
 type Status = "idle" | "loading" | "notfound" | "error";
 
 const Field = ({ label, className = "", children }: { label: string; className?: string; children: ReactNode }) => (
-  <label className={`grid gap-1.5 text-xs font-medium text-muted-foreground min-w-0 ${className}`}>
+  <label className={`grid gap-1.5 text-xs font-bold uppercase tracking-wide text-primary min-w-0 ${className}`}>
     {label}
     {children}
   </label>
@@ -134,7 +134,17 @@ const RangeMap = () => {
           </form>
 
           {/* Vehicle */}
-          <div className="rounded-3xl border border-border bg-card p-4 md:p-6 grid gap-5">
+          <div className="relative overflow-hidden rounded-3xl border-2 border-primary/25 bg-gradient-to-br from-primary/[0.06] via-card to-secondary/[0.06] p-4 md:p-6 grid gap-5 shadow-elevated">
+            <div className="absolute inset-x-0 top-0 h-1.5 gradient-primary" aria-hidden />
+            <div className="flex items-center gap-3">
+              <span className="grid place-items-center w-10 h-10 rounded-xl gradient-primary text-white shadow-card shrink-0">
+                <Car className="w-5 h-5" />
+              </span>
+              <div>
+                <h2 className="font-display font-bold text-lg text-foreground leading-tight">Choose your EV</h2>
+                <p className="text-xs text-muted-foreground">Pick a make, model, year and version, then set your battery charge.</p>
+              </div>
+            </div>
             <div className="grid gap-4 grid-cols-2 lg:grid-cols-[1fr_1.4fr_0.7fr_1.4fr]">
               <Field label="Make">
                 <Select value={make} onValueChange={pickMake}>
@@ -169,11 +179,11 @@ const RangeMap = () => {
                 </Select>
               </Field>
             </div>
-            <div className="border-t border-border pt-4 flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8">
+            <div className="rounded-2xl bg-primary/[0.06] border border-primary/15 p-4 flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8">
               <div className="grid gap-1.5 flex-1 min-w-0">
-                <div className="flex justify-between text-xs font-medium text-muted-foreground">
+                <div className="flex justify-between text-sm font-semibold text-foreground">
                   <span id="charge-label">Battery charge</span>
-                  <span className="font-semibold text-foreground tabular-nums">{charge}%</span>
+                  <span className="font-bold text-primary tabular-nums">{charge}%</span>
                 </div>
                 <Slider
                   value={[charge]} min={10} max={100} step={5}
@@ -182,7 +192,7 @@ const RangeMap = () => {
                   className="h-6"
                 />
               </div>
-              <label className="flex items-center gap-2.5 h-11 px-3.5 rounded-xl border border-foreground/15 text-sm font-medium text-foreground cursor-pointer shrink-0">
+              <label className="flex items-center gap-2.5 h-11 px-3.5 rounded-xl border border-foreground/15 bg-card text-sm font-medium text-foreground cursor-pointer shrink-0">
                 <Switch checked={deepCold} onCheckedChange={setDeepCold} />
                 Show deep cold range
               </label>
