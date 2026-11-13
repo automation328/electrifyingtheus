@@ -7,6 +7,7 @@ import Footer from "@/components/Footer";
 import { useEmbedFrame } from "@/hooks/useEmbedFrame";
 import { Button } from "@/components/ui/button";
 import ShareGate from "@/components/forms/ShareGate";
+import { importWithRetry } from "@/lib/chunk-retry";
 import {
   fetchStations, kindOf, connectorLabel, portSummary, distanceLabel,
   KIND_COLORS, KIND_LABELS, type LevelFilter, type Station,
@@ -14,7 +15,7 @@ import {
 
 // Leaflet plus its CSS is ~45 kB gzipped and only the map pages use it, so
 // it loads on its own, after the page has rendered.
-const ChargerMap = lazy(() => import("@/components/ChargerMap"));
+const ChargerMap = lazy(() => importWithRetry(() => import("@/components/ChargerMap")));
 
 // The longest search worth carrying. Matches the cap the proxy applies.
 const MAX_QUERY = 120;

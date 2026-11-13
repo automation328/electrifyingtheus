@@ -8,11 +8,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import type { RangeRing } from "@/components/RangeCircleMap";
+import { importWithRetry } from "@/lib/chunk-retry";
 import {
   detectZip, lookupPlace, modelsOf, RANGE_MAKES, rangeRings, variantLabel, variantsOf, yearsOf, type MapPlace,
 } from "@/lib/range-map";
 
-const RangeCircleMap = lazy(() => import("@/components/RangeCircleMap"));
+const RangeCircleMap = lazy(() => importWithRetry(() => import("@/components/RangeCircleMap")));
 
 const COLORS = { full: "#1f7a4d", winter: "#0e7490" };
 
