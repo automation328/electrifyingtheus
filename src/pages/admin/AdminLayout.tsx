@@ -1,7 +1,7 @@
 // CMS shell — sidebar navigation + routed content area. Wrapped by RequireEditor,
 // so anything rendered here is for an authorized editor.
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Newspaper, CalendarDays, Images, Briefcase,
@@ -166,7 +166,8 @@ const AdminLayout = () => {
         </nav>
 
         <main className="flex-1 min-w-0 p-4 md:p-8">
-          <Outlet />
+          {/* Keeps the sidebar on screen while a CMS tab's chunk loads. */}
+          <Suspense fallback={null}><Outlet /></Suspense>
         </main>
       </div>
 

@@ -5,74 +5,81 @@ import SeoRouteHead from "./components/SeoRouteHead.tsx";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { lazy, Suspense, type ComponentType } from "react";
+import { importWithRetry } from "@/lib/chunk-retry";
+import { ChunkErrorBoundary } from "./components/LoadFailed.tsx";
 import Index from "./pages/Index.tsx";
-import Calculator from "./pages/Calculator.tsx";
-import Assistant from "./pages/Assistant.tsx";
-import ElectricityVsGasoline from "./pages/ElectricityVsGasoline.tsx";
-import GmEvVsGas from "./pages/GmEvVsGas.tsx";
-import News from "./pages/News.tsx";
-import BlogPost from "./pages/BlogPost.tsx";
-import Events from "./pages/Events.tsx";
-import EvSafetyWebinar from "./pages/EvSafetyWebinar.tsx";
-import Updates from "./pages/Updates.tsx";
-import EventDetail from "./pages/EventDetail.tsx";
-import Gallery from "./pages/Gallery.tsx";
-import ListYourEvent from "./pages/ListYourEvent.tsx";
-import Careers from "./pages/Careers.tsx";
-import PostAJob from "./pages/PostAJob.tsx";
-import FindACharger from "./pages/FindACharger.tsx";
-import RangeMap from "./pages/RangeMap.tsx";
-import Marketplace from "./pages/Marketplace.tsx";
-import VehicleListing from "./pages/VehicleListing.tsx";
-import RebatesIncentives from "./pages/RebatesIncentives.tsx";
-import RebateEligibility from "./pages/RebateEligibility.tsx";
-import WorkforceEconomicDevelopment from "./pages/WorkforceEconomicDevelopment.tsx";
-import EvRoadSafety from "./pages/EvRoadSafety.tsx";
-import SteamEducation from "./pages/SteamEducation.tsx";
-import EvCharging101 from "./pages/EvCharging101.tsx";
-import SaveWithEvsWebinar from "./pages/SaveWithEvsWebinar.tsx";
-import FromPumpToPlugPart2 from "./pages/FromPumpToPlugPart2.tsx";
-import EvsInWinter from "./pages/EvsInWinter.tsx";
-import FinancialSavings from "./pages/FinancialSavings.tsx";
-import UsEvPolicies from "./pages/UsEvPolicies.tsx";
-import ReducedEmissions from "./pages/ReducedEmissions.tsx";
-import SelfDrivingVehicles from "./pages/SelfDrivingVehicles.tsx";
-import EvtolDroneDelivery from "./pages/EvtolDroneDelivery.tsx";
-import SustainableAviation from "./pages/SustainableAviation.tsx";
-import ElectricSchoolBuses from "./pages/ElectricSchoolBuses.tsx";
-import HeavyDutyElectrification from "./pages/HeavyDutyElectrification.tsx";
-import ElectricPublicTransit from "./pages/ElectricPublicTransit.tsx";
-import RideshareRentalFleets from "./pages/RideshareRentalFleets.tsx";
-import MicroMobility from "./pages/MicroMobility.tsx";
-import SustainableMaritime from "./pages/SustainableMaritime.tsx";
-import PrivacyPolicy from "./pages/PrivacyPolicy.tsx";
-import TermsConditions from "./pages/TermsConditions.tsx";
-import ContactUs from "./pages/ContactUs.tsx";
-import ThankYou from "./pages/ThankYou.tsx";
-import EventSubmitted from "./pages/EventSubmitted.tsx";
-import NotFound from "./pages/NotFound.tsx";
-import CustomPage from "./pages/CustomPage.tsx";
 import ThemeApplier from "./components/ThemeApplier.tsx";
-import ThemeEditor from "./pages/admin/ThemeEditor.tsx";
-import SeoEditor from "./pages/admin/SeoEditor.tsx";
 import ContactWidget from "./components/ContactWidget.tsx";
 import AnalyticsTracker from "./components/AnalyticsTracker.tsx";
 import GoogleAnalytics from "./components/GoogleAnalytics.tsx";
 import RequireEditor from "./components/admin/RequireEditor.tsx";
-import AdminLogin from "./pages/admin/AdminLogin.tsx";
-import AdminLayout from "./pages/admin/AdminLayout.tsx";
-import AdminHome from "./pages/admin/AdminHome.tsx";
-import PagesManager from "./pages/admin/PagesManager.tsx";
-import MediaManager from "./pages/admin/MediaManager.tsx";
-import NavEditor from "./pages/admin/NavEditor.tsx";
-import FooterEditor from "./pages/admin/FooterEditor.tsx";
-import KnowledgeBaseManager from "./pages/admin/KnowledgeBaseManager.tsx";
-import UsersManager from "./pages/admin/UsersManager.tsx";
-import ActivityManager from "./pages/admin/ActivityManager.tsx";
-import SubmissionsManager from "./pages/admin/SubmissionsManager.tsx";
-import StatisticsManager from "./pages/admin/StatisticsManager.tsx";
-import CollectionManager from "./components/admin/CollectionManager.tsx";
 import { blogConfig, eventsConfig, galleryConfig, jobsConfig, vehiclesConfig, incentivesConfig } from "./pages/admin/collections/configs.ts";
+
+// Each page loads as its own chunk, so a visit downloads only the page it needs
+// instead of the whole site.
+const page = <P,>(load: () => Promise<{ default: ComponentType<P> }>) => lazy(() => importWithRetry(load));
+const Calculator = page(() => import("./pages/Calculator.tsx"));
+const Assistant = page(() => import("./pages/Assistant.tsx"));
+const ElectricityVsGasoline = page(() => import("./pages/ElectricityVsGasoline.tsx"));
+const GmEvVsGas = page(() => import("./pages/GmEvVsGas.tsx"));
+const News = page(() => import("./pages/News.tsx"));
+const BlogPost = page(() => import("./pages/BlogPost.tsx"));
+const Events = page(() => import("./pages/Events.tsx"));
+const EvSafetyWebinar = page(() => import("./pages/EvSafetyWebinar.tsx"));
+const Updates = page(() => import("./pages/Updates.tsx"));
+const EventDetail = page(() => import("./pages/EventDetail.tsx"));
+const Gallery = page(() => import("./pages/Gallery.tsx"));
+const ListYourEvent = page(() => import("./pages/ListYourEvent.tsx"));
+const Careers = page(() => import("./pages/Careers.tsx"));
+const PostAJob = page(() => import("./pages/PostAJob.tsx"));
+const FindACharger = page(() => import("./pages/FindACharger.tsx"));
+const RangeMap = page(() => import("./pages/RangeMap.tsx"));
+const Marketplace = page(() => import("./pages/Marketplace.tsx"));
+const VehicleListing = page(() => import("./pages/VehicleListing.tsx"));
+const RebatesIncentives = page(() => import("./pages/RebatesIncentives.tsx"));
+const RebateEligibility = page(() => import("./pages/RebateEligibility.tsx"));
+const WorkforceEconomicDevelopment = page(() => import("./pages/WorkforceEconomicDevelopment.tsx"));
+const EvRoadSafety = page(() => import("./pages/EvRoadSafety.tsx"));
+const SteamEducation = page(() => import("./pages/SteamEducation.tsx"));
+const EvCharging101 = page(() => import("./pages/EvCharging101.tsx"));
+const SaveWithEvsWebinar = page(() => import("./pages/SaveWithEvsWebinar.tsx"));
+const FromPumpToPlugPart2 = page(() => import("./pages/FromPumpToPlugPart2.tsx"));
+const EvsInWinter = page(() => import("./pages/EvsInWinter.tsx"));
+const FinancialSavings = page(() => import("./pages/FinancialSavings.tsx"));
+const UsEvPolicies = page(() => import("./pages/UsEvPolicies.tsx"));
+const ReducedEmissions = page(() => import("./pages/ReducedEmissions.tsx"));
+const SelfDrivingVehicles = page(() => import("./pages/SelfDrivingVehicles.tsx"));
+const EvtolDroneDelivery = page(() => import("./pages/EvtolDroneDelivery.tsx"));
+const SustainableAviation = page(() => import("./pages/SustainableAviation.tsx"));
+const ElectricSchoolBuses = page(() => import("./pages/ElectricSchoolBuses.tsx"));
+const HeavyDutyElectrification = page(() => import("./pages/HeavyDutyElectrification.tsx"));
+const ElectricPublicTransit = page(() => import("./pages/ElectricPublicTransit.tsx"));
+const RideshareRentalFleets = page(() => import("./pages/RideshareRentalFleets.tsx"));
+const MicroMobility = page(() => import("./pages/MicroMobility.tsx"));
+const SustainableMaritime = page(() => import("./pages/SustainableMaritime.tsx"));
+const PrivacyPolicy = page(() => import("./pages/PrivacyPolicy.tsx"));
+const TermsConditions = page(() => import("./pages/TermsConditions.tsx"));
+const ContactUs = page(() => import("./pages/ContactUs.tsx"));
+const ThankYou = page(() => import("./pages/ThankYou.tsx"));
+const EventSubmitted = page(() => import("./pages/EventSubmitted.tsx"));
+const NotFound = page(() => import("./pages/NotFound.tsx"));
+const CustomPage = page(() => import("./pages/CustomPage.tsx"));
+const ThemeEditor = page(() => import("./pages/admin/ThemeEditor.tsx"));
+const SeoEditor = page(() => import("./pages/admin/SeoEditor.tsx"));
+const AdminLogin = page(() => import("./pages/admin/AdminLogin.tsx"));
+const AdminLayout = page(() => import("./pages/admin/AdminLayout.tsx"));
+const AdminHome = page(() => import("./pages/admin/AdminHome.tsx"));
+const PagesManager = page(() => import("./pages/admin/PagesManager.tsx"));
+const MediaManager = page(() => import("./pages/admin/MediaManager.tsx"));
+const NavEditor = page(() => import("./pages/admin/NavEditor.tsx"));
+const FooterEditor = page(() => import("./pages/admin/FooterEditor.tsx"));
+const KnowledgeBaseManager = page(() => import("./pages/admin/KnowledgeBaseManager.tsx"));
+const UsersManager = page(() => import("./pages/admin/UsersManager.tsx"));
+const ActivityManager = page(() => import("./pages/admin/ActivityManager.tsx"));
+const SubmissionsManager = page(() => import("./pages/admin/SubmissionsManager.tsx"));
+const StatisticsManager = page(() => import("./pages/admin/StatisticsManager.tsx"));
+const CollectionManager = page(() => import("./components/admin/CollectionManager.tsx"));
 
 const queryClient = new QueryClient();
 
@@ -86,6 +93,8 @@ const App = () => (
         <ScrollToTop />
         <SeoRouteHead />
         <GoogleAnalytics />
+        <ChunkErrorBoundary>
+        <Suspense fallback={<div className="min-h-screen" />}>
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/calculator" element={<Calculator />} />
@@ -177,6 +186,8 @@ const App = () => (
           {/* Catch-all: renders a CMS-created custom page if one exists, else 404. */}
           <Route path="*" element={<CustomPage />} />
         </Routes>
+        </Suspense>
+        </ChunkErrorBoundary>
         {/* Floating contact widget — visible on every page. */}
         <ContactWidget />
         {/* First-party analytics: pageviews + clicks → Supabase; Slack once/session. */}

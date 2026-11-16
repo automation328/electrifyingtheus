@@ -2,6 +2,7 @@ import { createRoot } from "react-dom/client";
 import "./index.css";
 import { hydrateStaticContent } from "./lib/content-hydrate";
 import { importWithRetry, reloadOnce } from "./lib/chunk-retry";
+import { LoadFailed } from "./components/LoadFailed";
 
 // Glass is the permanent site theme — set before first paint to avoid a flash.
 document.documentElement.setAttribute("data-theme", "glass");
@@ -23,19 +24,6 @@ hydrateStaticContent().finally(async () => {
     root.render(<App />);
   } catch (err) {
     console.error("App failed to load", err);
-    // Plain markup: the app's components are in the chunk that failed.
-    root.render(
-      <div style={{ minHeight: "100vh", display: "grid", placeItems: "center", padding: 16, fontFamily: "system-ui, sans-serif", textAlign: "center" }}>
-        <div>
-          <p style={{ fontSize: 18, marginBottom: 12 }}>The page didn't finish loading. Please check your connection and try again.</p>
-          <button
-            onClick={() => window.location.reload()}
-            style={{ padding: "10px 20px", borderRadius: 8, border: 0, background: "#0f766e", color: "#fff", fontSize: 16, cursor: "pointer" }}
-          >
-            Reload
-          </button>
-        </div>
-      </div>,
-    );
+    root.render(<LoadFailed />);
   }
 });
