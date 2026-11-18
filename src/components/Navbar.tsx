@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { Menu, X, ArrowRight, Star, Newspaper } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import LanguageToggle from "@/components/LanguageToggle";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
@@ -153,7 +154,8 @@ const Navbar = () => {
           </div>
 
           {/* Burger toggle — right */}
-          <div className="flex flex-1 justify-end">
+          <div className="flex flex-1 items-center justify-end">
+            <LanguageToggle solid={solid} />
             <button
               className={`relative z-[60] p-2 rounded-lg transition-transform active:scale-90 ${open ? "" : "burger-electric"}`}
               onClick={toggleMenu}

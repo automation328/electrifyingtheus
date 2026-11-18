@@ -817,3 +817,13 @@ html[data-theme="glass"] .gradient-hero {
     overflow-x: clip;
   }
 }
+
+/* Google Translate (Español switch): hide its top bar and hover popups, and
+   stop it pushing the page down. */
+body > .skiptranslate,
+iframe.skiptranslate,
+.goog-te-banner-frame,
+#goog-gt-tt,
+.goog-te-balloon-frame { display: none !important; }
+body { top: 0 !important; }
+.goog-text-highlight { background: none !important; box-shadow: none !important; }
