@@ -2,13 +2,14 @@
 // Built-in events' share previews, read by middleware.ts. `date` + `title`
 // match a database row that adopted the event (same rule as src/lib/content.ts).
 
-export interface OgEvent { slug: string; title: string; date: string; description: string; image: string }
+export interface OgEvent { slug: string; title: string; date: string; asset: string; description: string; image: string }
 
 export const OG_EVENTS: OgEvent[] = [
   {
     "slug": "multi-modal-emobility-summit",
     "title": "Multi-Modal eMobility Summit",
     "date": "2026-07-29",
+    "asset": "emobility-summit",
     "description": "This inaugural Multi-Modal eMobility Summit transforms an operational airport into a live demonstration space for the future of electric transportation — across land, air, and water. Explore static di",
     "image": "/og/events/multi-modal-emobility-summit.jpg"
   },
@@ -16,6 +17,7 @@ export const OG_EVENTS: OgEvent[] = [
     "slug": "demo-days-los-angeles",
     "title": "Demo Days Los Angeles",
     "date": "2026-06-27",
+    "asset": "event-demo-days-la",
     "description": "North America's largest outdoor vehicle demonstration festival — over one million square feet at the Rose Bowl. Test drive and ride a huge range of vehicles: cars, trucks, motorcycles, e-bikes, ATVs, ",
     "image": "/og/events/demo-days-los-angeles.jpg"
   },
@@ -23,6 +25,7 @@ export const OG_EVENTS: OgEvent[] = [
     "slug": "from-pump-to-plug",
     "title": "Part 2: From The Pump To The Plug - How Electric Vehicles Can Save You Thousands",
     "date": "2026-08-27",
+    "asset": "general-flyer",
     "description": "A free one-hour webinar on how switching from gas to electric saves drivers thousands — on fuel, maintenance, and incentives. See real cost comparisons and how to find the rebates available in your ar",
     "image": "/og/events/from-pump-to-plug.jpg"
   },
@@ -30,6 +33,7 @@ export const OG_EVENTS: OgEvent[] = [
     "slug": "from-pump-to-plug-part-3",
     "title": "National EV Affordability Webinar (Part 3): From Pump to Plug: How Pre-Owned EVs Can Save You Thousands",
     "date": "2026-11-19",
+    "asset": "pump-to-plug-part-3-2026",
     "description": "The third installment of our From the Pump to the Plug webinar series, focused on pre-owned electric vehicles and EV affordability. Dealership representatives and industry experts discuss shopping for",
     "image": "/og/events/from-pump-to-plug-part-3.jpg"
   },
@@ -37,6 +41,7 @@ export const OG_EVENTS: OgEvent[] = [
     "slug": "move-america-2026",
     "title": "MOVE America 2026",
     "date": "2026-09-23",
+    "asset": "move-america-2026",
     "description": "The leading converged mobility conference in the Americas — 5,000+ professionals across EVs, fleets, micromobility, charging, and smart cities, with live demos on wireless charging, V2X, and electrifi",
     "image": "/og/events/move-america-2026.jpg"
   },
@@ -44,6 +49,7 @@ export const OG_EVENTS: OgEvent[] = [
     "slug": "the-battery-show-north-america-2026",
     "title": "The Battery Show North America 2026",
     "date": "2026-10-12",
+    "asset": "battery-show-2026",
     "description": "North America's largest battery and EV-tech event — 21,000+ professionals and 1,300+ exhibitors across electrification, energy storage, thermal management, and battery systems. Co-located with EV Tech",
     "image": "/og/events/the-battery-show-north-america-2026.jpg"
   },
@@ -51,6 +57,7 @@ export const OG_EVENTS: OgEvent[] = [
     "slug": "la-auto-show-automobility-la-2026",
     "title": "LA Auto Show / AutoMobility LA 2026",
     "date": "2026-11-20",
+    "asset": "la-auto-show-2026",
     "description": "North America's premier EV launchpad — featuring Electric Avenue, a nearly mile-long indoor EV test track, and debuts from every major automaker, alongside the AutoMobility LA industry days.",
     "image": "/og/events/la-auto-show-automobility-la-2026.jpg"
   },
@@ -58,6 +65,7 @@ export const OG_EVENTS: OgEvent[] = [
     "slug": "ev-charging-summit-expo-2027",
     "title": "EV Charging Summit & Expo 2027",
     "date": "2027-03-01",
+    "asset": "ev-charging-summit-2027",
     "description": "North America's most influential event focused exclusively on EV charging infrastructure — 240+ exhibitors and 180+ speakers covering charging technology, financing models, and policy.",
     "image": "/og/events/ev-charging-summit-expo-2027.jpg"
   },
@@ -65,6 +73,7 @@ export const OG_EVENTS: OgEvent[] = [
     "slug": "nordic-ev-summit-2027",
     "title": "Nordic EV Summit 2027",
     "date": "2027-05-12",
+    "asset": "nordic-ev-summit-2027",
     "description": "Europe's policy-leading EV gathering — 1,300+ delegates across government, industry, and academia, with sessions on charging profitability, battery production, and zero-emission transport.",
     "image": "/og/events/nordic-ev-summit-2027.jpg"
   },
@@ -72,6 +81,7 @@ export const OG_EVENTS: OgEvent[] = [
     "slug": "act-expo-2027",
     "title": "Advanced Clean Transportation (ACT) Expo 2027",
     "date": "2027-05-17",
+    "asset": "act-expo-2027",
     "description": "North America's largest clean-fleet and commercial-EV event — 12,000+ attendees, 500+ exhibitors, and 200+ zero-emission vehicles spanning EVs, hydrogen, and AI-driven fleet tech.",
     "image": "/og/events/act-expo-2027.jpg"
   },
@@ -79,6 +89,7 @@ export const OG_EVENTS: OgEvent[] = [
     "slug": "iaa-mobility-2027",
     "title": "IAA Mobility 2027",
     "date": "2027-09-07",
+    "asset": "iaa-mobility-2027",
     "description": "One of the world's largest mobility shows — 500,000+ visitors and 750 exhibitors, with global EV launches and a public Open Space in Munich's city center.",
     "image": "/og/events/iaa-mobility-2027.jpg"
   },
@@ -86,6 +97,7 @@ export const OG_EVENTS: OgEvent[] = [
     "slug": "auto-shanghai-2027",
     "title": "Auto Shanghai 2027",
     "date": "2027-04-23",
+    "asset": "auto-shanghai-2027",
     "description": "One of the world's largest auto shows — the 22nd edition at NECC Shanghai, a major global debut stage for electric vehicles.",
     "image": "/og/events/auto-shanghai-2027.jpg"
   },
@@ -93,6 +105,7 @@ export const OG_EVENTS: OgEvent[] = [
     "slug": "unity-fest-2026",
     "title": "5th Annual Unity Fest 2026",
     "date": "2026-07-26",
+    "asset": "unity-fest-2026",
     "description": "Drive Clean Colorado joins the 5th annual Unity Fest — a free, family-friendly celebration presented by the Black Parents United Foundation — sharing state and federal programs that support healthier,",
     "image": "/og/events/unity-fest-2026.jpg"
   },
@@ -100,6 +113,7 @@ export const OG_EVENTS: OgEvent[] = [
     "slug": "july-coalition-conversation-2026",
     "title": "July Coalition Conversation",
     "date": "2026-07-30",
+    "asset": "july-coalition-2026",
     "description": "Drive Clean Colorado's monthly Coalition Conversation — a chance to stay plugged into Colorado's clean-transportation landscape, hear what others are working on, and share updates.",
     "image": "/og/events/july-coalition-conversation-2026.jpg"
   },
@@ -107,6 +121,7 @@ export const OG_EVENTS: OgEvent[] = [
     "slug": "state-of-charge-2026",
     "title": "State of Charge 2026: Education, Innovation, and EV Conversions",
     "date": "2026-07-31",
+    "asset": "state-of-charge-2026",
     "description": "An educational conference hosted by Ohm On The Range, bringing together EV enthusiasts, industry professionals, builders, and innovators for two days of education, innovation, and EV conversions.",
     "image": "/og/events/state-of-charge-2026.jpg"
   },
@@ -114,6 +129,7 @@ export const OG_EVENTS: OgEvent[] = [
     "slug": "ev-charging-meet-up-2026",
     "title": "EV Charging Meet-Up",
     "date": "2026-08-06",
+    "asset": "ev-charging-meetup-2026",
     "description": "An interactive session at the Adams County Conference Center bringing together charging experts, local leaders, and industry partners to share best practices for EV charging deployment.",
     "image": "/og/events/ev-charging-meet-up-2026.jpg"
   },
@@ -121,6 +137,7 @@ export const OG_EVENTS: OgEvent[] = [
     "slug": "august-coalition-conversation-2026",
     "title": "August Coalition Conversation",
     "date": "2026-08-27",
+    "asset": "august-coalition-2026",
     "description": "Drive Clean Colorado's monthly Coalition Conversation — a steady touchpoint for collaboration, idea-sharing, and community-building around clean transportation.",
     "image": "/og/events/august-coalition-conversation-2026.jpg"
   },
@@ -128,6 +145,7 @@ export const OG_EVENTS: OgEvent[] = [
     "slug": "fleet-charging-meet-up-2026",
     "title": "Fleet Charging and Meet-Up",
     "date": "2026-09-09",
+    "asset": "fleet-charging-2026",
     "description": "A fleet convening hosted with Xcel Energy, bringing together fleet managers, public agencies, utilities, and industry leaders to discuss fleet electrification, infrastructure planning, and utility coo",
     "image": "/og/events/fleet-charging-meet-up-2026.jpg"
   },
@@ -135,6 +153,7 @@ export const OG_EVENTS: OgEvent[] = [
     "slug": "forth-roadmap-conference-2026",
     "title": "Forth Roadmap Conference",
     "date": "2026-09-13",
+    "asset": "forth-roadmap-2026",
     "description": "The nation's leading electric-transportation conference — policymakers, utilities, automakers, and charging providers at the Seattle Convention Center. Drive Clean Colorado is proud to support Roadmap",
     "image": "/og/events/forth-roadmap-conference-2026.jpg"
   },
@@ -142,6 +161,7 @@ export const OG_EVENTS: OgEvent[] = [
     "slug": "soco-charging-meet-up-2026",
     "title": "SoCo Charging Meet-Up",
     "date": "2026-09-17",
+    "asset": "soco-meetup-2026",
     "description": "A fun, interactive event at Steel City Solar to connect with industry experts, explore EVs, and experience live charging demonstrations — whether you're EV-curious or already driving electric.",
     "image": "/og/events/soco-charging-meet-up-2026.jpg"
   },
@@ -149,6 +169,7 @@ export const OG_EVENTS: OgEvent[] = [
     "slug": "september-coalition-conversation-2026",
     "title": "September Coalition Conversation",
     "date": "2026-09-24",
+    "asset": "september-coalition-2026",
     "description": "Drive Clean Colorado's monthly Coalition Conversation — a place to exchange insights, celebrate progress, and learn what's next across the state.",
     "image": "/og/events/september-coalition-conversation-2026.jpg"
   },
@@ -156,6 +177,7 @@ export const OG_EVENTS: OgEvent[] = [
     "slug": "drive-clean-summit-expo-2026",
     "title": "Drive Clean Summit + Expo 2026",
     "date": "2026-10-22",
+    "asset": "drive-clean-summit-2026",
     "description": "Drive Clean Colorado's flagship Summit + Expo at Empower Field at Mile High — a full day of clean-transportation education, exhibits, and networking. Registration opens August 1, 2026.",
     "image": "/og/events/drive-clean-summit-expo-2026.jpg"
   },
@@ -163,6 +185,7 @@ export const OG_EVENTS: OgEvent[] = [
     "slug": "october-coalition-conversation-2026",
     "title": "October Coalition Conversation",
     "date": "2026-10-29",
+    "asset": "october-coalition-2026",
     "description": "The final Coalition Conversation of the year — a chance to reflect on progress and look ahead. (No calls in November or December.)",
     "image": "/og/events/october-coalition-conversation-2026.jpg"
   },
@@ -170,6 +193,7 @@ export const OG_EVENTS: OgEvent[] = [
     "slug": "evadc-ask-an-ev-owner-2026",
     "title": "Ask an EV Owner (EVADC)",
     "date": "2026-08-05",
+    "asset": "evadc-ask-an-ev-owner-2026",
     "description": "A recurring virtual Q&A where prospective buyers can ask real EV owners anything — range, charging, cost, and living with an electric vehicle. Hosted by the Electric Vehicle Association of Greater Was",
     "image": "/og/events/evadc-ask-an-ev-owner-2026.jpg"
   },
@@ -177,6 +201,7 @@ export const OG_EVENTS: OgEvent[] = [
     "slug": "evadc-picnic-2026",
     "title": "EVADC Picnic",
     "date": "2026-08-08",
+    "asset": "evadc-picnic-2026",
     "description": "The Electric Vehicle Association of Greater Washington DC's member picnic at Riverbend Park — food, community, and EVs.",
     "image": "/og/events/evadc-picnic-2026.jpg"
   },
@@ -184,6 +209,7 @@ export const OG_EVENTS: OgEvent[] = [
     "slug": "evadc-monthly-meeting-2026",
     "title": "EVADC Monthly Meeting",
     "date": "2026-08-19",
+    "asset": "workforce",
     "description": "The Electric Vehicle Association of Greater Washington DC's monthly meeting — updates, guest speakers, and community discussion on all things EV.",
     "image": "/og/events/evadc-monthly-meeting-2026.jpg"
   }

@@ -11,6 +11,7 @@
 
 import { execFileSync } from "node:child_process";
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { basename, extname } from "node:path";
 import { EVENTS } from "../src/data/events";
 
 const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
@@ -25,7 +26,10 @@ for (const e of EVENTS) {
   const image = `/og/events/${e.slug}.jpg`;
   execFileSync("python", ["scripts/og-flyer.py", src, `public${image}`], { stdio: "inherit" });
   const date = `${e.year}-${String(MONTHS.indexOf(e.month) + 1).padStart(2, "0")}-${String(Number(e.day) || 0).padStart(2, "0")}`;
-  rows.push({ slug: e.slug, title: e.title.trim(), date, description: e.description.slice(0, 200), image });
+  // The flyer's source file name, which survives in a CMS row's bundled
+  // "/assets/<name>-<hash>.<ext>" path, so such a row finds this prepared image.
+  const asset = basename(src, extname(src));
+  rows.push({ slug: e.slug, title: e.title.trim(), date, asset, description: e.description.slice(0, 200), image });
 }
 
 writeFileSync(
@@ -34,7 +38,7 @@ writeFileSync(
 // Built-in events' share previews, read by middleware.ts. \`date\` + \`title\`
 // match a database row that adopted the event (same rule as src/lib/content.ts).
 
-export interface OgEvent { slug: string; title: string; date: string; description: string; image: string }
+export interface OgEvent { slug: string; title: string; date: string; asset: string; description: string; image: string }
 
 export const OG_EVENTS: OgEvent[] = ${JSON.stringify(rows, null, 2)};
 `,

@@ -436,22 +436,27 @@ export default async function middleware(request: Request) {
     const main = await fetchContentMain(path, curated);
     const section = OG_ENTRIES.find((e) => e.path === (path.startsWith("/events/") ? "/events" : "/news"));
     const dbImage = typeof main?.image === "string" ? main.image : "";
+    // A row under another slug (renamed, or with a city added) can still carry a
+    // built-in flyer as "/assets/<name>-<hash>.<ext>"; use its prepared JPEG,
+    // since the raw file may be AVIF or WebP, which many apps won't show.
+    const bundled = dbImage.match(/^\/assets\/(.+)-[\w-]{8}\.\w+$/)?.[1];
+    const owner = curated ?? (bundled ? OG_EVENTS.find((e) => e.asset === bundled) : undefined);
     // An uploaded image (full URL) is what an editor chose, so it wins. A row
     // that adopted a built-in event carries the bundled "/assets/…" flyer,
     // which the prepared JPEG shows better; any other site path still beats
     // the generic section card.
     const image = /^https?:\/\//.test(dbImage) ? dbImage
-      : curated ? origin + curated.image
+      : owner ? origin + owner.image
       : dbImage.startsWith("/") ? origin + dbImage
       : "";
     if (image) {
       meta = {
-        title: main?.title || curated?.title || section?.title || SITE_DEFAULT.title,
-        description: (main?.description || curated?.description || section?.description || SITE_DEFAULT.description).slice(0, 200),
+        title: main?.title || owner?.title || section?.title || SITE_DEFAULT.title,
+        description: (main?.description || owner?.description || section?.description || SITE_DEFAULT.description).slice(0, 200),
         image,
         url: origin + path,
         // Only the prepared JPEG is known to be 1200×630; a raw cover/flyer isn't.
-        knownSize: !!curated && image === origin + curated.image,
+        knownSize: !!owner && image === origin + owner.image,
       };
     } else if (section) {
       const image = section.image.startsWith("http") ? section.image : origin + section.image;
