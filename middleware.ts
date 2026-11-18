@@ -11,6 +11,7 @@
 
 import { next } from "@vercel/edge";
 import { OG_ENTRIES } from "./og-data.js";
+import { OG_EVENTS, type OgEvent } from "./og-events.js";
 import { SITEMAP_STATIC, isSitemapExcluded } from "./sitemap-urls.js";
 import { slidesUnlocked } from "./slides-gate.js";
 
@@ -135,7 +136,7 @@ async function buildSitemapXml(): Promise<string> {
 
 // Best-effort: the page's main image + title/description from the DB. Guarded
 // (timeout + try/catch) so any failure leaves the static fallback untouched.
-async function fetchContentMain(path: string): Promise<Partial<Meta> | null> {
+async function fetchContentMain(path: string, curated?: OgEvent): Promise<Partial<Meta> | null> {
   const base = process.env.VITE_SUPABASE_URL;
   const anon = process.env.VITE_SUPABASE_ANON_KEY;
   if (!base || !anon) return null;
@@ -156,10 +157,13 @@ async function fetchContentMain(path: string): Promise<Partial<Meta> | null> {
       const res = await fetch(`${base}/rest/v1/site_events?status=eq.published&select=image,title,event_date,description`, { headers, signal: ctrl.signal });
       if (res.ok) {
         const rows = await res.json();
-        // Match the fallback slug (new CMS events) OR the clean title slug (a
-        // curated event overridden via the CMS adopts slugify(title)).
+        // Match the fallback slug (new CMS events), the clean title slug, or a
+        // row that adopted a built-in event (same title + date, so it keeps the
+        // built-in's slug; see eventDedupe in src/lib/content.ts).
         const r = Array.isArray(rows)
-          ? rows.find((e: { title: string; event_date: string }) => eventSlugFor(e.title, e.event_date) === slug || slugify(e.title) === slug)
+          ? rows.find((e: { title: string; event_date: string }) =>
+              eventSlugFor(e.title, e.event_date) === slug || slugify(e.title) === slug ||
+              (!!curated && String(e.title ?? "").trim() === curated.title && e.event_date === curated.date))
           : null;
         if (r) return { image: r.image, title: r.title, description: r.description };
       }
@@ -208,11 +212,11 @@ async function fetchPageSeo(path: string, explicitOnly = false): Promise<Partial
 
 function calculatorMeta(url: URL, origin: string): Meta {
   const p = url.searchParams;
-  const image = origin + "/og/calculator.jpg";
+  const isGm = url.pathname.replace(/\/+$/, "") === "/gm-ev-vs-gas";
+  const image = origin + (isGm ? "/og/gm-ev-vs-gas.jpg" : "/og/calculator.jpg");
   const pageUrl = origin + url.pathname + url.search;
   const ev = p.get("ogEv");
   const gas = p.get("ogGas");
-  const isGm = url.pathname.replace(/\/+$/, "") === "/gm-ev-vs-gas";
 
   // Bare share (no result params, e.g. a copied page URL) → branded banner card.
   if (!ev || !gas) {
@@ -242,7 +246,7 @@ function calculatorMeta(url: URL, origin: string): Meta {
   return {
     title,
     description,
-    image: origin + "/og/calculator.jpg",
+    image,
     url: origin + url.pathname + url.search,
   };
 }
@@ -427,15 +431,27 @@ export default async function middleware(request: Request) {
   // OWN cover / the event's OWN flyer from the DB. Fall back to the section
   // banner only if the item has no usable image.
   if (!meta && (path.startsWith("/events/") || path.startsWith("/blog/"))) {
-    const main = await fetchContentMain(path);
+    // A built-in event's own flyer, prepared as a 1200×630 JPEG (og-events.ts).
+    const curated = path.startsWith("/events/") ? OG_EVENTS.find((e) => e.slug === path.slice("/events/".length)) : undefined;
+    const main = await fetchContentMain(path, curated);
     const section = OG_ENTRIES.find((e) => e.path === (path.startsWith("/events/") ? "/events" : "/news"));
-    if (main && typeof main.image === "string" && /^https?:\/\//.test(main.image)) {
+    const dbImage = typeof main?.image === "string" ? main.image : "";
+    // An uploaded image (full URL) is what an editor chose, so it wins. A row
+    // that adopted a built-in event carries the bundled "/assets/…" flyer,
+    // which the prepared JPEG shows better; any other site path still beats
+    // the generic section card.
+    const image = /^https?:\/\//.test(dbImage) ? dbImage
+      : curated ? origin + curated.image
+      : dbImage.startsWith("/") ? origin + dbImage
+      : "";
+    if (image) {
       meta = {
-        title: main.title || section?.title || SITE_DEFAULT.title,
-        description: (main.description || section?.description || SITE_DEFAULT.description).slice(0, 200),
-        image: main.image,
+        title: main?.title || curated?.title || section?.title || SITE_DEFAULT.title,
+        description: (main?.description || curated?.description || section?.description || SITE_DEFAULT.description).slice(0, 200),
+        image,
         url: origin + path,
-        knownSize: false, // a raw cover/flyer isn't guaranteed 1200×630
+        // Only the prepared JPEG is known to be 1200×630; a raw cover/flyer isn't.
+        knownSize: !!curated && image === origin + curated.image,
       };
     } else if (section) {
       const image = section.image.startsWith("http") ? section.image : origin + section.image;

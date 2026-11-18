@@ -239,7 +239,7 @@ const CommunityBlogs = () => {
                     title={b.title}
                     summary={b.author_name ?? "Community author"}
                     description={b.excerpt || b.content}
-                    image="/og/news.jpg"
+                    image="/og/news-hub.jpg"
                     meta={`By ${b.author_name ?? "Community author"} · ${fmtDate(b.created_at)}`}
                     formType="article-share"
                     className={GREEN_SHARE_ICON}

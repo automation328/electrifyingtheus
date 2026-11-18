@@ -60,6 +60,18 @@
     "subtitle": "Public EV charging stations across the U.S."
   },
   {
+    "file": "range-map",
+    "pill": "EV RANGE MAP",
+    "line1": "How far can",
+    "line2": "your EV go?",
+    "chips": [
+      "Any EV",
+      "Any ZIP",
+      "Normal & cold weather"
+    ],
+    "subtitle": "See your EV's driving range as a radius on the map."
+  },
+  {
     "file": "rebate-eligibility",
     "pill": "REBATE CHECK",
     "line1": "Do you qualify",
@@ -334,5 +346,65 @@
       "Tool disclaimers"
     ],
     "subtitle": "The terms for using this site and its tools."
+  },
+  {
+    "file": "news-hub",
+    "pill": "NEWS & GUIDES",
+    "line1": "E-mobility news",
+    "line2": "and EV guides",
+    "chips": [
+      "Charging",
+      "Savings",
+      "Policy"
+    ],
+    "subtitle": "Stories and how-tos on going electric."
+  },
+  {
+    "file": "events-hub",
+    "pill": "EV EVENTS",
+    "line1": "EV events",
+    "line2": "near you",
+    "chips": [
+      "Ride & Drives",
+      "Webinars",
+      "Expos"
+    ],
+    "subtitle": "EV events across the U.S. and online."
+  },
+  {
+    "file": "rebates-incentives",
+    "pill": "REBATES & INCENTIVES",
+    "line1": "EV rebates you",
+    "line2": "may qualify for",
+    "chips": [
+      "Federal",
+      "State",
+      "Utility"
+    ],
+    "subtitle": "Search EV rebates and incentives by state."
+  },
+  {
+    "file": "careers-hub",
+    "pill": "CAREERS",
+    "line1": "Careers in",
+    "line2": "e-mobility",
+    "chips": [
+      "Charging",
+      "Automotive",
+      "Clean energy"
+    ],
+    "subtitle": "Jobs in the electric transportation industry."
+  },
+  {
+    "file": "gm-ev-vs-gas",
+    "pill": "GM EV vs GAS",
+    "line1": "A GM EV or",
+    "line2": "your gas car?",
+    "chips": [
+      "Equinox EV",
+      "Silverado EV",
+      "Cadillac LYRIQ"
+    ],
+    "subtitle": "See what you would save with a GM EV."
   }
 ]

@@ -111,21 +111,21 @@ export const OG_ENTRIES: OgEntry[] = [
     title: "E-Mobility News & Guides — Electrifying the US",
     description:
       "The latest on electric vehicles, charging, and the clean-transport transition — plus guides and explainers on going electric.",
-    image: "/og/news.jpg",
+    image: "/og/news-hub.jpg",
   },
   {
     path: "/events",
     title: "EV Events — Ride & Drives, Webinars & Expos",
     description:
       "Experience e-mobility in person and online. Find ride & drives, webinars, and expos near you.",
-    image: "/og/events.jpg",
+    image: "/og/events-hub.jpg",
   },
   {
     path: "/careers",
     title: "Careers in E-Mobility — Electrifying the US",
     description:
       "Explore clean-energy and EV careers — the transition is creating hundreds of thousands of jobs and pathways into them.",
-    image: "/og/careers.jpg",
+    image: "/og/careers-hub.jpg",
   },
   {
     path: "/gallery",
@@ -146,7 +146,7 @@ export const OG_ENTRIES: OgEntry[] = [
     title: "EV Rebates & Incentives — Find What You Qualify For",
     description:
       "Federal, state, and utility programs that lower the cost of going electric. See the incentives available in your area.",
-    image: "/og/incentives.jpg",
+    image: "/og/rebates-incentives.jpg",
   },
   // Tool, topic and form pages. Each has its own card, generated from
   // scripts/og-cards.json by scripts/make-og-cards.ps1.
@@ -183,8 +183,7 @@ export const OG_ENTRIES: OgEntry[] = [
     title: "EV Range Map — How Far Can Your EV Go?",
     description:
       "Pick your EV by make, model and year, enter a ZIP code, and see your driving range as a radius on the map, in normal weather and in deep cold.",
-    // shortcut: reuses the charger map card until a range-map card is made.
-    image: "/og/find-a-charger.jpg",
+    image: "/og/range-map.jpg",
   },
   {
     path: "/rebate-eligibility",
@@ -353,6 +352,6 @@ export const OG_ENTRIES: OgEntry[] = [
     title: "E-Mobility News & Guides — Electrifying the US",
     description:
       "The latest on electric vehicles, charging, and the clean-transport transition — plus guides and explainers on going electric.",
-    image: "/og/news.jpg",
+    image: "/og/news-hub.jpg",
   },
 ];
