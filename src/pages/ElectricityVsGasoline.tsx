@@ -51,6 +51,8 @@ import {
 // Hero image for a shared calculator result (share email + OG card).
 const CALCULATOR_SHARE_IMAGE = "/og/calculator.jpg";
 
+// Hidden for now, not removed: set this to true to put the "Cost as the miles pile up" chart back.
+const SHOW_COST_CHART = false;
 const EV_COLOR = "hsl(145, 55%, 42%)"; // green
 const GAS_COLOR = "#f97316"; // orange
 // The $7,500 federal EV tax credit has ended — no purchase incentive is applied here.
@@ -1400,6 +1402,7 @@ const ElectricityVsGasoline = () => {
             </div>
 
             {/* Cumulative cost chart */}
+            {SHOW_COST_CHART && (
             <div className="rounded-3xl border border-border bg-card p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-charge text-lg text-foreground">Cost as the miles pile up</h3>
@@ -1444,6 +1447,7 @@ const ElectricityVsGasoline = () => {
                 </ResponsiveContainer>
               </div>
             </div>
+            )}
 
             {/* Source + freshness strip (§7) */}
             <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-muted-foreground">
