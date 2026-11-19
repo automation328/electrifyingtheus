@@ -47,6 +47,7 @@ const EMBED_TOOL_PATHS = new Set([
   "/electricity-vs-gasoline",
   "/gm-ev-vs-gas",
   "/find-a-charger",
+  "/range-map",
   "/rebates-incentives",
   "/rebate-eligibility",
   "/assistant",

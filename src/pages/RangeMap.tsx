@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Car, Gauge, Loader2, MapPin, Search } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { useEmbedFrame } from "@/hooks/useEmbedFrame";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
@@ -33,6 +34,10 @@ const Field = ({ label, className = "", children }: { label: string; className?:
 );
 
 const RangeMap = () => {
+  // `?embed=1` renders the tool chrome-free for iframing on third-party sites.
+  const embed = typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("embed") === "1";
+  useEmbedFrame(embed);
   const [make, setMake] = useState(DEFAULT_MAKE);
   const [modelId, setModelId] = useState(() => modelsOf(DEFAULT_MAKE)[0]?.id ?? "");
   const [year, setYear] = useState(() => yearsOf(modelsOf(DEFAULT_MAKE)[0]?.id ?? "")[0] ?? 0);
@@ -95,10 +100,10 @@ const RangeMap = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <Navbar />
-      <main className="flex-1 pb-16 pt-28">
+      {!embed && <Navbar />}
+      <main className={`flex-1 pb-16 ${embed ? "pt-8" : "pt-28"}`}>
         <section className="relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-secondary/5 to-transparent" aria-hidden />
+          {!embed && <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-secondary/5 to-transparent" aria-hidden />}
           <div className="container relative z-10 px-4 max-w-6xl">
             <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-semibold mb-3">
               <Gauge className="w-3.5 h-3.5" /> Range Map
@@ -253,15 +258,23 @@ const RangeMap = () => {
               Ranges are EPA estimates (fueleconomy.gov); models without EPA data yet show our estimate. Your range will vary with speed, terrain, climate, load and battery age.
               Deep cold assumes a 30% loss, the top of the typical 10–30% range.
             </p>
-            <p>
+            {!embed && <p>
               <Link to="/evs-in-winter" className="text-primary font-semibold hover:underline">How EVs handle winter</Link>
               {" · "}
               <Link to="/find-a-charger" className="text-primary font-semibold hover:underline">Find chargers along the way</Link>
-            </p>
+            </p>}
           </div>
         </div>
       </main>
-      <Footer />
+      {embed && (
+        <div className="container px-4 max-w-6xl pb-8 text-center">
+          <a href="https://electrifyingtheus.com/range-map" target="_blank" rel="noopener noreferrer"
+            className="text-xs text-muted-foreground hover:text-primary">
+            Powered by <span className="font-semibold text-foreground">Electrifying the US</span>
+          </a>
+        </div>
+      )}
+      {!embed && <Footer />}
     </div>
   );
 };

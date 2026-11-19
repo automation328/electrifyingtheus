@@ -74,7 +74,7 @@
       ]
     },
     {
-      "source": "/((?!calculator|electricity-vs-gasoline|gm-ev-vs-gas|find-a-charger|rebates-incentives|rebate-eligibility|assistant).*)",
+      "source": "/((?!calculator|electricity-vs-gasoline|gm-ev-vs-gas|find-a-charger|range-map|rebates-incentives|rebate-eligibility|assistant).*)",
       "headers": [
         {
           "key": "X-Frame-Options",
@@ -87,7 +87,7 @@
       ]
     },
     {
-      "source": "/((?=calculator|electricity-vs-gasoline|gm-ev-vs-gas|find-a-charger|rebates-incentives|rebate-eligibility|assistant).*)",
+      "source": "/((?=calculator|electricity-vs-gasoline|gm-ev-vs-gas|find-a-charger|range-map|rebates-incentives|rebate-eligibility|assistant).*)",
       "headers": [
         {
           "key": "Content-Security-Policy",
