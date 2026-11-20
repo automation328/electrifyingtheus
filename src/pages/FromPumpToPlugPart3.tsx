@@ -2,8 +2,7 @@
 // pre-owned EVs and EV affordability. Copy follows the thank-you email sent
 // to attendees on 20 Nov 2026.
 //
-// A REPLAY page like Part 2. The recording is not set in code yet: an editor
-// adds it with "Add a video" in edit mode, or set `video` below.
+// A REPLAY page like Part 2: the recording is the hero video.
 //
 // /events/from-pump-to-plug-part-3 (the registration page) redirects here
 // (App.tsx), the same way Part 2's old event URL does.
@@ -11,6 +10,11 @@
 import { PlayCircle, Car, Map as MapIcon, BadgeCheck, Calculator } from "lucide-react";
 import { type ContentSection, type ContentLinkCard } from "@/components/ContentPageLayout";
 import EditableContentPage from "@/components/EditableContentPage";
+
+const video = {
+  youtubeId: "tU5cQuVvmrA",
+  title: "Webinar Series Part 3: From The Pump To The Plug",
+};
 
 const sections: ContentSection[] = [
   {
@@ -60,6 +64,7 @@ const FromPumpToPlugPart3 = () => (
     compactTitle
     hideMeta
     hideCta
+    video={video}
     gateVideo
     extraCta={{ label: "Watch Part 2", to: "/from-pump-to-plug-part-2" }}
     sections={sections}
