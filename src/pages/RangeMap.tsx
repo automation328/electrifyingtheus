@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
 import { Link } from "react-router-dom";
-import { Car, Gauge, Loader2, MapPin, Search } from "lucide-react";
+import { BatteryCharging, Car, Gauge, Loader2, MapPin, Search, Snowflake } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useEmbedFrame } from "@/hooks/useEmbedFrame";
@@ -17,8 +17,6 @@ import {
 const RangeCircleMap = lazy(() => importWithRetry(() => import("@/components/RangeCircleMap")));
 
 const COLORS = { full: "#1f7a4d", winter: "#0e7490" };
-
-const DEFAULT_MAKE = RANGE_MAKES.includes("Chevrolet") ? "Chevrolet" : RANGE_MAKES[0];
 
 const MAP_HEIGHT = "h-[480px] lg:h-[620px]";
 
@@ -38,9 +36,10 @@ const RangeMap = () => {
   const embed = typeof window !== "undefined" &&
     new URLSearchParams(window.location.search).get("embed") === "1";
   useEmbedFrame(embed);
-  const [make, setMake] = useState(DEFAULT_MAKE);
-  const [modelId, setModelId] = useState(() => modelsOf(DEFAULT_MAKE)[0]?.id ?? "");
-  const [year, setYear] = useState(() => yearsOf(modelsOf(DEFAULT_MAKE)[0]?.id ?? "")[0] ?? 0);
+  // Nothing is preselected: the visitor picks the vehicle themselves.
+  const [make, setMake] = useState("");
+  const [modelId, setModelId] = useState("");
+  const [year, setYear] = useState(0);
   // Index 0 is the year's lowest EPA rating: the safe default when planning a trip.
   const [variantIdx, setVariantIdx] = useState(0);
   const [charge, setCharge] = useState(100);
@@ -55,10 +54,10 @@ const RangeMap = () => {
   const epaMiles = variants[variantIdx]?.[0] ?? variants[0]?.[0] ?? 0;
   const rings = useMemo(() => rangeRings(epaMiles, charge), [epaMiles, charge]);
 
-  const mapRings: RangeRing[] = useMemo(() => [
+  const mapRings: RangeRing[] = useMemo(() => !modelId ? [] : [
     { miles: rings.full, color: COLORS.full, label: "One way" },
     ...(deepCold ? [{ miles: rings.winter, color: COLORS.winter, label: "Deep cold" }] : []),
-  ], [rings, deepCold]);
+  ], [modelId, rings, deepCold]);
 
   const pickModel = (id: string) => {
     setModelId(id);
@@ -67,7 +66,9 @@ const RangeMap = () => {
   };
   const pickMake = (m: string) => {
     setMake(m);
-    pickModel(modelsOf(m)[0]?.id ?? "");
+    setModelId("");
+    setYear(0);
+    setVariantIdx(0);
   };
 
   // Start from the visitor's IP location. A place they already searched wins.
@@ -119,50 +120,51 @@ const RangeMap = () => {
         </section>
 
         <div className="container px-4 max-w-6xl mt-8 grid gap-4">
-          {/* Starting place, same bar as Find a Charger */}
-          <form onSubmit={onSubmit} className="flex flex-col sm:flex-row gap-3">
-            <div className="relative flex-1">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-              <input
-                value={typed}
-                onChange={(e) => setTyped(e.target.value)}
-                inputMode="search"
-                maxLength={120}
-                placeholder="Enter your Address, City, State or Zip code"
-                aria-label="Enter your Address, City, State or Zip code"
-                className="w-full h-12 rounded-xl border border-foreground/15 bg-card pl-10 pr-3 text-sm text-foreground placeholder:text-muted-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
-              />
-            </div>
-            <Button type="submit" variant="hero" size="lg" className="rounded-xl px-6" disabled={status === "loading"}>
-              {status === "loading" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
-              Search
-            </Button>
-          </form>
-
           {/* Vehicle */}
-          <div className="relative overflow-hidden rounded-3xl border-2 border-primary/25 bg-gradient-to-br from-primary/[0.06] via-card to-secondary/[0.06] p-4 md:p-6 grid gap-5 shadow-elevated">
+          <div className="relative overflow-hidden rounded-3xl border-2 border-primary/25 bg-gradient-to-br from-primary/[0.06] via-card to-secondary/[0.06] p-4 md:p-7 grid gap-6 shadow-elevated">
             <div className="absolute inset-x-0 top-0 h-1.5 gradient-primary" aria-hidden />
-            <div className="flex items-center gap-3">
-              <span className="grid place-items-center w-10 h-10 rounded-xl gradient-primary text-white shadow-card shrink-0">
-                <Car className="w-5 h-5" />
-              </span>
-              <div>
-                <h2 className="font-display font-bold text-lg text-foreground leading-tight">Choose your EV</h2>
-                <p className="text-xs text-muted-foreground">Pick a make, model, year and version, then set your battery charge.</p>
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-6 border-b border-primary/10">
+              <div className="flex items-center gap-3">
+                <span className="grid place-items-center w-11 h-11 rounded-xl gradient-primary text-white shadow-card shrink-0">
+                  <Car className="w-5 h-5" />
+                </span>
+                <div>
+                  <h2 className="font-display font-bold text-xl text-foreground leading-tight">Choose your EV</h2>
+                  <p className="text-xs text-muted-foreground">Pick a make, model, year and version, then set your battery charge.</p>
+                </div>
               </div>
+              {/* Starting place, on the right of the card title */}
+              <form onSubmit={onSubmit} className="flex flex-col sm:flex-row gap-2 w-full lg:w-auto lg:min-w-[500px]">
+                <div className="relative flex-1">
+                  <MapPin className="absolute z-10 left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-primary pointer-events-none" />
+                  <input
+                    value={typed}
+                    onChange={(e) => setTyped(e.target.value)}
+                    inputMode="search"
+                    maxLength={120}
+                    placeholder="Enter your Address, City, State or Zip code"
+                    aria-label="Enter your Address, City, State or Zip code"
+                    className="w-full h-12 rounded-xl border-2 border-primary/20 bg-card pl-10 pr-3 text-sm font-semibold text-foreground shadow-sm placeholder:font-normal placeholder:text-muted-foreground outline-none transition hover:border-primary/50 focus:border-primary focus:ring-2 focus:ring-primary/20"
+                  />
+                </div>
+                <Button type="submit" variant="hero" size="lg" className="h-12 rounded-xl px-6" disabled={status === "loading"}>
+                  {status === "loading" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+                  Search
+                </Button>
+              </form>
             </div>
             <div className="grid gap-4 grid-cols-2 lg:grid-cols-[1fr_1.4fr_0.7fr_1.4fr]">
               <Field label="Make">
                 <Select value={make} onValueChange={pickMake}>
-                  <SelectTrigger aria-label="Make" className={TRIGGER}><SelectValue /></SelectTrigger>
+                  <SelectTrigger aria-label="Make" className={TRIGGER}><SelectValue placeholder="Select make" /></SelectTrigger>
                   <SelectContent>
                     {RANGE_MAKES.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </Field>
               <Field label="Model">
-                <Select value={modelId} onValueChange={pickModel}>
-                  <SelectTrigger aria-label="Model" className={TRIGGER}><SelectValue /></SelectTrigger>
+                <Select value={modelId} onValueChange={pickModel} disabled={!make}>
+                  <SelectTrigger aria-label="Model" className={TRIGGER}><SelectValue placeholder="Select model" /></SelectTrigger>
                   <SelectContent>
                     {models.map((m) => <SelectItem key={m.id} value={m.id}>{m.model}</SelectItem>)}
                   </SelectContent>
@@ -170,25 +172,25 @@ const RangeMap = () => {
               </Field>
               <Field label="Year">
                 <Select value={year ? String(year) : ""} onValueChange={(v) => { setYear(Number(v)); setVariantIdx(0); }} disabled={!years.length}>
-                  <SelectTrigger aria-label="Year" className={TRIGGER}><SelectValue placeholder="Latest" /></SelectTrigger>
+                  <SelectTrigger aria-label="Year" className={TRIGGER}><SelectValue placeholder="Year" /></SelectTrigger>
                   <SelectContent>
                     {years.map((y) => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </Field>
               <Field label="Version">
-                <Select value={String(variantIdx)} onValueChange={(v) => setVariantIdx(Number(v))} disabled={variants.length < 2}>
-                  <SelectTrigger aria-label="Version" className={TRIGGER}><SelectValue /></SelectTrigger>
+                <Select value={variants.length ? String(variantIdx) : ""} onValueChange={(v) => setVariantIdx(Number(v))} disabled={variants.length < 2}>
+                  <SelectTrigger aria-label="Version" className={TRIGGER}><SelectValue placeholder="Version" /></SelectTrigger>
                   <SelectContent>
                     {variants.map((v, i) => <SelectItem key={i} value={String(i)}>{variantLabel(v)}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </Field>
             </div>
-            <div className="rounded-2xl bg-primary/[0.06] border border-primary/15 p-4 flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8">
+            <div className="rounded-2xl bg-card/70 border border-primary/15 p-4 md:px-5 flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8">
               <div className="grid gap-1.5 flex-1 min-w-0">
-                <div className="flex justify-between text-sm font-semibold text-foreground">
-                  <span id="charge-label">Battery charge</span>
+                <div className="flex justify-between items-center text-sm font-semibold text-foreground">
+                  <span id="charge-label" className="inline-flex items-center gap-1.5"><BatteryCharging className="w-4 h-4 text-primary" aria-hidden /> Battery charge</span>
                   <span className="font-bold text-primary tabular-nums">{charge}%</span>
                 </div>
                 <Slider
@@ -198,19 +200,20 @@ const RangeMap = () => {
                   className="h-6"
                 />
               </div>
-              <label className="flex items-center gap-2.5 h-11 px-3.5 rounded-xl border border-foreground/15 bg-card text-sm font-medium text-foreground cursor-pointer shrink-0">
+              <label className={`flex items-center gap-2.5 h-12 px-4 rounded-xl border-2 text-sm font-semibold cursor-pointer shrink-0 transition ${deepCold ? "border-[#0e7490]/40 bg-[#0e7490]/10 text-[#0e7490]" : "border-primary/20 bg-card text-foreground hover:border-primary/50"}`}>
                 <Switch checked={deepCold} onCheckedChange={setDeepCold} />
-                Show deep cold range
+                <Snowflake className="w-4 h-4" aria-hidden />
+                Show Cold Weather Range
               </label>
             </div>
           </div>
 
           {/* Summary line */}
           <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 px-1">
-            <p className="text-sm text-muted-foreground">
+            {!modelId ? <p className="text-sm text-muted-foreground">Choose your EV to see its range.</p> : <p className="text-sm text-muted-foreground">
               <strong className="text-foreground font-display text-base">{year > 0 && `${year} `}{make} {modelName}</strong>
               {" · "}{years.length ? "EPA" : "Est."} range <strong className="text-foreground">{epaMiles} mi</strong> · {charge}% charge
-            </p>
+            </p>}
             <p role="status" className="text-sm">
               {status === "notfound" && <span className="text-destructive">Couldn't find that place. Try a ZIP code, a city and state, or a street address.</span>}
               {status === "error" && <span className="text-destructive">Couldn't reach the location lookup. Try again.</span>}
@@ -243,10 +246,10 @@ const RangeMap = () => {
               ))}
             </ul>
 
-            {!place && (
+            {(!place || !modelId) && (
               <div className="absolute inset-0 z-[500] grid place-items-center pointer-events-none p-4">
                 <p className="rounded-2xl bg-card border border-border px-5 py-3 text-sm text-muted-foreground shadow-sm flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-primary" /> Enter a location to draw your range
+                  <MapPin className="w-4 h-4 text-primary" /> {!modelId ? "Choose your EV to draw your range" : "Enter a location to draw your range"}
                 </p>
               </div>
             )}
