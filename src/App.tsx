@@ -44,6 +44,7 @@ const EvRoadSafety = page(() => import("./pages/EvRoadSafety.tsx"));
 const SteamEducation = page(() => import("./pages/SteamEducation.tsx"));
 const EvCharging101 = page(() => import("./pages/EvCharging101.tsx"));
 const SaveWithEvsWebinar = page(() => import("./pages/SaveWithEvsWebinar.tsx"));
+const FromPumpToPlugPart3 = page(() => import("./pages/FromPumpToPlugPart3.tsx"));
 const FromPumpToPlugPart2 = page(() => import("./pages/FromPumpToPlugPart2.tsx"));
 const EvsInWinter = page(() => import("./pages/EvsInWinter.tsx"));
 const FinancialSavings = page(() => import("./pages/FinancialSavings.tsx"));
@@ -114,6 +115,8 @@ const App = () => (
           {/* The Part 2 webinar ran on 27 Aug 2026; its registration page is retired.
               Send the old URL to the recording, the same way past blog slugs redirect. */}
           <Route path="/events/from-pump-to-plug" element={<Navigate to="/from-pump-to-plug-part-2" replace />} />
+          {/* Part 3 ran on 19 Nov 2026; its registration page now points to the replay. */}
+          <Route path="/events/from-pump-to-plug-part-3" element={<Navigate to="/from-pump-to-plug-part-3" replace />} />
           <Route path="/events/:slug" element={<EventDetail />} />
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/list-your-event" element={<ListYourEvent />} />
@@ -131,6 +134,7 @@ const App = () => (
           <Route path="/ev-charging-101" element={<EvCharging101 />} />
           <Route path="/save-with-evs-webinar" element={<SaveWithEvsWebinar />} />
           <Route path="/from-pump-to-plug-part-2" element={<FromPumpToPlugPart2 />} />
+          <Route path="/from-pump-to-plug-part-3" element={<FromPumpToPlugPart3 />} />
           <Route path="/evs-in-winter" element={<EvsInWinter />} />
           <Route path="/financial-savings" element={<FinancialSavings />} />
           <Route path="/us-ev-policies" element={<UsEvPolicies />} />

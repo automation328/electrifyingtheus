@@ -84,6 +84,13 @@ export const OG_ENTRIES: OgEntry[] = [
     image: "/og/events-from-pump-to-plug-v2.jpg",
   },
   {
+    path: "/from-pump-to-plug-part-3",
+    title: "Watch The Webinar: Part 3 - From The Pump To The Plug, How Pre-Owned EVs Can Save You Thousands",
+    description:
+      "Watch Part 3 of our From the Pump to the Plug webinar — pre-owned EV dealers and an everyday EV driver on what it takes to make an EV affordable, and what to know before you buy.",
+    image: "/og/events/from-pump-to-plug-part-3.jpg",
+  },
+  {
     path: "/save-with-evs-webinar",
     title: "Webinar Series Part 1: From The Pump To The Plug — How Electric Vehicles Can Save Thousands",
     description:

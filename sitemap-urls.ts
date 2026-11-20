@@ -55,6 +55,7 @@ export const SITEMAP_PAGES: string[] = [
   "/evtol-drone-delivery",
   "/financial-savings",
   "/from-pump-to-plug-part-2",
+  "/from-pump-to-plug-part-3",
   "/find-a-charger",
   "/range-map",
   "/marketplace",
