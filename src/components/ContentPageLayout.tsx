@@ -70,6 +70,8 @@ interface ContentPageLayoutProps {
    *  page: the webinar replays are the recordings worth trading for, and a gate
    *  on every content page would tax pages whose video is a 40-second explainer. */
   gateVideo?: boolean;
+  /** Thumbnail links to related recordings, shown right after the sections. */
+  videoCards?: { youtubeId: string; title: string; desc: string; to: string }[];
   /** Optional CTA button shown directly under the stats row. */
   statsCta?: { label: string; to: string };
   /** Render the hero title at a smaller size (for long, multi-line titles). */
@@ -97,7 +99,7 @@ interface ContentPageLayoutProps {
 const ContentPageLayout = ({
   badge, title, highlight, intro, heroImage, icon: Icon,
   stats, sections, sources = [], kicker, pullQuote, gallery, video, gateVideo, statsCta, compactTitle, extraCta,
-  extraCtaImage, hideMeta, hideCta, linkCards, blocks, styles, hero,
+  extraCtaImage, hideMeta, hideCta, linkCards, blocks, styles, hero, videoCards,
 }: ContentPageLayoutProps) => {
   const [playing, setPlaying] = useState(false);
   const [gateOpen, setGateOpen] = useState(false);
@@ -474,6 +476,43 @@ const ContentPageLayout = ({
           ))}
           <BlockSlot slot="end" blocks={blocks} />
         </article>
+
+        {/* ── Related recordings (thumbnail links) ──────────────────── */}
+        {videoCards && videoCards.length > 0 && (
+          <section className="container px-4 max-w-3xl mt-10">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              {videoCards.map((v, i) => (
+                <Link
+                  key={i}
+                  to={v.to}
+                  className="brief-reveal group flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl"
+                  style={{ transitionDelay: `${i * 70}ms` }}
+                >
+                  <span className="relative block aspect-video overflow-hidden bg-muted">
+                    <img
+                      src={`https://i.ytimg.com/vi/${v.youtubeId}/hqdefault.jpg`}
+                      alt=""
+                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      loading="lazy"
+                    />
+                    <span className="absolute inset-0 grid place-items-center bg-foreground/20 transition-colors group-hover:bg-foreground/35" aria-hidden>
+                      <span className="grid h-14 w-14 place-items-center rounded-full bg-white/95 shadow-lg">
+                        <Play className="ml-0.5 h-6 w-6 fill-primary text-primary" />
+                      </span>
+                    </span>
+                  </span>
+                  <span className="flex flex-1 flex-col p-5">
+                    <span className="font-display text-lg font-bold leading-snug text-foreground">{v.title}</span>
+                    <span className="mt-1 flex-1 text-sm leading-snug text-muted-foreground">{v.desc}</span>
+                    <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-primary transition-all group-hover:gap-2.5">
+                      Watch the replay <ArrowRight className="h-4 w-4" />
+                    </span>
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* ── Pull-quote ─────────────────────────────────────────────── */}
         {pullQuote && (

@@ -68,6 +68,10 @@ const FromPumpToPlugPart3 = () => (
     gateVideo
     extraCta={{ label: "Watch Part 2", to: "/from-pump-to-plug-part-2" }}
     sections={sections}
+    videoCards={[
+      { youtubeId: "WaIWh8wY_tI", title: "Part 1: From The Pump To The Plug", desc: "UC Davis, Cox Automotive, the City of Huron, the Colorado Energy Office, Consumer Reports and an EV rideshare driver.", to: "/save-with-evs-webinar" },
+      { youtubeId: "_HRXa3hjlec", title: "Part 2: From The Pump To The Plug", desc: "The California Air Resources Board, Coltura, Uber, Austin Energy and GRID Alternatives.", to: "/from-pump-to-plug-part-2" },
+    ]}
     linkCards={linkCards}
   />
 );
