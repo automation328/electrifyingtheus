@@ -67,6 +67,7 @@ export const FORM_TAGS: Record<string, string[]> = {
   "event-calendar":  ["website-lead", "event-calendar", "source:event-calendar"],
   "job-share":       ["website-lead", "content-share", "job-share", "source:job-share"],
   "charger-share":   ["website-lead", "content-share", "charger-share", "source:charger-share"],
+  "range-map-share": ["website-lead", "content-share", "range-map-share", "source:range-map-share"],
   "vehicle-share":   ["website-lead", "content-share", "vehicle-share", "source:vehicle-share"],
   // The marketplace enquiry had a source label below but no tags here, and an
   // unknown formType is rejected — so every "Enquire about this vehicle" was
@@ -98,6 +99,7 @@ const SOURCE_LABEL: Record<string, string> = {
   "event-calendar": "Event Add-to-calendar click",
   "job-share": "Job share (email)",
   "charger-share": "Charging map share",
+  "range-map-share": "Range map share",
   "vehicle-share": "Marketplace vehicle share",
   "eligibility-plan": "Rebate eligibility (email me this plan)",
   "eligibility-coverage": "Rebate eligibility (notify me when covered)",

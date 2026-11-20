@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect, useMemo, useState, type FormEvent, type Reac
 import { Link } from "react-router-dom";
 import { BatteryCharging, Car, Gauge, Loader2, MapPin, Search, Snowflake } from "lucide-react";
 import Navbar from "@/components/Navbar";
+import ShareGate from "@/components/forms/ShareGate";
 import Footer from "@/components/Footer";
 import { useEmbedFrame } from "@/hooks/useEmbedFrame";
 import { Button } from "@/components/ui/button";
@@ -11,7 +12,7 @@ import { Switch } from "@/components/ui/switch";
 import type { RangeRing } from "@/components/RangeCircleMap";
 import { importWithRetry } from "@/lib/chunk-retry";
 import {
-  detectZip, lookupPlace, modelsOf, RANGE_MAKES, rangeRings, variantLabel, variantsOf, yearsOf, type MapPlace,
+  citiesWithin, detectZip, lookupPlace, modelsOf, RANGE_MAKES, rangeRings, variantLabel, variantsOf, yearsOf, type MapPlace,
 } from "@/lib/range-map";
 
 const RangeCircleMap = lazy(() => importWithRetry(() => import("@/components/RangeCircleMap")));
@@ -31,20 +32,36 @@ const Field = ({ label, className = "", children }: { label: string; className?:
   </label>
 );
 
+// A shared link (?make=&model=&year=&v=&charge=&cold=1&at=) reopens the same
+// result. Each value is checked against the catalog; a bad one is dropped.
+const fromLink = () => {
+  const q = new URLSearchParams(typeof window === "undefined" ? "" : window.location.search);
+  const make = RANGE_MAKES.includes(q.get("make") ?? "") ? q.get("make")! : "";
+  const modelId = modelsOf(make).some((m) => m.id === q.get("model")) ? q.get("model")! : "";
+  const years = yearsOf(modelId);
+  const year = years.includes(Number(q.get("year"))) ? Number(q.get("year")) : years[0] ?? 0;
+  const v = Number(q.get("v"));
+  const variantIdx = Number.isInteger(v) && v >= 0 && v < variantsOf(modelId, year).length ? v : 0;
+  const c = Number(q.get("charge"));
+  const charge = Number.isInteger(c) && c >= 5 && c <= 100 ? c : 100;
+  return { make, modelId, year, variantIdx, charge, deepCold: q.get("cold") === "1", at: (q.get("at") ?? "").trim().slice(0, 120) };
+};
+
 const RangeMap = () => {
   // `?embed=1` renders the tool chrome-free for iframing on third-party sites.
   const embed = typeof window !== "undefined" &&
     new URLSearchParams(window.location.search).get("embed") === "1";
   useEmbedFrame(embed);
-  // Nothing is preselected: the visitor picks the vehicle themselves.
-  const [make, setMake] = useState("");
-  const [modelId, setModelId] = useState("");
-  const [year, setYear] = useState(0);
+  const [link] = useState(fromLink);
+  // Nothing is preselected unless a shared link says so.
+  const [make, setMake] = useState(link.make);
+  const [modelId, setModelId] = useState(link.modelId);
+  const [year, setYear] = useState(link.year);
   // Index 0 is the year's lowest EPA rating: the safe default when planning a trip.
-  const [variantIdx, setVariantIdx] = useState(0);
-  const [charge, setCharge] = useState(100);
-  const [deepCold, setDeepCold] = useState(false);
-  const [typed, setTyped] = useState("");
+  const [variantIdx, setVariantIdx] = useState(link.variantIdx);
+  const [charge, setCharge] = useState(link.charge);
+  const [deepCold, setDeepCold] = useState(link.deepCold);
+  const [typed, setTyped] = useState(link.at);
   const [place, setPlace] = useState<MapPlace | null>(null);
   const [status, setStatus] = useState<Status>("idle");
 
@@ -71,18 +88,19 @@ const RangeMap = () => {
     setVariantIdx(0);
   };
 
-  // Start from the visitor's IP location. A place they already searched wins.
+  // Start from the shared link's place, else the visitor's IP location. A place
+  // they already searched wins.
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const zip = await detectZip();
+      const zip = link.at || await detectZip();
       const hit = zip ? await lookupPlace(zip).catch(() => null) : null;
       if (cancelled || !hit) return;
       setPlace((cur) => cur ?? hit);
       setTyped((cur) => cur || zip);
     })();
     return () => { cancelled = true; };
-  }, []);
+  }, [link.at]);
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -97,7 +115,17 @@ const RangeMap = () => {
     }
   };
 
+  const cities = useMemo(() => (place && modelId ? citiesWithin(place, rings.full) : []), [place, modelId, rings.full]);
+
   const modelName = models.find((m) => m.id === modelId)?.model ?? "";
+  const carName = `${year > 0 ? `${year} ` : ""}${make} ${modelName}`;
+
+  const shareUrl = () => {
+    const q = new URLSearchParams({ make, model: modelId, year: String(year), v: String(variantIdx), charge: String(charge) });
+    if (deepCold) q.set("cold", "1");
+    if (place) q.set("at", typed.trim() || place.label);
+    return `/range-map?${q}`;
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -211,7 +239,7 @@ const RangeMap = () => {
           {/* Summary line */}
           <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 px-1">
             {!modelId ? <p className="text-sm text-muted-foreground">Choose your EV to see its range.</p> : <p className="text-sm text-muted-foreground">
-              <strong className="text-foreground font-display text-base">{year > 0 && `${year} `}{make} {modelName}</strong>
+              <strong className="text-foreground font-display text-base">{carName}</strong>
               {" · "}{years.length ? "EPA" : "Est."} range <strong className="text-foreground">{epaMiles} mi</strong> · {charge}% charge
             </p>}
             <p role="status" className="text-sm">
@@ -223,6 +251,21 @@ const RangeMap = () => {
                 </span>
               )}
             </p>
+            {modelId && place && !embed && (
+              <ShareGate
+                url={shareUrl()}
+                title={`The ${carName} can go about ${rings.full} miles from ${place.label} on a ${charge}% charge. See how far your EV can go:`}
+                summary={`${carName} range from ${place.label}`}
+                description="See an EV's driving range drawn on the map. This link reopens the Range Map with the same vehicle, charge and starting place."
+                image="/og/range-map.jpg"
+                meta={`${carName} · ${rings.full} mi one way · ${charge}% charge · from ${place.label}`}
+                formType="range-map-share"
+                variant="label"
+                label="Share this range"
+                stopNav={false}
+                className="inline-flex items-center gap-2 rounded-full border-2 border-primary/20 bg-card px-4 py-1.5 text-sm font-semibold text-primary shadow-sm transition hover:border-primary/50"
+              />
+            )}
           </div>
 
           {/* Map with floating range numbers. `isolate` keeps Leaflet's z-index 400+ panes under the dropdowns. */}
@@ -254,6 +297,33 @@ const RangeMap = () => {
               </div>
             )}
           </div>
+
+          {place && modelId && (
+            <section aria-labelledby="range-cities" className="rounded-3xl border border-border bg-card/70 p-5 md:p-6">
+              <h2 id="range-cities" className="font-display text-lg font-bold text-foreground">
+                Major cities within {rings.full} miles
+              </h2>
+              <p className="text-sm text-muted-foreground mb-4">
+                Straight-line distance from {place.label}. Cities with 100,000+ people.
+                {deepCold && <> Teal ones are still in range in deep cold.</>}
+              </p>
+              {cities.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No city of 100,000+ people is inside this range.</p>
+              ) : (
+                <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
+                  {cities.map((c) => (
+                    <li key={`${c.name}-${c.state}`} className="flex items-center justify-between gap-3 rounded-xl border border-border bg-background px-3 py-2 text-sm">
+                      <span className="flex items-center gap-2 min-w-0">
+                        <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: deepCold && c.miles <= rings.winter ? COLORS.winter : COLORS.full }} aria-hidden />
+                        <span className="truncate font-medium text-foreground">{c.name}, {c.state}</span>
+                      </span>
+                      <span className="tabular-nums text-muted-foreground shrink-0">{c.miles} mi</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          )}
 
           <div className="text-xs text-muted-foreground leading-relaxed space-y-2 px-1">
             <p>

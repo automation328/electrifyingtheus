@@ -35,6 +35,7 @@ const EVERY_FORM_TYPE: Record<LeadFormType, true> = {
   "event-calendar": true,
   "job-share": true,
   "charger-share": true,
+  "range-map-share": true,
   "vehicle-share": true,
   "marketplace-enquiry": true,
   "eligibility-plan": true,

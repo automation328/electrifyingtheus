@@ -45,6 +45,7 @@ const TYPE_LABEL: Record<string, string> = {
   "event-calendar": "Add to calendar",
   "job-share": "Job share",
   "charger-share": "Charger share",
+  "range-map-share": "Range map share",
 };
 const typeLabel = (t: string) => TYPE_LABEL[t] ?? t;
 

@@ -1,6 +1,27 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { getVehiclesByType } from "@/data/vehicles";
-import { detectZip, lookupPlace, lookupZip, modelsOf, RANGE_MAKES, RANGE_MODELS, rangeRings, variantLabel, variantsOf, yearsOf } from "./range-map";
+import { citiesWithin, detectZip, lookupPlace, milesBetween, lookupZip, modelsOf, RANGE_MAKES, RANGE_MODELS, rangeRings, variantLabel, variantsOf, yearsOf } from "./range-map";
+
+describe("citiesWithin", () => {
+  const smyrna = { lat: 33.88, lon: -84.51 };
+  it("measures great-circle miles", () => {
+    // Atlanta to Nashville is about 214 miles in a straight line.
+    expect(Math.round(milesBetween({ lat: 33.749, lon: -84.388 }, { lat: 36.162, lon: -86.781 }))).toBeGreaterThan(205);
+    expect(Math.round(milesBetween({ lat: 33.749, lon: -84.388 }, { lat: 36.162, lon: -86.781 }))).toBeLessThan(220);
+  });
+  it("lists major cities inside the radius, nearest first", () => {
+    const list = citiesWithin(smyrna, 285);
+    const names = list.map((c) => `${c.name}, ${c.state}`);
+    expect(names).toContain("Atlanta, GA");
+    expect(names).toContain("Nashville, TN");
+    expect(names).not.toContain("Memphis, TN");
+    expect(list.map((c) => c.miles)).toEqual([...list.map((c) => c.miles)].sort((a, b) => a - b));
+    expect(list.every((c) => c.miles <= 285)).toBe(true);
+  });
+  it("is empty for no range", () => {
+    expect(citiesWithin(smyrna, 0)).toEqual([]);
+  });
+});
 
 describe("rangeRings", () => {
   it("scales by charge, then derives winter", () => {

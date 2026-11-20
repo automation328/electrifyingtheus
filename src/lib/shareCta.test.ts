@@ -19,7 +19,7 @@ describe("share CTA label", () => {
   it("never leaves a share surface on the generic label", () => {
     const SHARE_SURFACES = [
       "article-share", "event-share", "photo-share",
-      "job-share", "incentive-share", "charger-share", "calculator-share",
+      "job-share", "incentive-share", "charger-share", "range-map-share", "calculator-share",
     ] as const;
     for (const t of SHARE_SURFACES) {
       expect(shareCtaLabel(t)).not.toBe(DEFAULT_SHARE_CTA);

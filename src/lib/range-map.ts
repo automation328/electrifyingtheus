@@ -8,6 +8,7 @@
 
 import { EV_CATALOG, type EvCatalogEntry } from "@/data/ev-catalog";
 import { EV_RANGE_VARIANTS, type EpaVariant } from "@/data/ev-range-by-year";
+import { MAJOR_CITIES } from "@/data/us-major-cities";
 import { getVehiclesByType } from "@/data/vehicles";
 
 export const METERS_PER_MILE = 1609.344;
@@ -61,6 +62,30 @@ export interface MapPlace {
   lon: number;
   /** "San Francisco, CA 94103" */
   label: string;
+}
+
+/** Straight-line (great-circle) miles between two points. */
+export function milesBetween(a: { lat: number; lon: number }, b: { lat: number; lon: number }): number {
+  const rad = Math.PI / 180;
+  const dLat = (b.lat - a.lat) * rad;
+  const dLon = (b.lon - a.lon) * rad;
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * rad) * Math.cos(b.lat * rad) * Math.sin(dLon / 2) ** 2;
+  return 3958.8 * 2 * Math.asin(Math.min(1, Math.sqrt(h)));
+}
+
+export interface NearbyCity {
+  name: string;
+  state: string;
+  miles: number;
+}
+
+/** Major cities (100k+ people) inside `radius` miles of `from`, nearest first. */
+export function citiesWithin(from: { lat: number; lon: number }, radius: number): NearbyCity[] {
+  if (radius <= 0) return [];
+  return MAJOR_CITIES
+    .map(([name, state, lat, lon]) => ({ name, state, miles: Math.round(milesBetween(from, { lat, lon })) }))
+    .filter((c) => c.miles <= radius)
+    .sort((x, y) => x.miles - y.miles);
 }
 
 /**

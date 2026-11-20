@@ -36,7 +36,7 @@ const XLogo = ({ className }: { className?: string }) => (
 
 type ShareFormType = Extract<
   LeadFormType,
-  "photo-share" | "article-share" | "incentive-share" | "event-share" | "job-share" | "calculator-share" | "charger-share" | "vehicle-share"
+  "photo-share" | "article-share" | "incentive-share" | "event-share" | "job-share" | "calculator-share" | "charger-share" | "range-map-share" | "vehicle-share"
 >;
 
 interface ShareGateProps {
