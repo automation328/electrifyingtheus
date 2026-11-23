@@ -326,7 +326,7 @@ const RangeMap = () => {
               {cities.length === 0 ? (
                 <p className="text-sm text-muted-foreground">No city of 25,000+ people is inside this range.</p>
               ) : (
-                <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 max-h-[520px] overflow-y-auto pr-1" tabIndex={0} aria-label="Cities in range">
+                <ul className="grid grid-cols-1 gap-2 max-h-[520px] overflow-y-auto pr-1" tabIndex={0} aria-label="Cities in range">
                   {cities.map((c) => (
                     <li key={`${c.name}-${c.state}`} className="flex items-center justify-between gap-3 rounded-xl border !border-primary/25 bg-primary/5 shadow-sm px-3 py-2.5 text-sm">
                       <span className="flex items-center gap-2 min-w-0">
