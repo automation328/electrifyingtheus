@@ -350,7 +350,7 @@ const RangeMap = () => {
                 Parks, ski resorts, hikes and attractions within {rings.full} miles of {place?.label}, measured in a straight line.
                 {deepCold && <> Teal ones are still in range in deep cold.</>}
               </p>
-              <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 max-h-[520px] overflow-y-auto pr-1" tabIndex={0} aria-label="Places in range">
+              <ul className="grid grid-cols-1 gap-2 max-h-[520px] overflow-y-auto pr-1" tabIndex={0} aria-label="Places in range">
                 {pois.map((p) => (
                   <li key={p.name} className="flex items-center justify-between gap-3 rounded-xl border !border-primary/25 bg-primary/5 shadow-sm px-3 py-2.5 text-sm">
                     <span className="flex items-center gap-2 min-w-0">
