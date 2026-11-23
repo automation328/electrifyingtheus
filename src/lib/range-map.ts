@@ -9,6 +9,7 @@
 import { EV_CATALOG, type EvCatalogEntry } from "@/data/ev-catalog";
 import { EV_RANGE_VARIANTS, type EpaVariant } from "@/data/ev-range-by-year";
 import { MAJOR_CITIES } from "@/data/us-major-cities";
+import { COLORADO_POIS, type PoiKind } from "@/data/colorado-pois";
 import { getVehiclesByType } from "@/data/vehicles";
 
 export const METERS_PER_MILE = 1609.344;
@@ -85,6 +86,22 @@ export function citiesWithin(from: { lat: number; lon: number }, radius: number)
   return MAJOR_CITIES
     .map(([name, state, lat, lon]) => ({ name, state, miles: Math.round(milesBetween(from, { lat, lon })) }))
     .filter((c) => c.miles <= radius)
+    .sort((x, y) => x.miles - y.miles);
+}
+
+export interface NearbyPoi {
+  name: string;
+  town: string;
+  kind: PoiKind;
+  miles: number;
+}
+
+/** Points of interest inside `radius` miles of `from`, nearest first. */
+export function poisWithin(from: { lat: number; lon: number }, radius: number): NearbyPoi[] {
+  if (radius <= 0) return [];
+  return COLORADO_POIS
+    .map(([name, town, kind, lat, lon]) => ({ name, town, kind, miles: Math.round(milesBetween(from, { lat, lon })) }))
+    .filter((p) => p.miles <= radius)
     .sort((x, y) => x.miles - y.miles);
 }
 

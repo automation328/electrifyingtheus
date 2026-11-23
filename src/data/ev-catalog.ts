@@ -68,6 +68,7 @@ export const EV_CATALOG: EvCatalogEntry[] = [
   { id: "cadillac-lyriq", make: "Cadillac", model: "LYRIQ", rangeMi: 314 },
   { id: "cadillac-optiq", make: "Cadillac", model: "OPTIQ", rangeMi: 302 },
   { id: "cadillac-escalade-iq", make: "Cadillac", model: "ESCALADE IQ", rangeMi: 460 },
+  { id: "cadillac-escalade-iql", make: "Cadillac", model: "ESCALADE IQL", rangeMi: 460 },
   { id: "chevy-bolt-ev", make: "Chevrolet", model: "Bolt", rangeMi: 262 },
   { id: "nissan-leaf", make: "Nissan", model: "LEAF", rangeMi: 303 },
   { id: "genesis-g80-electrified", make: "Genesis", model: "G80 Electrified", rangeMi: 282, aliases: ["Electrified G80"] },

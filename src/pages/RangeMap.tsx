@@ -12,7 +12,7 @@ import { Switch } from "@/components/ui/switch";
 import type { RangeRing } from "@/components/RangeCircleMap";
 import { importWithRetry } from "@/lib/chunk-retry";
 import {
-  citiesWithin, detectZip, lookupPlace, modelsOf, RANGE_MAKES, rangeRings, variantLabel, variantsOf, yearsOf, type MapPlace,
+  citiesWithin, detectZip, poisWithin, lookupPlace, modelsOf, RANGE_MAKES, rangeRings, variantLabel, variantsOf, yearsOf, type MapPlace,
 } from "@/lib/range-map";
 
 const RangeCircleMap = lazy(() => importWithRetry(() => import("@/components/RangeCircleMap")));
@@ -115,6 +115,7 @@ const RangeMap = () => {
     }
   };
 
+  const pois = useMemo(() => (place && modelId ? poisWithin(place, rings.full) : []), [place, modelId, rings.full]);
   const cities = useMemo(() => (place && modelId ? citiesWithin(place, rings.full) : []), [place, modelId, rings.full]);
 
   const modelName = models.find((m) => m.id === modelId)?.model ?? "";
@@ -327,7 +328,7 @@ const RangeMap = () => {
               ) : (
                 <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 max-h-[520px] overflow-y-auto pr-1" tabIndex={0} aria-label="Cities in range">
                   {cities.map((c) => (
-                    <li key={`${c.name}-${c.state}`} className="flex items-center justify-between gap-3 rounded-xl border border-border bg-background px-3 py-2 text-sm">
+                    <li key={`${c.name}-${c.state}`} className="flex items-center justify-between gap-3 rounded-xl border !border-primary/25 bg-primary/5 shadow-sm px-3 py-2.5 text-sm">
                       <span className="flex items-center gap-2 min-w-0">
                         <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: deepCold && c.miles <= rings.winter ? COLORS.winter : COLORS.full }} aria-hidden />
                         <span className="truncate font-medium text-foreground">{c.name}, {c.state}</span>
@@ -337,6 +338,32 @@ const RangeMap = () => {
                   ))}
                 </ul>
               )}
+            </section>
+          )}
+
+          {pois.length > 0 && (
+            <section aria-labelledby="range-pois" className="rounded-3xl border border-border bg-card/70 p-5 md:p-6">
+              <h2 id="range-pois" className="font-display text-lg font-bold text-foreground">
+                Colorado places you can reach on one charge
+              </h2>
+              <p className="text-sm text-muted-foreground mb-4">
+                Parks, ski resorts, hikes and attractions within {rings.full} miles of {place?.label}, measured in a straight line.
+                {deepCold && <> Teal ones are still in range in deep cold.</>}
+              </p>
+              <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 max-h-[520px] overflow-y-auto pr-1" tabIndex={0} aria-label="Places in range">
+                {pois.map((p) => (
+                  <li key={p.name} className="flex items-center justify-between gap-3 rounded-xl border !border-primary/25 bg-primary/5 shadow-sm px-3 py-2.5 text-sm">
+                    <span className="flex items-center gap-2 min-w-0">
+                      <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: deepCold && p.miles <= rings.winter ? COLORS.winter : COLORS.full }} aria-hidden />
+                      <span className="min-w-0">
+                        <span className="block truncate font-medium text-foreground">{p.name}</span>
+                        <span className="block truncate text-xs text-muted-foreground">{p.kind} · {p.town}</span>
+                      </span>
+                    </span>
+                    <span className="tabular-nums text-muted-foreground shrink-0">{p.miles} mi</span>
+                  </li>
+                ))}
+              </ul>
             </section>
           )}
 

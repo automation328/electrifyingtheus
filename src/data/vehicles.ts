@@ -202,6 +202,13 @@ export const vehicles: VehicleData[] = [
     bodyStyle: "suv-large", sizeClass: 4, seats: 7, drivetrain: "AWD", rangeMi: 460, luxury: true,
   },
   {
+    // 2026 model year · modelled costs from cadillac-escalade-iq; range is Cadillac's estimate, no EPA rating yet
+    id: "cadillac-escalade-iql", name: "Cadillac ESCALADE IQL", type: "ev", msrp: 130405,
+    mpge: 78, kwhPer100mi: 43, maintenanceCostPerMile: 0.075, insuranceAnnual: 3250,
+    depreciationRate: 0.24, category: "SUV",
+    bodyStyle: "suv-large", sizeClass: 4, seats: 7, drivetrain: "AWD", rangeMi: 460, luxury: true,
+  },
+  {
     id: "chevy-bolt-ev", name: "Chevrolet Bolt", type: "ev", msrp: 29990,
     mpge: 120, kwhPer100mi: 28, maintenanceCostPerMile: 0.057, insuranceAnnual: 1700,
     depreciationRate: 0.18, category: "Sedan",
@@ -924,6 +931,13 @@ export const vehicles: VehicleData[] = [
     mpge: 121, kwhPer100mi: 28, maintenanceCostPerMile: 0.057, insuranceAnnual: 1780,
     depreciationRate: 0.18, category: "Sedan",
     bodyStyle: "sedan", sizeClass: 2, seats: 5, drivetrain: "FWD", rangeMi: 330,
+  },
+  {
+    // 2027 model year · modelled costs from kia-ev4
+    id: "kia-ev3", name: "Kia EV3", type: "ev", msrp: 29890,
+    mpge: 121, kwhPer100mi: 28, maintenanceCostPerMile: 0.057, insuranceAnnual: 1780,
+    depreciationRate: 0.18, category: "SUV",
+    bodyStyle: "suv-compact", sizeClass: 2, seats: 5, drivetrain: "FWD", rangeMi: 321,
   },
   {
     id: "rivian-r2", name: "Rivian R2", type: "ev", msrp: 45000,
@@ -1704,6 +1718,7 @@ const VEHICLE_IMAGES: Record<string, string> = {
   "cadillac-lyriq": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/2023_Cadillac_Lyriq_in_Satin_Steel_Metallic%2C_front_left.jpg/330px-2023_Cadillac_Lyriq_in_Satin_Steel_Metallic%2C_front_left.jpg",
   "cadillac-optiq": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/Cadillac_Optiq_%28IQ_Aoge%29_01_China_2024-04-23.jpg/330px-Cadillac_Optiq_%28IQ_Aoge%29_01_China_2024-04-23.jpg",
   "cadillac-escalade-iq": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c6/2026_Cadillac_Escalade_IQ_1000E4%2C_Front_left%2C_03-01-2026.jpg/330px-2026_Cadillac_Escalade_IQ_1000E4%2C_Front_left%2C_03-01-2026.jpg",
+  "cadillac-escalade-iql": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/2026_Cadillac_Escalade_IQL_1000E4.jpg/330px-2026_Cadillac_Escalade_IQL_1000E4.jpg",
   "chevy-bolt-ev": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/2022_Chevrolet_Bolt_EV_2LT%2C_NYC_official_fleet_1.2.23.jpg/330px-2022_Chevrolet_Bolt_EV_2LT%2C_NYC_official_fleet_1.2.23.jpg",
   "nissan-leaf": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/38/0_Nissan_Leaf_%28ZE1%29_2.jpg/330px-0_Nissan_Leaf_%28ZE1%29_2.jpg",
   "genesis-g80-electrified": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Genesis_G80_IAA_2021_1X7A0229.jpg/330px-Genesis_G80_IAA_2021_1X7A0229.jpg",
@@ -1914,6 +1929,7 @@ const VEHICLE_IMAGES: Record<string, string> = {
   // whose names alone would not tell an iX3 from an X3, or an ES90 from an EX90.
   "bmw-ix3": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/BMW_iX3_NA5_IAA_2025_DSC_1684.jpg/330px-BMW_iX3_NA5_IAA_2025_DSC_1684.jpg",
   "kia-ev4": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/2026_Kia_EV4_-_02.jpg/330px-2026_Kia_EV4_-_02.jpg",
+  "kia-ev3": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Kia_EV3_GT-Line_Automesse_Ludwigsburg_2024_IMG_1353.jpg/330px-Kia_EV3_GT-Line_Automesse_Ludwigsburg_2024_IMG_1353.jpg",
   "rivian-r2": "https://upload.wikimedia.org/wikipedia/commons/f/fc/Rivian_R2.jpg",
   "subaru-trailseeker": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/2026_Subaru_Trailseeker_ET-HS.jpg/330px-2026_Subaru_Trailseeker_ET-HS.jpg",
   "subaru-uncharted": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/56/Subaru_Uncharted_Auto_Zuerich_2025_DSC_3071.jpg/330px-Subaru_Uncharted_Auto_Zuerich_2025_DSC_3071.jpg",

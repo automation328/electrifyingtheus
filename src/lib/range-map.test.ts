@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { getVehiclesByType } from "@/data/vehicles";
-import { citiesWithin, detectZip, lookupPlace, milesBetween, lookupZip, modelsOf, RANGE_MAKES, RANGE_MODELS, rangeRings, variantLabel, variantsOf, yearsOf } from "./range-map";
+import { citiesWithin, poisWithin, detectZip, lookupPlace, milesBetween, lookupZip, modelsOf, RANGE_MAKES, RANGE_MODELS, rangeRings, variantLabel, variantsOf, yearsOf } from "./range-map";
 
 describe("citiesWithin", () => {
   const smyrna = { lat: 33.88, lon: -84.51 };
@@ -20,6 +20,17 @@ describe("citiesWithin", () => {
   });
   it("is empty for no range", () => {
     expect(citiesWithin(smyrna, 0)).toEqual([]);
+  });
+});
+
+describe("poisWithin", () => {
+  it("lists Colorado places in range, nearest first", () => {
+    const denver = { lat: 39.74, lon: -104.99 };
+    const list = poisWithin(denver, 100);
+    expect(list[0].miles).toBeLessThanOrEqual(list[list.length - 1].miles);
+    expect(list.map((p) => p.name)).toContain("Red Rocks Park and Amphitheatre");
+    expect(list.map((p) => p.name)).not.toContain("Mesa Verde National Park");
+    expect(poisWithin({ lat: 33.88, lon: -84.51 }, 300)).toEqual([]);
   });
 });
 
