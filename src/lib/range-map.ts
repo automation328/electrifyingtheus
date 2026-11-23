@@ -79,7 +79,7 @@ export interface NearbyCity {
   miles: number;
 }
 
-/** Major cities (100k+ people) inside `radius` miles of `from`, nearest first. */
+/** Cities (25k+ people) inside `radius` miles of `from`, nearest first. */
 export function citiesWithin(from: { lat: number; lon: number }, radius: number): NearbyCity[] {
   if (radius <= 0) return [];
   return MAJOR_CITIES

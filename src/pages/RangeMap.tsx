@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
 import { Link } from "react-router-dom";
-import { BatteryCharging, Car, Gauge, Loader2, MapPin, Search, Snowflake } from "lucide-react";
+import { BatteryCharging, Car, Gauge, Loader2, MapPin, PlugZap, Search, Snowflake } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import ShareGate from "@/components/forms/ShareGate";
 import Footer from "@/components/Footer";
@@ -120,6 +120,9 @@ const RangeMap = () => {
   const modelName = models.find((m) => m.id === modelId)?.model ?? "";
   const carName = `${year > 0 ? `${year} ` : ""}${make} ${modelName}`;
 
+  // Opens the charging map on the place searched here.
+  const chargerUrl = place ? `/find-a-charger?q=${encodeURIComponent(typed.trim() || place.label)}` : "/find-a-charger";
+
   const shareUrl = () => {
     const q = new URLSearchParams({ make, model: modelId, year: String(year), v: String(variantIdx), charge: String(charge) });
     if (deepCold) q.set("cold", "1");
@@ -237,17 +240,19 @@ const RangeMap = () => {
           </div>
 
           {/* Summary line */}
-          <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 px-1">
-            {!modelId ? <p className="text-sm text-muted-foreground">Choose your EV to see its range.</p> : <p className="text-sm text-muted-foreground">
-              <strong className="text-foreground font-display text-base">{carName}</strong>
-              {" · "}{years.length ? "EPA" : "Est."} range <strong className="text-foreground">{epaMiles} mi</strong> · {charge}% charge
-            </p>}
-            <p role="status" className="text-sm">
+          <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 rounded-2xl border border-border bg-card px-5 py-4 md:px-6 shadow-sm">
+            {!modelId ? <p className="text-base text-muted-foreground">Choose your EV to see its range.</p> : <div className="min-w-0">
+              <p className="font-display text-xl md:text-2xl font-bold text-foreground leading-tight">{carName}</p>
+              <p className="text-sm md:text-base text-muted-foreground mt-0.5">
+                {years.length ? "EPA" : "Est."} range <strong className="text-foreground">{epaMiles} mi</strong> · {charge}% charge
+              </p>
+            </div>}
+            <p role="status" className="text-base">
               {status === "notfound" && <span className="text-destructive">Couldn't find that place. Try a ZIP code, a city and state, or a street address.</span>}
               {status === "error" && <span className="text-destructive">Couldn't reach the location lookup. Try again.</span>}
               {status === "idle" && place && (
-                <span className="text-muted-foreground inline-flex items-center gap-1">
-                  <MapPin className="w-3.5 h-3.5 text-primary" /> <strong className="text-foreground">{place.label}</strong>
+                <span className="inline-flex items-center gap-2 rounded-xl bg-primary/10 px-3 py-2">
+                  <MapPin className="w-5 h-5 text-primary" /> <strong className="text-foreground font-semibold text-base md:text-lg">{place.label}</strong>
                 </span>
               )}
             </p>
@@ -263,7 +268,7 @@ const RangeMap = () => {
                 variant="label"
                 label="Share this range"
                 stopNav={false}
-                className="inline-flex items-center gap-2 rounded-full border-2 border-primary/20 bg-card px-4 py-1.5 text-sm font-semibold text-primary shadow-sm transition hover:border-primary/50"
+                className="inline-flex items-center gap-2 rounded-xl gradient-primary px-5 py-3 text-base font-semibold text-white shadow-card transition hover:opacity-90"
               />
             )}
           </div>
@@ -300,17 +305,27 @@ const RangeMap = () => {
 
           {place && modelId && (
             <section aria-labelledby="range-cities" className="rounded-3xl border border-border bg-card/70 p-5 md:p-6">
-              <h2 id="range-cities" className="font-display text-lg font-bold text-foreground">
-                Major cities within {rings.full} miles
-              </h2>
-              <p className="text-sm text-muted-foreground mb-4">
-                Straight-line distance from {place.label}. Cities with 100,000+ people.
-                {deepCold && <> Teal ones are still in range in deep cold.</>}
-              </p>
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
+                <div className="min-w-0">
+                  <h2 id="range-cities" className="font-display text-lg font-bold text-foreground">
+                    How far you can drive on a single charge in the {carName}
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
+                    About {rings.full} miles at {charge}% charge. These cities (25,000+ people) are within reach of {place.label}, measured in a straight line.
+                    {deepCold && <> Teal ones are still in range in deep cold.</>}
+                  </p>
+                </div>
+                <Link
+                  to={chargerUrl}
+                  className="inline-flex items-center justify-center gap-2 self-start shrink-0 rounded-xl gradient-primary px-5 py-3 text-base font-semibold text-white shadow-card transition hover:opacity-90"
+                >
+                  <PlugZap className="w-5 h-5" aria-hidden /> Find chargers
+                </Link>
+              </div>
               {cities.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No city of 100,000+ people is inside this range.</p>
+                <p className="text-sm text-muted-foreground">No city of 25,000+ people is inside this range.</p>
               ) : (
-                <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
+                <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 max-h-[520px] overflow-y-auto pr-1" tabIndex={0} aria-label="Cities in range">
                   {cities.map((c) => (
                     <li key={`${c.name}-${c.state}`} className="flex items-center justify-between gap-3 rounded-xl border border-border bg-background px-3 py-2 text-sm">
                       <span className="flex items-center gap-2 min-w-0">
@@ -331,11 +346,6 @@ const RangeMap = () => {
               Ranges are EPA estimates (fueleconomy.gov); models without EPA data yet show our estimate. Your range will vary with speed, terrain, climate, load and battery age.
               Deep cold assumes a 30% loss, the top of the typical 10–30% range.
             </p>
-            {!embed && <p>
-              <Link to="/evs-in-winter" className="text-primary font-semibold hover:underline">How EVs handle winter</Link>
-              {" · "}
-              <Link to="/find-a-charger" className="text-primary font-semibold hover:underline">Find chargers along the way</Link>
-            </p>}
           </div>
         </div>
       </main>
