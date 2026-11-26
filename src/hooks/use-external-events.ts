@@ -13,7 +13,7 @@ import rideshareFleet from "@/assets/rideshare-fleet.jpg";
 import reducedEmissions from "@/assets/reduced-emissions.jpg";
 import micromobility from "@/assets/micromobility.jpg";
 // Curated per-event flyer images (override the generic pool for a specific event).
-import sowGoodSaturday from "@/assets/events/sow-good-saturday.png";
+import sowGoodSaturday from "@/assets/events/sow-good-saturday.jpg";
 import everythingEnvironmentalFest from "@/assets/events/everything-environmental-fest.jpg";
 import monroeFirstResponder from "@/assets/events/monroe-first-responder-workshop.jpg";
 

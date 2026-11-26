@@ -6,7 +6,7 @@
 //
 // Set VITE_RECAPTCHA_SITE_KEY in the environment to enable.
 
-const SITE_KEY = (import.meta as { env?: Record<string, string> }).env?.VITE_RECAPTCHA_SITE_KEY;
+const SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
 
 export const isRecaptchaEnabled = Boolean(SITE_KEY);
 

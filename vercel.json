@@ -1,6 +1,13 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "trailingSlash": false,
   "redirects": [
+    {
+      "source": "/",
+      "has": [{ "type": "host", "value": "www.electrifyingtheus.com" }],
+      "destination": "https://electrifyingtheus.com/",
+      "permanent": true
+    },
     {
       "source": "/:path*",
       "has": [
@@ -56,6 +63,15 @@
       "source": "/(.*)",
       "headers": [
         {
+          "key": "Content-Security-Policy-Report-Only",
+          "value": "default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; script-src 'self' https://www.googletagmanager.com https://www.google-analytics.com https://www.google.com https://www.gstatic.com https://translate.google.com https://translate.googleapis.com https://translate-pa.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://www.gstatic.com https://translate.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' https:; connect-src 'self' https://translate.googleapis.com https://translate-pa.googleapis.com https://*.supabase.co https://*.supabase.in https://*.google-analytics.com https://analytics.google.com https://*.analytics.google.com https://www.google.com https://stats.g.doubleclick.net https://api.rss2json.com https://ipapi.co https://api.zippopotam.us https://vpic.nhtsa.dot.gov https://api.openai.com https://n8n-9odn.srv1570441.hstgr.cloud; frame-src 'self' https://translate.google.com https://www.youtube-nocookie.com https://www.youtube.com https://www.google.com https://player.vimeo.com https://drive.google.com https://online.fliphtml5.com; worker-src 'self' blob:; manifest-src 'self'"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
           "key": "X-Content-Type-Options",
           "value": "nosniff"
         },
@@ -94,6 +110,10 @@
           "value": "default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; frame-ancestors *; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://www.google.com https://www.gstatic.com https://translate.google.com https://translate.googleapis.com https://translate-pa.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://www.gstatic.com https://translate.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' https:; connect-src 'self' https://translate.googleapis.com https://translate-pa.googleapis.com https://*.supabase.co https://*.supabase.in https://*.google-analytics.com https://analytics.google.com https://*.analytics.google.com https://www.google.com https://stats.g.doubleclick.net https://api.rss2json.com https://ipapi.co https://api.zippopotam.us https://vpic.nhtsa.dot.gov https://api.openai.com https://n8n-9odn.srv1570441.hstgr.cloud; frame-src 'self' https://translate.google.com https://www.youtube-nocookie.com https://www.youtube.com https://www.google.com https://player.vimeo.com https://drive.google.com https://online.fliphtml5.com; worker-src 'self' blob:; manifest-src 'self'"
         }
       ]
+    },
+    {
+      "source": "/(thank-you|list-your-event/thank-you|updates)",
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
     },
     {
       "source": "/admin",

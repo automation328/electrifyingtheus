@@ -39,6 +39,30 @@ export const FOOTER_DEFAULT: FooterContent = {
         { label: "Talk to EVan", href: "/assistant" },
       ],
     },
+    // Tools and Learn link pages that nothing else on the site linked to (the
+    // TCO calculator, the safety webinar) or only one page did. Search engines
+    // find and weigh pages by the links pointing at them.
+    {
+      title: "Tools",
+      links: [
+        { label: "Cost of Ownership Calculator", href: "/calculator" },
+        { label: "GM EV vs Gas", href: "/gm-ev-vs-gas" },
+        { label: "EV Range Map", href: "/range-map" },
+        { label: "Rebate Eligibility", href: "/rebate-eligibility" },
+        { label: "EV Marketplace", href: "/marketplace" },
+      ],
+    },
+    {
+      title: "Learn",
+      links: [
+        { label: "EV Charging 101", href: "/ev-charging-101" },
+        { label: "EVs in Winter", href: "/evs-in-winter" },
+        { label: "Financial Savings", href: "/financial-savings" },
+        { label: "U.S. EV Policies", href: "/us-ev-policies" },
+        { label: "EV Road Safety", href: "/ev-road-safety" },
+        { label: "EV Safety Webinar", href: "/evsafetywebinar" },
+      ],
+    },
     {
       title: "Partner Sites",
       links: [

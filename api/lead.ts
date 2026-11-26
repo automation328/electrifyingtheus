@@ -20,7 +20,8 @@
 //                     still go into the note and into site_form_submissions.
 
 import { recordSubmission } from "./_submissions.js";
-import { checkRateLimit, tooManyRequests } from "./_rate-limit.js";
+import { checkRateLimit, clientIp, tooManyRequests } from "./_rate-limit.js";
+import { verifyRecaptcha } from "./_recaptcha.js";
 import { slackText } from "./_slack-text.js";
 import { createDraftEvent, buildSlackReview, type EventSubmission } from "./_event-submission.js";
 import { buildCustomFields, customFieldIds } from "./_ghl-fields.js";
@@ -220,33 +221,6 @@ async function handleEventSubmission(opts: {
   }
 }
 
-// reCAPTCHA v3 — verify the token + score. Returns true when verification is
-// disabled (no secret set) so local/dev still works. Reject on low score/fail.
-const RECAPTCHA_MIN_SCORE = 0.5;
-async function verifyRecaptcha(token: string, remoteip?: string): Promise<{ ok: boolean; reason?: string }> {
-  const secret = process.env.RECAPTCHA_SECRET_KEY;
-  if (!secret) return { ok: true };           // verification disabled
-  if (!token) return { ok: false, reason: "missing token" };
-  try {
-    const params = new URLSearchParams({ secret, response: token });
-    if (remoteip) params.set("remoteip", remoteip);
-    const r = await fetch("https://www.google.com/recaptcha/api/siteverify", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: params.toString(),
-    });
-    const data = await r.json().catch(() => ({}));
-    if (!data.success) return { ok: false, reason: "failed" };
-    if (typeof data.score === "number" && data.score < RECAPTCHA_MIN_SCORE) {
-      return { ok: false, reason: `low score ${data.score}` };
-    }
-    return { ok: true };
-  } catch {
-    // Network hiccup reaching Google — fail open so a Google outage doesn't
-    // block all leads. (Flip to fail-closed here if you prefer stricter spam control.)
-    return { ok: true };
-  }
-}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default async function handler(req: any, res: any) {
@@ -281,9 +255,16 @@ export default async function handler(req: any, res: any) {
   if (!rl.ok) { tooManyRequests(res, rl); return; }
 
   // Spam gate — verify reCAPTCHA before doing any work (no-op if secret unset).
-  const ip = (req.headers["x-forwarded-for"] || "").toString().split(",")[0].trim() || undefined;
-  const captcha = await verifyRecaptcha(recaptchaToken, ip);
-  if (!captcha.ok) { res.status(403).json({ error: "reCAPTCHA verification failed", reason: captcha.reason }); return; }
+  // The client names the action after the form (src/lib/submitLead.ts). The
+  // reason is logged, not returned: telling a bot its score helps it tune.
+  const captcha = await verifyRecaptcha(recaptchaToken, {
+    action: String(formType).replace(/-/g, "_"),
+    remoteip: clientIp(req) || undefined,
+  });
+  if (!captcha.ok) {
+    console.warn("[lead] reCAPTCHA rejected:", captcha.reason);
+    res.status(403).json({ error: "reCAPTCHA verification failed" }); return;
+  }
 
   // The formType decides the CRM tags and the source label, so an unknown value
   // used to become a tag built from raw client input. Reject instead: every real

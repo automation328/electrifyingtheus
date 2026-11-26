@@ -15,7 +15,7 @@ export interface GasPrices {
   source: string | null;
 }
 
-const GAS_URL = (import.meta as { env?: Record<string, string> }).env?.VITE_GAS_PRICES_URL;
+const GAS_URL = import.meta.env.VITE_GAS_PRICES_URL;
 const CACHE_KEY = "evg-gas-prices-v1";
 const TTL_MS = 12 * 60 * 60 * 1000; // 12 hours
 

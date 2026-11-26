@@ -51,8 +51,14 @@ if (typeof window !== "undefined") {
 // Sanitize editor-supplied HTML (the "html" block) before it hits the DOM, so a
 // malicious/compromised editor can't plant stored XSS on public pages. Strips
 // scripts, event handlers, and dangerous URIs while keeping ordinary markup.
-const cleanHtml = (html: string) =>
-  DOMPurify.sanitize(html ?? "", { USE_PROFILES: { html: true }, ADD_ATTR: ["target"] });
+// Forms, inputs and <style> go too: no script needed to fake a sign-in box or
+// restyle the page into a phishing screen.
+export const cleanHtml = (html: string) =>
+  DOMPurify.sanitize(html ?? "", {
+    USE_PROFILES: { html: true },
+    ADD_ATTR: ["target"],
+    FORBID_TAGS: ["form", "input", "button", "textarea", "select", "option", "style"],
+  });
 
 const fontClass = (block: PageBlock) => {
   const f = block.font ?? (block.type === "heading" ? "display" : "sans");

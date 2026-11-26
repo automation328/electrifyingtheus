@@ -11,6 +11,7 @@
 
 import { createHash } from "node:crypto";
 import { checkRateLimit, tooManyRequests } from "./_rate-limit.js";
+import { verifyRecaptcha } from "./_recaptcha.js";
 
 // Blank-line paragraph split for multi-paragraph disclaimers.
 const SPLIT_PARAS = /\n{2,}/;
@@ -113,28 +114,6 @@ function esc(v: unknown): string {
     .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 }
 
-// reCAPTCHA v3 — mirrors api/lead.ts. Fails OPEN when no secret is configured
-// so local/dev still works.
-const RECAPTCHA_MIN_SCORE = 0.5;
-async function verifyRecaptcha(token: string): Promise<boolean> {
-  const secret = process.env.RECAPTCHA_SECRET_KEY;
-  if (!secret) return true;
-  if (!token) return false;
-  try {
-    const params = new URLSearchParams({ secret, response: token });
-    const r = await fetch("https://www.google.com/recaptcha/api/siteverify", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: params.toString(),
-    });
-    const data = await r.json().catch(() => ({} as Record<string, unknown>));
-    if (!data.success) return false;
-    if (typeof data.score === "number" && data.score < RECAPTCHA_MIN_SCORE) return false;
-    return true;
-  } catch {
-    return true; // Google outage → don't block.
-  }
-}
 
 export function buildHtml(opts: {
   title: string; description?: string; meta?: string; imageUrl?: string; url: string;
@@ -333,7 +312,11 @@ export default async function handler(req: any, res: any) {
     disclaimer = "", recaptchaToken = "", eventDateTime = "", ctaLabel = "",
   } = body as Record<string, string>;
 
-  if (!(await verifyRecaptcha(recaptchaToken))) {
+  // Fails closed when Google is unreachable: this endpoint sends mail to an
+  // address the caller chooses, so it must not run unchecked.
+  const captcha = await verifyRecaptcha(recaptchaToken, { action: "share_email", failClosed: true });
+  if (!captcha.ok) {
+    console.warn("[share-email] reCAPTCHA rejected:", captcha.reason);
     res.status(400).json({ error: "Verification failed" }); return;
   }
 

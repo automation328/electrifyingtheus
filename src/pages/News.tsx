@@ -114,6 +114,9 @@ const News = () => {
       <Navbar />
       <main className="flex-1 pt-28 pb-16">
         <div className="container px-4 max-w-6xl">
+          {/* The page's two sections (our blog, then the live feed) each have a
+              visible H2; this is the page heading they sit under. */}
+          <h1 className="sr-only">E-Mobility News &amp; Guides</h1>
           {/* Blogs */}
           <section className="mb-16">
             <div className="mb-8">
@@ -177,9 +180,9 @@ const News = () => {
             <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-semibold mb-4">
               <Rss className="w-3.5 h-3.5" /> Live RSS
             </span>
-            <h1 className="text-4xl md:text-5xl font-bold font-display text-foreground mb-4">
+            <h2 className="text-4xl md:text-5xl font-bold font-display text-foreground mb-4">
               E-Mobility <span className="text-gradient-primary">News</span>
-            </h1>
+            </h2>
             <p className="text-muted-foreground text-lg">
               The latest on electric vehicles, charging, and the clean-transport transition —
               aggregated live from {FEEDS.map((f) => f.source).join(", ")}.

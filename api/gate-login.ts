@@ -26,6 +26,7 @@
 
 import { createHash, timingSafeEqual } from "node:crypto";
 import { checkAuthRateLimit, tooManyRequests } from "./_rate-limit.js";
+import { slackText } from "./_slack-text.js";
 import {
   SLIDES_COOKIE, SLIDES_COOKIE_PATH, SLIDES_MAX_AGE, slidesToken, timingSafeEqualHex, sha256Hex,
 } from "../slides-gate.js";
@@ -141,7 +142,8 @@ async function notifySlack(opts: {
       ? `${shared ? "⚠️ " : "📍 "}this login has been used from *${opts.distinctIps}* IP${opts.distinctIps === 1 ? "" : "s"}${shared ? " — possible shared login" : ""}`
       : "",
     `🕑 ${when} ET`,
-    opts.ua ? `🖥️ ${opts.ua.slice(0, 180)}` : "",
+    // The User-Agent is whatever the caller sends; escape it like any other input.
+    opts.ua ? `🖥️ ${slackText(opts.ua, 180)}` : "",
   ].filter(Boolean);
   try {
     await fetch(hook, {

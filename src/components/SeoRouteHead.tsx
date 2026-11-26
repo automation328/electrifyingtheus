@@ -48,7 +48,10 @@ export const canonicalFor = (pathname: string): string => {
 };
 
 export const isNoIndexPath = (pathname: string): boolean =>
-  NOINDEX_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+  NOINDEX_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`)) ||
+  // A single listing comes from a live dealer feed and disappears when the car
+  // sells; the /marketplace search page itself stays indexable.
+  pathname.startsWith("/marketplace/");
 
 const SeoRouteHead = () => {
   const { pathname, search } = useLocation();

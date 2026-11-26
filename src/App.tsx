@@ -2,6 +2,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import ScrollToTop from "./components/ScrollToTop.tsx";
 import SeoRouteHead from "./components/SeoRouteHead.tsx";
+import SeoHead from "./components/SeoHead.tsx";
+import ToolSchema from "./components/ToolSchema.tsx";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -93,6 +95,9 @@ const App = () => (
       <BrowserRouter>
         <ScrollToTop />
         <SeoRouteHead />
+        {/* Route-level title/description from og-data.ts; a page's own <SeoHead> overrides it. */}
+        <SeoHead />
+        <ToolSchema />
         <GoogleAnalytics />
         <ChunkErrorBoundary>
         <Suspense fallback={<div className="min-h-screen" />}>

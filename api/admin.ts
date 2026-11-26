@@ -73,9 +73,10 @@ const forbid = (res: { status: (n: number) => { json: (o: unknown) => void } }, 
 const BUCKET = "site-media";
 const MAX_BYTES = 50 * 1024 * 1024; // 50 MB (bucket limit raised in 0009_media_bucket.sql)
 const ALLOWED_MIME = new Set([
-  "image/png", "image/jpeg", "image/webp", "image/gif", "image/svg+xml",
+  // Same list as the site-media bucket (0009_media_bucket.sql), which refuses
+  // anything else anyway. SVG stays out: it can carry script.
+  "image/png", "image/jpeg", "image/webp", "image/gif",
   "video/mp4", "video/webm", "video/quicktime",
-  "audio/mpeg", "audio/mp3", "audio/wav", "audio/ogg", "audio/mp4", "audio/aac", "audio/webm",
 ]);
 
 // ── kb re-embed ──────────────────────────────────────────────────────────────
@@ -568,7 +569,10 @@ async function handleMediaList(res: any) {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function handleMediaDelete(b: Record<string, unknown>, res: any) {
   const name = String(b.name ?? "").replace(/^cms\//, "");
-  if (!name || name.includes("/")) { res.status(400).json({ error: "bad_name" }); return; }
+  // One file in cms/: no folders, no "." or "..", no control characters.
+  if (!name || name.includes("/") || name.includes("\\") || /^\.{1,2}$/.test(name) || /[\x00-\x1f]/.test(name)) {
+    res.status(400).json({ error: "bad_name" }); return;
+  }
   const db = adminSupabase();
   if (!db) { res.status(500).json({ error: "not_configured" }); return; }
   const { error } = await db.storage.from(BUCKET).remove([`cms/${name}`]);
@@ -581,6 +585,11 @@ async function handleKb(b: Record<string, unknown>, res: any, role: string, acto
   const action = String(b.action ?? "");
   const source = String(b.source ?? "").trim();
   if (!source) { res.status(400).json({ error: "missing_source" }); return; }
+
+  // Check everything that can fail BEFORE deleting: the old vectors are gone
+  // once the delete runs, so an unknown action or a missing key lost them.
+  if (action !== "remove" && action !== "reembed") { res.status(400).json({ error: "unknown_action" }); return; }
+  if (action === "reembed" && !process.env.GEMINI_API_KEY) { res.status(500).json({ error: "no_gemini_key", detail: "Set GEMINI_API_KEY." }); return; }
 
   const db = adminSupabase();
   if (!db) { res.status(500).json({ error: "not_configured" }); return; }
@@ -1032,7 +1041,8 @@ export default async function handler(req: any, res: any) {
     // submission" for the 120 imported ones and "already notified" on a
     // re-publish, so the CMS can call it blindly without knowing which is which.
     if (op === "event-published") {
-      if (role === "viewer") return void forbid(res, "Your account has read-only access.");
+      // Emails the organiser, so only someone who can publish may trigger it.
+      if (!canPublish(role)) return void forbid(res, "Only editors and admins can publish events.");
       const db = adminSupabase();
       if (!db) { res.status(500).json({ error: "not_configured" }); return; }
       const r = await notifyOrganiser(db, String(b.id ?? ""));

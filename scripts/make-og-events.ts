@@ -29,7 +29,9 @@ for (const e of EVENTS) {
   // The flyer's source file name, which survives in a CMS row's bundled
   // "/assets/<name>-<hash>.<ext>" path, so such a row finds this prepared image.
   const asset = basename(src, extname(src));
-  rows.push({ slug: e.slug, title: e.title.trim(), date, asset, description: e.description.slice(0, 200), image });
+  // `end` and `ours` let the sitemap drop an event once its page stops
+  // showing it (isActive in src/data/events.ts).
+  rows.push({ slug: e.slug, title: e.title.trim(), date, end: e.endDate || date, ours: !!e.ours, asset, description: e.description.slice(0, 200), image });
 }
 
 writeFileSync(
@@ -38,7 +40,7 @@ writeFileSync(
 // Built-in events' share previews, read by middleware.ts. \`date\` + \`title\`
 // match a database row that adopted the event (same rule as src/lib/content.ts).
 
-export interface OgEvent { slug: string; title: string; date: string; asset: string; description: string; image: string }
+export interface OgEvent { slug: string; title: string; date: string; end: string; ours: boolean; asset: string; description: string; image: string }
 
 export const OG_EVENTS: OgEvent[] = ${JSON.stringify(rows, null, 2)};
 `,

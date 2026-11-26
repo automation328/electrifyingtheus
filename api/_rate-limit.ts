@@ -133,11 +133,13 @@ export async function checkRateLimit(
     // that is exactly how a limit can appear to be enforced while never firing.
     if (!ip) {
       console.warn(
-        `[rate-limit] no client IP for bucket "${opts.bucket}" — request NOT limited. Headers seen: ${
+        `[rate-limit] no client IP for bucket "${opts.bucket}" — request ${opts.failClosed ? "REFUSED" : "NOT limited"}. Headers seen: ${
           Object.keys(req.headers ?? {}).filter((k) => k.includes("ip") || k.includes("forward")).join(", ") || "(none matching)"
         }`,
       );
-      return allow(0);
+      // Sign-in endpoints pass failClosed: with no address to count against,
+      // an unlimited guess budget is worse than turning the request away.
+      return opts.failClosed ? { ok: false, hits: 0, limit: opts.limit, retryAfter } : allow(0);
     }
 
     const client = db();

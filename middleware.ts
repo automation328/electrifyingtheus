@@ -14,6 +14,7 @@ import { OG_ENTRIES } from "./og-data.js";
 import { OG_EVENTS, type OgEvent } from "./og-events.js";
 import { SITEMAP_STATIC, isSitemapExcluded } from "./sitemap-urls.js";
 import { slidesUnlocked } from "./slides-gate.js";
+import { injectHead } from "./crawler-head.js";
 
 export const config = {
   matcher: [
@@ -84,19 +85,20 @@ const SITEMAP_ORIGIN = "https://electrifyingtheus.com";
 
 /** Published CMS URLs. Best-effort: returns [] on any error or timeout, so the
  *  sitemap degrades to the build-time list rather than failing. */
-async function fetchCmsSitemapPaths(): Promise<string[]> {
+async function fetchCmsSitemapPaths(): Promise<{ paths: string[]; removed: string[] }> {
   const base = process.env.VITE_SUPABASE_URL;
   const anon = process.env.VITE_SUPABASE_ANON_KEY;
-  if (!base || !anon) return [];
+  if (!base || !anon) return { paths: [], removed: [] };
   const headers = { apikey: anon, authorization: `Bearer ${anon}` };
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), 1500);
   const out: string[] = [];
+  const removed: string[] = [];
   try {
     const [pages, posts, events] = await Promise.all([
       fetch(`${base}/rest/v1/site_pages?status=eq.published&select=path`, { headers, signal: ctrl.signal }),
       fetch(`${base}/rest/v1/site_blog_posts?status=eq.published&select=slug`, { headers, signal: ctrl.signal }),
-      fetch(`${base}/rest/v1/site_events?status=eq.published&select=title,event_date`, { headers, signal: ctrl.signal }),
+      fetch(`${base}/rest/v1/site_events?status=eq.published&select=title,event_date,end_date,hidden`, { headers, signal: ctrl.signal }),
     ]);
     if (pages.ok) {
       for (const r of (await pages.json()) as Array<{ path?: string }>) {
@@ -111,23 +113,44 @@ async function fetchCmsSitemapPaths(): Promise<string[]> {
     if (events.ok) {
       // site_events has no slug column — the URL is derived from title + date,
       // the same way the OG lookup resolves an event (see eventSlugFor above).
-      for (const r of (await events.json()) as Array<{ title?: string; event_date?: string }>) {
-        if (r?.title) out.push(`/events/${eventSlugFor(r.title, r.event_date ?? "")}`);
+      // Same rules as mergeEvents in src/lib/content.ts: a row with the title +
+      // date of a built-in event takes over that event's URL, and a hidden row
+      // is a removal marker that deletes it. A past event's page says "Event
+      // not found" (isActive in src/data/events.ts), so only upcoming ones count.
+      const today = new Date().toISOString().slice(0, 10);
+      const builtIn = new Map(OG_EVENTS.map((e) => [`${e.title}|${e.date}`, e]));
+      for (const r of (await events.json()) as Array<{ title?: string; event_date?: string; end_date?: string | null; hidden?: boolean | null }>) {
+        if (!r?.title) continue;
+        const curated = builtIn.get(`${r.title.trim()}|${r.event_date ?? ""}`);
+        if (r.hidden) { if (curated) removed.push(`/events/${curated.slug}`); continue; }
+        const lastDay = r.end_date || r.event_date || "";
+        if (lastDay < today) continue;
+        out.push(`/events/${curated ? curated.slug : eventSlugFor(r.title, r.event_date ?? "")}`);
       }
     }
   } catch {
-    return [];
+    return { paths: [], removed: [] };
   } finally {
     clearTimeout(timer);
   }
-  return out;
+  return { paths: out, removed };
 }
 
 /** <urlset> for /sitemap.xml: build-time URLs ∪ published CMS URLs. */
 async function buildSitemapXml(): Promise<string> {
-  const cms = await fetchCmsSitemapPaths();
+  const { paths: cms, removed } = await fetchCmsSitemapPaths();
+  // A built-in event past its last day shows "Event not found" unless it is
+  // one of ours (isActive in src/data/events.ts), so leave it out — unless a
+  // CMS row that took it over is still upcoming. Removal markers always drop it.
+  const today = new Date().toISOString().slice(0, 10);
+  const cmsSet = new Set(cms);
+  const drop = new Set(removed);
+  for (const e of OG_EVENTS) {
+    const p = `/events/${e.slug}`;
+    if (!e.ours && e.end < today && !cmsSet.has(p)) drop.add(p);
+  }
   const paths = [...new Set([...SITEMAP_STATIC, ...cms])]
-    .filter((p) => p.startsWith("/") && !isSitemapExcluded(p))
+    .filter((p) => p.startsWith("/") && !isSitemapExcluded(p) && !drop.has(p))
     .sort();
   const urls = paths
     .map((p) => `  <url><loc>${esc(SITEMAP_ORIGIN + (p === "/" ? "/" : p.replace(/\/+$/, "")))}</loc></url>`)
@@ -494,22 +517,13 @@ export default async function middleware(request: Request) {
     }
   }
 
-  // The icon links matter here, not just in index.html. Crawlers matched by
-  // CRAWLER never see the SPA shell — they get THIS head and nothing else, and
-  // it declared no icon at all, leaving them to fall back to whatever sits at
-  // the root /favicon.ico. That fallback was the scaffold logo for months.
-  // (Plain Googlebot is not in CRAWLER and gets the real index.html, so Google
-  // was reaching the same wrong file by the other route.)
-  const html = `<!doctype html><html lang="en"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>${esc(meta.title)}</title>
+  // Blog posts and events are articles; every other page is a website.
+  const ogType = path.startsWith("/blog/") || path.startsWith("/events/") ? "article" : "website";
+  const headTags = `<title>${esc(meta.title)}</title>
 <meta name="description" content="${esc(meta.description)}">
 <link rel="canonical" href="${esc(meta.url)}">
-<link rel="icon" href="/favicon.ico" sizes="any">
-<link rel="icon" type="image/png" href="/favicon.png">
-<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <meta property="og:site_name" content="Electrifying the US">
-<meta property="og:type" content="article">
+<meta property="og:type" content="${ogType}">
 <meta property="og:title" content="${esc(meta.title)}">
 <meta property="og:description" content="${esc(meta.description)}">
 <meta property="og:url" content="${esc(meta.url)}">
@@ -521,7 +535,31 @@ ${meta.knownSize === false ? "" : `<meta property="og:image:width" content="1200
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="${esc(meta.title)}">
 <meta name="twitter:description" content="${esc(meta.description)}">
-<meta name="twitter:image" content="${esc(meta.image)}">
+<meta name="twitter:image" content="${esc(meta.image)}">`;
+
+  // The real app shell with this page's head, so a crawler that runs
+  // JavaScript (Bing, Apple) sees the whole page. index.html has a dot, so
+  // this fetch skips the middleware. If it fails, fall back to the stand-in.
+  // While the password gate is on (GATE_TOKEN), anyone can claim to be a bot
+  // in their User-Agent, so bots get the stand-in only, never the app itself.
+  let shell: string | null = null;
+  if (!process.env.GATE_TOKEN) try {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 1500);
+    const res = await fetch(`${origin}/index.html`, { signal: ctrl.signal });
+    clearTimeout(timer);
+    if (res.ok) shell = injectHead(await res.text(), headTags);
+  } catch { shell = null; }
+
+  // The stand-in needs its own icon links: a crawler that gets it sees this
+  // head and nothing else, and with no icon declared it falls back to whatever
+  // sits at /favicon.ico — the scaffold logo, for months.
+  const html = shell ?? `<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+${headTags}
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" href="/favicon.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 </head><body>
 <h1>${esc(meta.title)}</h1>
 <p>${esc(meta.description)}</p>

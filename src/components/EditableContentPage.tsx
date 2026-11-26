@@ -10,7 +10,9 @@ import ContentPageLayout from "@/components/ContentPageLayout";
 import EditBar from "@/components/inline/EditBar";
 import Inspector from "@/components/inline/Inspector";
 import SeoModal from "@/components/inline/SeoModal";
-import SeoHead from "@/components/SeoHead";
+import SeoHead, { ogFor } from "@/components/SeoHead";
+import JsonLd from "@/components/JsonLd";
+import { breadcrumbLd } from "@/lib/structured-data";
 import { InlineEditContext, setPath, getPath } from "@/components/inline/edit-context";
 import { usePageOverride, mergePageOverride, pickPageOverride, EDITABLE_PAGES, type PageOverride, type PageBlock, type BlockType } from "@/lib/page-content";
 import { newBlock, newId, regenIds } from "@/components/inline/blocks/factory";
@@ -205,8 +207,13 @@ const EditableContentPage = ({ path, label, ...props }: LayoutProps & { path: st
   const ov = rendered as PageOverride;
   const fallbackTitle = ov.title;
   const fallbackDesc = typeof ov.intro === "string" ? ov.intro : undefined;
-  const seoTitle = ov.seo?.title || (fallbackTitle ? `${fallbackTitle} — Electrifying the US` : undefined);
-  const seoDesc = ov.seo?.description || (fallbackDesc ? fallbackDesc.slice(0, 160) : undefined);
+  // The heading is split in two ("EVs in" + highlight "Winter"), so the title
+  // needs both halves. A page with an og-data.ts entry leaves it to SeoHead,
+  // which then shows Google the same hand-written title Bing gets.
+  const fullHeading = [ov.title, ov.highlight].filter(Boolean).join(" ").trim();
+  const hasOg = !!ogFor(path);
+  const seoTitle = ov.seo?.title || (hasOg ? undefined : fullHeading ? `${fullHeading} — Electrifying the US` : undefined);
+  const seoDesc = ov.seo?.description || (hasOg ? undefined : fallbackDesc ? fallbackDesc.slice(0, 160) : undefined);
   const seoImage = ov.seo?.image || undefined;
 
   // With the Inspector docked on the left, the page used to sit UNDER it — the
@@ -219,6 +226,7 @@ const EditableContentPage = ({ path, label, ...props }: LayoutProps & { path: st
   return (
     <InlineEditContext.Provider value={ctx}>
       <SeoHead title={seoTitle} description={seoDesc} image={seoImage} />
+      {fullHeading && <JsonLd data={breadcrumbLd([{ name: fullHeading, path }])} />}
       <div className={shifted ? "cms-editor-shift" : undefined}>
       <ContentPageLayout {...rendered} />
       {editing && !preview && seoOpen && (

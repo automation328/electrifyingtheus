@@ -60,12 +60,12 @@ export default async function handler(req: any, res: any) {
   // Single-visitor journey: every page this person visited, grouped by session.
   if (b.visitorId) {
     const out = await visitorJourney(db, String(b.visitorId));
-    if ("error" in out) { res.status(500).json({ error: "query_failed", detail: out.error }); return; }
+    if ("error" in out) { console.error("[analytics] visitor query failed:", out.error); res.status(500).json({ error: "query_failed" }); return; }
     res.status(200).json(out.data);
     return;
   }
 
   const out = await analyticsSummary(db, b.range);
-  if ("error" in out) { res.status(500).json({ error: "query_failed", detail: out.error }); return; }
+  if ("error" in out) { console.error("[analytics] summary query failed:", out.error); res.status(500).json({ error: "query_failed" }); return; }
   res.status(200).json(out.data);
 }

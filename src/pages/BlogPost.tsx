@@ -14,6 +14,10 @@ import MarkdownEditor from "@/components/inline/MarkdownEditor";
 import EditableImage from "@/components/inline/EditableImage";
 import { useInlineEdit } from "@/components/inline/edit-context";
 import { usePost, usePosts } from "@/hooks/use-content";
+import SeoHead from "@/components/SeoHead";
+import JsonLd from "@/components/JsonLd";
+import { blogPostingLd, breadcrumbLd } from "@/lib/structured-data";
+import NoIndex from "@/components/NoIndex";
 
 // Where an editor may drop blocks on a post, in the order they appear. Used for
 // the Inspector's "Add to" menu and for what move-up/move-down does.
@@ -174,6 +178,7 @@ const BlogPost = () => {
         <Navbar />
         <main className="flex-1 pt-28 pb-16 flex items-center justify-center">
           <div className="text-center px-4">
+            <NoIndex />
             <h1 className="text-3xl font-bold font-display text-foreground mb-3">Post not found</h1>
             <p className="text-muted-foreground mb-6">That article doesn't exist or may have moved.</p>
             <Link to="/blog" className="inline-flex items-center gap-2 text-primary font-semibold">
@@ -214,6 +219,9 @@ const BlogPost = () => {
     <PageStylesContext.Provider value={styles}>
     <div className="min-h-screen flex flex-col bg-background">
       <div className="read-progress" style={{ transform: `scaleX(${progress})` }} aria-hidden />
+      <SeoHead title={f.title ?? post.title} description={f.excerpt ?? post.excerpt} image={post.image} />
+      <JsonLd data={blogPostingLd({ ...post, title: f.title ?? post.title, excerpt: f.excerpt ?? post.excerpt })} />
+      <JsonLd data={breadcrumbLd([{ name: "News", path: "/news" }, { name: f.title ?? post.title, path: `/blog/${post.slug}` }])} />
       <Navbar />
       <main className="flex-1 pt-28 pb-16">
         <article className="container px-4 max-w-3xl">

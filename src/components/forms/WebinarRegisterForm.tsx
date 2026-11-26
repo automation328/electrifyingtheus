@@ -9,6 +9,7 @@ import { Ticket, CheckCircle2, CalendarPlus, Loader2, ExternalLink } from "lucid
 import { submitLead } from "@/lib/submitLead";
 import { isValidEmail } from "@/lib/lead";
 import { getLeadIdentity, saveLeadIdentity } from "@/lib/leadIdentity";
+import { getRecaptchaToken } from "@/lib/recaptcha";
 
 interface Props {
   eventTitle: string;
@@ -51,10 +52,12 @@ const EMPTY = {
 // and return their unique join link, or null. Best-effort — never blocks the form.
 async function registerOnZoom(f: typeof EMPTY): Promise<string | null> {
   try {
+    const recaptchaToken = await getRecaptchaToken("webinar_register");
     const r = await fetch("/api/register-webinar", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
+        recaptchaToken,
         firstName: f.firstName.trim(), lastName: f.lastName.trim(), email: f.email.trim(),
         city: f.city.trim(), zip: f.zip.trim(), company: f.company.trim(),
         industry: f.industry.trim(), title: f.title.trim(), mobile: f.mobile.trim(),

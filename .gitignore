@@ -44,3 +44,6 @@ dist-ssr
 .env.local
 .env.*.local
 .vercel
+
+# Security reports (threat model, audit findings): local only, describe attack paths.
+.security/

@@ -23,6 +23,10 @@ import { EVENT_THIRD_PARTY_NOTICE } from "@/lib/disclaimers";
 import { gcalLink, eventFullDate, eventDisplayTitle, eventLocationText, type EventItem } from "@/data/events";
 import { useEvents, useDraftEvent } from "@/hooks/use-content";
 import { useExternalEvents } from "@/hooks/use-external-events";
+import SeoHead from "@/components/SeoHead";
+import NoIndex from "@/components/NoIndex";
+import JsonLd from "@/components/JsonLd";
+import { breadcrumbLd, eventLd } from "@/lib/structured-data";
 
 // Where blocks may be dropped on an event page, in page order.
 const EVENT_SLOTS = ["event-top", "event-body", "event-end"];
@@ -208,6 +212,7 @@ const EventDetail = () => {
     return (
       <Shell>
         <div className="container px-4 max-w-3xl text-center py-16">
+          <NoIndex />
           <h1 className="text-3xl font-bold font-display text-foreground mb-3">Event not found</h1>
           <p className="text-muted-foreground mb-6">That event doesn't exist or may have ended.</p>
           <Link to="/events" className="inline-flex items-center gap-2 text-primary font-semibold">
@@ -245,6 +250,9 @@ const EventDetail = () => {
       {(blocks, f, styles) => (
     <PageStylesContext.Provider value={styles}>
     <Shell>
+      <SeoHead title={f.title ?? event.title} description={(f.description ?? event.description)?.slice(0, 160)} image={event.image} />
+      <JsonLd data={eventLd({ ...event, title: f.title ?? event.title, description: f.description ?? event.description })} />
+      <JsonLd data={breadcrumbLd([{ name: "Events", path: "/events" }, { name: f.title ?? event.title, path: `/events/${event.slug}` }])} />
       <div className="container px-4 max-w-5xl">
         <Link to="/events" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors">
           <ArrowLeft className="w-4 h-4" /> Back to events

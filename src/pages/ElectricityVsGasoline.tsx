@@ -656,19 +656,22 @@ const ElectricityVsGasoline = () => {
               <span className="h-px w-8 bg-current opacity-40" />
             </span>
 
-            <h1 className="evg-rise font-charge text-5xl md:text-7xl text-foreground mb-1" style={{ animationDelay: "0.06s" }}>
+            {/* One H1 for the whole "Electricity vs Gasoline" headline; the parts are block spans. */}
+            <h1>
+            <span className="block evg-rise font-charge text-5xl md:text-7xl text-foreground mb-1" style={{ animationDelay: "0.06s" }}>
               <span className="evg-ink-ev">Electricity</span>
-            </h1>
-            <div className="evg-rise flex items-center justify-center gap-4 my-2" style={{ animationDelay: "0.12s" }}>
+            </span>{" "}
+            <span className="evg-rise flex items-center justify-center gap-4 my-2" style={{ animationDelay: "0.12s" }}>
               <span className="evg-seam w-16 md:w-28" />
               <span className="relative inline-flex items-center justify-center w-12 h-12 rounded-full border border-border bg-card font-charge text-lg text-foreground shadow-sm">
                 vs
                 <Zap className="evg-pulse absolute -top-1.5 -right-1.5 w-4 h-4" style={{ color: `hsl(var(--ev-2))` }} fill="currentColor" />
               </span>
               <span className="evg-seam w-16 md:w-28" />
-            </div>
-            <h1 className="evg-rise font-charge text-5xl md:text-7xl mb-6" style={{ animationDelay: "0.18s" }}>
+            </span>{" "}
+            <span className="block evg-rise font-charge text-5xl md:text-7xl mb-6" style={{ animationDelay: "0.18s" }}>
               <span className="evg-ink-gas">Gasoline</span>
+            </span>
             </h1>
 
             <p className="evg-rise text-muted-foreground text-lg md:text-xl max-w-2xl mx-auto" style={{ animationDelay: "0.24s" }}>

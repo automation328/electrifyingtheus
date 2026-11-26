@@ -8,12 +8,12 @@ const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "
 
 describe("share previews", () => {
   it("has a prepared flyer for every built-in event (else run: npx vite-node scripts/make-og-events.ts)", () => {
-    const expected = EVENTS.filter((e) => e.slug && typeof e.image === "string").map((e) => ({
-      slug: e.slug,
-      title: e.title.trim(),
-      date: `${e.year}-${String(MONTHS.indexOf(e.month) + 1).padStart(2, "0")}-${String(Number(e.day) || 0).padStart(2, "0")}`,
-    }));
-    expect(OG_EVENTS.map(({ slug, title, date }) => ({ slug, title, date }))).toEqual(expected);
+    const expected = EVENTS.filter((e) => e.slug && typeof e.image === "string").map((e) => {
+      const date = `${e.year}-${String(MONTHS.indexOf(e.month) + 1).padStart(2, "0")}-${String(Number(e.day) || 0).padStart(2, "0")}`;
+      // end + ours decide when the sitemap drops the event (middleware.ts).
+      return { slug: e.slug, title: e.title.trim(), date, end: e.endDate || date, ours: !!e.ours };
+    });
+    expect(OG_EVENTS.map(({ slug, title, date, end, ours }) => ({ slug, title, date, end, ours }))).toEqual(expected);
   });
 
   it("points every page and event at an image that exists", () => {

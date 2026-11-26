@@ -25,8 +25,9 @@ export const SITEMAP_REDIRECTS: string[] = [
   "/blog/real-cost-of-going-electric",
   // The deck page's first address.
   "/slides",
-  // Retired event registration page → its recording.
+  // Retired event registration pages → their recordings.
   "/events/from-pump-to-plug",
+  "/events/from-pump-to-plug-part-3",
 ];
 
 /** Routes intentionally kept out of the index. */
@@ -108,7 +109,6 @@ export const SITEMAP_EVENTS: string[] = [
   "/events/evadc-picnic-2026",
   "/events/fleet-charging-meet-up-2026",
   "/events/forth-roadmap-conference-2026",
-  "/events/from-pump-to-plug-part-3",
   "/events/iaa-mobility-2027",
   "/events/july-coalition-conversation-2026",
   "/events/la-auto-show-automobility-la-2026",

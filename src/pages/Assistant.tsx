@@ -37,7 +37,7 @@ type Message = { role: "user" | "assistant"; content: string };
 // call site is reachable code) but no key material is present, because the var is
 // currently unset. This makes that safe by construction rather than by luck.
 const OPENAI_API_KEY = import.meta.env.DEV
-  ? (import.meta as { env?: Record<string, string> }).env?.VITE_OPENAI_API_KEY
+  ? import.meta.env.VITE_OPENAI_API_KEY
   : undefined;
 const OPENAI_MODEL = "gpt-5.4-mini";
 const openai = OPENAI_API_KEY
@@ -253,7 +253,7 @@ const Assistant = () => {
         return;
       }
 
-      const supabaseUrl = (import.meta as { env?: Record<string, string> }).env?.VITE_SUPABASE_URL;
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       if (!supabaseUrl) {
         // Try to answer from the curated set; otherwise show demo-mode help.
         const preset = PRESET_QA.find((p) => p.q.toLowerCase() === userMsg.content.toLowerCase());
@@ -274,7 +274,7 @@ const Assistant = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${(import.meta as { env?: Record<string, string> }).env?.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
         body: JSON.stringify({
           messages: [

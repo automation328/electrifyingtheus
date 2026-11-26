@@ -2,7 +2,7 @@ import pumpToPlug from "@/assets/general-flyer.jpg";
 import demoDaysLa from "@/assets/event-demo-days-la.jpg";
 import emobilitySummit from "@/assets/events/emobility-summit.webp";
 // Real event flyers/photos for the industry-event listings.
-import iaaMobility2027 from "@/assets/events/iaa-mobility-2027.png";
+import iaaMobility2027 from "@/assets/events/iaa-mobility-2027.jpg";
 import nordicEvSummit2027 from "@/assets/events/nordic-ev-summit-2027.png";
 import evChargingSummit2027 from "@/assets/events/ev-charging-summit-2027.png";
 import moveAmerica2026 from "@/assets/events/move-america-2026.png";
@@ -13,9 +13,9 @@ import autoShanghai2027 from "@/assets/events/auto-shanghai-2027.png";
 // Generic EV photo for the one listing without its own flyer (EVADC Monthly Meeting).
 import workforce from "@/assets/workforce.jpg";
 // Real flyers/graphics for the Drive Clean Colorado + EVADC events.
-import unityFest2026 from "@/assets/events/unity-fest-2026.png";
+import unityFest2026 from "@/assets/events/unity-fest-2026.jpg";
 import julyCoalition2026 from "@/assets/events/july-coalition-2026.jpg";
-import stateOfCharge2026 from "@/assets/events/state-of-charge-2026.png";
+import stateOfCharge2026 from "@/assets/events/state-of-charge-2026.jpg";
 import evChargingMeetup2026 from "@/assets/events/ev-charging-meetup-2026.jpg";
 import augustCoalition2026 from "@/assets/events/august-coalition-2026.jpg";
 import fleetCharging2026 from "@/assets/events/fleet-charging-2026.jpg";

@@ -289,6 +289,14 @@ function parseEventCalendarApp(json: any, sourceLabel: string): NormEvent[] {
   return out;
 }
 
+/** True when `candidate` is https on the same host as `base`. */
+export function sameHttpsHost(candidate: string, base: string): boolean {
+  try {
+    const c = new URL(candidate), b = new URL(base);
+    return c.protocol === "https:" && c.host === b.host;
+  } catch { return false; }
+}
+
 async function fetchEventCalendarApp(url: string, sourceLabel: string): Promise<NormEvent[]> {
   const raw: NormEvent[] = [];
   let next: string | undefined = url;
@@ -300,7 +308,10 @@ async function fetchEventCalendarApp(url: string, sourceLabel: string): Promise<
       if (!res.ok) break;
       const json = await res.json();
       raw.push(...parseEventCalendarApp(json, sourceLabel));
-      next = typeof json?.pages?.nextPage === "string" ? json.pages.nextPage : undefined;
+      // The feed names its own next page. Follow it only on the same https host,
+      // so a tampered response can't point this server at anything else.
+      const np = typeof json?.pages?.nextPage === "string" ? json.pages.nextPage : undefined;
+      next = np && sameHttpsHost(np, url) ? np : undefined;
     } catch {
       break;
     } finally {

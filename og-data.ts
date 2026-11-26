@@ -15,9 +15,9 @@ export interface OgEntry {
 export const OG_ENTRIES: OgEntry[] = [
   {
     path: "/blog/2026-ev-tipping-point-electric-vehicle-adoption-america",
-    title: "2026 could be the tipping point for electric vehicle adoption in America—why most drivers now save by going EV",
+    title: "2026: The Tipping Point for EV Adoption in America",
     description:
-      "2026 is the tipping point for electric vehicle adoption in America—why most drivers now save by going EV.",
+      "Why 2026 is the tipping point for electric vehicle adoption in America, and why most drivers now save money by going electric.",
     image: "/og/why-2026-is-the-tipping-point.jpg",
   },
   {
@@ -36,23 +36,23 @@ export const OG_ENTRIES: OgEntry[] = [
   },
   {
     path: "/blog/real-cost-of-going-electric-ev-savings-breakdown",
-    title: "The Real Cost of Going Electric: A Complete EV Savings Breakdown",
+    title: "The Real Cost of Going Electric: EV Savings Breakdown",
     description:
       "How much do you actually save by switching to an EV? Fuel savings, maintenance costs, federal tax credits, and total cost of ownership — with real numbers.",
     image: "/og/real-cost-of-going-electric.jpg",
   },
   {
     path: "/blog/ev-clean-energy-workforce-jobs-opportunities",
-    title: "Electrifying Communities: Clean Energy Jobs and EV Workforce Opportunities",
+    title: "Clean Energy Jobs and EV Workforce Opportunities",
     description:
       "Hundreds of thousands of jobs in EV manufacturing, charging infrastructure, and skilled trades — no four-year degree required. Here's how to get in.",
     image: "/og/clean-energy-workforce-opportunities.jpg",
   },
   {
     path: "/blog/beyond-cars-electric-bikes-buses-multimodal-transportation",
-    title: "Beyond Cars: E-Bikes, Electric Buses, and the Multimodal Zero-Emission Future",
+    title: "Beyond Cars: E-Bikes, Electric Buses and Multimodal Travel",
     description:
-      "The EV revolution isn't just about cars. E-bikes, electric buses, electric trucks, and emerging electric aviation are building a zero-emission transportation system for every community.",
+      "The EV shift isn't just cars. E-bikes, electric buses and trucks, and electric aviation are building zero-emission transportation for every community.",
     image: "/og/beyond-cars-multimodal-future.jpg",
   },
   {
@@ -64,51 +64,51 @@ export const OG_ENTRIES: OgEntry[] = [
   },
   {
     path: "/blog/electric-vehicles-air-quality-public-health-benefits",
-    title: "Cleaner Air, Healthier Neighborhoods: How Electric Vehicles Improve Public Health",
+    title: "How Electric Vehicles Improve Air Quality and Public Health",
     description:
-      "Every gas car replaced by an EV means less tailpipe pollution. How vehicle emissions affect public health, who is most impacted, and how EVs are improving air quality across America.",
+      "Every gas car replaced by an EV means less tailpipe pollution. How vehicle emissions affect health, who is most affected, and how EVs clean the air.",
     image: "/og/cleaner-air-healthier-neighborhoods.jpg",
   },
   {
     path: "/blog/from-the-pump-to-the-plug-ev-savings-webinar",
-    title: "From the Pump to the Plug: How EVs Can Save You Thousands | Electrifying The US",
+    title: "From the Pump to the Plug: How EVs Can Save You Thousands",
     description:
-      "Experts from Consumer Reports, UC Davis, Cox Automotive, and the Colorado Energy Office break down exactly how much money electric vehicles can save drivers — and why switching to an EV has never made more financial sense.",
+      "Experts from Consumer Reports, UC Davis, Cox Automotive and the Colorado Energy Office on how much money EVs save drivers, and why now.",
     image: "/og/save-with-evs-webinar.jpg",
   },
   {
     path: "/from-pump-to-plug-part-2",
-    title: "Watch The Webinar: Part 2 - From The Pump To The Plug, How EVs Can Save Thousands",
+    title: "Webinar Part 2: From the Pump to the Plug (Replay)",
     description:
-      "Watch Part 2 of our From the Pump to the Plug webinar — CARB, Coltura, Uber, Austin Energy, and GRID Alternatives on where the savings of going electric actually come from.",
+      "Watch Part 2 of From the Pump to the Plug: CARB, Coltura, Uber, Austin Energy and GRID Alternatives on where the savings of going electric come from.",
     image: "/og/events-from-pump-to-plug-v2.jpg",
   },
   {
     path: "/from-pump-to-plug-part-3",
-    title: "Watch The Webinar: Part 3 - From The Pump To The Plug, How Pre-Owned EVs Can Save You Thousands",
+    title: "Webinar Part 3: How Pre-Owned EVs Save You Thousands",
     description:
-      "Watch Part 3 of our From the Pump to the Plug webinar — pre-owned EV dealers and an everyday EV driver on what it takes to make an EV affordable, and what to know before you buy.",
+      "Watch Part 3 of From the Pump to the Plug: pre-owned EV dealers and an everyday EV driver on making an EV affordable and what to know before you buy.",
     image: "/og/events/from-pump-to-plug-part-3.jpg",
   },
   {
     path: "/save-with-evs-webinar",
-    title: "Webinar Series Part 1: From The Pump To The Plug — How Electric Vehicles Can Save Thousands",
+    title: "Webinar Part 1: From the Pump to the Plug (Replay)",
     description:
       "Watch Part 1 of our From the Pump to the Plug webinar — a plain-English look at how everyday drivers save by going electric: fuel, maintenance, and incentives.",
     image: "/og/save-with-evs-webinar.jpg",
   },
   {
     path: "/events/demo-days-los-angeles",
-    title: "Demo Days Los Angeles — Test Drive the Future at the Rose Bowl",
+    title: "Demo Days Los Angeles: Test Drive EVs at the Rose Bowl",
     description:
-      "North America's largest outdoor vehicle demo festival. Test drive EVs, e-bikes, e-scooters, autonomous vehicles, and more. June 27–28, 2026 · Rose Bowl, Pasadena, CA.",
+      "North America's largest outdoor vehicle demo festival: test drive EVs, e-bikes, e-scooters and more. June 27–28, 2026, Rose Bowl, Pasadena, CA.",
     image: "/og/demo-days-los-angeles.jpg",
   },
   {
     path: "/events/from-pump-to-plug",
-    title: "Part 2: From The Pump To The Plug - How Electric Vehicles Can Save You Thousands",
+    title: "Part 2: From the Pump to the Plug — How EVs Save Thousands",
     description:
-      "A free one-hour webinar on how switching from gas to electric saves drivers thousands — on fuel, maintenance, and incentives. Thursday, August 27, 2026 · Online.",
+      "A free one-hour webinar on how switching from gas to electric saves drivers thousands on fuel, maintenance and incentives. Aug 27, 2026, online.",
     image: "/og/events-from-pump-to-plug-v2.jpg",
   },
 
@@ -124,7 +124,7 @@ export const OG_ENTRIES: OgEntry[] = [
     path: "/events",
     title: "EV Events — Ride & Drives, Webinars & Expos",
     description:
-      "Experience e-mobility in person and online. Find ride & drives, webinars, and expos near you.",
+      "Experience e-mobility in person and online. Find EV ride & drives, webinars, expos and community meet-ups near you, and get alerts for new ones.",
     image: "/og/events-hub.jpg",
   },
   {
@@ -136,7 +136,7 @@ export const OG_ENTRIES: OgEntry[] = [
   },
   {
     path: "/gallery",
-    title: "Gallery — Moments in Motion",
+    title: "Gallery — Moments in Motion | Electrifying the US",
     description:
       "Photos and videos from our ride & drives, webinars, expos, and community events across the country.",
     image: "/og/gallery.jpg",
@@ -168,8 +168,25 @@ export const OG_ENTRIES: OgEntry[] = [
     path: "/calculator",
     title: "EV vs Gas TCO Calculator — True Cost of Owning an EV",
     description:
-      "Compare the true cost of owning an electric vehicle versus a gas vehicle over time. Pick a gas car and an EV, then see which one costs less to own over your ownership period.",
+      "Compare the true cost of owning an EV versus a gas car. Pick a gas car and an EV, then see which costs less over the years you own it.",
     image: "/og/tco-calculator.jpg",
+  },
+  // middleware.ts builds these two pages' share cards itself (calculatorMeta),
+  // from the result in the URL. These entries give the bare page the same words
+  // in the browser and for Google; keep them in step with calculatorMeta.
+  {
+    path: "/electricity-vs-gasoline",
+    title: "EV vs Gas Calculator — See how much you'll save",
+    description:
+      "Compare any EV against a gas car on real U.S. energy prices, state by state — fuel, maintenance, and incentives.",
+    image: "/og/calculator.jpg",
+  },
+  {
+    path: "/gm-ev-vs-gas",
+    title: "GM EV vs Gas Cost Calculator — See how much you'll save",
+    description:
+      "Compare a GM EV — Equinox EV, Silverado EV, Cadillac LYRIQ and more — against your gas car on real U.S. energy prices, state by state.",
+    image: "/og/gm-ev-vs-gas.jpg",
   },
   {
     path: "/contact-us",
@@ -238,68 +255,68 @@ export const OG_ENTRIES: OgEntry[] = [
     path: "/financial-savings",
     title: "EV Financial Savings — Cheaper Fuel and Maintenance",
     description:
-      "See how going electric saves money: lower fuel cost per mile, far fewer moving parts to maintain, and savings that grow the more you drive. Includes a savings calculator.",
+      "How going electric saves money: lower fuel cost per mile, far less maintenance, and savings that grow the more you drive. Includes a savings calculator.",
     image: "/og/financial-savings.jpg",
   },
   {
     path: "/us-ev-policies",
     title: "U.S. EV Policies — NEVI Charging Funding and State Goals",
     description:
-      "A plain-language brief on U.S. EV policy: the $5 billion NEVI charging program, the 50% zero-emission sales goal for 2030, state programs, and changes to buyer incentives.",
+      "A plain-language brief on U.S. EV policy: the $5 billion NEVI program, the 50% zero-emission sales goal for 2030, state programs and buyer incentives.",
     image: "/og/us-ev-policies.jpg",
   },
   {
     path: "/reduced-emissions",
     title: "EVs and Reduced Emissions — Zero Tailpipe, Cleaner Over Time",
     description:
-      "How electric vehicles cut pollution: zero tailpipe emissions, fewer lifecycle greenhouse gases than gasoline cars, and a cleaner grid that makes every EV greener each year.",
+      "How EVs cut pollution: zero tailpipe emissions, fewer lifecycle greenhouse gases than gas cars, and a cleaner grid that makes every EV greener each year.",
     image: "/og/reduced-emissions.jpg",
   },
   {
     path: "/ev-road-safety",
     title: "EVs and Road Safety — Rollovers, Fire Risk and Crash Tests",
     description:
-      "How EVs hold up on the road: a low center of gravity that resists rollovers, battery-reinforced bodies, fire risk compared with gas cars, and driver-assistance features.",
+      "How EVs hold up on the road: a low center of gravity that resists rollovers, battery-reinforced bodies, fire risk versus gas cars, and driver assistance.",
     image: "/og/ev-road-safety.jpg",
   },
   {
     path: "/steam-education",
-    title: "STEAM Education — Training the Clean Transportation Workforce",
+    title: "STEAM Education for the Clean Transportation Workforce",
     description:
-      "How STEAM education feeds the EV workforce: EPA Clean School Bus training, high-voltage technician skills, community college and apprenticeship paths, and K-12 programs.",
+      "How STEAM education feeds the EV workforce: EPA Clean School Bus training, high-voltage technician skills, college and apprenticeship paths, and K-12.",
     image: "/og/steam-education.jpg",
   },
   {
     path: "/workforce-economic-development",
     title: "Workforce & Economic Development — Clean Energy and EV Jobs",
     description:
-      "Clean energy employed about 3.56 million Americans in 2024 and grew roughly three times faster than the overall economy. See where EV and clean vehicle jobs are.",
+      "Clean energy employed about 3.56 million Americans in 2024 and grew about three times faster than the overall economy. See where the EV jobs are.",
     image: "/og/workforce-economic-development.jpg",
   },
   {
     path: "/self-driving-vehicles",
-    title: "Self-Driving Vehicles & Delivery Robots — Why They Run Electric",
+    title: "Self-Driving Cars & Delivery Robots — Why They Run Electric",
     description:
-      "Robotaxis and sidewalk delivery robots are already on American streets. Learn how autonomous vehicles work, what safety looks like, and why autonomy and electrification go together.",
+      "Robotaxis and delivery robots are already on American streets. How autonomous vehicles work, what safety looks like, and why they run on electricity.",
     image: "/og/self-driving-vehicles.jpg",
   },
   {
     path: "/evtol-drone-delivery",
     title: "eVTOLs & Drone Delivery — Electric Air Taxis Explained",
     description:
-      "What eVTOL air taxis are, how delivery drones move prescriptions and parcels in minutes, and what vertiports, certification and noise mean for electric aviation.",
+      "What eVTOL air taxis are, how delivery drones move parcels in minutes, and what vertiports, certification and noise mean for electric aviation.",
     image: "/og/evtol-drone-delivery.jpg",
   },
   {
     path: "/sustainable-aviation",
     title: "Sustainable Aviation & eGSE — Cutting Emissions at Airports",
     description:
-      "Sustainable aviation fuel can cut lifecycle CO2 by up to 80%. See how airports electrify ground equipment and how electric commuter planes target routes under 250 miles.",
+      "Sustainable aviation fuel can cut lifecycle CO2 by up to 80%. How airports electrify ground equipment and where electric commuter planes fit.",
     image: "/og/sustainable-aviation.jpg",
   },
   {
     path: "/sustainable-maritime",
-    title: "Sustainable Maritime — Shore Power, Electric Ferries and Tugs",
+    title: "Sustainable Maritime — Shore Power and Electric Ferries",
     description:
       "How shore power lets docked ships shut off diesel engines, and why operators report electric ferries and tugboats cutting operating costs 30 to 40 percent.",
     image: "/og/sustainable-maritime.jpg",
@@ -343,14 +360,14 @@ export const OG_ENTRIES: OgEntry[] = [
     path: "/privacy-policy",
     title: "Privacy Policy — Electrifying the US",
     description:
-      "How Electrifying the US collects, uses, shares and protects your information, including the AI chatbot, calculators, SMS messages and forms, plus your rights and choices.",
+      "How Electrifying the US collects, uses, shares and protects your information across the chatbot, calculators, SMS and forms, and your choices.",
     image: "/og/privacy-policy.jpg",
   },
   {
     path: "/terms",
     title: "Terms of Use — Electrifying the US",
     description:
-      "The terms for using ElectrifyingTheUS.com, including the AI chatbot, cost calculators, rebate information and SMS messages, plus the disclaimers that apply to these tools.",
+      "The terms for using ElectrifyingTheUS.com, including the AI chatbot, cost calculators, rebate information and SMS, and the disclaimers that apply.",
     image: "/og/terms.jpg",
   },
   {

@@ -13,7 +13,8 @@
 //   register: POST https://api.zoom.us/v2/webinars/{id}/registrants   (Bearer token)
 
 import { createHash } from "node:crypto";
-import { checkRateLimit, tooManyRequests } from "./_rate-limit.js";
+import { checkRateLimit, clientIp, tooManyRequests } from "./_rate-limit.js";
+import { verifyRecaptcha } from "./_recaptcha.js";
 
 let tokenCache: { token: string; exp: number } | null = null;
 
@@ -57,6 +58,14 @@ export default async function handler(req: any, res: any) {
 
   const body = (typeof req.body === "string" ? safeJson(req.body) : req.body) as Record<string, unknown> | null;
   const b = body && typeof body === "object" ? body : {};
+
+  // Each registration makes Zoom email the address given, so a bot could use
+  // this to mail strangers. Same reCAPTCHA check as the lead forms.
+  const captcha = await verifyRecaptcha(clean(b.recaptchaToken, 4096), { action: "webinar_register", remoteip: clientIp(req) || undefined });
+  if (!captcha.ok) {
+    console.warn("[register-webinar] reCAPTCHA rejected:", captcha.reason);
+    res.status(403).json({ ok: false, error: "verification_failed" }); return;
+  }
 
   const first_name = clean(b.firstName, 64);
   const last_name = clean(b.lastName, 64);
@@ -102,6 +111,10 @@ export default async function handler(req: any, res: any) {
   const r = await register(payload);
 
   const data = (await r.json().catch(() => ({}))) as { join_url?: string; message?: string };
-  if (!r.ok) { res.status(502).json({ ok: false, configured: true, error: data?.message || "zoom_error" }); return; }
+  if (!r.ok) {
+    // Zoom's own message stays in the logs; the caller only learns it failed.
+    console.error("[register-webinar] Zoom error:", r.status, data?.message);
+    res.status(502).json({ ok: false, configured: true, error: "zoom_error" }); return;
+  }
   res.status(200).json({ ok: true, configured: true, joinUrl: data.join_url ?? null });
 }

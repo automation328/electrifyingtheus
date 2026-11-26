@@ -4,7 +4,16 @@
 // custom title/card never bleeds onto the next page during SPA navigation.
 
 import { useEffect, useRef } from "react";
+import { useLocation } from "react-router-dom";
 import { useSeoSettings } from "@/lib/seo-settings";
+import { OG_ENTRIES } from "../../og-data";
+
+/** The hand-written og-data.ts entry for a path, if any. The same titles the
+ *  middleware gives Bing and link previews, so Google sees them too. */
+export const ogFor = (pathname: string) => {
+  const p = (pathname || "/").replace(/\/+$/, "") || "/";
+  return OG_ENTRIES.find((e) => e.path === p);
+};
 
 const absolutize = (url: string) => {
   if (!url) return url;
@@ -36,6 +45,11 @@ const SeoHead = ({ title, description, image }: { title?: string; description?: 
   const SITE_TITLE = seo.defaultTitle;
   const SITE_DESC = seo.defaultDescription;
   const SITE_IMAGE = seo.defaultImage;
+  // A page's own props win, then its og-data entry, then the site defaults.
+  const og = ogFor(useLocation().pathname);
+  const pageTitle = title || og?.title;
+  const pageDesc = description || og?.description;
+  const pageImage = image || og?.image;
 
   // Remember exactly what this instance wrote, so the reset only touches tags
   // that haven't since been overwritten by another page's SeoHead.
@@ -43,9 +57,9 @@ const SeoHead = ({ title, description, image }: { title?: string; description?: 
 
   useEffect(() => {
     const vals: Record<string, string> = {
-      title: title || SITE_TITLE,
-      description: description || SITE_DESC,
-      image: absolutize(image || SITE_IMAGE),
+      title: pageTitle || SITE_TITLE,
+      description: pageDesc || SITE_DESC,
+      image: absolutize(pageImage || SITE_IMAGE),
     };
     document.title = vals.title;
     for (const m of MANAGED) setMeta(m.attr, m.key, vals[m.valKey]);
@@ -62,7 +76,7 @@ const SeoHead = ({ title, description, image }: { title?: string; description?: 
     };
     // Site defaults are included: they arrive asynchronously from the CMS, and
     // without them here the head would keep the pre-fetch fallback values.
-  }, [title, description, image, SITE_TITLE, SITE_DESC, SITE_IMAGE]);
+  }, [pageTitle, pageDesc, pageImage, SITE_TITLE, SITE_DESC, SITE_IMAGE]);
 
   return null;
 };

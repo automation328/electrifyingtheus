@@ -3,7 +3,7 @@ import handler, { FORM_TAGS } from "./lead";
 import type { LeadFormType } from "../src/lib/submitLead";
 
 vi.mock("./_submissions.js", () => ({ recordSubmission: vi.fn() }));
-vi.mock("./_rate-limit.js", () => ({ checkRateLimit: async () => ({ ok: true }), tooManyRequests: vi.fn() }));
+vi.mock("./_rate-limit.js", () => ({ checkRateLimit: async () => ({ ok: true }), clientIp: () => "203.0.113.1", tooManyRequests: vi.fn() }));
 vi.mock("./_ghl-fields.js", () => ({ buildCustomFields: () => [], customFieldIds: async () => ({}) }));
 
 // The bug this file exists to stop: the marketplace enquiry form posted
