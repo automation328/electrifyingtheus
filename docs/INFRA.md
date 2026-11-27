@@ -28,7 +28,7 @@
   - **Site Gallery — Add / Remove** · id `AqTYBEnrqQxhoMvw` · form `…/form/etu-gallery` · source `n8n/gallery-form-workflow.json` (photos: upload/URL; videos: YouTube/Vimeo/Drive/file)
   - **Site Jobs — Add / Remove** · id `aeJc4fJd7vvqy69I` · form `…/form/etu-job` · source `n8n/job-form-workflow.json` (Careers; posted jobs show above ATS listings)
   - Each: Add/Remove, image **upload → site-media** or URL fallback, soft-archive on remove (Delete + Title).
-- **Other existing workflows**: `EV Events Feed (ICS)` (`wkgAx2x0Z8dBRKxb`) → `/webhook/ev-events`; `/webhook/evan-chat`; `/webhook/gas-prices`.
+- **Other existing workflows**: `EV Events Feed (ICS)` (`XdyZSMoknnzCmMor`, moved from automation.sgen.com Nov 2026, source `n8n/ev-events-feed-workflow.json`) → `/webhook/ev-events`; `/webhook/evan-chat`; `/webhook/gas-prices`.
 
 ## Vercel
 - **Project**: `electrifyingtheus` (`prj_4o0vGu1erUjivW9k3CRbqk1FTKTl`) · org `team_6UAIWndG0JnbTlU03HypHa2O`

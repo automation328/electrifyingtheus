@@ -1,0 +1,189 @@
+﻿{
+  "nodes": [
+    {
+      "parameters": {
+        "path": "ev-events",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "33201ff5-25f6-4a90-b50c-ee61c1642d5c",
+      "name": "EV Events Request",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "2520aadc-55b6-4f58-991e-3aa14ab17ca3"
+    },
+    {
+      "parameters": {
+        "url": "=https://driveelectricmonth.org/events-list?year={{ $now.year }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+            },
+            {
+              "name": "Accept",
+              "value": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "en-US,en;q=0.9"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "id": "1873171d-a7d4-496a-b424-9e22e939315a",
+      "name": "Fetch DEM",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        224,
+        0
+      ],
+      "executeOnce": true,
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "url": "=https://driveelectricearthmonth.org/events-list?year={{ $now.year }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+            },
+            {
+              "name": "Accept",
+              "value": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "en-US,en;q=0.9"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "id": "bfd4930b-b4a3-46c3-8d0c-b957df775b82",
+      "name": "Fetch DEEM",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        448,
+        0
+      ],
+      "executeOnce": true,
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const NL = String.fromCharCode(13) + String.fromCharCode(10);\nconst MON = {Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};\nfunction pad(n){ return (n<10?'0':'') + n; }\nfunction clean(s){ return String(s).replace(/<[^>]+>/g,'').replace(/&nbsp;/g,' ').replace(/&amp;/g,'&').replace(/&#0?39;|&rsquo;|&apos;/g,String.fromCharCode(39)).replace(/&quot;/g,String.fromCharCode(34)).replace(/\\s+/g,' ').trim(); }\nfunction dateParts(s){ const m = String(s).match(/([A-Z][a-z]{2})\\s+(\\d{1,2})[\\s\\S]*?(\\d{4})/); if(!m) return null; const mo=MON[m[1]]; if(mo===undefined) return null; return { mo:mo, day:parseInt(m[2],10), year:parseInt(m[3],10) }; }\nconst today = new Date(); today.setHours(0,0,0,0);\nfunction htmlOf(name){ try { return ($(name).first().json.data) || ''; } catch (e) { return ''; } }\nconst sources = [\n  { base:'https://driveelectricmonth.org', html: htmlOf('Fetch DEM') },\n  { base:'https://driveelectricearthmonth.org', html: htmlOf('Fetch DEEM') }\n];\nconst events=[]; const seen=new Set();\nfor (const src of sources){\n  const rows = src.html.split('<tr class=\"stat_data_row\">').slice(1);\n  for (const row of rows){\n    const link = row.match(/event\\?eventid=(\\d+)\"[^>]*>([\\s\\S]*?)<\\/a>/);\n    if(!link) continue;\n    const id = link[1];\n    const title = clean(link[2]);\n    if(!title) continue;\n    const cells = row.split('stat_data_cell\">').slice(1).map(function(c){ return clean(c.split('</td>')[0]); });\n    let dp = null; const locParts = [];\n    for (const c of cells){\n      if(!c) continue;\n      const d = dateParts(c);\n      if(d && !dp){ dp = d; continue; }\n      if(c===title || c==='USA' || c.toLowerCase()==='united states') continue;\n      locParts.push(c);\n    }\n    if(!dp) continue;\n    if (new Date(dp.year,dp.mo,dp.day) < today) continue;\n    const key = src.base + id;\n    if (seen.has(key)) continue; seen.add(key);\n    events.push({ id:id, title:title, loc:locParts.join(', '), base:src.base, year:dp.year, mo:dp.mo, day:dp.day });\n  }\n}\nevents.sort(function(a,b){ return new Date(a.year,a.mo,a.day) - new Date(b.year,b.mo,b.day); });\nlet ics = 'BEGIN:VCALENDAR'+NL+'VERSION:2.0'+NL+'PRODID:-//ElectrifyingTheUS//EV Events//EN'+NL+'CALSCALE:GREGORIAN'+NL;\nfor (const e of events){\n  const dt = e.year + pad(e.mo+1) + pad(e.day);\n  ics += 'BEGIN:VEVENT'+NL;\n  ics += 'UID:dem-'+e.id+'@etus'+NL;\n  ics += 'SUMMARY:'+e.title+NL;\n  ics += 'DTSTART;VALUE=DATE:'+dt+NL;\n  if(e.loc) ics += 'LOCATION:'+e.loc+NL;\n  ics += 'URL:'+e.base+'/event?eventid='+e.id+NL;\n  ics += 'END:VEVENT'+NL;\n}\nics += 'END:VCALENDAR'+NL;\nreturn [{ json: { ics: ics, count: events.length } }];"
+      },
+      "id": "5cd06181-af06-41a8-9928-cc881454ee81",
+      "name": "Build ICS",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        672,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.ics }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/calendar; charset=utf-8"
+              }
+            ]
+          }
+        }
+      },
+      "id": "1210de9d-15bf-4d5e-8517-898854b3c4eb",
+      "name": "Respond ICS",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        896,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "EV Events Request": {
+      "main": [
+        [
+          {
+            "node": "Fetch DEM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch DEM": {
+      "main": [
+        [
+          {
+            "node": "Fetch DEEM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch DEEM": {
+      "main": [
+        [
+          {
+            "node": "Build ICS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build ICS": {
+      "main": [
+        [
+          {
+            "node": "Respond ICS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "aiBuilderAssisted": true,
+    "builderVariant": "mcp",
+    "instanceId": "ec67849f363359e6e9820a78bf623d4083eba67e3ef3b37f108ea545f1519694"
+  }
+}
