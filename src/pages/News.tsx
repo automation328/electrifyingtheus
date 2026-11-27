@@ -5,85 +5,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ShareGate from "@/components/forms/ShareGate";
 import { usePosts } from "@/hooks/use-content";
-
-// E-mobility RSS sources, aggregated client-side through the rss2json proxy
-// (CORS-enabled, no key required for low volume). Add/remove feeds here.
-const FEEDS = [
-  { source: "Electrek", url: "https://electrek.co/feed/" },
-  { source: "InsideEVs", url: "https://insideevs.com/rss/articles/all/" },
-  { source: "Electrive", url: "https://www.electrive.com/feed/" },
-];
-
-interface NewsItem {
-  title: string;
-  link: string;
-  pubDate: string;
-  source: string;
-  excerpt: string;
-  image: string | null;
-}
-
-// rss2json fetches + parses each feed server-side and returns CORS-enabled JSON.
-// NOTE: the `count` param is a paid feature — sending it makes the free tier
-// reject the request with HTTP 422, so we omit it and take what the feed returns.
-const RSS2JSON = "https://api.rss2json.com/v1/api.json?rss_url=";
-
-interface Rss2JsonItem {
-  title?: string;
-  link?: string;
-  pubDate?: string;
-  description?: string;
-  content?: string;
-  thumbnail?: string;
-  enclosure?: { link?: string };
-}
-
-// Strip HTML tags + collapse whitespace into a short plain-text excerpt.
-const toExcerpt = (html: string, max = 180) => {
-  const t = html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
-  return t.length > max ? `${t.slice(0, max).trimEnd()}…` : t;
-};
-
-// Pull the first <img> src out of an HTML blob as a thumbnail fallback.
-const imageFromHtml = (html: string): string | null => {
-  const m = html.match(/<img[^>]+src=["']([^"']+)["']/i);
-  return m?.[1] ?? null;
-};
-
-const formatDate = (iso: string) => {
-  const d = new Date(iso);
-  return Number.isNaN(d.getTime())
-    ? ""
-    : d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-};
-
-async function fetchFeed(feed: (typeof FEEDS)[number]): Promise<NewsItem[]> {
-  const res = await fetch(`${RSS2JSON}${encodeURIComponent(feed.url)}`);
-  if (!res.ok) throw new Error(`${feed.source} ${res.status}`);
-  const json = await res.json();
-  if (json?.status !== "ok" || !Array.isArray(json.items)) return [];
-  return (json.items as Rss2JsonItem[]).map((it) => {
-    const body = it.content || it.description || "";
-    return {
-      title: it.title ?? "Untitled",
-      // Third-party feed: only http(s) links survive; anything else is dropped below.
-      link: /^https?:\/\//i.test(it.link ?? "") ? it.link! : "#",
-      pubDate: it.pubDate ?? "",
-      source: feed.source,
-      excerpt: toExcerpt(it.description || it.content || ""),
-      image: it.thumbnail || it.enclosure?.link || imageFromHtml(body),
-    };
-  });
-}
-
-async function fetchAllNews(): Promise<NewsItem[]> {
-  const results = await Promise.allSettled(FEEDS.map(fetchFeed));
-  const items = results.flatMap((r) => (r.status === "fulfilled" ? r.value : []));
-  if (items.length === 0) throw new Error("No feeds available");
-  return items
-    .filter((i) => i.title && i.link !== "#")
-    .sort((a, b) => new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime());
-}
+import { FEEDS, formatNewsDate as formatDate, newsQuery } from "@/lib/news-feed";
 
 const SourceBadge = ({ source }: { source: string }) => (
   <span className="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold">
@@ -96,12 +18,7 @@ const GREEN_SHARE =
   "inline-grid place-items-center w-9 h-9 rounded-full gradient-green text-primary-foreground shadow-sm hover:opacity-90 transition-opacity";
 
 const News = () => {
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ["emobility-news"],
-    queryFn: fetchAllNews,
-    staleTime: 30 * 60 * 1000, // 30 min
-    retry: 1,
-  });
+  const { data, isLoading, isError } = useQuery(newsQuery);
 
   const items = data ?? [];
   const featured = items[0];
@@ -212,10 +129,8 @@ const News = () => {
           {!isLoading && !isError && featured && (
             <>
               {/* Featured */}
-              <a
-                href={featured.link}
-                target="_blank"
-                rel="noopener noreferrer"
+              <Link
+                to={`/news/${featured.slug}`}
                 className="group grid lg:grid-cols-2 gap-8 items-center rounded-3xl border border-border bg-card overflow-hidden shadow-xl mb-14 hover:shadow-2xl transition-shadow animate-fade-up"
                 style={{ animationDelay: "0.1s" }}
               >
@@ -228,7 +143,7 @@ const News = () => {
                     </div>
                   )}
                   <div className="absolute top-3 right-3">
-                    <ShareGate url={featured.link} title={featured.title} summary={featured.source} description={featured.excerpt} image={featured.image ?? undefined} meta={`${featured.source} · ${formatDate(featured.pubDate)}`} formType="article-share" className={GREEN_SHARE} />
+                    <ShareGate url={`/news/${featured.slug}`} title={featured.title} summary={featured.source} description={featured.excerpt} image={featured.image ?? undefined} meta={`${featured.source} · ${formatDate(featured.pubDate)}`} formType="article-share" className={GREEN_SHARE} />
                   </div>
                 </div>
                 <div className="p-8">
@@ -243,19 +158,17 @@ const News = () => {
                   </h2>
                   <p className="text-muted-foreground mb-5">{featured.excerpt}</p>
                   <span className="inline-flex items-center gap-2 text-primary font-semibold group-hover:gap-3 transition-all">
-                    Read at {featured.source} <ArrowRight className="w-4 h-4" />
+                    Read the summary <ArrowRight className="w-4 h-4" />
                   </span>
                 </div>
-              </a>
+              </Link>
 
               {/* Grid */}
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {rest.map((p, i) => (
-                  <a
-                    key={p.link}
-                    href={p.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <Link
+                    key={p.slug}
+                    to={`/news/${p.slug}`}
                     className="group rounded-3xl border border-border bg-card overflow-hidden shadow-card hover:shadow-xl hover:-translate-y-1 transition-all animate-fade-up flex flex-col"
                     style={{ animationDelay: `${0.15 + (i % 6) * 0.07}s` }}
                   >
@@ -268,7 +181,7 @@ const News = () => {
                         </div>
                       )}
                       <div className="absolute top-3 right-3">
-                        <ShareGate url={p.link} title={p.title} summary={p.source} description={p.excerpt} image={p.image ?? undefined} meta={`${p.source} · ${formatDate(p.pubDate)}`} formType="article-share" className={GREEN_SHARE} />
+                        <ShareGate url={`/news/${p.slug}`} title={p.title} summary={p.source} description={p.excerpt} image={p.image ?? undefined} meta={`${p.source} · ${formatDate(p.pubDate)}`} formType="article-share" className={GREEN_SHARE} />
                       </div>
                     </div>
                     <div className="p-6 flex flex-col flex-1">
@@ -281,7 +194,7 @@ const News = () => {
                       <h3 className="text-lg font-bold font-display text-foreground mb-2 leading-snug group-hover:text-primary transition-colors">{p.title}</h3>
                       <p className="text-sm text-muted-foreground line-clamp-3">{p.excerpt}</p>
                     </div>
-                  </a>
+                  </Link>
                 ))}
               </div>
             </>

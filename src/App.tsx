@@ -26,6 +26,7 @@ const Assistant = page(() => import("./pages/Assistant.tsx"));
 const ElectricityVsGasoline = page(() => import("./pages/ElectricityVsGasoline.tsx"));
 const GmEvVsGas = page(() => import("./pages/GmEvVsGas.tsx"));
 const News = page(() => import("./pages/News.tsx"));
+const NewsArticle = page(() => import("./pages/NewsArticle.tsx"));
 const BlogPost = page(() => import("./pages/BlogPost.tsx"));
 const Events = page(() => import("./pages/Events.tsx"));
 const EvSafetyWebinar = page(() => import("./pages/EvSafetyWebinar.tsx"));
@@ -108,6 +109,7 @@ const App = () => (
           <Route path="/electricity-vs-gasoline" element={<ElectricityVsGasoline />} />
           <Route path="/gm-ev-vs-gas" element={<GmEvVsGas />} />
           <Route path="/news" element={<News />} />
+          <Route path="/news/:slug" element={<NewsArticle />} />
           <Route path="/blog" element={<Navigate to="/news" replace />} />
           {/* Legacy blog slugs → current SEO slugs (preserve old links). */}
           <Route path="/blog/real-cost-of-going-electric" element={<Navigate to="/blog/real-cost-of-going-electric-ev-savings-breakdown" replace />} />
