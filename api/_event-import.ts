@@ -24,6 +24,7 @@
 // person decides what goes live. That matters more here than for a form
 // submission: a feed can hand us a hundred events in one run.
 
+import { eventTitleKey } from "../event-title-key.js";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { slackText } from "./_slack-text.js";
 
@@ -91,7 +92,9 @@ export function sourceKeyFromUrl(url?: string): string | null {
  *  stripped to letters and digits, plus the date. Deliberately crude — it only
  *  has to catch the same event arriving twice, not match across renames. */
 export function titleDateKey(title: string, dateISO: string): string {
-  return `${(title || "").toLowerCase().replace(/[^a-z0-9]/g, "")}|${dateISO}`;
+  // Ignore a " - City, ST" / " - Online" suffix, so a row stored before titles
+  // carried one still matches the same event arriving with it (and vice versa).
+  return `${eventTitleKey(title || "").toLowerCase().replace(/[^a-z0-9]/g, "")}|${dateISO}`;
 }
 
 /** YYYY-MM-DD from an ISO timestamp, read in UTC.
@@ -130,8 +133,22 @@ export function displayTime(iso: string): string {
 export function importTitle(rawTitle: string, location: string): string {
   const t = (rawTitle || "").trim();
   if (!t) return "";
-  const generic = /^national drive electric (month|week)$/i.test(t);
-  return generic && location && location !== "See event details" ? `${t} — ${location}` : t;
+  // Every event title on the site reads "<Title> - <City>, <ST>" (or
+  // "- Online"), the same pattern editors use in the CMS (event-title skill).
+  const where = placeSuffix(location);
+  if (!where || t.toLowerCase().endsWith(where.toLowerCase())) return t;
+  return `${t} - ${where}`;
+}
+
+/** "City, ST" from a free-form location, "Online" for virtual events, or "". */
+export function placeSuffix(location: string): string {
+  const loc = (location || "").trim();
+  if (!loc || loc === "See event details") return "";
+  if (/\b(online|virtual|zoom|webinar)\b/i.test(loc)) return "Online";
+  // The last "<City>, <ST>" pair, e.g. "Ann Morrison Park, 1000 S Americana Blvd, Boise, ID 83706".
+  const pairs = [...loc.matchAll(/([A-Za-z][A-Za-z .'-]*?)\s*,\s*([A-Z]{2})\b/g)];
+  const last = pairs[pairs.length - 1];
+  return last ? `${last[1].trim()}, ${last[2]}` : "";
 }
 
 /** How many header images live in public/media/events/headers (1.jpg .. 30.jpg). */

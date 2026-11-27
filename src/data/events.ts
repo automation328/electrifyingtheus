@@ -242,13 +242,24 @@ export const eventDisplayTitle = (e: EventItem): string => {
   const override = lookupEventTitle(e.registerUrl, e.title);
   if (override) return override;
   const city = eventCity(e);
-  if (!city) return e.title;
-  if (e.title.toLowerCase().includes(city.toLowerCase())) return e.title;
+  if (!city) {
+    // Online events follow the same "<Title> - <Where>" pattern as the rest.
+    if (/\b(online|virtual|zoom|webinar)\b/i.test(e.location || "") && !/\bonline\s*$/i.test(e.title)) return `${e.title} - Online`;
+    return e.title;
+  }
   // City AND state, so a derived title reads the same as a stored one — the CMS
-  // holds them as "<Title> - <City>, <ST>" (migration 0020). eventCityState
-  // falls back to the bare city when the location carries no US state code,
-  // which is why "Nordic EV Summit 2027 - Oslo" still comes out right.
-  return `${e.title} - ${eventCityState(e)}`;
+  // holds them as "<Title> - <City>, <ST>" (migration 0020). Outside the US the
+  // country stands in for the state ("- Oslo, Norway"). Every event gets the
+  // suffix, even when its name already mentions the city ("Chicago Auto Show
+  // 2027 - Chicago, IL"), so the whole list reads the same way.
+  let where = eventCityState(e);
+  if (!eventStateCode(e)) {
+    const parts = (e.location || "").split(",").map((p) => p.trim()).filter(Boolean);
+    const country = parts[parts.length - 1];
+    if (parts.length > 1 && country && country.toLowerCase() !== city.toLowerCase()) where = `${city}, ${country}`;
+  }
+  if (e.title.trim().toLowerCase().endsWith(`- ${where}`.toLowerCase())) return e.title;
+  return `${e.title} - ${where}`;
 };
 
 // US state / DC / PR + Canadian province codes — used to validate a "City, ST"

@@ -52,6 +52,35 @@ const ALLOWED_TABLES = new Set<string>([
 // coded default, which is already recoverable.
 const ARCHIVABLE = new Set<string>([...ALLOWED_TABLES].filter((t) => t !== "site_settings"));
 
+// Columns a CMS write may set. The client sends whole rows, so without this an
+// author could write any column on their own draft, e.g. `hidden` (a removal
+// marker that deletes a built-in event once published), `featured`, or the
+// row's own id. Rules:
+//  - a key must look like a column name;
+//  - id / created_at are never written on update, and updated_at is stamped
+//    with the server's clock rather than trusted from the browser;
+//  - authors also cannot set the columns that decide WHERE content appears —
+//    an editor sets those when publishing.
+const COLUMN_NAME = /^[a-z_][a-z0-9_]{0,62}$/;
+const DB_OWNED_ON_UPDATE = new Set(["id", "created_at"]);
+const EDITOR_ONLY_COLUMNS = new Set(["featured", "hidden", "hero_hidden", "sort"]);
+
+export function sanitizeRow(
+  row: Record<string, unknown>,
+  role: string,
+  action: "insert" | "update",
+): { row: Record<string, unknown>; rejected: string[] } {
+  const out: Record<string, unknown> = {};
+  const rejected: string[] = [];
+  for (const [k, v] of Object.entries(row)) {
+    if (!COLUMN_NAME.test(k)) { rejected.push(k); continue; }
+    if (action === "update" && DB_OWNED_ON_UPDATE.has(k)) continue; // silently ignored: forms echo them back
+    if (role === "author" && EDITOR_ONLY_COLUMNS.has(k)) { rejected.push(k); continue; }
+    out[k] = k === "updated_at" ? new Date().toISOString() : v;
+  }
+  return { row: out, rejected };
+}
+
 // ── roles / capabilities ──────────────────────────────────────────────────────
 // admin  — everything, incl. managing users
 // editor — all content + publish + settings + KB; no user management
@@ -189,7 +218,11 @@ async function handleCollection(b: Record<string, unknown>, res: any, role: stri
   if (isKbTable && !canKb(role)) { forbid(res, "Only editors and admins can change the knowledge base."); return; }
 
   if (action === "insert" || action === "update") {
-    const row = (b.row && typeof b.row === "object" ? b.row : {}) as Record<string, unknown>;
+    const raw = (b.row && typeof b.row === "object" && !Array.isArray(b.row) ? b.row : {}) as Record<string, unknown>;
+    const { row, rejected } = sanitizeRow(raw, role, action);
+    // A bad key is a client bug or tampering; an author's editor-only field is
+    // dropped rather than failing the save, so their draft still saves.
+    if (rejected.some((k) => !EDITOR_ONLY_COLUMNS.has(k))) { res.status(400).json({ error: "bad_column" }); return; }
     // Authors may only ever save drafts. Give a clear error on an explicit
     // publish, and otherwise FORCE draft — never trust the client's status, and
     // don't rely on the DB default (which is 'published' for some tables). By
@@ -741,7 +774,7 @@ const htmlEsc = (s: string) =>
 /** A plain confirmation page. Whoever clicked is a colleague in Slack, not an
  *  API client, so this answers in something readable rather than JSON. */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function reviewPage(res: any, code: number, heading: string, body: string, link?: { href: string; label: string }) {
+function reviewPage(res: any, code: number, heading: string, body: string, link?: { href: string; label: string }, extraHtml = "") {
   const page = `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
@@ -753,11 +786,12 @@ function reviewPage(res: any, code: number, heading: string, body: string, link?
        border-radius:1rem;box-shadow:0 1px 3px rgba(16,32,55,.06)}
  h1{margin:0 0 .5rem;font-size:1.4rem}
  p{margin:0 0 1rem;color:#4a5769}
- a{display:inline-block;margin-top:.25rem;padding:.6rem 1.1rem;border-radius:.7rem;
-   background:#0057b8;color:#fff;text-decoration:none;font-weight:600}
+ a,button{display:inline-block;margin-top:.25rem;padding:.6rem 1.1rem;border-radius:.7rem;border:0;
+   background:#0057b8;color:#fff;text-decoration:none;font:inherit;font-weight:600;cursor:pointer}
+ button.reject{background:#b42318}
 </style></head><body><div class="card">
 <h1>${htmlEsc(heading)}</h1><p>${body}</p>
-${link ? `<a href="${htmlEsc(link.href)}">${htmlEsc(link.label)}</a>` : ""}
+${extraHtml}${link ? `<a href="${htmlEsc(link.href)}">${htmlEsc(link.label)}</a>` : ""}
 </div></body></html>`;
   res.setHeader("Content-Type", "text/html; charset=utf-8");
   res.setHeader("Cache-Control", "no-store");
@@ -822,10 +856,15 @@ async function handleEventReview(req: any, res: any) {
   const rl = await checkAuthRateLimit(req, { bucket: "event-review", limit: 60, windowMinutes: 60 });
   if (!rl.ok) { reviewPage(res, 429, "Too many attempts", "Try again in a little while."); return; }
 
-  const id = String(req.query?.id ?? "");
-  const action = String(req.query?.action ?? "");
-  const exp = Number(req.query?.exp ?? 0);
-  const sig = String(req.query?.sig ?? "");
+  // The Slack link is a GET that only SHOWS a confirm button; the change
+  // happens on the button's POST. Link unfurlers, mail scanners and browser
+  // prefetch all issue GETs, so a GET must never approve or reject anything.
+  const isPost = req.method === "POST";
+  const src = (isPost && req.body && typeof req.body === "object" ? req.body : req.query) ?? {};
+  const id = String(src.id ?? "");
+  const action = String(src.action ?? "");
+  const exp = Number(src.exp ?? 0);
+  const sig = String(src.sig ?? "");
 
   if (action !== "approve" && action !== "reject") {
     reviewPage(res, 400, "Unknown action", "That link does not do anything we recognise."); return;
@@ -860,6 +899,20 @@ async function handleEventReview(req: any, res: any) {
     reviewPage(res, 200, "Already handled",
       `<strong>${htmlEsc(ev.title || "This event")}</strong> is already marked <em>${htmlEsc(ev.status)}</em>, so this link did nothing.`,
       { href: "/admin/content", label: "Open the CMS" });
+    return;
+  }
+
+  if (!isPost) {
+    const verb = action === "approve" ? "Publish" : "Reject";
+    const form = `<form method="post" action="/api/admin?op=event-review">
+<input type="hidden" name="id" value="${htmlEsc(id)}"><input type="hidden" name="action" value="${htmlEsc(action)}">
+<input type="hidden" name="exp" value="${htmlEsc(String(exp))}"><input type="hidden" name="sig" value="${htmlEsc(sig)}">
+<button type="submit"${action === "reject" ? ' class="reject"' : ""}>${verb} this event</button></form>`;
+    reviewPage(res, 200, `${verb} this event?`,
+      action === "approve"
+        ? `<strong>${htmlEsc(ev.title || "This event")}</strong> will go live on the site and the organiser will be emailed.`
+        : `<strong>${htmlEsc(ev.title || "This event")}</strong> will be archived. The organiser is not emailed.`,
+      undefined, form);
     return;
   }
 
@@ -970,14 +1023,15 @@ async function handleArchivePastEvents(req: any, res: any) {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default async function handler(req: any, res: any) {
   // The ONE unauthenticated entry point on this endpoint: the Approve / Reject
-  // links in the Slack event-submission message. A browser follows them, so it
-  // arrives as a GET and answers in HTML rather than JSON.
+  // links in the Slack event-submission message. The link (a GET) only shows a
+  // confirm button; that button POSTs back here to make the change. Both answer
+  // in HTML rather than JSON.
   //
   // It is not protected by a session — it is protected by an expiring HMAC over
   // (id, action, expiry). Clicking is the authorization, which is why the link
   // only ever goes to a private internal channel and why it can do exactly two
   // things to exactly one row. See api/_event-submission.ts.
-  if (req.method === "GET" && String(req.query?.op ?? "") === "event-review") {
+  if ((req.method === "GET" || req.method === "POST") && String(req.query?.op ?? "") === "event-review") {
     await handleEventReview(req, res);
     return;
   }

@@ -1,9 +1,9 @@
 import type { BlogPost } from "@/data/blog-posts";
-import evSafety from "@/assets/ev-safety.jpg";
-import evFamily from "@/assets/ev-family.jpg";
-import heroBg from "@/assets/hero-bg.jpg";
-import evSavings from "@/assets/ev-savings.jpg";
-import evCharging from "@/assets/ev-charging.jpg";
+import imgInstallLevel2HomeChargerStepsPermitsCosts from "@/assets/blog/install-level-2-home-charger-steps-permits-costs.jpg";
+import imgChargingAnEvWhenYouRentOrLiveInAnApartment from "@/assets/blog/charging-an-ev-when-you-rent-or-live-in-an-apartment.jpg";
+import imgPlanYourFirstEvRoadTrip from "@/assets/blog/plan-your-first-ev-road-trip.jpg";
+import imgTimeOfUseRatesEvChargingOffPeakSavings from "@/assets/blog/time-of-use-rates-ev-charging-off-peak-savings.jpg";
+import imgPublicEvChargingExplainedNetworksAppsPlugs from "@/assets/blog/public-ev-charging-explained-networks-apps-plugs.jpg";
 
 export const BLOG_BATCH_B: BlogPost[] = [
   {
@@ -15,7 +15,7 @@ export const BLOG_BATCH_B: BlogPost[] = [
     date: "November 28, 2026",
     author: "Electrifying the US",
     readTime: "5 min read",
-    image: evSafety,
+    image: imgInstallLevel2HomeChargerStepsPermitsCosts,
     content: `> **Key takeaway:** A Level 2 home charger is a 240-volt circuit installed by a licensed electrician, usually with a permit. Total cost depends mostly on your electrical panel and how far the charger sits from it, so get a written quote before you buy anything.
 
 Most EV owners do the bulk of their charging at home, and a Level 2 charger is the upgrade that makes that easy. If you are new to the terminology, read [EV Charging 101](/blog/charging-101-levels) first. This guide covers what happens after you decide to install one.
@@ -105,7 +105,7 @@ Some do. Utility and state programs vary widely and change often, so check your 
     date: "November 28, 2026",
     author: "Electrifying the US",
     readTime: "5 min read",
-    image: evFamily,
+    image: imgChargingAnEvWhenYouRentOrLiveInAnApartment,
     content: `> **Key takeaway:** You can own an EV without a home charger. Many renters build a routine around workplace, public and occasional Level 1 charging, and some states protect a tenant's right to request charging. Check your state and your lease.
 
 "I rent, so an EV will not work for me" is a common worry. It is a fair concern, because charging at home is the cheapest and most convenient option. But plenty of renters make it work, and some apartment buildings are adding chargers.
@@ -195,7 +195,7 @@ It can, especially if you rely on DC fast charging. Costs depend on your local r
     date: "November 28, 2026",
     author: "Electrifying the US",
     readTime: "5 min read",
-    image: heroBg,
+    image: imgPlanYourFirstEvRoadTrip,
     content: `> **Key takeaway:** An EV road trip comes down to knowing where you will charge, arriving with a buffer and leaving when you have enough to reach the next stop. A route planner does most of the math for you.
 
 Long trips are the moment many new EV drivers worry about most. The good news is that the process is simple once you have done it once. You stop for a break, plug in, and drive on. Here is how to prepare.
@@ -277,7 +277,7 @@ Often, though it depends on how much you use fast charging and your local rates.
     date: "November 28, 2026",
     author: "Electrifying the US",
     readTime: "5 min read",
-    image: evSavings,
+    image: imgTimeOfUseRatesEvChargingOffPeakSavings,
     content: `> **Key takeaway:** Under a time-of-use (TOU) plan, electricity costs less at certain hours. Because an EV can charge any time it is parked, you can often shift charging to the cheapest window. Whether it saves you money depends on your utility's rates, so check the details.
 
 If you charge at home, the price per kilowatt-hour (kWh) you pay is a big part of your fuel cost. Time-of-use rates give you a way to lower it without changing how you drive.
@@ -368,7 +368,7 @@ No. TOU plans apply to your own electric account. Other places set their own pri
     date: "November 28, 2026",
     author: "Electrifying the US",
     readTime: "5 min read",
-    image: evCharging,
+    image: imgPublicEvChargingExplainedNetworksAppsPlugs,
     content: `> **Key takeaway:** Public charging is run by many different networks, each with its own app, pricing and payment. Most automakers are moving to the NACS plug (SAE J3400), but what your car can use today depends on its model, so check before you rely on a station.
 
 Charging away from home looks confusing at first, mostly because several companies run it. Once you know the pieces, it gets simple. This guide assumes you know the basics of charging levels from [EV Charging 101](/blog/charging-101-levels).

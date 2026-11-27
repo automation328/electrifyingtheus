@@ -1,9 +1,9 @@
 import type { BlogPost } from "@/data/blog-posts";
-import evFamily from "@/assets/ev-family.jpg";
-import financialSavings from "@/assets/financial-savings.jpg";
-import evSafety from "@/assets/ev-safety.jpg";
-import evCharging from "@/assets/ev-charging.jpg";
-import evSavings from "@/assets/ev-savings.jpg";
+import imgHowToChooseYourFirstEvChecklist from "@/assets/blog/how-to-choose-your-first-ev-checklist.jpg";
+import imgLeaseVsBuyAnEv2026 from "@/assets/blog/lease-vs-buy-an-ev-2026.jpg";
+import imgEvInsuranceWhyItDiffersAndHowToSave from "@/assets/blog/ev-insurance-why-it-differs-and-how-to-save.jpg";
+import imgEvBatteryLifeDegradationWarrantyExplained from "@/assets/blog/ev-battery-life-degradation-warranty-explained.jpg";
+import imgHowToShopForAnAffordableEv from "@/assets/blog/how-to-shop-for-an-affordable-ev.jpg";
 
 export const BLOG_BATCH_A: BlogPost[] = [
   {
@@ -15,7 +15,7 @@ export const BLOG_BATCH_A: BlogPost[] = [
     date: "November 28, 2026",
     author: "Electrifying the US",
     readTime: "5 min read",
-    image: evFamily,
+    image: imgHowToChooseYourFirstEvChecklist,
     content: `> **Key takeaway:** The best first EV is the one that fits your daily driving, your charging access and your budget. Start with those three, then narrow by size and features, and finish with a real test drive.
 
 Shopping for an electric car can feel like learning a new language. Range, kilowatts, connector types and charging speeds all show up in the first five minutes. The good news is that most of it matters less than you think. Work through the steps below in order and the choice usually gets much smaller.
@@ -117,7 +117,7 @@ Federal consumer EV tax credits have ended for vehicles acquired after September
     date: "November 28, 2026",
     author: "Electrifying the US",
     readTime: "5 min read",
-    image: financialSavings,
+    image: imgLeaseVsBuyAnEv2026,
     content: `> **Key takeaway:** Leasing suits drivers who want lower monthly payments and a new car every few years. Buying suits drivers who plan to keep the car and drive a lot. The right answer depends on your mileage, your plans and the actual offers on the table.
 
 Leasing an EV used to come with a big sweetener. The federal tax credits for new, used and leased EVs, including the commercial credit that let leasing companies pass savings to drivers, ended for vehicles acquired after September 30, 2025. That changed the math. Any lease or purchase deal you see today stands on its own price, plus whatever state, utility or local help is available. Check [Rebates and Incentives](/rebates-incentives) for programs near you.
@@ -217,7 +217,7 @@ You pay a fee per extra mile. Estimate your yearly driving honestly, and negotia
     date: "November 28, 2026",
     author: "Electrifying the US",
     readTime: "5 min read",
-    image: evSafety,
+    image: imgEvInsuranceWhyItDiffersAndHowToSave,
     content: `> **Key takeaway:** Insurance for an EV can be higher or lower than for a similar gas car, depending on the model, repair costs and your own record. Get quotes before you buy, and compare coverage as well as price.
 
 Insurance is part of the true cost of any car, and EVs are no exception. Some drivers find their premium rises after switching to electric, while others see little change. We will not quote specific premiums here, because they vary so much by person and place. What we can do is explain why they differ and how you can find a better rate.
@@ -324,7 +324,7 @@ You can adjust deductibles and optional coverages, but do not cut protection you
     date: "November 28, 2026",
     author: "Electrifying the US",
     readTime: "5 min read",
-    image: evCharging,
+    image: imgEvBatteryLifeDegradationWarrantyExplained,
     content: `> **Key takeaway:** All EV batteries lose some capacity over time, but for most drivers the loss is gradual. You can slow it with good charging habits, check a battery's health before you buy, and rely on a warranty that most automakers set at 8 years or 100,000 miles or more.
 
 The battery is the most expensive part of an EV, so it is natural to ask how long it lasts. The short answer is that it should last for many years of normal use. The longer answer is worth knowing, because it helps you care for your car and shop for a used one.
@@ -415,7 +415,7 @@ It often does, but terms vary. Check the warranty booklet or ask the manufacture
     date: "November 28, 2026",
     author: "Electrifying the US",
     readTime: "5 min read",
-    image: evSavings,
+    image: imgHowToShopForAnAffordableEv,
     content: `> **Key takeaway:** An affordable EV is one whose total cost, including payments, charging, insurance and upkeep, fits your budget. Compare new and used, check battery health and warranty, and be ready to walk away from a deal that does not add up.
 
 Finding an affordable EV takes a bit more thought than comparing sticker prices. The cheapest car on the lot is not always the cheapest to own. Here is how to shop with the whole picture in mind.

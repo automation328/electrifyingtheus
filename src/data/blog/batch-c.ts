@@ -1,9 +1,9 @@
 import type { BlogPost } from "@/data/blog-posts";
-import rideshareFleet from "@/assets/rideshare-fleet.jpg";
-import schoolBus from "@/assets/school-bus.jpg";
-import heavyDuty from "@/assets/heavy-duty.jpg";
-import evPolicy from "@/assets/ev-policy.jpg";
-import evFamily from "@/assets/ev-family.jpg";
+import imgDrivingElectricForRideshareAndGigWork from "@/assets/blog/driving-electric-for-rideshare-and-gig-work.jpg";
+import imgElectricSchoolBusesWhatParentsAndSchoolBoardsShouldKnow from "@/assets/blog/electric-school-buses-what-parents-and-school-boards-should-know.jpg";
+import imgHowCitiesAndTownsCanElectrifyTheirFleets from "@/assets/blog/how-cities-and-towns-can-electrify-their-fleets.jpg";
+import imgEvIncentivesAfterFederalTaxCreditsEnded from "@/assets/blog/ev-incentives-after-federal-tax-credits-ended.jpg";
+import imgMakingEvsWorkForEveryCommunity from "@/assets/blog/making-evs-work-for-every-community.jpg";
 
 export const BLOG_BATCH_C: BlogPost[] = [
   {
@@ -15,7 +15,7 @@ export const BLOG_BATCH_C: BlogPost[] = [
     date: "November 28, 2026",
     author: "Electrifying the US",
     readTime: "5 min read",
-    image: rideshareFleet,
+    image: imgDrivingElectricForRideshareAndGigWork,
     content: `> **Key takeaway:** The more miles you drive, the more an EV can save you on fuel and maintenance. For rideshare, delivery and other gig work, the main questions are how and where you will charge, which car fits your platform's rules, and whether the numbers work with your own electricity rates.
 
 Gig drivers put far more miles on a car than most households do. That makes fuel and repair bills one of the biggest costs of the job, and it is why many drivers are looking at electric vehicles.
@@ -93,7 +93,7 @@ Cold weather reduces range, so you may charge more often, and the cost per mile 
     date: "November 28, 2026",
     author: "Electrifying the US",
     readTime: "5 min read",
-    image: schoolBus,
+    image: imgElectricSchoolBusesWhatParentsAndSchoolBoardsShouldKnow,
     content: `> **Key takeaway:** Electric school buses produce no tailpipe exhaust, run quietly, and typically cost less to fuel and maintain than diesel buses. They cost more to buy, so most districts rely on grants and utility partnerships. Parents and school board members can ask simple questions to move the process forward.
 
 School buses are a natural fit for electrification. They follow fixed routes, drive a predictable number of miles each day, and park at the same depot every night. That pattern suits batteries well.
@@ -167,7 +167,7 @@ Funding, leasing and utility programs exist for this reason. The EPA Clean Schoo
     date: "November 28, 2026",
     author: "Electrifying the US",
     readTime: "5 min read",
-    image: heavyDuty,
+    image: imgHowCitiesAndTownsCanElectrifyTheirFleets,
     content: `> **Key takeaway:** A city or town does not need to replace every vehicle at once. Start with an inventory, choose the vehicles where electric makes the most sense today, plan charging with your utility, and line up funding before you buy.
 
 Local governments run sedans, pickups, vans, buses, trucks and specialty equipment. Together these vehicles burn a lot of fuel and spend a lot on maintenance. Electrifying part of the fleet can lower those costs and cut local pollution. It works best as a series of small, well-planned steps.
@@ -263,7 +263,7 @@ Plan training for mechanics, drivers and facilities staff. Manufacturers and com
     date: "November 28, 2026",
     author: "Electrifying the US",
     readTime: "5 min read",
-    image: evPolicy,
+    image: imgEvIncentivesAfterFederalTaxCreditsEnded,
     content: `> **Key takeaway:** The federal consumer EV tax credits (30D for new, 25E for used) ended for vehicles acquired after September 30, 2025. Savings may still come from state rebates, utility programs, local incentives and dealer discounts. Availability varies a lot by location, so check what applies where you live.
 
 If you are shopping for an EV today, the federal credit is no longer part of the math. That changes the price picture, but other savings are still available. Many other programs exist, and some are easy to overlook.
@@ -358,7 +358,7 @@ Programs are unpredictable. Base your decision on what is available now and whet
     date: "November 28, 2026",
     author: "Electrifying the US",
     readTime: "5 min read",
-    image: evFamily,
+    image: imgMakingEvsWorkForEveryCommunity,
     content: `> **Key takeaway:** EV benefits should reach every neighborhood, including renters, lower-income households and communities with few chargers. Practical tools exist: used EVs, shared vehicles, charging near where people live, and policies that help apartment residents. Residents can help by asking for them.
 
 Electric vehicles can save money and reduce pollution, but those benefits are not evenly shared. Cost, housing type and the location of chargers all shape who can go electric. Each of these barriers has workable solutions.

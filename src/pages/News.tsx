@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ShareGate from "@/components/forms/ShareGate";
 import { usePosts } from "@/hooks/use-content";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { FEEDS, formatNewsDate as formatDate, newsQuery } from "@/lib/news-feed";
 
 const SourceBadge = ({ source }: { source: string }) => (
@@ -17,14 +18,24 @@ const SourceBadge = ({ source }: { source: string }) => (
 const GREEN_SHARE =
   "inline-grid place-items-center w-9 h-9 rounded-full gradient-green text-primary-foreground shadow-sm hover:opacity-90 transition-opacity";
 
+// Prev/next sit above the slides (top right) so they never fall off-screen on
+// phones, unlike the carousel's default outside-the-edges position.
+const SliderNav = () => (
+  <div className="flex justify-end gap-2 mb-4 pr-1">
+    <CarouselPrevious className="static translate-y-0 h-10 w-10" />
+    <CarouselNext className="static translate-y-0 h-10 w-10" />
+  </div>
+);
+const SLIDE = "pl-6 basis-[85%] sm:basis-1/2 lg:basis-1/3";
+
 const News = () => {
   const { data, isLoading, isError } = useQuery(newsQuery);
 
   const items = data ?? [];
-  const featured = items[0];
-  const rest = items.slice(1);
 
-  const { posts } = usePosts();
+  const { posts: rawPosts } = usePosts();
+  const time = (d: string) => { const t = Date.parse(d); return Number.isNaN(t) ? 0 : t; };
+  const posts = [...rawPosts].sort((a, b) => time(b.date) - time(a.date));
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -46,12 +57,14 @@ const News = () => {
               <p className="text-muted-foreground mt-1">Guides, explainers, and insights on going electric.</p>
             </div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <Carousel opts={{ align: "start" }} aria-label="Our articles">
+              <SliderNav />
+              <CarouselContent className="-ml-6 pb-4">
               {posts.map((post, i) => (
+                <CarouselItem key={post.slug} className={SLIDE}>
                 <Link
-                  key={post.slug}
                   to={`/blog/${post.slug}`}
-                  className="group rounded-3xl border border-border bg-card overflow-hidden shadow-card hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col animate-fade-up"
+                  className="group h-full rounded-3xl border border-border bg-card overflow-hidden shadow-card hover:shadow-xl transition-all flex flex-col animate-fade-up"
                   style={{ animationDelay: `${(i % 6) * 0.07}s` }}
                 >
                   <div className="relative h-48 overflow-hidden bg-muted shrink-0">
@@ -88,8 +101,10 @@ const News = () => {
                     </span>
                   </div>
                 </Link>
+                </CarouselItem>
               ))}
-            </div>
+              </CarouselContent>
+            </Carousel>
           </section>
 
           {/* Header */}
@@ -126,51 +141,17 @@ const News = () => {
           )}
 
           {/* Content */}
-          {!isLoading && !isError && featured && (
+          {!isLoading && !isError && items.length > 0 && (
             <>
-              {/* Featured */}
-              <Link
-                to={`/news/${featured.slug}`}
-                className="group grid lg:grid-cols-2 gap-8 items-center rounded-3xl border border-border bg-card overflow-hidden shadow-xl mb-14 hover:shadow-2xl transition-shadow animate-fade-up"
-                style={{ animationDelay: "0.1s" }}
-              >
-                <div className="relative h-64 lg:h-full min-h-[280px] overflow-hidden bg-muted">
-                  {featured.image ? (
-                    <img src={featured.image} alt={featured.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                  ) : (
-                    <div className="w-full h-full gradient-primary flex items-center justify-center">
-                      <Newspaper className="w-16 h-16 text-primary-foreground/40" />
-                    </div>
-                  )}
-                  <div className="absolute top-3 right-3">
-                    <ShareGate url={`/news/${featured.slug}`} title={featured.title} summary={featured.source} description={featured.excerpt} image={featured.image ?? undefined} meta={`${featured.source} · ${formatDate(featured.pubDate)}`} formType="article-share" className={GREEN_SHARE} />
-                  </div>
-                </div>
-                <div className="p-8">
-                  <div className="flex items-center gap-3 mb-4">
-                    <SourceBadge source={featured.source} />
-                    <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                      <Calendar className="w-3.5 h-3.5" /> {formatDate(featured.pubDate)}
-                    </span>
-                  </div>
-                  <h2 className="text-2xl md:text-3xl font-bold font-display text-foreground mb-3 leading-snug group-hover:text-primary transition-colors">
-                    {featured.title}
-                  </h2>
-                  <p className="text-muted-foreground mb-5">{featured.excerpt}</p>
-                  <span className="inline-flex items-center gap-2 text-primary font-semibold group-hover:gap-3 transition-all">
-                    Read the summary <ArrowRight className="w-4 h-4" />
-                  </span>
-                </div>
-              </Link>
-
-              {/* Grid */}
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {rest.map((p, i) => (
+              {/* Live RSS stories — a slider, each opening its on-site summary page */}
+              <Carousel opts={{ align: "start" }} aria-label="Latest e-mobility news">
+                <SliderNav />
+                <CarouselContent className="-ml-6 pb-4">
+                {items.map((p) => (
+                  <CarouselItem key={p.slug} className={SLIDE}>
                   <Link
-                    key={p.slug}
                     to={`/news/${p.slug}`}
-                    className="group rounded-3xl border border-border bg-card overflow-hidden shadow-card hover:shadow-xl hover:-translate-y-1 transition-all animate-fade-up flex flex-col"
-                    style={{ animationDelay: `${0.15 + (i % 6) * 0.07}s` }}
+                    className="group h-full rounded-3xl border border-border bg-card overflow-hidden shadow-card hover:shadow-xl transition-all flex flex-col"
                   >
                     <div className="relative h-48 overflow-hidden bg-muted shrink-0">
                       {p.image ? (
@@ -191,12 +172,17 @@ const News = () => {
                           <Calendar className="w-3.5 h-3.5" /> {formatDate(p.pubDate)}
                         </span>
                       </div>
-                      <h3 className="text-lg font-bold font-display text-foreground mb-2 leading-snug group-hover:text-primary transition-colors">{p.title}</h3>
-                      <p className="text-sm text-muted-foreground line-clamp-3">{p.excerpt}</p>
+                      <h3 className="text-lg font-bold font-display text-foreground mb-2 leading-snug group-hover:text-primary transition-colors line-clamp-3">{p.title}</h3>
+                      <p className="text-sm text-muted-foreground line-clamp-3 flex-1">{p.excerpt}</p>
+                      <span className="inline-flex items-center gap-1.5 mt-4 text-sm font-semibold text-primary group-hover:gap-2.5 transition-all">
+                        Read the summary <ArrowRight className="w-4 h-4" />
+                      </span>
                     </div>
                   </Link>
+                  </CarouselItem>
                 ))}
-              </div>
+                </CarouselContent>
+              </Carousel>
             </>
           )}
         </div>

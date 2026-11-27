@@ -15,6 +15,8 @@ import { OG_EVENTS, type OgEvent } from "./og-events.js";
 import { SITEMAP_STATIC, isSitemapExcluded } from "./sitemap-urls.js";
 import { slidesUnlocked } from "./slides-gate.js";
 import { injectHead } from "./crawler-head.js";
+import { gateEmails, verifyGateCookie } from "./gate-cookie.js";
+import { eventTitleKey } from "./event-title-key.js";
 
 export const config = {
   matcher: [
@@ -118,10 +120,10 @@ async function fetchCmsSitemapPaths(): Promise<{ paths: string[]; removed: strin
       // is a removal marker that deletes it. A past event's page says "Event
       // not found" (isActive in src/data/events.ts), so only upcoming ones count.
       const today = new Date().toISOString().slice(0, 10);
-      const builtIn = new Map(OG_EVENTS.map((e) => [`${e.title}|${e.date}`, e]));
+      const builtIn = new Map(OG_EVENTS.map((e) => [`${eventTitleKey(e.title)}|${e.date}`, e]));
       for (const r of (await events.json()) as Array<{ title?: string; event_date?: string; end_date?: string | null; hidden?: boolean | null }>) {
         if (!r?.title) continue;
-        const curated = builtIn.get(`${r.title.trim()}|${r.event_date ?? ""}`);
+        const curated = builtIn.get(`${eventTitleKey(r.title)}|${r.event_date ?? ""}`);
         if (r.hidden) { if (curated) removed.push(`/events/${curated.slug}`); continue; }
         const lastDay = r.end_date || r.event_date || "";
         if (lastDay < today) continue;
@@ -187,7 +189,7 @@ async function fetchContentMain(path: string, curated?: OgEvent): Promise<Partia
         const r = Array.isArray(rows)
           ? rows.find((e: { title: string; event_date: string }) =>
               eventSlugFor(e.title, e.event_date) === slug || slugify(e.title) === slug ||
-              (!!curated && String(e.title ?? "").trim() === curated.title && e.event_date === curated.date))
+              (!!curated && eventTitleKey(String(e.title ?? "")) === eventTitleKey(curated.title) && e.event_date === curated.date))
           : null;
         if (r) return { image: r.image, title: r.title, description: r.description };
       }
@@ -424,7 +426,9 @@ export default async function middleware(request: Request) {
     const token = process.env.GATE_TOKEN;
     if (token && !isEmbed) {
       const cookie = request.headers.get("cookie") || "";
-      const ok = cookie.split(/; */).some((c) => c === `etu_gate=${token}`);
+      const value = cookie.split(/; */).find((c) => c.startsWith("etu_gate="))?.slice("etu_gate=".length) ?? "";
+      // A signed, per-reviewer cookie whose owner is still on the list.
+      const ok = !!value && !!(await verifyGateCookie(token, value, Date.now(), gateEmails(process.env)));
       if (!ok) {
         return new Response(gateHtml(), {
           status: 401,

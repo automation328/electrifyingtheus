@@ -252,14 +252,14 @@ describe("which title an event card shows", () => {
     expect(eventDisplayTitle(AT("Park Ridge, IL 60068"))).toBe("EV Expo - Park Ridge, IL");
   });
 
-  it("appends a bare city when the location carries no state code", () => {
+  it("uses city + country outside the US", () => {
     expect(eventDisplayTitle(AT("Oslo, Norway", { title: "Nordic EV Summit 2027" })))
-      .toBe("Nordic EV Summit 2027 - Oslo");
+      .toBe("Nordic EV Summit 2027 - Oslo, Norway");
   });
 
-  it("leaves a feed title alone when it already names the city", () => {
+  it("adds the place even when the name already mentions the city", () => {
     expect(eventDisplayTitle(AT("Knoxville, TN", { title: "Knoxville Drive Electric Festival" })))
-      .toBe("Knoxville Drive Electric Festival");
+      .toBe("Knoxville Drive Electric Festival - Knoxville, TN");
   });
 });
 

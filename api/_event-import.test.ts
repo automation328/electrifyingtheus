@@ -92,12 +92,16 @@ describe("naming an imported event", () => {
     // Dozens of feed events share this exact title. Stored as-is, the CMS fills
     // with identically-named rows nobody can tell apart.
     expect(importTitle("National Drive Electric Month", "Lawrence Township, NJ"))
-      .toBe("National Drive Electric Month — Lawrence Township, NJ");
+      .toBe("National Drive Electric Month - Lawrence Township, NJ");
   });
 
-  it("leaves a real event name alone", () => {
+  it("gives every event the site's '<Title> - <City>, <ST>' pattern", () => {
     expect(importTitle("Knoxville Drive Electric Festival", "Knoxville, TN"))
-      .toBe("Knoxville Drive Electric Festival");
+      .toBe("Knoxville Drive Electric Festival - Knoxville, TN");
+    expect(importTitle("Car show", "Ann Morrison Park, 1000 S Americana Blvd, Boise, ID 83706"))
+      .toBe("Car show - Boise, ID");
+    expect(importTitle("EV webinar", "Zoom")).toBe("EV webinar - Online");
+    expect(importTitle("Social - Houston, TX", "Houston, TX")).toBe("Social - Houston, TX");
   });
 
   it("does not append a placeholder location", () => {

@@ -9,7 +9,7 @@
 //                [{"email":"a@x.com","password":"...","name":"Alice"}, ...]
 //                (If unset, falls back to single SITE_EMAIL + SITE_PASSWORD.)
 //   SITE_EMAIL / SITE_PASSWORD   Fallback single login.
-//   GATE_TOKEN              Cookie value the middleware checks.
+//   GATE_TOKEN              Secret that signs each reviewer's gate cookie (gate-cookie.ts).
 //   GATE_SHARE_THRESHOLD    Distinct-IP count that triggers a ⚠️ (default 4).
 //   SLACK_WEBHOOK_URL       Incoming webhook for sign-in alerts (optional).
 //   VITE_SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY   For the record_gate_login RPC.
@@ -30,6 +30,7 @@ import { slackText } from "./_slack-text.js";
 import {
   SLIDES_COOKIE, SLIDES_COOKIE_PATH, SLIDES_MAX_AGE, slidesToken, timingSafeEqualHex, sha256Hex,
 } from "../slides-gate.js";
+import { signGateCookie } from "../gate-cookie.js";
 
 const COOKIE = "etu_gate";
 const MAX_AGE = 60 * 60 * 24 * 30; // 30 days
@@ -232,9 +233,11 @@ export default async function handler(req: any, res: any) {
   const { isNewIp, distinctIps } = await recordLogin(user.email, ip, ua);
   await notifySlack({ who, ip, ua, isNewIp, distinctIps });
 
+  // Per-reviewer, signed and expiring (gate-cookie.ts), not the shared token.
+  const value = await signGateCookie(token, user.email, Date.now() + MAX_AGE * 1000);
   res.setHeader(
     "Set-Cookie",
-    `${COOKIE}=${token}; Path=/; Max-Age=${MAX_AGE}; HttpOnly; Secure; SameSite=Lax`,
+    `${COOKIE}=${value}; Path=/; Max-Age=${MAX_AGE}; HttpOnly; Secure; SameSite=Lax`,
   );
   res.status(200).json({ ok: true });
 }

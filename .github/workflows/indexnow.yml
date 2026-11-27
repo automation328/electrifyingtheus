@@ -1,0 +1,30 @@
+name: IndexNow
+
+# After content changes reach production, tell Bing about the site's pages so
+# new posts and events get indexed in hours rather than days. Only runs when
+# something that changes the page list or page content is pushed to main.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/data/**"
+      - "sitemap-urls.ts"
+      - "og-data.ts"
+      - "og-events.ts"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  submit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      # Vercel deploys main on the same push; give it time to go live first.
+      - run: sleep 240
+      - run: node scripts/indexnow.mjs https://electrifyingtheus.com

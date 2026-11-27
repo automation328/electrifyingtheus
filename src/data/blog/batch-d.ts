@@ -1,9 +1,9 @@
 import type { BlogPost } from "@/data/blog-posts";
-import evFamily from "@/assets/ev-family.jpg";
-import evCharging from "@/assets/ev-charging.jpg";
-import financialSavings from "@/assets/financial-savings.jpg";
-import evSafety from "@/assets/ev-safety.jpg";
-import heavyDuty from "@/assets/heavy-duty.jpg";
+import imgRegenerativeBrakingOnePedalDrivingExplained from "@/assets/blog/regenerative-braking-one-pedal-driving-explained.jpg";
+import imgVehicleToHomeVehicleToLoadEvBackupPower from "@/assets/blog/vehicle-to-home-vehicle-to-load-ev-backup-power.jpg";
+import imgEvMaintenanceGuideWhatNeedsServiceWhatDoesnt from "@/assets/blog/ev-maintenance-guide-what-needs-service-what-doesnt.jpg";
+import imgEvSafetyFactsCrashesFiresFloodingChargingInRain from "@/assets/blog/ev-safety-facts-crashes-fires-flooding-charging-in-rain.jpg";
+import imgElectricPickupTrucksTowingRangeChargingGuide from "@/assets/blog/electric-pickup-trucks-towing-range-charging-guide.jpg";
 
 export const BLOG_BATCH_D: BlogPost[] = [
   {
@@ -15,7 +15,7 @@ export const BLOG_BATCH_D: BlogPost[] = [
     date: "November 28, 2026",
     author: "Electrifying the US",
     readTime: "5 min read",
-    image: evFamily,
+    image: imgRegenerativeBrakingOnePedalDrivingExplained,
     content: `> **Key takeaway:** Regenerative braking uses your EV's motor to slow the car and send a little energy back to the battery. It helps range most in stop-and-go driving, it reduces wear on your brake pads, and many drivers adjust to one-pedal driving quickly.
 
 If you are test driving an EV for the first time, you may notice the car slows down the moment you lift your foot off the accelerator. That is regenerative braking at work. It is one of the biggest differences between driving an electric car and a gas car, and most people get used to it.
@@ -102,7 +102,7 @@ No. Friction brakes are still needed for hard stops and emergencies, and they sh
     date: "November 28, 2026",
     author: "Electrifying the US",
     readTime: "5 min read",
-    image: evCharging,
+    image: imgVehicleToHomeVehicleToLoadEvBackupPower,
     content: `> **Key takeaway:** Some electric vehicles can send power out as well as take it in. Using one as a mobile outlet is simple on supported models. Powering a home is a bigger project that depends on your vehicle, your charging equipment and your utility. Always check your specific model and utility before planning around it.
 
 An EV carries a large battery. Many people ask whether that battery can keep the lights on when the grid goes down. The answer is "sometimes," and the details matter.
@@ -187,7 +187,7 @@ On supported vehicles, using the built-in outlets or the manufacturer's adapter 
     date: "November 28, 2026",
     author: "Electrifying the US",
     readTime: "5 min read",
-    image: financialSavings,
+    image: imgEvMaintenanceGuideWhatNeedsServiceWhatDoesnt,
     content: `> **Key takeaway:** An electric vehicle has far fewer wearing parts than a gas car, so routine service is simpler. You will still look after tires, brakes, a cabin air filter, coolant, a 12V battery and software updates. Your owner's manual is the final word on intervals.
 
 Part of the appeal of an EV is lower upkeep. That is true, but "no maintenance" is not. Here is a plain look at what stays and what goes.
@@ -282,7 +282,7 @@ Simple items like wipers and cabin filters are fine. Leave high-voltage componen
     date: "November 28, 2026",
     author: "Electrifying the US",
     readTime: "5 min read",
-    image: evSafety,
+    image: imgEvSafetyFactsCrashesFiresFloodingChargingInRain,
     content: `> **Key takeaway:** EVs are built to meet the same federal safety standards as other vehicles, and many earn top crash ratings. Battery fires and water exposure behave differently than they do in gas cars, so a little knowledge goes a long way. Charging in the rain is designed to be safe.
 
 Safety questions come up in nearly every conversation about going electric. Here is what owners should know, without hype in either direction.
@@ -373,7 +373,7 @@ Equipment is designed for outdoor use, and many owners charge in storms. Some pu
     date: "November 28, 2026",
     author: "Electrifying the US",
     readTime: "5 min read",
-    image: heavyDuty,
+    image: imgElectricPickupTrucksTowingRangeChargingGuide,
     content: `> **Key takeaway:** Towing reduces an electric truck's range, often by a large amount, and the drop depends on trailer weight, shape, speed and weather. For daily work, local hauling and occasional towing, an electric pickup can be a strong fit. For frequent long-distance towing, plan carefully and check the charging network first.
 
 Electric pickups bring instant torque, quiet cabins and the option of powering tools on site. Towing is where reality sets in, so here is what to know before you hitch up.

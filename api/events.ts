@@ -363,6 +363,21 @@ function hostOf(url: string): string {
   try { return new URL(url).hostname.replace(/^www\./, ""); } catch { return "feed"; }
 }
 
+// Home city of feeds whose events often carry no LOCATION (Meetup calendars
+// list the venue only on the event page). Without it an import is titled with
+// no place and shows "See event details". Matched on a URL substring.
+const FEED_HOME: Array<[string, string]> = [
+  ["houston-light-electric-vehicles", "Houston, TX"],
+  ["plug-in-boise", "Boise, ID"],
+  ["san-diego-electric-vehicle-association", "San Diego, CA"],
+  ["knoxville-electric-vehicle-association", "Knoxville, TN"],
+  ["seattle-electric-vehicle-meetup", "Seattle, WA"],
+  ["austinevs", "Austin, TX"],
+  ["electric-vehicle-association-of-washington-dc", "Washington, DC"],
+];
+const feedHome = (url: string): string | undefined =>
+  FEED_HOME.find(([k]) => url.toLowerCase().includes(k))?.[1];
+
 async function fetchFeed(url: string): Promise<NormEvent[]> {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), 8000);
@@ -372,7 +387,9 @@ async function fetchFeed(url: string): Promise<NormEvent[]> {
     const body = await res.text();
     const source = hostOf(url);
     const looksIcs = /BEGIN:VCALENDAR/i.test(body) || url.toLowerCase().includes(".ics");
-    return looksIcs ? parseIcs(body, source) : parseRss(body, source);
+    const events = looksIcs ? parseIcs(body, source) : parseRss(body, source);
+    const home = feedHome(url);
+    return home ? events.map((e) => (e.location?.trim() ? e : { ...e, location: home })) : events;
   } catch {
     return [];
   } finally {

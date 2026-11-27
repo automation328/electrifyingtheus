@@ -53,10 +53,12 @@ export async function enrollTotp(): Promise<{ data: TotpEnrollment | null; error
   for (const f of list?.all ?? []) {
     if (f.factor_type === "totp" && f.status !== "verified") await supabase.auth.mfa.unenroll({ factorId: f.id });
   }
-  const { data, error } = await supabase.auth.mfa.enroll({
-    factorType: "totp",
-    friendlyName: `ETU CMS ${new Date().toISOString().slice(0, 16)}`,
-  });
+  const friendlyName = `ETU CMS ${new Date().toISOString().slice(0, 16)}`;
+  // `issuer` is the name the authenticator app shows. Without it Supabase uses
+  // its own default ("app.supabase.com"), which says nothing about us. If the
+  // server ever rejects it, enroll without it rather than block 2FA setup.
+  let { data, error } = await supabase.auth.mfa.enroll({ factorType: "totp", issuer: "Electrifying the US", friendlyName });
+  if (error) ({ data, error } = await supabase.auth.mfa.enroll({ factorType: "totp", friendlyName }));
   if (error || !data) return { data: null, error: error?.message ?? "Could not start 2FA setup." };
   return { data: { factorId: data.id, qr: data.totp.qr_code, secret: data.totp.secret }, error: null };
 }

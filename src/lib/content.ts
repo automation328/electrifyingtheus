@@ -2,6 +2,7 @@
 // n8n form, stored in Supabase) on top of the curated static arrays. When
 // Supabase isn't configured the site falls back to the static content unchanged.
 
+import { eventTitleKey } from "../../event-title-key";
 import { supabase } from "@/lib/supabase";
 import { EVENTS, slugify, type EventItem } from "@/data/events";
 import { BLOG_POSTS, type BlogPost } from "@/data/blog-posts";
@@ -112,8 +113,10 @@ const eventKey = (e: EventItem) =>
  * Title is trimmed for the same reason: a stray trailing space is invisible in
  * the CMS and silently breaks the match.
  */
+// Title without its " - City, ST" suffix (event-title-key.ts), so a renamed row
+// still pairs with the built-in event it replaces.
 const eventDedupe = (e: EventItem) =>
-  `${e.title.trim()}|${e.year}-${e.month}-${String(Number(e.day) || 0).padStart(2, "0")}`;
+  `${eventTitleKey(e.title)}|${e.year}-${e.month}-${String(Number(e.day) || 0).padStart(2, "0")}`;
 
 // ── Fetchers ─────────────────────────────────────────────────────────────────
 export async function fetchEvents(): Promise<EventItem[]> {
