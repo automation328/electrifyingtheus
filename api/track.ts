@@ -17,6 +17,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { checkRateLimit } from "./_rate-limit.js";
 import { slackText } from "./_slack-text.js";
+import { handleChat } from "./_chat-proxy.js";
 
 // Server-only Supabase client (service role → bypasses RLS). null until configured.
 function adminSupabase() {
@@ -52,6 +53,10 @@ function safeDecode(v: string): string {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default async function handler(req: any, res: any) {
+  // /api/chat is rewritten here (vercel.json): the Hobby plan's 12-function cap.
+  const op = Array.isArray(req.query?.op) ? req.query.op[0] : req.query?.op;
+  if (op === "chat") { await handleChat(req, res); return; }
+
   // Always answer 204 so the client beacon never sees an error.
   const done = () => res.status(204).end();
   if (req.method !== "POST") { res.status(405).end(); return; }
