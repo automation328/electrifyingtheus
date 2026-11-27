@@ -126,6 +126,96 @@ export const OG_EVENTS: OgEvent[] = [
     "image": "/og/events/auto-shanghai-2027.jpg"
   },
   {
+    "slug": "winter-driving-electric-car-2026",
+    "title": "Winter Driving in an Electric Car",
+    "date": "2026-12-03",
+    "end": "2026-12-03",
+    "ours": false,
+    "asset": "winter-driving-electric-car-2026",
+    "description": "A free Green Energy Consumers Alliance webinar on how cold weather affects EV range and charging, with practical tips for driving electric through a New England winter.",
+    "image": "/og/events/winter-driving-electric-car-2026.jpg"
+  },
+  {
+    "slug": "ev-battery-health-2026",
+    "title": "Electric Vehicle Battery Health",
+    "date": "2026-12-16",
+    "end": "2026-12-16",
+    "ours": false,
+    "asset": "ev-battery-health-2026",
+    "description": "A free Green Energy Consumers Alliance webinar on the latest science on long-term EV battery health and which factors affect how long a battery lasts.",
+    "image": "/og/events/ev-battery-health-2026.jpg"
+  },
+  {
+    "slug": "ces-2027",
+    "title": "CES 2027",
+    "date": "2027-01-06",
+    "end": "2027-01-09",
+    "ours": false,
+    "asset": "ces-2027",
+    "description": "The world's biggest consumer technology show, where automakers and suppliers debut new EVs, charging tech, and software-defined vehicle features.",
+    "image": "/og/events/ces-2027.jpg"
+  },
+  {
+    "slug": "washington-dc-auto-show-2027",
+    "title": "Washington, D.C. Auto Show 2027",
+    "date": "2027-01-22",
+    "end": "2027-01-31",
+    "ours": false,
+    "asset": "washington-dc-auto-show-2027",
+    "description": "The capital's public auto show, with the latest electric models on display and the chance to compare EVs from many brands under one roof.",
+    "image": "/og/events/washington-dc-auto-show-2027.jpg"
+  },
+  {
+    "slug": "chicago-auto-show-2027",
+    "title": "Chicago Auto Show 2027",
+    "date": "2027-02-13",
+    "end": "2027-02-21",
+    "ours": false,
+    "asset": "chicago-auto-show-2027",
+    "description": "North America's largest public auto show, with new EVs on the floor and indoor test tracks for trying them out.",
+    "image": "/og/events/chicago-auto-show-2027.jpg"
+  },
+  {
+    "slug": "work-truck-week-2027",
+    "title": "Work Truck Week 2027",
+    "date": "2027-03-09",
+    "end": "2027-03-12",
+    "ours": false,
+    "asset": "work-truck-week-2027",
+    "description": "The work truck industry's largest event, including the Green Truck Summit on electric and alternative-fuel commercial fleets.",
+    "image": "/og/events/work-truck-week-2027.jpg"
+  },
+  {
+    "slug": "new-york-auto-show-2027",
+    "title": "New York International Auto Show 2027",
+    "date": "2027-03-26",
+    "end": "2027-04-04",
+    "ours": false,
+    "asset": "new-york-auto-show-2027",
+    "description": "One of America's oldest and largest auto shows, with new EV debuts and ride-and-drive experiences at the Javits Center.",
+    "image": "/og/events/new-york-auto-show-2027.jpg"
+  },
+  {
+    "slug": "sustainable-fleet-expo-2027",
+    "title": "Sustainable Fleet Technology Conference & Expo 2027",
+    "date": "2027-08-17",
+    "end": "2027-08-19",
+    "ours": false,
+    "asset": "sustainable-fleet-expo-2027",
+    "description": "A national conference on clean fleet technology, covering fleet electrification, charging, and alternative fuels for public and private fleets.",
+    "image": "/og/events/sustainable-fleet-expo-2027.jpg"
+  },
+  {
+    "slug": "the-battery-show-north-america-2027",
+    "title": "The Battery Show North America 2027",
+    "date": "2027-10-11",
+    "end": "2027-10-14",
+    "ours": false,
+    "asset": "the-battery-show-north-america-2027",
+    "description": "North America's largest battery and EV technology show, with 1,000+ suppliers across cells, packs, charging, and manufacturing.",
+    "image": "/og/events/the-battery-show-north-america-2027.jpg"
+  },
+  {
     "slug": "unity-fest-2026",
     "title": "5th Annual Unity Fest 2026",
     "date": "2026-07-26",

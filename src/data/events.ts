@@ -10,6 +10,17 @@ import laAutoShow2026 from "@/assets/events/la-auto-show-2026.webp";
 import batteryShow2026 from "@/assets/events/battery-show-2026.avif";
 import actExpo2027 from "@/assets/events/act-expo-2027.png";
 import autoShanghai2027 from "@/assets/events/auto-shanghai-2027.png";
+// Researched events (Nov 2026): no flyer of their own, so each uses one of the
+// site's event header photos, bundled here so the share-preview script sees it.
+import hdr_winterDrivingElectricCar2026 from "@/assets/events/winter-driving-electric-car-2026.jpg";
+import hdr_evBatteryHealth2026 from "@/assets/events/ev-battery-health-2026.jpg";
+import hdr_ces2027 from "@/assets/events/ces-2027.jpg";
+import hdr_washingtonDcAutoShow2027 from "@/assets/events/washington-dc-auto-show-2027.jpg";
+import hdr_chicagoAutoShow2027 from "@/assets/events/chicago-auto-show-2027.jpg";
+import hdr_workTruckWeek2027 from "@/assets/events/work-truck-week-2027.jpg";
+import hdr_newYorkAutoShow2027 from "@/assets/events/new-york-auto-show-2027.jpg";
+import hdr_sustainableFleetExpo2027 from "@/assets/events/sustainable-fleet-expo-2027.jpg";
+import hdr_theBatteryShowNorthAmerica2027 from "@/assets/events/the-battery-show-north-america-2027.jpg";
 // Generic EV photo for the one listing without its own flyer (EVADC Monthly Meeting).
 import workforce from "@/assets/workforce.jpg";
 // Real flyers/graphics for the Drive Clean Colorado + EVADC events.
@@ -692,6 +703,141 @@ export const EVENTS: EventItem[] = [
     heroHidden: true,
     slug: "auto-shanghai-2027",
     registerUrl: "https://autoshanghai.auto-fairs.com/en/",
+  },
+
+  // ── Researched Nov 28, 2026 (dates checked on each organizer's site) ───────
+  {
+    month: "DEC", day: "3", year: 2026,
+    title: "Winter Driving in an Electric Car",
+    type: "Webinar",
+    location: "Online",
+    region: "Online",
+    time: "12:00 – 1:00 PM ET",
+    description:
+      "A free Green Energy Consumers Alliance webinar on how cold weather affects EV range and charging, with practical tips for driving electric through a New England winter.",
+    image: hdr_winterDrivingElectricCar2026,
+    heroHidden: true,
+    slug: "winter-driving-electric-car-2026",
+    registerUrl: "https://www.greenenergyconsumers.org/event/winterdrivingelectriccar",
+  },
+  {
+    month: "DEC", day: "16", year: 2026,
+    title: "Electric Vehicle Battery Health",
+    type: "Webinar",
+    location: "Online",
+    region: "Online",
+    time: "12:00 – 12:30 PM ET",
+    description:
+      "A free Green Energy Consumers Alliance webinar on the latest science on long-term EV battery health and which factors affect how long a battery lasts.",
+    image: hdr_evBatteryHealth2026,
+    heroHidden: true,
+    slug: "ev-battery-health-2026",
+    registerUrl: "https://www.greenenergyconsumers.org/event/electricvehiclebatteryhealth",
+  },
+  {
+    month: "JAN", day: "6", year: 2027,
+    endDate: "2027-01-09",
+    title: "CES 2027",
+    type: "Expo",
+    location: "Las Vegas, NV",
+    region: "Las Vegas, NV",
+    time: "Jan 6–9, 2027",
+    description:
+      "The world's biggest consumer technology show, where automakers and suppliers debut new EVs, charging tech, and software-defined vehicle features.",
+    image: hdr_ces2027,
+    heroHidden: true,
+    slug: "ces-2027",
+    registerUrl: "https://www.ces.tech/",
+  },
+  {
+    month: "JAN", day: "22", year: 2027,
+    endDate: "2027-01-31",
+    title: "Washington, D.C. Auto Show 2027",
+    type: "Auto Show",
+    location: "Walter E. Washington Convention Center, Washington, DC",
+    region: "Washington, DC",
+    time: "Jan 22–31, 2027",
+    description:
+      "The capital's public auto show, with the latest electric models on display and the chance to compare EVs from many brands under one roof.",
+    image: hdr_washingtonDcAutoShow2027,
+    heroHidden: true,
+    slug: "washington-dc-auto-show-2027",
+    registerUrl: "https://washingtonautoshow.com/show-information",
+  },
+  {
+    month: "FEB", day: "13", year: 2027,
+    endDate: "2027-02-21",
+    title: "Chicago Auto Show 2027",
+    type: "Auto Show",
+    location: "McCormick Place, Chicago, IL",
+    region: "Chicago, IL",
+    time: "Feb 13–21, 2027",
+    description:
+      "North America's largest public auto show, with new EVs on the floor and indoor test tracks for trying them out.",
+    image: hdr_chicagoAutoShow2027,
+    heroHidden: true,
+    slug: "chicago-auto-show-2027",
+    registerUrl: "https://www.chicagoautoshow.com/",
+  },
+  {
+    month: "MAR", day: "9", year: 2027,
+    endDate: "2027-03-12",
+    title: "Work Truck Week 2027",
+    type: "Expo",
+    location: "Indiana Convention Center, Indianapolis, IN",
+    region: "Indianapolis, IN",
+    time: "Mar 9–12, 2027",
+    description:
+      "The work truck industry's largest event, including the Green Truck Summit on electric and alternative-fuel commercial fleets.",
+    image: hdr_workTruckWeek2027,
+    heroHidden: true,
+    slug: "work-truck-week-2027",
+    registerUrl: "https://www.worktruckweek.com/registration-info",
+  },
+  {
+    month: "MAR", day: "26", year: 2027,
+    endDate: "2027-04-04",
+    title: "New York International Auto Show 2027",
+    type: "Auto Show",
+    location: "Javits Center, New York, NY",
+    region: "New York, NY",
+    time: "Mar 26 – Apr 4, 2027",
+    description:
+      "One of America's oldest and largest auto shows, with new EV debuts and ride-and-drive experiences at the Javits Center.",
+    image: hdr_newYorkAutoShow2027,
+    heroHidden: true,
+    slug: "new-york-auto-show-2027",
+    registerUrl: "https://autoshowny.com/",
+  },
+  {
+    month: "AUG", day: "17", year: 2027,
+    endDate: "2027-08-19",
+    title: "Sustainable Fleet Technology Conference & Expo 2027",
+    type: "Conference",
+    location: "Durham Convention Center, Durham, NC",
+    region: "Durham, NC",
+    time: "Aug 17–19, 2027",
+    description:
+      "A national conference on clean fleet technology, covering fleet electrification, charging, and alternative fuels for public and private fleets.",
+    image: hdr_sustainableFleetExpo2027,
+    heroHidden: true,
+    slug: "sustainable-fleet-expo-2027",
+    registerUrl: "https://www.sustainablefleetexpo.com/",
+  },
+  {
+    month: "OCT", day: "11", year: 2027,
+    endDate: "2027-10-14",
+    title: "The Battery Show North America 2027",
+    type: "Expo",
+    location: "Huntington Place, Detroit, MI",
+    region: "Detroit, MI",
+    time: "Oct 11–14, 2027",
+    description:
+      "North America's largest battery and EV technology show, with 1,000+ suppliers across cells, packs, charging, and manufacturing.",
+    image: hdr_theBatteryShowNorthAmerica2027,
+    heroHidden: true,
+    slug: "the-battery-show-north-america-2027",
+    registerUrl: "https://www.thebatteryshow.com/",
   },
 
   // ── Drive Clean Colorado events (drivecleancolorado.org/events) ────────────
