@@ -41,7 +41,7 @@ This is the single biggest factor in how happy you will be with an EV. Ask yours
 - **Do I rent or live in an apartment?** Ask your landlord or property manager about charging, and check whether your workplace offers it.
 - **Will I rely on public charging?** Use our [charger finder](/find-a-charger) to see what is near your home, work and regular routes.
 
-If you are new to charger types, read [Charging 101: Levels 1, 2 and DC fast](/blog/charging-101-levels). Home charging is typically the cheapest and most convenient way to refuel, so confirm it is possible before you fall in love with a car.
+If you are new to charger types, read [EV Charging 101](/blog/charging-101-levels). Home charging is typically the cheapest and most convenient way to refuel, so confirm it is possible before you fall in love with a car.
 
 ## Step 3: Set a realistic budget
 
@@ -53,7 +53,7 @@ Think about the whole cost of owning the car, not just the sticker price. Includ
 - Maintenance, which is often lower because EVs have fewer moving parts
 - A home charger and installation, if you need one
 
-Use the [Gas vs. EV Cost Calculator](/electricity-vs-gasoline) to compare running costs against your current car. The federal consumer EV tax credits ended for vehicles acquired after September 30, 2025, so incentives now come mainly from states, utilities and local programs. Check [Rebates and Incentives](/rebates-incentives) for what applies where you live.
+Use the [Gas vs. EV calculator](/electricity-vs-gasoline) to compare running costs against your current car. The federal consumer EV tax credits ended for vehicles acquired after September 30, 2025, so incentives now come mainly from states, utilities and local programs. Check [Rebates and Incentives](/rebates-incentives) for what applies where you live.
 
 ## Step 4: Choose the right size and body style
 
@@ -68,9 +68,9 @@ Be honest about what you need. A compact hatchback is plenty for many people, an
 
 Once you have two or three candidates, compare the details that affect daily life:
 
-- **Charging connector:** Most automakers have adopted Tesla's connector (NACS, standardized as SAE J3400), and many newer non-Tesla EVs can use Tesla Superchargers, some with an adapter. Check your model.
+- **Charging connector:** Check which connector your car uses and whether it works with the chargers near you.
 - **Charging speed:** How long a fast-charge stop takes on road trips.
-- **Battery warranty:** Most automakers cover the battery for at least 8 years or 100,000 miles. Check your car's warranty for the exact terms.
+- **Battery warranty:** Check your car's warranty for the battery term.
 - **Safety ratings:** Look up crash-test results from the Insurance Institute for Highway Safety and the National Highway Traffic Safety Administration.
 
 ## Step 6: Decide on new or used
@@ -131,11 +131,11 @@ When you lease, you pay for the part of the car's value you use during the lease
 - **Lower monthly payments** than financing the same car, in many cases.
 - **Less worry about battery technology.** EV batteries and charging speeds keep improving. A short lease lets you upgrade without being stuck with an older design.
 - **Less resale risk.** The leasing company takes the risk that the car is worth less than expected at the end.
-- **Warranty coverage for the whole term**, which makes repair costs more predictable.
+- **Warranty coverage for most or all of the term**, which makes repair costs more predictable. Confirm the warranty dates in your contract.
 
 ### Cons of leasing
 
-- **Mileage limits.** Typical leases have an annual mileage cap, and going over costs extra per mile. EVs tend to attract people who drive a lot, so check this first.
+- **Mileage limits.** Typical leases have an annual mileage cap, and going over costs extra per mile. Caps commonly run from about 10,000 to 15,000 miles a year, so check this first.
 - **No equity.** After the final payment you own nothing.
 - **Wear and tear charges** for damage beyond normal use.
 - **Early termination is expensive.** Ending a lease early often costs a lot.
@@ -150,7 +150,7 @@ Buying means paying cash or financing the car so that you eventually own it outr
 - **No mileage cap**, so you can drive as much as you like.
 - **Long-term savings.** Once the loan is paid off, you drive without a payment. EVs often have lower fuel and maintenance costs, so the savings can grow. See the [real cost of going electric](/blog/real-cost-of-going-electric-ev-savings-breakdown).
 - **Freedom to modify, sell or keep** the car as you see fit.
-- **Battery warranty works in your favor.** Most automakers cover the battery for at least 8 years or 100,000 miles, so a car you keep for a decade is partly protected. Check your car's warranty.
+- **Battery warranty works in your favor.** Check your car's warranty for the battery term, since a car you keep for a decade may be partly protected.
 
 ### Cons of buying
 
@@ -206,7 +206,7 @@ You return the car, and the leasing company deals with it. Check your contract f
 
 You pay a fee per extra mile. Estimate your yearly driving honestly, and negotiate a higher allowance up front if you need one.
 
-**Compare running costs with the [Gas vs. EV Cost Calculator](/electricity-vs-gasoline), look up [incentives near you](/rebates-incentives), and browse cars on our [marketplace](/marketplace).**`,
+**Compare running costs with the [Gas vs. EV calculator](/electricity-vs-gasoline), look up [incentives near you](/rebates-incentives), and browse cars on our [marketplace](/marketplace).**`,
   },
   {
     slug: "ev-insurance-why-it-differs-and-how-to-save",
@@ -264,7 +264,7 @@ Make sure each quote has the same limits, deductibles and options. Ask specifica
 - **Charging equipment:** Is your home charger and cable covered, at home and in transit?
 - **Repair choices:** Can you use the shop you prefer, or only approved ones?
 - **Replacement parts:** Does the policy use original manufacturer parts?
-- **Towing:** Some EVs need flatbed towing. Check whether your roadside coverage allows it.
+- **Towing:** Many EVs need flatbed towing. Check whether your roadside coverage allows it.
 
 ### 4. Ask about discounts
 
@@ -289,17 +289,17 @@ Rates change, and so does your situation. Shop again at renewal, and after major
 
 ### 7. Drive and park smart
 
-A clean record is the most reliable way to keep premiums down. Parking in a garage can help with theft and weather risk, and so can good habits.
+A clean record is the most reliable way to keep premiums down. Parking in a garage can help with theft and weather risk.
 
 ## Do not forget the rest of the cost picture
 
-A higher premium does not cancel out lower running costs. Check the [Gas vs. EV Cost Calculator](/electricity-vs-gasoline) to see fuel savings, and our [real cost of going electric](/blog/real-cost-of-going-electric-ev-savings-breakdown) breakdown for the bigger picture. Add your actual insurance quote to the comparison for an honest answer.
+A higher premium does not always cancel out lower running costs. Check the [Gas vs. EV calculator](/electricity-vs-gasoline) to see fuel savings, and our [real cost of going electric](/blog/real-cost-of-going-electric-ev-savings-breakdown) breakdown for the bigger picture. Add your actual insurance quote to the comparison for an honest answer.
 
 ## Frequently Asked Questions
 
 ### Is EV insurance always more expensive?
 
-No. It depends on the specific car, your driving record and your insurer. Some EVs cost more to insure than comparable gas cars, and others cost about the same. Quotes are the only reliable way to know.
+No. It depends on the specific car, your driving record and your insurer. Some EVs cost more to insure than comparable gas cars, and others cost about the same or less. Quotes are the only reliable way to know.
 
 ### Does my home charger need separate insurance?
 
@@ -333,7 +333,7 @@ The battery is the most expensive part of an EV, so it is natural to ask how lon
 
 Degradation is the slow loss of a battery's ability to hold a full charge. If a car could once go 300 miles on a charge and now goes a bit less, that difference is degradation. It does not usually mean the battery suddenly stops working. Most EVs lose range gradually, and many owners barely notice it in everyday driving.
 
-How fast it happens depends on the car, the battery's design, the climate and how you charge and drive. Modern EVs have thermal management systems and software buffers that protect the battery and help it age well.
+How fast it happens depends on the car, the battery's design, the climate and how you charge and drive. Most modern EVs have thermal management systems and software buffers that protect the battery and help it age well.
 
 ## What speeds up degradation
 
@@ -351,8 +351,8 @@ Cold weather mainly reduces range temporarily rather than damaging the battery. 
 
 Small habits make a difference:
 
-1. **Use Level 2 home charging for daily needs.** It is gentler than frequent fast charging. See [Charging 101](/blog/charging-101-levels) for how the levels compare.
-2. **Follow your manufacturer's charging advice.** Many cars let you set a daily charge limit, often around 80% to 90%, and recommend 100% only for long trips. Check your owner's manual for what is right for your model.
+1. **Use Level 2 home charging for daily needs.** It is gentler than frequent fast charging. See [EV Charging 101](/blog/charging-101-levels) for how the levels compare.
+2. **Follow your manufacturer's charging advice.** Many cars let you set a daily charge limit, often around 80% to 90%, and recommend 100% only for long trips. Some cars with LFP batteries are the exception, and their makers often advise regular charging to 100%. Check your owner's manual for what is right for your model.
 3. **Avoid leaving the car at 100% or near 0% for long stretches.**
 4. **Park in the shade or a garage** during hot weather when you can.
 5. **Keep software updated.** Updates can improve battery management.
@@ -372,7 +372,7 @@ Compare the car's displayed full-charge range with its original rated range. Ask
 
 ## What the warranty covers
 
-Most automakers' EV battery warranties run at least 8 years or 100,000 miles, and some states require longer coverage. Details vary a lot, so read your car's warranty. Look for:
+Most automakers' EV battery warranties run at least 8 years or 100,000 miles, and cars sold in California and other states that follow its emissions rules often carry longer coverage. Details vary a lot, so read your car's warranty. Look for:
 
 - **Time and mileage limits,** and whether it is whichever comes first
 - **A capacity threshold.** Many warranties cover the battery if its capacity falls below a stated percentage of original within the warranty period. The percentage differs by manufacturer.
@@ -384,7 +384,7 @@ Normal gradual loss within the stated threshold is usually not covered, because 
 
 ## What a replacement could involve
 
-Battery replacement outside warranty can be expensive, and costs vary by model. Many problems are fixable at the module level rather than needing a whole new pack. If you are worried, get a written estimate from a qualified shop for the specific car you are considering, and factor it into your decision.
+Battery replacement outside warranty can be expensive, and costs vary by model. On some models, problems can be fixed at the module level rather than needing a whole new pack. If you are worried, get a written estimate from a qualified shop for the specific car you are considering, and factor it into your decision.
 
 ## Frequently Asked Questions
 
@@ -404,7 +404,7 @@ For daily driving, many manufacturers recommend a lower limit. Charging to 100% 
 
 It often does, but terms vary. Check the warranty booklet or ask the manufacturer, especially when buying used.
 
-**Want to know how far your next car can really go? Try the [range map](/range-map), find chargers with the [charger finder](/find-a-charger), and read [Charging 101](/ev-charging-101).**`,
+**Want to know how far your next car can really go? Try the [range map](/range-map), find chargers with the [charger finder](/find-a-charger), and read the [Charging 101 guide](/ev-charging-101).**`,
   },
   {
     slug: "how-to-shop-for-an-affordable-ev",
@@ -431,7 +431,7 @@ Total cost of ownership means everything you pay over the time you own the car. 
 - **Registration and fees:** Some states charge an extra EV registration fee.
 - **Home charger and installation,** if you need one
 
-Use our [Gas vs. EV Cost Calculator](/electricity-vs-gasoline) to plug in your own mileage and electricity rate, and read the [real cost of going electric](/blog/real-cost-of-going-electric-ev-savings-breakdown).
+Use our [Gas vs. EV calculator](/electricity-vs-gasoline) to plug in your own mileage and electricity rate, and read the [real cost of going electric](/blog/real-cost-of-going-electric-ev-savings-breakdown).
 
 ## Step 2: Check what incentives remain
 
@@ -450,7 +450,7 @@ The federal consumer EV tax credits, including the used-EV credit, ended for veh
 
 - Often a much lower purchase price
 - Someone else has absorbed the first big drop in value
-- Some of the battery warranty may remain, since most automakers cover at least 8 years or 100,000 miles
+- Some of the battery warranty may remain. Check your car's warranty for the battery term.
 - Battery health is the main unknown, and older models may have slower charging or shorter range
 
 A used EV can be an excellent value, as long as you check it carefully. Our webinar on [buying pre-owned EVs](/from-pump-to-plug-part-3) goes through the process step by step.
@@ -477,17 +477,17 @@ For a used EV, ask for:
 - **What comes with the car:** charging cable, adapter, keys and fobs.
 - **An independent inspection** by a shop that knows EVs.
 
-Check which charging connector the car uses and whether it works with the chargers near you. Most automakers have adopted Tesla's connector (NACS, SAE J3400), and many newer non-Tesla EVs can use Tesla Superchargers, some with an adapter. Check your model, and use the [charger finder](/find-a-charger).
+Check which connector your car uses and whether it works with the chargers near you. Use the [charger finder](/find-a-charger).
 
 ## Red flags to watch for
 
-- **A seller who will not provide a battery health report** or lets you take the car for an inspection
+- **A seller who will not provide a battery health report** or will not let you take the car for an inspection
 - **Missing or unclear history,** such as a salvage or rebuilt title you were not told about
 - **Warranty that does not transfer** or has been voided
 - **Pressure to buy today,** or a price that changes at the last minute
 - **Add-ons you did not ask for,** like expensive extended packages or fees buried in the paperwork
 - **A deal that is much cheaper than similar cars** with no clear reason
-- **Unusually fast battery charging loss or warning lights** during the test drive
+- **Rapid range loss or warning lights** during the test drive
 - **No clear explanation of charging equipment** that should come with the car
 
 ## A few practical tips
@@ -514,8 +514,8 @@ Frequently, because fuel and maintenance costs are often lower. Insurance, finan
 
 ### Can I get a charger at home cheaply?
 
-If you have a standard outlet, you can start with Level 1 charging, which is slow but works for some drivers. A Level 2 charger is faster and needs installation. See [Charging 101](/ev-charging-101).
+If you have a standard outlet, you can start with Level 1 charging, which costs nothing to set up but is slow. Have an electrician confirm the outlet and circuit are in good condition first. A Level 2 charger is faster and needs installation. See the [Charging 101 guide](/ev-charging-101).
 
-**Check what you could save with the [Gas vs. EV Cost Calculator](/electricity-vs-gasoline), see which programs you qualify for on [Rebates and Incentives](/rebates-incentives), and browse the [marketplace](/marketplace).**`,
+**Check what you could save with the [Gas vs. EV calculator](/electricity-vs-gasoline), see which programs you qualify for on [Rebates and Incentives](/rebates-incentives), and browse the [marketplace](/marketplace).**`,
   },
 ];

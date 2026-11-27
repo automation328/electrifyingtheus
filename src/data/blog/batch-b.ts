@@ -36,12 +36,12 @@ If the panel is full or the service is small, the electrician may suggest a pane
 
 ## Step 3: Choose a Charger
 
-You will see two common styles. A **hardwired** unit is wired directly into the circuit. A **plug-in** unit connects to a 240-volt outlet, typically a NEMA 14-50. Hardwired is often considered the more robust option, while plug-in offers some flexibility. Your electrician can tell you which suits your setup.
+You will see two common styles. A **hardwired** unit is wired directly into the circuit. A **plug-in** unit connects to a 240-volt outlet, typically a NEMA 14-50. Hardwired is often considered the more robust option, especially at higher amperage, while plug-in offers some flexibility. Plug-in units need a high-quality, EV-rated outlet, so let your electrician decide. Your electrician can tell you which suits your setup.
 
 When comparing models, look at:
 
 - **Amperage.** Higher amperage charges faster, but your car has a maximum it can accept, and a faster charger needs a bigger circuit.
-- **Connector.** Many automakers have moved to the NACS connector (standardized as SAE J3400), while older non-Tesla models use J1772. Check which your car uses and whether an adapter is needed.
+- **Connector.** Check which connector your car uses and whether it works with the chargers near you.
 - **Safety listing.** Look for a recognized safety certification, such as a UL listing.
 - **Features.** Wi-Fi, scheduling and usage tracking are handy, especially if you use time-of-use rates (see our guide to [off-peak charging](/blog/time-of-use-rates-ev-charging-off-peak-savings)). Your car may also schedule charging on its own.
 - **Cable length and weather rating,** especially for outdoor or driveway installs.
@@ -62,7 +62,7 @@ Most jurisdictions require an electrical permit for a new 240-volt circuit, and 
 
 ## Step 6: Check for Rebates
 
-The federal tax credits for EVs and for home chargers have ended, so do not count on them. Today, help more often comes from states, utilities and local programs, and it can include rebates on charger hardware, installation or special EV rates. Programs change, and some require you to apply before you buy. Start with our [rebates and incentives page](/rebates-incentives), then confirm details with your utility.
+The federal EV tax credits ended for vehicles acquired after September 30, 2025, and the home charger credit ended for property placed in service after June 30, 2026. Today, help more often comes from states, utilities and local programs, and it can include rebates on charger hardware, installation or special EV rates. Programs change, and some require you to apply before you buy. Start with our [rebates and incentives page](/rebates-incentives), then confirm details with your utility.
 
 ## What Installation Day Looks Like
 
@@ -80,7 +80,7 @@ Before you plug in for the first time, set up the charger's app if it has one, c
 
 ### Can I install a Level 2 charger myself?
 
-Unless you are a licensed electrician, hire one. A 240-volt circuit carries a serious shock and fire risk, and many areas require licensed work and a permit. A professional install also protects your home insurance and warranty.
+Unless you are a licensed electrician, hire one. A 240-volt circuit carries a serious shock and fire risk, and many areas require licensed work and a permit. Unpermitted or unlicensed work can also jeopardize a homeowners insurance claim and the charger's warranty.
 
 ### Do I need a new electrical panel?
 
@@ -94,13 +94,13 @@ It depends on your car's battery, its onboard charger and the charger's amperage
 
 Some do. Utility and state programs vary widely and change often, so check your utility's website and our [rebates page](/rebates-incentives).
 
-**Ready to see what charging at home could save? Try the [gas vs. electricity cost calculator](/electricity-vs-gasoline) and read our [real cost of going electric](/blog/real-cost-of-going-electric-ev-savings-breakdown) breakdown.**`,
+**Ready to see what charging at home could save? Try the [Gas vs. EV calculator](/electricity-vs-gasoline) and read our [real cost of going electric](/blog/real-cost-of-going-electric-ev-savings-breakdown) breakdown.**`,
   },
   {
     slug: "charging-an-ev-when-you-rent-or-live-in-an-apartment",
     title: "Charging an EV When You Rent or Live in an Apartment",
     excerpt:
-      "No garage, no problem for many renters. Learn how to combine workplace, public and Level 1 charging, talk to your landlord, and check whether your state has right-to-charge protections.",
+      "Many renters can charge without a garage. Learn how to combine workplace, public and Level 1 charging, talk to your landlord, and check whether your state has right-to-charge protections.",
     category: "Charging",
     date: "November 28, 2026",
     author: "Electrifying the US",
@@ -108,7 +108,7 @@ Some do. Utility and state programs vary widely and change often, so check your 
     image: evFamily,
     content: `> **Key takeaway:** You can own an EV without a home charger. Many renters build a routine around workplace, public and occasional Level 1 charging, and some states protect a tenant's right to request charging. Check your state and your lease.
 
-"I rent, so an EV will not work for me" is one of the most common worries we hear. It is a fair concern, because charging at home is the cheapest and most convenient option. But plenty of renters make it work, and more apartment buildings are adding chargers every year.
+"I rent, so an EV will not work for me" is a common worry. It is a fair concern, because charging at home is the cheapest and most convenient option. But plenty of renters make it work, and some apartment buildings are adding chargers.
 
 ## Start With Your Real Driving
 
@@ -118,7 +118,7 @@ Before worrying about plugs, count your miles. Many people drive well under what
 
 ### 1. Level 1 on a standard outlet
 
-If you have a dedicated parking spot near an outlet, the cord that comes with many EVs plugs into a regular 120-volt outlet. It is slow, but overnight it can recover a useful amount of driving. Ask before you plug in. An outlet in a shared area may be on someone else's meter, and an extension cord is not a safe workaround for a long, continuous load.
+If you have a dedicated parking spot near an outlet, the cord that comes with many EVs plugs into a regular 120-volt outlet. It is slow, but overnight it can recover a useful amount of driving. Ask before you plug in, and use only a grounded outlet in good condition, not one shared with other heavy loads. An outlet in a shared area may be on someone else's meter, and an extension cord is not a safe workaround for a long, continuous load.
 
 ### 2. Workplace charging
 
@@ -130,7 +130,7 @@ Chargers at grocery stores, libraries, parking garages and shopping centers work
 
 ### 4. Charging at the building
 
-Ask your landlord or property manager about adding chargers. Many owners are open to it when tenants ask, especially in markets where EV drivers are a growing share of renters.
+Ask your landlord or property manager about adding chargers. Some owners are open to it when tenants ask.
 
 ## Talking to Your Landlord or HOA
 
@@ -149,7 +149,7 @@ Some states have laws that limit a landlord's, condo association's or HOA's abil
 
 ## Costs to Expect
 
-Public charging prices vary by network, location and time of day, and fast charging usually costs more than charging at home. Some utilities offer lower rates at off-peak hours, which can matter if you charge at a building with its own meter. To compare your options with gasoline, use our [cost calculator](/electricity-vs-gasoline) with your local rates.
+Public charging prices vary by network, location and time of day, and fast charging usually costs more than charging at home. Some utilities offer lower rates at off-peak hours, which can matter if your charging is billed to your own meter. To compare your options with gasoline, use our [Gas vs. EV calculator](/electricity-vs-gasoline) with your local rates.
 
 ## A Sample Weekly Routine
 
@@ -158,7 +158,7 @@ Here is how a renter with a moderate commute might work it out:
 - Top up at work on a couple of days a week
 - Add a Level 2 session while shopping
 - Use a fast charger once in a while when running low
-- Keep the battery between a comfortable low and high point rather than chasing 100 percent
+- Keep the battery between a comfortable low and high point rather than chasing 100%
 
 Your own pattern will differ, so test it for a few weeks before you commit.
 
@@ -174,7 +174,7 @@ Yes, many people do. It takes a little planning, and it works best when you have
 
 ### Is it safe to use an extension cord?
 
-Avoid it for regular charging. EV charging is a long, heavy load. Use a properly rated outlet or a charger installed by a licensed electrician.
+Avoid it. EV charging is a long, heavy load, and many manufacturers advise against extension cords. Use a properly rated outlet or a charger installed by a licensed electrician.
 
 ### What if my landlord says no?
 
@@ -184,7 +184,7 @@ Ask whether they will reconsider a plan that you pay for, or look to nearby char
 
 It can, especially if you rely on DC fast charging. Costs depend on your local rates and the networks near you.
 
-**Want to see if an EV fits your life? Browse the [charger map](/find-a-charger) and compare costs with the [gas vs. electricity calculator](/electricity-vs-gasoline).**`,
+**Want to see if an EV fits your life? Browse the [charger map](/find-a-charger) and compare costs with the [Gas vs. EV calculator](/electricity-vs-gasoline).**`,
   },
   {
     slug: "plan-your-first-ev-road-trip",
@@ -221,7 +221,7 @@ Create accounts on the networks along your route before you leave, add a payment
 ## Planning the Stops
 
 - **Plan for a buffer.** Aim to arrive at each charger with a comfortable reserve rather than running near empty. Having more than you think you need protects you from a broken charger, traffic or a detour.
-- **Charge for the next leg, not to 100 percent.** DC fast charging is usually quickest at a lower state of charge and slows as the battery fills. Stopping more often for shorter sessions can save time overall, though your car's behavior will vary.
+- **Charge for the next leg, not to 100%.** DC fast charging is usually quickest at a lower state of charge and slows as the battery fills. Stopping more often for shorter sessions can save time overall, though your car's behavior will vary.
 - **Pick backups.** Note a second charger within reach of each stop in case the first is busy or offline.
 - **Choose stops with amenities.** Restrooms, food and lighting make a 20- to 40-minute stop pleasant, and safer at night.
 - **Use real-time information.** Charger apps often show whether a station is working or occupied, and recent driver comments can flag problems.
@@ -232,7 +232,7 @@ Range drops in cold weather, at high highway speeds, when towing and when climbi
 
 ## Pack for the Trip
 
-- The mobile charging cable that came with your car
+- Any mobile charging cable that came with your car
 - Any adapter your model needs
 - Your charging apps, logged in
 - A phone mount and charger cable
@@ -242,22 +242,11 @@ Check tire pressure too. Under-inflated tires reduce efficiency in any vehicle.
 
 ## Charging Etiquette
 
-A few habits keep things running smoothly at busy stations:
-
-- **Move your car when you finish.** Many stations charge idle fees, and others are waiting.
-- **Do not park in a charging space if you are not charging.** The same goes for gas-powered cars.
-- **Do not unplug someone else's car** unless it is clearly done and the network allows it.
-- **Leave the cable neat,** and report broken equipment to the network.
-- **Be kind about sharing.** If a pair of chargers share power, a quick chat can sort out who should plug in where.
-- **Stay near your car** or watch the app for your session to finish.
+Move your car when you finish, since many stations charge idle fees, and do not park in a charging space unless you are charging. For the full list, see [Public EV Charging Explained](/blog/public-ev-charging-explained-networks-apps-plugs).
 
 ## What If a Charger Is Broken?
 
 It happens occasionally. This is why backups matter. Check the app, try another stall, or head for your backup. Report the issue to the network so it can be repaired.
-
-## Enjoy the Stop
-
-Many drivers find they like the pause. Stretch, eat, walk around and plan the next leg. Over time, you learn your car's pace, and routes begin to feel routine.
 
 ## Frequently Asked Questions
 
@@ -265,7 +254,7 @@ Many drivers find they like the pause. Stretch, eat, walk around and plan the ne
 
 It depends on your car, speed, weather and load. Your planner uses your model's data, but always leave a buffer.
 
-### Do I have to charge to 100 percent on a trip?
+### Do I have to charge to 100% on a trip?
 
 Usually not. Charging for the next leg is often faster. Follow your car's guidance for how much to charge.
 
@@ -275,7 +264,7 @@ Use more than one app, keep a backup stop in mind and start looking before your 
 
 ### Is a road trip cheaper in an EV?
 
-Often, though it depends on how much you use fast charging and your local rates. Try the [cost calculator](/electricity-vs-gasoline).
+Often, though it depends on how much you use fast charging and your local rates. Try the [Gas vs. EV calculator](/electricity-vs-gasoline).
 
 **Mapping your route? Explore the [range map](/range-map) and the [charger finder](/find-a-charger) before you go.**`,
   },
@@ -305,7 +294,7 @@ The exact hours, seasons and prices vary a lot by utility and by state. Some uti
 
 ## Why It Suits EVs
 
-Most home charging happens while you sleep, and a car does not care when it fills up as long as it is ready by morning. That makes EVs unusually flexible. Charging in the off-peak window can lower your cost per mile, and it also eases pressure on the grid at busy hours.
+Much home charging happens while you sleep, and a car does not care when it fills up as long as it is ready by morning. That makes EVs unusually flexible. Charging in the off-peak window can lower your cost per mile, and it also eases pressure on the grid at busy hours.
 
 ## Is a TOU Plan Right for You?
 
@@ -348,7 +337,7 @@ Set the schedule so charging begins when the off-peak window opens and finishes 
 
 ## Estimating the Savings
 
-You can get a rough idea with some simple math. Multiply the kWh your car uses by the difference between your peak and off-peak rates. For a more complete comparison against gasoline, use our [gas vs. electricity cost calculator](/electricity-vs-gasoline), and read the [real cost of going electric](/blog/real-cost-of-going-electric-ev-savings-breakdown) for the bigger picture. Check the numbers against your own bill, since local rates differ.
+You can get a rough idea with some simple math. Multiply the kWh you would shift from peak to off-peak hours by the difference between those two rates. For a more complete comparison against gasoline, use our [Gas vs. EV calculator](/electricity-vs-gasoline), and read the [real cost of going electric](/blog/real-cost-of-going-electric-ev-savings-breakdown) for the bigger picture. Check the numbers against your own bill, since local rates differ.
 
 ## Frequently Asked Questions
 
@@ -362,13 +351,13 @@ It can if much of your usage lands in peak hours. Review your usage pattern and 
 
 ### Does my car need to be smart to use TOU rates?
 
-Not necessarily. Most modern EVs and Wi-Fi chargers have built-in scheduling, so check your car's settings or your charger's manual. Ask a licensed electrician if you are unsure what your equipment supports.
+Not necessarily. Most modern EVs and Wi-Fi chargers have built-in scheduling, so check your car's settings or your charger's manual. If you are unsure what your equipment supports, check the manual or ask the manufacturer.
 
 ### Does this apply if I charge at work or in public?
 
 No. TOU plans apply to your own electric account. Other places set their own prices.
 
-**Curious what your charging could cost? Run the [calculator](/electricity-vs-gasoline) and learn about [financial savings](/financial-savings) with an EV.**`,
+**Curious what your charging could cost? Run the [Gas vs. EV calculator](/electricity-vs-gasoline) and learn about [financial savings](/financial-savings) with an EV.**`,
   },
   {
     slug: "public-ev-charging-explained-networks-apps-plugs",
@@ -393,7 +382,7 @@ Public chargers are owned and operated by a mix of companies, including:
 - **Utilities and local governments**
 - **Businesses,** like shopping centers, hotels, restaurants and parking garages
 
-A single parking lot may host more than one network. That is why a map that covers everything, like our [charger finder](/find-a-charger), is handy.
+A single parking lot may host more than one network. That is why a map that covers many networks, like our [charger finder](/find-a-charger), is handy.
 
 ## Finding Chargers
 
@@ -419,7 +408,7 @@ Prices can be per kWh, per minute or a flat fee, and they may change by time of 
 
 Here is how the main connectors look today:
 
-- **J1772** is the standard Level 2 plug on most non-Tesla EVs sold in North America for years.
+- **J1772** is the standard Level 2 plug on most non-Tesla EVs sold in North America.
 - **CCS** (Combined Charging System) adds two extra pins to J1772 for DC fast charging. It is common on non-Tesla cars.
 - **NACS** is the compact connector Tesla developed. Standardized as **SAE J3400,** it handles both AC and DC charging in a single plug.
 - **CHAdeMO** is an older DC fast standard, found on some early models and being phased out in many places.
@@ -464,12 +453,12 @@ Not always. Plug type, power level and software all matter. Check your model's c
 
 ### Is public charging more expensive than home charging?
 
-Usually, especially DC fast charging. Prices depend on the network and the place. Compare with your home rate using our [calculator](/electricity-vs-gasoline).
+Usually, especially DC fast charging. Prices depend on the network and the place. Compare with your home rate using our [Gas vs. EV calculator](/electricity-vs-gasoline).
 
 ### What should I do if a charger does not work?
 
 Try another stall, check the app and report it. Then move on to your backup.
 
-**Find a charger near you with our [charger finder](/find-a-charger), and keep reading with [EV Charging 101](/ev-charging-101).**`,
+**Find a charger near you with our [charger finder](/find-a-charger), and keep reading with [Charging 101 guide](/ev-charging-101).**`,
   },
 ];

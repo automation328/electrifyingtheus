@@ -27,7 +27,7 @@ Cost per mile is the number that matters. Work it out for your own situation:
 - **Gas car:** price per gallon divided by miles per gallon
 - **EV:** price per kilowatt-hour (kWh) divided by miles per kWh. Many EVs get roughly 3 to 4 miles per kWh, depending on the model, speed and weather.
 
-Your electricity rate is the biggest variable. Charging at home overnight is usually the cheapest option. Public DC fast charging often costs noticeably more per kWh, and in some places it can approach the cost of gasoline per mile. Our [electricity vs. gasoline calculator](/electricity-vs-gasoline) lets you test your own rates.
+Your electricity rate is the biggest variable. Charging at home overnight is usually the cheapest option. Public DC fast charging often costs noticeably more per kWh, and in some places it can approach the cost of gasoline per mile. Our [Gas vs. EV calculator](/electricity-vs-gasoline) lets you test your own rates.
 
 Maintenance is the other saving. EVs have no oil changes, and regenerative braking tends to reduce brake wear. For a car that runs all day, those savings add up over time.
 
@@ -37,7 +37,7 @@ Charging is the part of the job that changes most. Think through your week:
 
 - **Home or apartment charging:** If you can plug in overnight, you start each shift full. A standard outlet adds only a few miles per hour, so a Level 2 charger is better for heavy use.
 - **Fast charging between trips:** DC fast chargers can add a lot of range in a short stop. Use the [charger finder](/find-a-charger) to see what is near your usual zones and busy hours.
-- **Know your daily miles:** If you drive 150 or more miles a day, plan on at least one fast-charge stop. Learn more in [EV Charging 101](/ev-charging-101).
+- **Know your daily miles:** If your daily miles come close to your car's real-world range (less in winter), plan on at least one fast-charge stop. Learn more in [EV Charging 101](/ev-charging-101).
 
 Many fast-charging networks charge by time or by kWh, and prices vary by location and time of day. Check the app for each network before you rely on it.
 
@@ -49,7 +49,7 @@ Look for these features:
 - **Fast-charging speed.** A car that charges quickly loses less time waiting.
 - **Efficiency** (miles per kWh), since this drives your cost per mile
 - **Passenger space and comfort**, which affect ratings and tips
-- **Battery warranty.** High mileage uses up warranty years quickly, so read the terms, including any mileage limit.
+- **Battery warranty.** High mileage uses up warranty years quickly, so read the terms, including any mileage limit and any conditions on frequent DC fast charging.
 
 Used EVs can lower your upfront cost. Have the battery's health checked before buying. Browse options in our [marketplace](/marketplace) and see [rideshare and rental fleets](/rideshare-rental-fleets) for how larger fleets are approaching the switch.
 
@@ -71,7 +71,7 @@ The federal EV tax credits are no longer available for vehicles acquired after S
 ## Frequently Asked Questions
 
 ### Can I really save money driving an EV for rideshare?
-Many high-mileage drivers do, mostly through lower fuel and maintenance costs. Your savings depend on your electricity rate, how much you charge at home, and the price of the car.
+Many can, mostly through lower fuel and maintenance costs. Your savings depend on your electricity rate, how much you charge at home, and the price of the car.
 
 ### How often will I need to fast charge?
 It depends on your car's range and your daily miles. Drivers who charge at home overnight may need fast charging only on long days. Drivers without home charging will rely on it more.
@@ -80,9 +80,9 @@ It depends on your car's range and your daily miles. Drivers who charge at home 
 It can, if the battery is healthy and the range covers your shifts. Ask for a battery health report and review the remaining warranty.
 
 ### Does charging in winter cost more?
-Cold weather reduces range, so you may charge more often. Preconditioning the car while plugged in helps.
+Cold weather reduces range, so you may charge more often, and the cost per mile can rise. Preconditioning the car while plugged in helps.
 
-**Ready to run the numbers? Try the [electricity vs. gasoline calculator](/electricity-vs-gasoline) and find chargers near your zones with the [charger finder](/find-a-charger).**`,
+**Ready to run the numbers? Try the [Gas vs. EV calculator](/electricity-vs-gasoline) and find chargers near your zones with the [charger finder](/find-a-charger).**`,
   },
   {
     slug: "electric-school-buses-what-parents-and-school-boards-should-know",
@@ -111,7 +111,7 @@ The higher purchase price is the main hurdle. That is why funding matters.
 
 Most buses charge overnight at the depot, when they are parked and electricity is often cheaper. A district typically needs:
 
-- **Chargers at the depot.** Usually Level 2 or DC fast chargers installed at each parking space.
+- **Chargers at the depot.** Usually Level 2 or DC fast chargers, often one charging connection per bus, though some depots stagger several buses on shared equipment.
 - **Electrical service upgrades.** A depot with many buses can need more power than the site now has. The local utility has to be involved early.
 - **Charge management software.** It staggers charging so the district avoids high demand charges on its electric bill.
 - **A plan for outages and backups.** Districts should know what happens to routes if power is lost.
@@ -154,7 +154,7 @@ Manufacturers provide warranties, often many years long. Ask for the specific te
 Some districts are piloting vehicle-to-grid programs that let parked buses send power back when demand is high. These are still developing, so ask your utility whether it offers one.
 
 ### What if our district cannot afford the upfront cost?
-Funding, leasing and utility programs exist for this reason. Start with the EPA program page and your state energy or environment agency.
+Funding, leasing and utility programs exist for this reason. The EPA Clean School Bus Program has funded buses in past rounds, so check the EPA page for any current round, and ask your state energy or environment agency.
 
 **Want to learn more? Visit our [electric school buses](/electric-school-buses) page and explore [heavy-duty electrification](/heavy-duty-electrification).**`,
   },
@@ -224,7 +224,7 @@ Utilities often have staff who work with public fleets, and an early conversatio
 
 ## Step 5: Research Funding
 
-Federal commercial vehicle tax credits have ended, but other sources may be available. Research:
+The federal commercial clean vehicle credit (45W) has ended, but other sources may be available. Research:
 
 - State energy, environment and transportation agencies
 - Utility incentive programs
@@ -266,7 +266,7 @@ Plan training for mechanics, drivers and facilities staff. Manufacturers and com
     image: evPolicy,
     content: `> **Key takeaway:** The federal consumer EV tax credits (30D for new, 25E for used) ended for vehicles acquired after September 30, 2025. Savings may still come from state rebates, utility programs, local incentives and dealer discounts. Availability varies a lot by location, so check what applies where you live.
 
-If you are shopping for an EV today, the federal credit is no longer part of the math. That changes the price picture, but it does not close the door on savings. Many other programs exist, and some are easy to overlook.
+If you are shopping for an EV today, the federal credit is no longer part of the math. That changes the price picture, but other savings are still available. Many other programs exist, and some are easy to overlook.
 
 ## What Ended
 
@@ -315,7 +315,7 @@ Used EVs often cost much less than new ones, and the pool of choices keeps growi
 2. **Check your state energy office** or environmental agency.
 3. **Call your electric utility.**
 4. **Ask your local government** about city or county programs.
-5. **Ask the dealer** what discounts apply, and verify them elsewhere.
+5. **Ask the dealer** what discounts apply, and confirm any rebate with the program administrator.
 6. **Read the fine print.** Look at income caps, price caps, deadlines, and whether the rebate applies at purchase or afterward.
 
 Programs change often. Confirm details with the program administrator before you buy.
@@ -331,12 +331,12 @@ A short call to the program administrator can save you from losing an incentive 
 
 ## Run the Full Cost
 
-Incentives are only part of the picture. Fuel and maintenance savings add up over time. Use the [electricity vs. gasoline calculator](/electricity-vs-gasoline) and read about [financial savings](/financial-savings) to see the complete comparison.
+Incentives are only part of the picture. Fuel and maintenance savings add up over time. Use the [Gas vs. EV calculator](/electricity-vs-gasoline) and read about [financial savings](/financial-savings) to see the complete comparison.
 
 ## Frequently Asked Questions
 
 ### Is there any federal EV tax credit left?
-Not for consumer vehicle purchases after September 30, 2025. Check IRS guidance and consult a tax professional if you have questions about a specific purchase.
+Not for vehicles acquired after September 30, 2025. If you acquired one on or before that date, ask a tax professional how to claim it. Check IRS guidance for details.
 
 ### Can I stack state and utility incentives?
 Often yes, but some programs limit stacking. Read each program's rules.
@@ -369,7 +369,7 @@ Purchase price is the most common barrier. Ways to close the gap:
 
 - **Used EVs.** They cost less than new ones, and the selection keeps expanding. Ask for a battery health report. Browse the [marketplace](/marketplace).
 - **State, utility and local programs.** Some are aimed at lower-income households. See [EV incentives after the federal credits](/blog/ev-incentives-after-federal-tax-credits-ended) and [rebates and incentives](/rebates-incentives).
-- **Lower running costs.** Fuel and maintenance savings can offset higher payments for some drivers. Test your numbers with the [electricity vs. gasoline calculator](/electricity-vs-gasoline).
+- **Lower running costs.** Fuel and maintenance savings can offset higher payments for some drivers. Test your numbers with the [Gas vs. EV calculator](/electricity-vs-gasoline).
 - **Credit unions and community lenders.** Some offer EV-specific loans. Ask.
 
 ## Charging Deserts
@@ -402,7 +402,7 @@ Not everyone needs to own a car. Electric car-sharing, rental programs and ride 
 
 Communities that make progress tend to do a few things well. They map where people live, park and work before deciding where chargers go. They ask residents what they need instead of guessing. They put chargers where people already spend time, so a stop is convenient. And they plan for upkeep, because a broken charger helps no one.
 
-Cities, utilities and property owners can also share costs. A utility may help with wiring, a city may offer a site, and a business may host the charger. Local partnerships like these often make projects possible that none of the groups could finish alone.
+Cities, utilities and property owners can also share costs. A utility may help with wiring, a city may offer a site, and a business may host the charger. Partnerships like these can make projects possible that no single group could fund alone.
 
 ## Why It Matters
 
@@ -428,8 +428,8 @@ They can be, as long as the battery is healthy and charging fits your routine. H
 ### What can I do if there are no chargers near me?
 Request them. Contact your city, utility and local businesses, and bring neighbors. Cite local data when you can.
 
-### Where do I find local news and events?
-Visit our [news](/news) and [events](/events) pages for updates.
+### How can a landlord afford to add chargers?
+Utility make-ready or rebate programs, state grants and shared-cost arrangements can offset some of the cost. Check with your utility and state energy office for what is open now.
 
 **Want to help your community go electric? Visit [U.S. EV policies](/us-ev-policies) and join an event on our [events](/events) page.**`,
   },

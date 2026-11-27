@@ -16,9 +16,9 @@ export const BLOG_BATCH_D: BlogPost[] = [
     author: "Electrifying the US",
     readTime: "5 min read",
     image: evFamily,
-    content: `> **Key takeaway:** Regenerative braking uses your EV's motor to slow the car and send a little energy back to the battery. It helps range most in stop-and-go driving, it reduces wear on your brake pads, and most drivers adjust to one-pedal driving within a week or two.
+    content: `> **Key takeaway:** Regenerative braking uses your EV's motor to slow the car and send a little energy back to the battery. It helps range most in stop-and-go driving, it reduces wear on your brake pads, and many drivers adjust to one-pedal driving quickly.
 
-If you are test driving an EV for the first time, you may notice the car slows down the moment you lift your foot off the accelerator. That is regenerative braking at work. It is one of the biggest differences between driving an electric car and a gas car, and it is easy to get used to.
+If you are test driving an EV for the first time, you may notice the car slows down the moment you lift your foot off the accelerator. That is regenerative braking at work. It is one of the biggest differences between driving an electric car and a gas car, and most people get used to it.
 
 ## How regenerative braking works
 
@@ -63,13 +63,13 @@ One caution: brakes that are rarely used can build up surface rust, especially i
 
 ## Getting used to it
 
-Most people find the first day a little odd and the second week natural. A few tips:
+Many people find the first drive a little odd and get comfortable within days to weeks. A few tips:
 
 1. **Start in a quiet area.** Try the strongest setting in an empty parking lot to learn how quickly the car slows.
 2. **Look ahead.** One-pedal driving rewards smooth, early lifting rather than late, hard stops.
 3. **Pick a setting that feels right.** If strong regeneration feels jerky, choose a lower level. Efficiency is a bonus, not a test.
 4. **Warn passengers.** Quick lifts can nod heads forward the first few times.
-5. **Know your brake lights.** Cars with regeneration generally turn on the brake lights when slowing is strong, but check how yours behaves.
+5. **Know your brake lights.** Many EVs turn on the brake lights when regeneration slows the car strongly, but not all do, so check your manual. Following drivers may not see a warning if yours does not.
 
 If you switch between a gas car and an EV, expect a short readjustment period each time.
 
@@ -91,7 +91,7 @@ Often it is limited. Some cars reduce regeneration at a very high state of charg
 ### Does it make brakes unnecessary?
 No. Friction brakes are still needed for hard stops and emergencies, and they should still be inspected regularly.
 
-**Curious how an EV would fit your daily drive? Try our [Gas vs. EV Cost Calculator](/electricity-vs-gasoline), explore the [range map](/range-map), and read more in [EV Charging 101](/ev-charging-101).**`,
+**Curious how an EV would fit your daily drive? Try our [Gas vs. EV calculator](/electricity-vs-gasoline), explore the [range map](/range-map), and read more in [EV Charging 101](/ev-charging-101).**`,
   },
   {
     slug: "vehicle-to-home-vehicle-to-load-ev-backup-power",
@@ -125,11 +125,11 @@ Common uses include:
 
 - Running power tools at a job site or a remote project
 - Powering lights, a laptop or a coffee maker while camping or tailgating
-- Keeping a refrigerator or a few essentials running for a short time in an outage, using an extension cord
+- Keeping a refrigerator or a few essentials running for a short time in an outage, using a heavy-duty extension cord rated for the load and the vehicle's stated output limits
 
 Limits to keep in mind:
 
-- **Power output is capped.** Each vehicle has a maximum wattage. Large appliances with motors, like air conditioners or well pumps, may exceed it.
+- **Power output is capped.** Each vehicle has a maximum wattage, which is in your owner's manual. Large appliances with motors, like air conditioners or well pumps, may exceed it.
 - **It uses battery range.** Every kilowatt-hour you use is no longer available for driving.
 - **Many cars stop at a set battery level.** Some stop supplying power at a minimum charge so you can still drive.
 
@@ -160,7 +160,7 @@ V2G is the newest piece. Some utilities and automakers have pilot programs that 
 - **Warranty.** Ask your manufacturer whether using bidirectional power affects battery warranty terms.
 - **Battery wear.** Extra charge and discharge cycles use some battery life. The effect depends on the vehicle and how often you do it.
 - **Outage planning.** A portable battery or generator may be a better fit if you only need power occasionally and do not own a compatible EV.
-- **Safety.** Never connect a vehicle directly to a home outlet or panel with homemade cables. Back-feeding is dangerous.
+- **Safety.** Never connect a vehicle to a home outlet or panel with homemade cables, such as a cord with two male plugs. Back-feeding can electrocute utility workers and start fires. Only a licensed electrician should connect an EV to a home's wiring.
 
 ## Frequently Asked Questions
 
@@ -176,7 +176,7 @@ Many utilities require approval or an interconnection agreement. Call yours befo
 ### Is vehicle-to-load safe for camping and tools?
 On supported vehicles, using the built-in outlets or the manufacturer's adapter within the stated power limits is intended use. Follow the manual.
 
-**Thinking about home charging? Read [EV Charging 101](/ev-charging-101), see [how charging levels differ](/blog/charging-101-levels), and compare costs on our [Gas vs. EV Cost Calculator](/electricity-vs-gasoline).**`,
+**Thinking about home charging? Read [EV Charging 101](/ev-charging-101), see [how charging levels differ](/blog/charging-101-levels), and compare costs on our [Gas vs. EV calculator](/electricity-vs-gasoline).**`,
   },
   {
     slug: "ev-maintenance-guide-what-needs-service-what-doesnt",
@@ -232,7 +232,7 @@ Most EVs use liquid coolant to keep the battery, motor and power electronics at 
 
 ### The 12V battery
 
-Even an EV has a small 12-volt battery that runs lights, locks, computers and the systems that start the main pack. It can wear out like any 12V battery, and a weak one can cause confusing warning messages or a car that will not wake up. Replacement is a routine job, but check what your model requires and who should do it.
+Even an EV has a small 12-volt battery that runs lights, locks, computers and the systems that start the main pack. It can wear out like any 12V battery, and a weak one can cause confusing warning messages or a car that will not wake up. Replacement is a routine job, but check what your model requires and who should do it. Do not jump-start or charge the 12V battery from another car unless your manual says how.
 
 ### Wipers, lights and suspension
 
@@ -246,12 +246,12 @@ Many EVs receive over-the-air updates that can improve features, efficiency and 
 
 You do not service the battery pack yourself, and you do not need to. Everyday habits help it last:
 
-- Avoid leaving the car at a very high or very low charge for long periods when possible
+- Follow your manufacturer's advice on charge level. Many recommend avoiding long periods at a very high or very low charge, while some battery types are designed to be charged to 100% regularly.
 - Use fast charging when you need it, but rely on slower charging for daily use
 - Park in the shade or garage in extreme heat when you can
 - Follow your manufacturer's guidance for storage and long trips
 
-Most manufacturers back the battery with a long warranty, commonly several years and many miles, but terms vary. Read yours.
+Most manufacturers back the battery with a long warranty, commonly several years and many miles, but terms vary, and some warranties are shorter or limited for a second owner. Read yours.
 
 ## Finding the right shop
 
@@ -266,12 +266,12 @@ Generally yes, because there are fewer fluids and moving parts to service. Costs
 Follow the schedule in your owner's manual. Many list inspections at set time or mileage intervals.
 
 ### Do I need to replace the battery?
-Most owners will not need to within normal ownership, and batteries come with warranties. Check yours for the exact terms.
+Most owners do not need to within the warranty period, and batteries come with warranties. Check yours for the exact terms.
 
 ### Can I work on an EV myself?
 Simple items like wipers and cabin filters are fine. Leave high-voltage components to trained technicians.
 
-**Want to see the savings in numbers? Use the [Gas vs. EV Cost Calculator](/electricity-vs-gasoline) and learn more on our [Financial Savings page](/financial-savings).**`,
+**Want to see the savings in numbers? Use the [Gas vs. EV calculator](/electricity-vs-gasoline) and learn more on our [Financial Savings page](/financial-savings).**`,
   },
   {
     slug: "ev-safety-facts-crashes-fires-flooding-charging-in-rain",
@@ -323,9 +323,10 @@ EV batteries are sealed, and vehicles are designed to handle rain, puddles and c
 
 Why EVs need extra care after flooding:
 
-- Saltwater can corrode electrical components, and damage may appear weeks later.
+- Floodwater, especially saltwater, can corrode electrical components, and damage may appear weeks later. A battery that has been submerged can overheat or catch fire well after the water recedes.
 - A vehicle that was submerged can have lasting battery and electronics problems.
 - Do not charge or attempt to start a flooded vehicle. Have it assessed by a qualified technician.
+- If your car was in floodwater, park it outdoors away from buildings and other vehicles, and tell your insurer, tow operator and any shop that it was flooded.
 
 If you live in a flood-prone area, consider where you park in a storm. When buying used, check the vehicle history for flood damage.
 
@@ -336,30 +337,30 @@ Charging equipment is built for outdoor use. Connectors and charge ports are sea
 Sensible precautions:
 
 - Do not use a charger with a cracked or frayed cable or a damaged connector.
-- Avoid standing in deep water while plugging in.
+- Avoid standing in deep water while plugging in. Do not use a connector or charge port that has been submerged. Have it checked first.
 - Keep the charge port clean and free of debris.
-- With a portable charger at home, use a proper outlet and follow the manual. Avoid extension cords and unrated adapters.
+- With a portable charger at home, use a properly wired outlet, ideally a dedicated circuit installed by a licensed electrician, and follow the manual. Avoid extension cords and unrated adapters.
 - If something looks or smells wrong, stop charging and report it.
 
 For a primer on equipment, read [EV Charging 101](/ev-charging-101) and our guide on [charging levels](/blog/charging-101-levels).
 
 ## Safety for people around the car
 
-EVs are quieter at low speeds, so federal rules require a warning sound at low speed. Still, stay alert for pedestrians and cyclists, especially in parking lots. Driver-assistance features can help, but they are not self-driving. Stay engaged and read the manual.
+EVs are quieter at low speeds, so federal rules (FMVSS 141) require newer hybrids and EVs to make a warning sound at low speeds. Older used models may not have one. Still, stay alert for pedestrians and cyclists, especially in parking lots. Driver-assistance features can help, but they are not self-driving. Stay engaged and read the manual.
 
 ## Frequently Asked Questions
 
 ### Are EVs safer than gas cars?
-It depends on the specific vehicle. Check NHTSA and IIHS ratings for the exact model and year.
+Crash and fire outcomes depend on the specific vehicle, so check NHTSA and IIHS ratings for the exact model and year rather than comparing whole vehicle types.
 
 ### Should I worry about a battery fire in my garage?
-The risk is low, and it is manageable with certified chargers, recall follow-up and working smoke alarms. Ask your insurer and fire department if you have questions.
+Garage fires involving EVs are uncommon, but they can happen. The risk is manageable with certified charging equipment, a properly installed circuit, recall follow-up and working smoke alarms. Ask your insurer and fire department if you have questions.
 
 ### Can I go through a car wash?
 Generally yes. Some vehicles have a car wash mode. Check the manual.
 
 ### Is it safe to charge during a thunderstorm?
-Equipment is designed for outdoor use, and many owners charge in storms. If you are concerned, wait for the storm to pass.
+Equipment is designed for outdoor use, and many owners charge in storms. Some public chargers shut down during storms. If you are concerned, wait for the storm to pass.
 
 **Learn more at our [EV road safety page](/ev-road-safety), and compare vehicles in the [marketplace](/marketplace).**`,
   },
@@ -413,11 +414,11 @@ Use the [range map](/range-map) to get a sense of coverage in your region, and e
 
 ## Other towing details
 
-- **Know your ratings.** Check the maximum towing capacity, tongue weight limits and payload for your specific truck and configuration. These differ by trim, battery pack and options.
+- **Know your ratings.** Check the maximum towing capacity, tongue weight limits, payload and gross combined weight rating for your specific truck and configuration. Never exceed them. Passengers and cargo reduce the available towing capacity. These differ by trim, battery pack and options.
 - **Match your trailer.** Brakes, hitch, weight distribution and trailer lights all need to be right. Some electric trucks integrate trailer brake controllers.
 - **Use tow modes.** Many trucks offer settings for towing, regeneration and stability. Read the manual.
 - **Mind the payload.** Loading the bed adds weight and uses range, too.
-- **Charging at your destination.** A campground or job site with an outlet can keep you moving.
+- **Charging at your destination.** A campground or job site with a Level 2 or dedicated outlet can add range overnight. A standard household outlet adds only a few miles per hour. Do not use extension cords or unrated adapters.
 
 ## Who electric pickups suit best
 
@@ -426,7 +427,7 @@ An electric truck tends to be a good match if you:
 - Drive mostly locally and charge at home or at a depot
 - Tow occasionally, within a modest distance of home
 - Want on-site power for tools, using the truck's outlets where available
-- Value lower fuel and maintenance costs over time (try our [cost calculator](/electricity-vs-gasoline))
+- Value lower fuel and maintenance costs over time (try our [Gas vs. EV calculator](/electricity-vs-gasoline))
 - Run a fleet with predictable routes, where [heavy-duty electrification](/heavy-duty-electrification) is already making progress
 
 It may be a harder fit if you:
@@ -443,13 +444,13 @@ None of these is a rule. Some owners with demanding use find that the trade-offs
 Many can, within their rated capacity. Expect reduced range and plan more charging stops.
 
 ### Should I tow at a lower speed?
-Slower speeds generally improve efficiency, and that may help your range. Follow the posted limits and the manufacturer's advice.
+Slower speeds generally improve efficiency and range. Follow the posted limits, any lower trailer-tire speed rating and the manufacturer's advice.
 
 ### Can I charge with the trailer attached?
 Sometimes. It depends on the station layout and your vehicle's port location. Pull-through stalls are the easiest.
 
 ### Do I need special insurance?
-Talk to your insurer about towing coverage, which is separate from the truck itself.
+Talk to your insurer about trailer coverage and whether your policy covers towing.
 
 **Ready to explore? Browse [electric trucks in the marketplace](/marketplace), check [rebates and incentives](/rebates-incentives) for what is available in your state, and see [upcoming events](/events) to test drive one.**`,
   },

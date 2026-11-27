@@ -66,7 +66,7 @@ Hearing from dealers on both coasts, plus someone who lives with her EV every da
 The panel's advice lines up with what every careful shopper should do. Use this as your checklist.
 
 ### 1. Battery health
-The battery is the most valuable part of an EV, so ask how healthy it is. A reputable dealer can show you a battery health report, which tells you how much of its original capacity the battery still holds. Also check how much of the manufacturer's battery warranty is left. Most automakers cover the battery for at least 8 years or 100,000 miles.
+The battery is the most valuable part of an EV, so ask how healthy it is. A reputable dealer can show you a battery health report, which tells you how much of its original capacity the battery still holds. Where you can, have an independent shop or EV specialist confirm the battery health report before you sign. Also check how much of the manufacturer's battery warranty is left. Most automakers cover the battery for at least 8 years or 100,000 miles, but terms can be shorter or limited for a second owner, so ask for the specifics on the exact car.
 
 ### 2. Real-world range for your life
 Compare the car's range with the driving you actually do, not the longest trip you take each year. If you live somewhere cold, plan for less range in winter. Our [Range Map](/range-map) shows how far an EV can take you from where you live.
@@ -81,11 +81,11 @@ An EV has far fewer moving parts than a gas car, with no oil changes and less br
 The purchase price is only part of the story. Fuel and maintenance savings add up every month. Put the car you're considering next to the one you drive today in our [Gas vs. EV calculator](/electricity-vs-gasoline).
 
 ### 6. Incentives where you live
-Some states and utilities offer rebates for used EVs, and the panel discussed how buyers are using them in California. Programs change often, so check what's available in your ZIP code on our [Rebates & Incentives page](/rebates-incentives).
+Some states and utilities offer rebates for used EVs, and the panel discussed how buyers are using them in California. Programs change often, so check what's available in your ZIP code on our [Rebates & Incentives page](/rebates-incentives). The federal used EV credit (25E) is no longer available for vehicles acquired after September 30, 2025.
 
 ## Why pre-owned matters
 
-New EVs get the headlines, but most Americans buy used cars. A healthy used EV brings the same lower running costs to a much lower purchase price, which is what makes driving electric possible for more families. That was the heart of Part 3: affordability isn't only about the sticker on a new car.
+New EVs get the headlines, but most Americans buy used cars. A healthy used EV brings similarly lower running costs to a much lower purchase price, which is what makes driving electric possible for more families. That was the heart of Part 3: affordability isn't only about the sticker on a new car.
 
 ## Watch the series
 
