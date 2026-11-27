@@ -331,6 +331,15 @@ async function fetchEventCalendarApp(url: string, sourceLabel: string): Promise<
   return Array.from(soonestByTitle.values());
 }
 
+// Built-in ICS feeds, merged with EVENT_FEEDS so adding one needs no env edit.
+// Checked Nov 2026: each had upcoming events (most other EV Meetup groups and
+// Clean Cities calendars we tried were empty or published no feed).
+const BUILTIN_FEEDS = [
+  "https://www.meetup.com/plug-in-boise/events/ical/",   // PlugIn Boise, monthly
+  "https://cleanfuelsohio.org/events/?ical=1",          // Clean Fuels Ohio (Clean Cities)
+  "https://drivecleancolorado.org/events/?ical=1",      // Drive Clean Colorado (Clean Cities)
+];
+
 // Built-in EventCalendarApp sources beyond the ICS/RSS feeds in EVENT_FEEDS.
 const ECA_SOURCES: { url: string; label: string }[] = [
   // Electric Vehicle Association — public EV showcases & ride-and-drives nationwide.
@@ -381,8 +390,10 @@ export default async function handler(req: any, res: any) {
   const rl = await checkRateLimit(req, { bucket: "events", limit: 60, windowMinutes: 60 });
   if (!rl.ok) { tooManyRequests(res, rl); return; }
 
-  const feeds = (process.env.EVENT_FEEDS ?? "")
-    .split(/[\n,]/).map((s) => s.trim()).filter(Boolean);
+  const feeds = [...new Set([
+    ...(process.env.EVENT_FEEDS ?? "").split(/[\n,]/).map((s) => s.trim()).filter(Boolean),
+    ...BUILTIN_FEEDS,
+  ])];
 
   try {
     // ICS/RSS feeds (env) + EventCalendarApp JSON sources + curated one-offs.
