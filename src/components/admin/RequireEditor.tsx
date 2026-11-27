@@ -6,6 +6,7 @@ import { ReactNode } from "react";
 import { Navigate } from "react-router-dom";
 import { Loader2, ShieldAlert } from "lucide-react";
 import { useEditorAuth, signOut } from "@/lib/auth";
+import MfaGate from "@/components/admin/MfaGate";
 
 const RequireEditor = ({ children }: { children: ReactNode }) => {
   const auth = useEditorAuth();
@@ -20,6 +21,10 @@ const RequireEditor = ({ children }: { children: ReactNode }) => {
 
   if (auth.status === "signed-out") {
     return <Navigate to="/admin/login" replace />;
+  }
+
+  if (auth.status === "mfa-enroll" || auth.status === "mfa-verify") {
+    return <MfaGate mode={auth.status === "mfa-enroll" ? "enroll" : "verify"} />;
   }
 
   if (auth.status === "not-authorized") {

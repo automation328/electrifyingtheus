@@ -31,6 +31,20 @@ export function adminSupabase(): SupabaseClient | null {
   return url && key ? createClient(url, key, { auth: { persistSession: false } }) : null;
 }
 
+/** The `aal` claim of a Supabase access token ("aal1" password only, "aal2"
+ *  after a second factor), or "" if the token can't be read. Call only after
+ *  GoTrue has verified the token: this decodes, it does not check the signature. */
+export function tokenAal(token: string): string {
+  try {
+    const payload = token.split(".")[1] ?? "";
+    const json = Buffer.from(payload.replace(/-/g, "+").replace(/_/g, "/"), "base64").toString("utf8");
+    const aal = (JSON.parse(json) as { aal?: unknown }).aal;
+    return typeof aal === "string" ? aal : "";
+  } catch {
+    return "";
+  }
+}
+
 function bearer(req: Req): string {
   const h = req.headers["authorization"] || req.headers["Authorization"];
   const raw = Array.isArray(h) ? h[0] : h;
@@ -65,6 +79,11 @@ export async function getEditor(req: Req): Promise<Editor | null> {
     return null;
   }
   if (!email) return null;
+
+  // 1b) Two-factor: the session must have passed a TOTP check (aal2). GoTrue
+  // accepted the token above, so its claims are genuine; we only read them.
+  // Without this, a stolen password alone could call the CMS API directly.
+  if (tokenAal(token) !== "aal2") return null;
 
   // 2) Confirm the email is an allow-listed editor (service role read).
   //

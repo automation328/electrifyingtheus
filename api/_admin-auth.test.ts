@@ -15,7 +15,12 @@ vi.mock("@supabase/supabase-js", () => ({
 
 import { getEditor } from "./_admin-auth.js";
 
-const req = { headers: { authorization: "Bearer tok" } };
+// A fake access token carrying only the claims getEditor reads. GoTrue (stubbed
+// below) is what vouches for it, so it needs no real signature here.
+const jwt = (claims: object) =>
+  `x.${Buffer.from(JSON.stringify(claims)).toString("base64url")}.sig`;
+const reqWith = (aal: string) => ({ headers: { authorization: `Bearer ${jwt({ aal })}` } });
+const req = reqWith("aal2");
 const gotrue = (user: object) =>
   vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, json: async () => user }));
 
@@ -30,6 +35,12 @@ describe("getEditor", () => {
   it("accepts a confirmed allow-listed account", async () => {
     gotrue({ email: "ed@example.com", email_confirmed_at: "2026-01-01T00:00:00Z" });
     expect(await getEditor(req)).toEqual({ email: "ed@example.com", role: "admin" });
+  });
+
+  it("rejects a password-only session (no 2FA) even for an allow-listed editor", async () => {
+    gotrue({ email: "ed@example.com", email_confirmed_at: "2026-01-01T00:00:00Z" });
+    expect(await getEditor(reqWith("aal1"))).toBeNull();
+    expect(await getEditor({ headers: { authorization: "Bearer not-a-jwt" } })).toBeNull();
   });
 
   it("rejects an unconfirmed account even if the email is allow-listed", async () => {

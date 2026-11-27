@@ -31,6 +31,51 @@ export async function changePassword(newPassword: string): Promise<{ error: stri
   return { error: error ? error.message : null };
 }
 
+// ── Two-factor (TOTP) ─────────────────────────────────────────────────────────
+// Every editor must pass an authenticator-app code after the password. The
+// server refuses CMS calls from a password-only (aal1) session, so this UI is
+// convenience, not the lock. A lost phone: an admin removes the user's factor in
+// Supabase (Authentication → Users → the user → MFA), then they enroll again.
+
+export interface TotpEnrollment {
+  factorId: string;
+  /** SVG data URL of the QR code to scan. */
+  qr: string;
+  /** The same key as text, for apps that can't scan. */
+  secret: string;
+}
+
+/** Start authenticator-app setup. Clears any half-finished setup first, since
+ *  Supabase keeps unverified factors and a stale one would block a new enroll. */
+export async function enrollTotp(): Promise<{ data: TotpEnrollment | null; error: string | null }> {
+  if (!supabase) return { data: null, error: "Auth is not configured." };
+  const { data: list } = await supabase.auth.mfa.listFactors();
+  for (const f of list?.all ?? []) {
+    if (f.factor_type === "totp" && f.status !== "verified") await supabase.auth.mfa.unenroll({ factorId: f.id });
+  }
+  const { data, error } = await supabase.auth.mfa.enroll({
+    factorType: "totp",
+    friendlyName: `ETU CMS ${new Date().toISOString().slice(0, 16)}`,
+  });
+  if (error || !data) return { data: null, error: error?.message ?? "Could not start 2FA setup." };
+  return { data: { factorId: data.id, qr: data.totp.qr_code, secret: data.totp.secret }, error: null };
+}
+
+/** The signed-in user's verified authenticator factor, if any. */
+export async function verifiedTotpFactor(): Promise<string | null> {
+  if (!supabase) return null;
+  const { data } = await supabase.auth.mfa.listFactors();
+  return data?.totp?.[0]?.id ?? null;
+}
+
+/** Check a 6-digit code. On success the session is upgraded to aal2 and the
+ *  auth hook re-resolves on its own (Supabase fires an auth state change). */
+export async function verifyTotp(factorId: string, code: string): Promise<{ error: string | null }> {
+  if (!supabase) return { error: "Auth is not configured." };
+  const { error } = await supabase.auth.mfa.challengeAndVerify({ factorId, code: code.replace(/\s/g, "") });
+  return { error: error ? error.message : null };
+}
+
 /** Current Supabase access token (JWT) for authorizing /api/admin/* calls. */
 export async function getAccessToken(): Promise<string | null> {
   if (!supabase) return null;
@@ -62,7 +107,9 @@ type AuthState =
   | { status: "loading"; editor: null }
   | { status: "signed-out"; editor: null }
   | { status: "editor"; editor: EditorInfo }
-  | { status: "not-authorized"; editor: null }; // valid login, but not an allow-listed editor
+  | { status: "not-authorized"; editor: null } // valid login, but not an allow-listed editor
+  | { status: "mfa-enroll"; editor: null }      // password OK, no authenticator set up yet
+  | { status: "mfa-verify"; editor: null };     // password OK, authenticator code still needed
 
 /**
  * React hook exposing the CMS auth state. Re-checks editor authorization whenever
@@ -79,6 +126,12 @@ export function useEditorAuth(): AuthState & { refresh: () => void } {
       if (!supabase) { if (!cancelled) setState({ status: "signed-out", editor: null }); return; }
       const { data } = await supabase.auth.getSession();
       if (!data.session) { if (!cancelled) setState({ status: "signed-out", editor: null }); return; }
+      // Second factor before anything else: the server rejects aal1 sessions.
+      const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+      if (aal?.currentLevel !== "aal2") {
+        if (!cancelled) setState({ status: aal?.nextLevel === "aal2" ? "mfa-verify" : "mfa-enroll", editor: null });
+        return;
+      }
       const editor = await fetchEditor();
       if (cancelled) return;
       setState(editor ? { status: "editor", editor } : { status: "not-authorized", editor: null });
