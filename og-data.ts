@@ -70,6 +70,153 @@ export const OG_ENTRIES: OgEntry[] = [
     image: "/og/cleaner-air-healthier-neighborhoods.jpg",
   },
   {
+    path: "/blog/pre-owned-ev-buying-guide-pump-to-plug-part-3",
+    title: "Buying a Used EV: Dealer and Driver Advice (Webinar Recap)",
+    description:
+      "Pre-owned EV dealers and an EV driver on battery health, charging and affordability, plus a checklist for buying a used EV.",
+    image: "/og/blog-pre-owned-ev-buying-guide-pump-to-plug-part-3.jpg",
+  },
+  {
+    path: "/blog/how-to-choose-your-first-ev-checklist",
+    title: "How to Choose Your First EV: A Step-by-Step Checklist",
+    description:
+      "Choose your first EV in 7 steps: daily miles, home charging, budget, size, features and a proper test drive. A practical US checklist.",
+    image: "/og/blog-how-to-choose-your-first-ev-checklist.jpg",
+  },
+  {
+    path: "/blog/lease-vs-buy-an-ev-2026",
+    title: "Leasing vs. Buying an EV in 2026: Which Is Right for You?",
+    description:
+      "Lease or buy an EV in 2026? Compare pros, cons, mileage limits and resale risk, plus who each option suits now the federal credits have ended.",
+    image: "/og/blog-lease-vs-buy-an-ev-2026.jpg",
+  },
+  {
+    path: "/blog/ev-insurance-why-it-differs-and-how-to-save",
+    title: "EV Insurance: Why It Costs More or Less and How to Save",
+    description:
+      "Why EV insurance can cost more or less than a gas car, and how to compare quotes, ask about battery coverage and find discounts.",
+    image: "/og/blog-ev-insurance-why-it-differs-and-how-to-save.jpg",
+  },
+  {
+    path: "/blog/ev-battery-life-degradation-warranty-explained",
+    title: "EV Battery Life, Degradation and Warranties Explained",
+    description:
+      "What wears down an EV battery, how to check its health and what the warranty covers. Most automakers offer 8 years or 100,000 miles or more.",
+    image: "/og/blog-ev-battery-life-degradation-warranty-explained.jpg",
+  },
+  {
+    path: "/blog/how-to-shop-for-an-affordable-ev",
+    title: "How to Shop for an Affordable EV: New vs. Used",
+    description:
+      "Shop for an affordable EV: compare new and used, work out total cost of ownership, know where to look and spot the red flags.",
+    image: "/og/blog-how-to-shop-for-an-affordable-ev.jpg",
+  },
+  {
+    path: "/blog/install-level-2-home-charger-steps-permits-costs",
+    title: "How to Install a Level 2 Home EV Charger: Steps & Permits",
+    description:
+      "Install a Level 2 home EV charger: panel check, choosing a unit, hiring an electrician, permits and finding utility rebates.",
+    image: "/og/blog-install-level-2-home-charger-steps-permits-costs.jpg",
+  },
+  {
+    path: "/blog/charging-an-ev-when-you-rent-or-live-in-an-apartment",
+    title: "Charging an EV When You Rent or Live in an Apartment",
+    description:
+      "No garage? How renters charge an EV with workplace, public and Level 1 options, how to ask your landlord, and right-to-charge laws.",
+    image: "/og/blog-charging-an-ev-when-you-rent-or-live-in-an-apartment.jpg",
+  },
+  {
+    path: "/blog/plan-your-first-ev-road-trip",
+    title: "Planning Your First EV Road Trip: A Simple Checklist",
+    description:
+      "Plan your first EV road trip with route planners, charging stops, a range buffer, cold-weather tips and charging etiquette.",
+    image: "/og/blog-plan-your-first-ev-road-trip.jpg",
+  },
+  {
+    path: "/blog/time-of-use-rates-ev-charging-off-peak-savings",
+    title: "Time-of-Use Rates: Save by Charging Your EV Off-Peak",
+    description:
+      "How time-of-use electricity rates work, how to schedule EV charging off-peak, and how to check your utility's EV rate plan.",
+    image: "/og/blog-time-of-use-rates-ev-charging-off-peak-savings.jpg",
+  },
+  {
+    path: "/blog/public-ev-charging-explained-networks-apps-plugs",
+    title: "Public EV Charging Explained: Networks, Apps and Plugs",
+    description:
+      "Public EV charging explained: networks, apps, payment, plug types, the NACS (J3400) shift and charging etiquette.",
+    image: "/og/blog-public-ev-charging-explained-networks-apps-plugs.jpg",
+  },
+  {
+    path: "/blog/driving-electric-for-rideshare-and-gig-work",
+    title: "Driving an EV for Rideshare and Gig Work: A Practical Guide",
+    description:
+      "Driving electric for rideshare or gig work? Compare cost per mile, plan charging between trips, pick a car and check platform rules.",
+    image: "/og/blog-driving-electric-for-rideshare-and-gig-work.jpg",
+  },
+  {
+    path: "/blog/electric-school-buses-what-parents-and-school-boards-should-know",
+    title: "Electric School Buses: A Guide for Parents and Schools",
+    description:
+      "How electric school buses work, how depots charge them, and how parents and school boards can start the conversation and find funding.",
+    image: "/og/blog-electric-school-buses-what-parents-and-school-boards-should-know.jpg",
+  },
+  {
+    path: "/blog/how-cities-and-towns-can-electrify-their-fleets",
+    title: "How Cities and Towns Can Electrify Their Fleets",
+    description:
+      "A step-by-step guide for local governments: inventory vehicles, pick easy wins, plan charging with your utility, and research funding.",
+    image: "/og/blog-how-cities-and-towns-can-electrify-their-fleets.jpg",
+  },
+  {
+    path: "/blog/ev-incentives-after-federal-tax-credits-ended",
+    title: "EV Incentives After the Federal Tax Credits Ended",
+    description:
+      "Federal EV credits ended for vehicles acquired after Sept. 30, 2025. Find state, utility, local and dealer savings that may still apply.",
+    image: "/og/blog-ev-incentives-after-federal-tax-credits-ended.jpg",
+  },
+  {
+    path: "/blog/making-evs-work-for-every-community",
+    title: "Making EVs Affordable and Accessible for Every Community",
+    description:
+      "Used EVs, charging deserts, apartment charging and car-sharing: practical ways to make EVs work for every community.",
+    image: "/og/blog-making-evs-work-for-every-community.jpg",
+  },
+  {
+    path: "/blog/regenerative-braking-one-pedal-driving-explained",
+    title: "Regenerative Braking and One-Pedal Driving, Explained",
+    description:
+      "How regenerative braking works, what it does for EV range and brake wear, and tips for getting comfortable with one-pedal driving.",
+    image: "/og/blog-regenerative-braking-one-pedal-driving-explained.jpg",
+  },
+  {
+    path: "/blog/vehicle-to-home-vehicle-to-load-ev-backup-power",
+    title: "Vehicle-to-Home and V2L: Using Your EV as Backup Power",
+    description:
+      "Can your EV power tools or your home in an outage? What V2L and V2H mean, what you need, and the limits.",
+    image: "/og/blog-vehicle-to-home-vehicle-to-load-ev-backup-power.jpg",
+  },
+  {
+    path: "/blog/ev-maintenance-guide-what-needs-service-what-doesnt",
+    title: "EV Maintenance Guide: What Needs Service and What Doesn't",
+    description:
+      "EVs skip oil changes but still need care. What to service: tires, brakes, cabin filter, coolant, 12V battery and software updates.",
+    image: "/og/blog-ev-maintenance-guide-what-needs-service-what-doesnt.jpg",
+  },
+  {
+    path: "/blog/ev-safety-facts-crashes-fires-flooding-charging-in-rain",
+    title: "EV Safety Facts: Crashes, Battery Fires and Flooding",
+    description:
+      "A plain guide to EV crash ratings, battery fires, flood damage and charging in the rain, and what owners should actually know.",
+    image: "/og/blog-ev-safety-facts-crashes-fires-flooding-charging-in-rain.jpg",
+  },
+  {
+    path: "/blog/electric-pickup-trucks-towing-range-charging-guide",
+    title: "Electric Pickup Trucks and Towing: Range and Charging",
+    description:
+      "How towing cuts an electric truck's range, how to plan charging stops with a trailer, and which drivers an electric pickup suits.",
+    image: "/og/blog-electric-pickup-trucks-towing-range-charging-guide.jpg",
+  },
+  {
     path: "/blog/from-the-pump-to-the-plug-ev-savings-webinar",
     title: "From the Pump to the Plug: How EVs Can Save You Thousands",
     description:

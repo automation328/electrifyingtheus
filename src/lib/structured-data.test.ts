@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { absoluteUrl, blogPostingLd, breadcrumbLd, eventLd, eventStartDate, homeLd, isoDate, plainText, TOOL_PATHS, webApplicationLd } from "./structured-data";
+import { absoluteUrl, blogPostingLd, breadcrumbLd, faqLd, eventLd, eventStartDate, homeLd, isoDate, plainText, TOOL_PATHS, webApplicationLd } from "./structured-data";
 import { ogFor } from "@/components/SeoHead";
 
 const event = {
@@ -84,5 +84,32 @@ describe("ogFor", () => {
     expect(ogFor("/range-map")?.title).toMatch(/Range Map/);
     expect(ogFor("/range-map/")?.title).toMatch(/Range Map/);
     expect(ogFor("/no-such-page")).toBeUndefined();
+  });
+});
+
+describe("faqLd", () => {
+  it("turns a post's FAQ section into Question/Answer pairs with plain-text answers", () => {
+    const md = [
+      "## Intro", "Body.", "",
+      "## Frequently Asked Questions", "",
+      "### Is a used EV a good buy?", "It can be. Check the [battery](/blog/x) first.", "",
+      "### Do EVs work in winter?", "Yes, with **less range**.", "",
+      "**Compare costs with the [calculator](/electricity-vs-gasoline).**",
+    ].join("\n");
+    const ld = faqLd(md)!;
+    expect(ld["@type"]).toBe("FAQPage");
+    expect(ld.mainEntity.map((q) => q.name)).toEqual(["Is a used EV a good buy?", "Do EVs work in winter?"]);
+    expect(ld.mainEntity[0].acceptedAnswer.text).toBe("It can be. Check the battery first.");
+    expect(ld.mainEntity[1].acceptedAnswer.text).toBe("Yes, with less range.");
+  });
+
+  it("returns null without an FAQ section", () => {
+    expect(faqLd("## Intro\nNo questions here.")).toBeNull();
+  });
+
+  it("finds an FAQ in every new guide", async () => {
+    const { BLOG_POSTS } = await import("@/data/blog-posts");
+    const missing = BLOG_POSTS.filter((p) => !p.hidden && p.date === "November 28, 2026" && !faqLd(p.content)).map((p) => p.slug);
+    expect(missing).toEqual([]);
   });
 });

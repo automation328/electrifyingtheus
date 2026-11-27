@@ -7,6 +7,12 @@ import micromobility from "@/assets/micromobility.jpg";
 import evWinter from "@/assets/ev-winter.jpg";
 import evFamily from "@/assets/ev-family.jpg";
 import webinarPart1 from "@/assets/webinar-part1.jpg";
+import webinarPart3 from "@/assets/events/pump-to-plug-part-3-2026.jpg";
+// Nov 2026 guides, one file per topic group so this file stays readable.
+import { BLOG_BATCH_A } from "@/data/blog/batch-a";
+import { BLOG_BATCH_B } from "@/data/blog/batch-b";
+import { BLOG_BATCH_C } from "@/data/blog/batch-c";
+import { BLOG_BATCH_D } from "@/data/blog/batch-d";
 
 export interface BlogPost {
   /** site_blog_posts row id. Absent on the curated posts below, which have no
@@ -28,7 +34,78 @@ export interface BlogPost {
   content: string;
 }
 
-export const BLOG_POSTS: BlogPost[] = [
+const CORE_POSTS: BlogPost[] = [
+  {
+    slug: "pre-owned-ev-buying-guide-pump-to-plug-part-3",
+    title: "Buying a Pre-Owned EV: What Dealers and Drivers Told Us in From the Pump to the Plug, Part 3",
+    excerpt:
+      "Two pre-owned EV dealers and an everyday EV driver joined Part 3 of our webinar series to talk about what makes a used electric car affordable, how to judge battery health, and what ownership is really like. Here's the recap, and a checklist for your own search.",
+    category: "EV Savings",
+    date: "November 28, 2026",
+    author: "Electrifying the US",
+    readTime: "5 min read",
+    image: webinarPart3,
+    content: `> **Key takeaway:** A pre-owned EV is one of the most affordable ways to go electric. The questions that matter most are the battery's health, where you'll charge, and what the car will cost you to run each year. [Watch the full recording](/from-pump-to-plug-part-3) to hear the dealers and driver answer them.
+
+## Part 3 of From the Pump to the Plug
+
+On November 19, 2026, we hosted **Part 3 of our national EV affordability webinar series, From the Pump to the Plug**. Parts 1 and 2 focused on the savings that come with driving electric. Part 3 turned to a question we hear constantly: *can I get those savings without buying new?*
+
+The series is powered by Electrifying Michigan, Electrifying the US, and Electrifying Virginia.
+
+## Who joined us
+
+- **Adam Borison**, CEO of eMotion Autos, a pre-owned EV dealer in California. He spoke about what buyers are asking, how California incentives are being used, and how dealers test battery health before a car goes on the lot.
+- **Jesse Lore**, Founder & CEO of Green Wave Electric Vehicles, a pre-owned EV dealer in Massachusetts. He brought the cold-weather view on range and charging, and explained why an EV can cost less to own over the long run.
+- **Monique Jones**, an EV driver from California. She gave the driver's view on buying pre-owned, setting up home charging, and what everyday ownership is really like.
+
+Hearing from dealers on both coasts, plus someone who lives with her EV every day, gave a rounded picture of the used EV market.
+
+## What to check before you buy a used EV
+
+The panel's advice lines up with what every careful shopper should do. Use this as your checklist.
+
+### 1. Battery health
+The battery is the most valuable part of an EV, so ask how healthy it is. A reputable dealer can show you a battery health report, which tells you how much of its original capacity the battery still holds. Also check how much of the manufacturer's battery warranty is left. Most automakers cover the battery for at least 8 years or 100,000 miles.
+
+### 2. Real-world range for your life
+Compare the car's range with the driving you actually do, not the longest trip you take each year. If you live somewhere cold, plan for less range in winter. Our [Range Map](/range-map) shows how far an EV can take you from where you live.
+
+### 3. Where you'll charge
+Most EV drivers do most of their charging at home. Find out whether you can plug in where you park overnight, even on a standard outlet. If you can't, look at the chargers near your home and work on our [charger map](/find-a-charger).
+
+### 4. Condition and maintenance history
+An EV has far fewer moving parts than a gas car, with no oil changes and less brake wear, but you should still check the tires, the suspension, and any open recalls. A service history and a clean inspection are worth asking for.
+
+### 5. What it will cost to run
+The purchase price is only part of the story. Fuel and maintenance savings add up every month. Put the car you're considering next to the one you drive today in our [Gas vs. EV calculator](/electricity-vs-gasoline).
+
+### 6. Incentives where you live
+Some states and utilities offer rebates for used EVs, and the panel discussed how buyers are using them in California. Programs change often, so check what's available in your ZIP code on our [Rebates & Incentives page](/rebates-incentives).
+
+## Why pre-owned matters
+
+New EVs get the headlines, but most Americans buy used cars. A healthy used EV brings the same lower running costs to a much lower purchase price, which is what makes driving electric possible for more families. That was the heart of Part 3: affordability isn't only about the sticker on a new car.
+
+## Watch the series
+
+- **[Watch Part 3: Pre-owned EVs](/from-pump-to-plug-part-3)**, with eMotion Autos, Green Wave Electric Vehicles and EV driver Monique Jones.
+- **[Watch Part 2](/from-pump-to-plug-part-2)**, with the California Air Resources Board, Coltura, Uber, Austin Energy and GRID Alternatives.
+- **[Watch Part 1](/save-with-evs-webinar)**, with UC Davis, Cox Automotive, the City of Huron, the Colorado Energy Office, Consumer Reports and an EV rideshare driver.
+
+## Frequently Asked Questions
+
+### Is a used EV a good buy?
+It can be a very good one. A used EV costs less up front and still brings lower fuel and maintenance costs. Check the battery's health and remaining warranty, and make sure you have a place to charge.
+
+### How do I check a used EV's battery?
+Ask the seller for a battery health report showing how much of its original capacity the battery holds. Many dealers that specialize in EVs test this before listing a car. Also confirm how much of the battery warranty is left.
+
+### Do used EVs work in cold weather?
+Yes. Range drops in the cold, so pick a car whose winter range still covers your daily driving with room to spare. Jesse Lore of Green Wave Electric Vehicles covered cold-weather ownership in the [recording](/from-pump-to-plug-part-3).
+
+**Ready to look? Compare costs with the [Gas vs. EV calculator](/electricity-vs-gasoline), check [incentives in your ZIP code](/rebates-incentives), and browse EVs on our [marketplace](/marketplace).**`,
+  },
   {
     slug: "from-the-pump-to-the-plug-ev-savings-webinar",
     title: "From The Pump To The Plug: How Electric Vehicles Can Save You Thousands",
@@ -801,3 +878,12 @@ Yes, but EVs are cleaner than gas cars on emissions in virtually every U.S. regi
 ];
 
 export const getPostBySlug = (slug: string) => BLOG_POSTS.find((p) => p.slug === slug);
+
+export const BLOG_POSTS: BlogPost[] = [
+  ...CORE_POSTS.slice(0, 1), // newest: the Part 3 webinar recap
+  ...BLOG_BATCH_A,
+  ...BLOG_BATCH_B,
+  ...BLOG_BATCH_C,
+  ...BLOG_BATCH_D,
+  ...CORE_POSTS.slice(1),
+];

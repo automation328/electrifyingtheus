@@ -14,9 +14,9 @@ import MarkdownEditor from "@/components/inline/MarkdownEditor";
 import EditableImage from "@/components/inline/EditableImage";
 import { useInlineEdit } from "@/components/inline/edit-context";
 import { usePost, usePosts } from "@/hooks/use-content";
-import SeoHead from "@/components/SeoHead";
+import SeoHead, { ogFor } from "@/components/SeoHead";
 import JsonLd from "@/components/JsonLd";
-import { blogPostingLd, breadcrumbLd } from "@/lib/structured-data";
+import { blogPostingLd, breadcrumbLd, faqLd } from "@/lib/structured-data";
 import NoIndex from "@/components/NoIndex";
 
 // Where an editor may drop blocks on a post, in the order they appear. Used for
@@ -191,7 +191,14 @@ const BlogPost = () => {
     );
   }
 
-  const related = posts.filter((p) => p.slug !== post.slug).slice(0, 3);
+  // Same-topic posts first, then the newest others: better reading paths and
+  // internal links than showing every post the same three.
+  const others = posts.filter((p) => p.slug !== post.slug);
+  const related = [...others.filter((p) => p.category === post.category), ...others.filter((p) => p.category !== post.category)].slice(0, 3);
+  // Search title/description: the og-data entry is written to fit result
+  // snippets (≤60 / ≤160 chars); the on-page title and excerpt can run longer.
+  const og = ogFor(`/blog/${post.slug}`);
+  const faq = faqLd(post.content);
 
   return (
     // Signed-in editors get the same block builder the pages have. Blocks are
@@ -219,8 +226,9 @@ const BlogPost = () => {
     <PageStylesContext.Provider value={styles}>
     <div className="min-h-screen flex flex-col bg-background">
       <div className="read-progress" style={{ transform: `scaleX(${progress})` }} aria-hidden />
-      <SeoHead title={f.title ?? post.title} description={f.excerpt ?? post.excerpt} image={post.image} />
+      <SeoHead title={f.title ?? og?.title ?? post.title} description={f.excerpt ?? og?.description ?? post.excerpt} image={post.image} />
       <JsonLd data={blogPostingLd({ ...post, title: f.title ?? post.title, excerpt: f.excerpt ?? post.excerpt })} />
+      {faq && <JsonLd data={faq} />}
       <JsonLd data={breadcrumbLd([{ name: "News", path: "/news" }, { name: f.title ?? post.title, path: `/blog/${post.slug}` }])} />
       <Navbar />
       <main className="flex-1 pt-28 pb-16">

@@ -37,10 +37,13 @@ export const homeLd = () => ({
   ],
 });
 
-export const blogPostingLd = (post: Pick<BlogPost, "slug" | "title" | "excerpt" | "date" | "author" | "image">) => {
+export const blogPostingLd = (
+  post: Pick<BlogPost, "slug" | "title" | "excerpt" | "date" | "author" | "image"> & Partial<Pick<BlogPost, "category" | "content">>,
+) => {
   const url = `${SITE_ORIGIN}/blog/${post.slug}`;
   const image = absoluteUrl(post.image);
   const published = isoDate(post.date);
+  const words = post.content ? plainText(post.content).split(/\s+/).filter(Boolean).length : 0;
   return {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
@@ -48,8 +51,12 @@ export const blogPostingLd = (post: Pick<BlogPost, "slug" | "title" | "excerpt" 
     description: post.excerpt,
     url,
     mainEntityOfPage: url,
+    inLanguage: "en-US",
+    ...(post.category ? { articleSection: post.category } : {}),
+    ...(words ? { wordCount: words } : {}),
     ...(image ? { image } : {}),
-    ...(published ? { datePublished: published } : {}),
+    // No separate edit history is kept, so modified = published.
+    ...(published ? { datePublished: published, dateModified: published } : {}),
     author: /electrifying/i.test(post.author || "")
       ? ORGANIZATION
       : { "@type": "Person", name: post.author || SITE_NAME },
@@ -131,3 +138,37 @@ export const webApplicationLd = (path: string, name: string, description: string
   offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
   publisher: ORGANIZATION,
 });
+
+/**
+ * FAQPage from a post's "## Frequently Asked Questions" section: each "### "
+ * heading is a question and the text under it, up to the next heading, is the
+ * answer. Returns null when the post has no such section.
+ */
+export const faqLd = (markdown: string) => {
+  const md = markdown.replace(/\r\n/g, "\n");
+  const start = md.search(/^##\s+(Frequently Asked Questions|FAQs?)\s*$/im);
+  if (start < 0) return null;
+  const rest = md.slice(start).split("\n").slice(1).join("\n");
+  const section = rest.split(/^##\s/m)[0];
+  const qa = section.split(/^###\s+/m).slice(1).map((block) => {
+    const [q, ...body] = block.split("\n");
+    const answer = plainText(
+      body.join("\n")
+        // A trailing bold call-to-action line belongs to the page, not the answer.
+        .replace(/^\*\*.*\*\*\s*$/gm, "")
+        // Markdown links → their text; schema answers are plain text.
+        .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1"),
+    );
+    return { q: q.trim(), answer };
+  }).filter((x) => x.q && x.answer);
+  if (qa.length === 0) return null;
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: qa.map(({ q, answer }) => ({
+      "@type": "Question",
+      name: q,
+      acceptedAnswer: { "@type": "Answer", text: answer },
+    })),
+  };
+};
